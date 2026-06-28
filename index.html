@@ -153,6 +153,7 @@
             </div>
             <div class="button-row">
               <a class="ghost-link" href="#dashboard">Quadro</a>
+              <span class="bot-active-badge" id="activeBotLevelBadge">Bot L2</span>
               <button class="ghost-action" id="undoMoveBtn" type="button">Indietro</button>
               <button class="ghost-action" id="resetBoardBtn" type="button">Reset</button>
               <button class="primary-action" id="reviewGameBtn" type="button">Rivedi partita</button>
@@ -268,6 +269,7 @@
                   <span>Scegli livello</span>
                   <select id="botLevelSelect" aria-label="Scegli livello bot"></select>
                 </label>
+                <button class="primary-action wide-action" id="applyBotLevelBtn" type="button">Applica livello e nuova partita</button>
               </article>
               <article class="tool-card">
                 <h2>Pattern errori</h2>
@@ -632,5 +634,6 @@
     </div>
 
     <script src="app.js?v=chess-level-elo-review-20260628"></script>
+    <script src="chess-tuning-overrides.js?v=bot-level-review-20260628"></script>
   </body>
 </html>
