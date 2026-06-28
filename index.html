@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Metodo Integrale</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Navigazione principale">
+        <a class="brand" href="#dashboard" aria-label="Vai al quadro">
+          <span class="brand-mark">MI</span>
+          <span>
+            <strong>Metodo Integrale</strong>
+            <small>Dashboard personale</small>
+          </span>
+        </a>
+
+        <nav class="nav-list">
+          <a href="#dashboard" class="nav-link active" data-route="dashboard">Quadro</a>
+          <a href="#chess" class="nav-link" data-route="chess">Scacchi</a>
+          <a href="#scenarios" class="nav-link" data-route="scenarios">Scenari</a>
+          <a href="#culture" class="nav-link" data-route="culture">Cultura</a>
+          <a href="#planning" class="nav-link" data-route="planning">Piani</a>
+          <a href="#defense" class="nav-link" data-route="defense">Difesa</a>
+          <a href="#logic" class="nav-link" data-route="logic">Logica</a>
+          <a href="#memory" class="nav-link" data-route="memory">Memoria</a>
+          <a href="#influence" class="nav-link" data-route="influence">Influenza</a>
+          <a href="#aesthetic" class="nav-link" data-route="aesthetic">Estetica</a>
+        </nav>
+
+        <div class="side-note">
+          <span class="note-label">Sistema</span>
+          <p>Ogni modalita' aggiorna il quadro: punteggio, rango, punti deboli e prossima azione.</p>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <section id="dashboard" class="page active-page">
+          <div class="page-heading hero-heading">
+            <div>
+              <p class="eyebrow">Quadro generale</p>
+              <h1>Dashboard delle modalita' e stato personale.</h1>
+            </div>
+            <button class="primary-action" id="generateDayBtn" type="button">Genera oggi</button>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="summary-card score-panel">
+              <div class="score-ring" aria-label="Indice generale">
+                <span id="disciplineScore">42</span>
+                <small>indice</small>
+              </div>
+              <div>
+                <h2>Situazione</h2>
+                <p id="profileSummary">Completa prove nelle modalita' e il quadro iniziera' a leggere i tuoi pattern.</p>
+              </div>
+            </article>
+
+            <article class="summary-card radar-panel">
+              <div class="panel-title-row">
+                <h2>Profilo generale</h2>
+                <span class="rank-badge" id="overallRank">C</span>
+              </div>
+              <svg id="abilityRadar" class="ability-radar" viewBox="0 0 380 380" role="img" aria-label="Radar profilo generale"></svg>
+              <div id="abilityList" class="ability-list"></div>
+            </article>
+
+            <article class="summary-card">
+              <div class="panel-title-row">
+                <h2>Sessione di oggi</h2>
+                <button class="ghost-action" id="completeDayBtn" type="button">Segna fatta</button>
+              </div>
+              <ul class="task-list" id="todayTasks"></ul>
+            </article>
+
+            <article class="summary-card">
+              <h2>Riepilogo finale</h2>
+              <div id="finalRecap" class="recap-box">Allenati in almeno 3 modalita' per ricevere un riepilogo utile.</div>
+            </article>
+
+            <article class="summary-card">
+              <h2>Categorie generali</h2>
+              <div id="globalParamList" class="metric-list"></div>
+            </article>
+          </div>
+
+          <div class="mode-grid" aria-label="Modalita disponibili">
+            <a class="mode-card" href="#chess">
+              <span>01</span>
+              <strong>Scacchi</strong>
+              <p>Bot adattivo, errori ricorrenti e revisione mossa per mossa.</p>
+              <div class="mini-indicators" id="chessCardIndicators"></div>
+            </a>
+            <a class="mode-card" href="#scenarios">
+              <span>02</span>
+              <strong>Scenari</strong>
+              <p>Situazioni complesse con risposta libera e metriche profonde.</p>
+              <div class="mini-indicators" id="scenariosCardIndicators"></div>
+            </a>
+            <a class="mode-card" href="#culture">
+              <span>03</span>
+              <strong>Cultura generale</strong>
+              <p>Argomenti completi, difficolta' e domanda di verifica.</p>
+              <div class="mini-indicators" id="cultureCardIndicators"></div>
+            </a>
+            <a class="mode-card" href="#planning">
+              <span>04</span>
+              <strong>Piani strategici</strong>
+              <p>Obiettivi random o tuoi, valutazione e miglioramento.</p>
+              <div class="mini-indicators" id="planningCardIndicators"></div>
+            </a>
+            <a class="mode-card" href="#defense">
+              <span>05</span>
+              <strong>Difesa personale</strong>
+              <p>Mosse semplici, progressione tecnica e riflessi.</p>
+              <div class="mini-indicators" id="defenseCardIndicators"></div>
+            </a>
+            <a class="mode-card" href="#logic">
+              <span>06</span>
+              <strong>Logica</strong>
+              <p>Indovinelli a scelta multipla con spiegazione.</p>
+              <div class="mini-indicators" id="logicCardIndicators"></div>
+            </a>
+            <a class="mode-card" href="#memory">
+              <span>07</span>
+              <strong>Memoria</strong>
+              <p>Sequenze, parole e richiamo attivo per ricordare meglio.</p>
+              <div class="mini-indicators" id="memoryCardIndicators"></div>
+            </a>
+            <a class="mode-card" href="#influence">
+              <span>08</span>
+              <strong>Influenza</strong>
+              <p>Tattiche sociali, scenari fittizi e uso etico della leva.</p>
+              <div class="mini-indicators" id="influenceCardIndicators"></div>
+            </a>
+            <a class="mode-card" href="#aesthetic">
+              <span>09</span>
+              <strong>Estetica</strong>
+              <p>Routine look, cura personale, capelli, barba e stile.</p>
+              <div class="mini-indicators" id="aestheticCardIndicators"></div>
+            </a>
+          </div>
+        </section>
+
+        <section id="chess" class="page">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Scacchi</p>
+              <h1>Partita, coach e revisione assistita.</h1>
+              <p class="page-subtitle">Allena lucidita', calcolo, concentrazione, pianificazione e gestione degli errori.</p>
+            </div>
+            <div class="button-row">
+              <a class="ghost-link" href="#dashboard">Quadro</a>
+              <button class="ghost-action" id="undoMoveBtn" type="button">Indietro</button>
+              <button class="ghost-action" id="resetBoardBtn" type="button">Reset</button>
+              <button class="primary-action" id="reviewGameBtn" type="button">Rivedi partita</button>
+            </div>
+          </div>
+
+          <div class="chess-layout">
+            <div class="board-wrap">
+              <div class="board-status">
+                <span id="turnStatus">Tocca a te</span>
+                <span id="evalStatus">Valutazione 0.0</span>
+              </div>
+              <div class="chess-board" id="chessBoard" aria-label="Scacchiera interattiva"></div>
+              <button class="ghost-action wide-action" id="exitReviewBtn" type="button">Torna alla posizione attuale</button>
+            </div>
+
+            <div class="coach-column">
+              <article class="tool-card">
+                <h2>Coach</h2>
+                <p id="coachMessage">Sviluppa i pezzi, controlla il centro e prima di muovere chiediti cosa minaccia l'avversario.</p>
+              </article>
+
+              <article class="tool-card chess-report-card">
+                <div class="panel-title-row">
+                  <h2>Report partita</h2>
+                  <span class="rank-badge" id="chessReportResult">In corso</span>
+                </div>
+                <div class="report-score-grid">
+                  <div class="report-score">
+                    <span>Precisione giocatore</span>
+                    <strong id="playerAccuracy">--</strong>
+                  </div>
+                  <div class="report-score">
+                    <span>Precisione bot</span>
+                    <strong id="botAccuracy">--</strong>
+                  </div>
+                </div>
+                <div class="report-meta-grid">
+                  <div class="report-meta-item">
+                    <span>Bot</span>
+                    <strong id="reportBotLevel">Livello --</strong>
+                  </div>
+                  <div class="report-meta-item">
+                    <span>Elo stimato</span>
+                    <strong id="reportBotElo">--</strong>
+                  </div>
+                  <div class="report-meta-item">
+                    <span>Game rating</span>
+                    <strong id="reportGameRating">--</strong>
+                  </div>
+                  <div class="report-meta-item">
+                    <span>Fase</span>
+                    <strong id="reportPhase">--</strong>
+                  </div>
+                  <div class="report-meta-item">
+                    <span>Mosse</span>
+                    <strong id="reportMoveCount">0</strong>
+                  </div>
+                </div>
+                <svg id="evalSparkline" class="eval-sparkline" viewBox="0 0 360 120" role="img" aria-label="Grafico andamento valutazione"></svg>
+                <div id="moveClassificationCounts" class="classification-counts"></div>
+                <div id="accuracyBreakdown" class="report-note">Precisione calcolata da: nessuna mossa ancora giocata.</div>
+                <div id="reportMainPattern" class="report-note">Pattern principale: nessun dato.</div>
+                <div id="chessReportMessage" class="analysis-box">Gioca o rivedi una partita per ottenere un report sintetico.</div>
+                <button class="primary-action wide-action" id="startReviewFromReportBtn" type="button">Inizia revisione</button>
+              </article>
+
+              <article class="tool-card review-card">
+                <div class="panel-title-row">
+                  <h2>Revisione mossa per mossa</h2>
+                  <span class="rank-badge" id="reviewAccuracy">--</span>
+                </div>
+                <svg id="reviewEvalSparkline" class="eval-sparkline review-eval-sparkline" viewBox="0 0 360 120" role="img" aria-label="Grafico andamento valutazione in revisione"></svg>
+                <div class="eval-review-bar" aria-label="Barra valutazione">
+                  <div id="reviewEvalFill" class="eval-review-fill"></div>
+                </div>
+                <div class="review-controls">
+                  <button class="ghost-action" id="reviewStartBtn" type="button">Inizio</button>
+                  <button class="ghost-action" id="reviewPrevBtn" type="button">Indietro</button>
+                  <span id="reviewPlyText" class="review-ply-text">--</span>
+                  <button class="ghost-action" id="reviewNextBtn" type="button">Avanti</button>
+                  <button class="ghost-action" id="reviewEndBtn" type="button">Fine</button>
+                  <button class="ghost-action review-key-toggle" id="reviewKeyMomentsBtn" type="button">Mostra solo momenti chiave</button>
+                  <button class="ghost-action" id="reviewNextErrorBtn" type="button">Prossimo errore</button>
+                  <button class="ghost-action" id="reviewShowBestBtn" type="button">Mostra mossa migliore</button>
+                  <button class="ghost-action" id="reviewShowLineBtn" type="button">Mostra linea consigliata</button>
+                </div>
+                <div class="review-detail-grid">
+                  <div class="analysis-box review-coach-box">
+                    <div class="coach-avatar" aria-hidden="true">C</div>
+                    <div>
+                      <strong id="reviewMoveTitle">Nessuna mossa selezionata</strong>
+                      <p id="reviewCoachPanel" class="review-coach-text">Avvia la revisione per vedere commento, pattern e drill della mossa.</p>
+                    </div>
+                  </div>
+                  <div class="analysis-box">
+                    <p><strong>Mossa migliore:</strong> <span id="reviewBestMove">-</span></p>
+                    <p><strong>Differenza dalla migliore:</strong> <span id="reviewBestDiff">-</span></p>
+                    <p><strong>Variante:</strong> <span id="reviewVariation">-</span></p>
+                    <p><strong>Pattern:</strong> <span id="reviewPattern">-</span></p>
+                    <p><strong>Drill:</strong> <span id="reviewDrill">-</span></p>
+                    <p><strong>Meta review:</strong> <span id="reviewMeta">-</span></p>
+                  </div>
+                </div>
+                <div id="gameAnalysis" class="analysis-box">Finisci una partita o premi Rivedi partita per analizzare le mosse gia' giocate.</div>
+                <div id="moveReviewList" class="move-review-list"></div>
+              </article>
+
+              <article class="tool-card">
+                <h2>Livello bot</h2>
+                <p id="botLevelText">Scegli manualmente il livello del bot: la partita successiva usera' questa difficolta'.</p>
+                <label class="bot-level-control" for="botLevelSelect">
+                  <span>Scegli livello</span>
+                  <select id="botLevelSelect" aria-label="Scegli livello bot"></select>
+                </label>
+              </article>
+              <article class="tool-card">
+                <h2>Pattern errori</h2>
+                <div id="mistakeTags" class="tag-list"></div>
+              </article>
+              <article class="tool-card">
+                <h2>Drill consigliato</h2>
+                <p id="chessDrill">Gioca 5 mosse lente: prima di ogni mossa trova una minaccia per entrambi i lati.</p>
+                <div class="chess-drill-panel">
+                  <h3>Drill consigliati</h3>
+                  <div id="chessExerciseList" class="chess-exercise-list">Completa una review Stockfish per generare esercizi dagli errori.</div>
+                  <div id="chessDrillBoard" class="mini-chess-board" aria-label="Posizione del drill"></div>
+                  <label class="free-answer-label" for="chessDrillAnswer">
+                    Trova la mossa migliore
+                    <input id="chessDrillAnswer" type="text" placeholder="Esempio: e2e4">
+                  </label>
+                  <div class="button-row left-actions">
+                    <button class="primary-action" id="chessCheckDrillBtn" type="button">Controlla</button>
+                    <button class="ghost-action" id="chessHintDrillBtn" type="button">Mostra indizio</button>
+                    <button class="ghost-action" id="chessSolutionDrillBtn" type="button">Mostra soluzione</button>
+                    <button class="ghost-action" id="chessNextDrillBtn" type="button">Prossimo drill</button>
+                    <button class="ghost-action" id="chessRetryDrillBtn" type="button">Riprova</button>
+                  </div>
+                  <div id="chessDrillFeedback" class="analysis-box">Nessun drill caricato.</div>
+                  <div id="chessWeakThemes" class="analysis-box">Temi tattici piu' deboli: in attesa di analisi.</div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <article class="tool-card full-card module-status chess-profile-panel">
+            <h2>Profilo scacchi</h2>
+            <svg id="chessModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar scacchi"></svg>
+            <div id="chessModuleMetrics" class="metric-list"></div>
+            <div id="chessPatternBox" class="analysis-box">Pattern: in attesa di mosse.</div>
+            <div id="chessTrainingBox" class="analysis-box">Allenamento: completa una partita lenta.</div>
+          </article>
+        </section>
+
+        <section id="scenarios" class="page">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Scenari sociali</p>
+              <h1>Risposta libera, situazione complessa, valutazione profonda.</h1>
+              <p class="page-subtitle">Allena lettura contesto, controllo emotivo, tempismo, rischio e piano B.</p>
+            </div>
+            <div class="button-row">
+              <a class="ghost-link" href="#dashboard">Quadro</a>
+              <button class="primary-action" id="newScenarioBtn" type="button">Nuovo scenario</button>
+            </div>
+          </div>
+
+          <div class="two-column">
+            <article class="tool-card">
+              <span class="scenario-type" id="scenarioType">Osservazione</span>
+              <h2 id="scenarioTitle">Caricamento scenario</h2>
+              <p id="scenarioText"></p>
+              <label class="free-answer-label" for="scenarioFreeAnswer">
+                La tua risposta
+                <textarea id="scenarioFreeAnswer" rows="9" placeholder="Scrivi cosa faresti, cosa diresti, cosa osservi, quale rischio prevedi e qual e' il tuo piano B."></textarea>
+              </label>
+              <div class="button-row left-actions">
+                <button class="primary-action" id="analyzeScenarioBtn" type="button">Analizza risposta</button>
+                <button class="ghost-action" id="showScenarioModelBtn" type="button">Mostra modello</button>
+              </div>
+            </article>
+            <article class="tool-card">
+              <h2>Analisi</h2>
+              <div id="scenarioFeedback" class="analysis-box">Scrivi una risposta libera: il coach valutera' lucidita', rischio, tempismo, etica, assertivita' e piano B.</div>
+              <div class="social-bars" id="scenarioBars"></div>
+            </article>
+            <article class="tool-card module-status">
+              <h2>Profilo scenari</h2>
+              <svg id="scenariosModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar scenari"></svg>
+              <div id="scenariosModuleMetrics" class="metric-list"></div>
+              <div id="scenariosPatternBox" class="analysis-box">Pattern: rispondi a uno scenario per iniziare.</div>
+              <div id="scenariosTrainingBox" class="analysis-box">Allenamento: includi sempre contesto, rischio e piano B.</div>
+            </article>
+          </div>
+        </section>
+
+        <section id="culture" class="page">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Cultura generale</p>
+              <h1>Argomenti completi spiegati dall'inizio alla fine.</h1>
+              <p class="page-subtitle">Allena conoscenza, collegamenti, comprensione e ripasso programmato.</p>
+            </div>
+            <div class="button-row">
+              <a class="ghost-link" href="#dashboard">Quadro</a>
+              <button class="primary-action" id="newTopicBtn" type="button">Argomento random</button>
+            </div>
+          </div>
+
+          <div class="two-column wide-main">
+            <article class="tool-card reading-card">
+              <div class="topic-meta">
+                <span class="scenario-type" id="topicArea">Storia</span>
+                <span class="difficulty-badge" id="topicDifficulty">Difficolta' 1/10</span>
+              </div>
+              <h2 id="topicTitle">Premi Argomento random</h2>
+              <div id="topicBrief" class="topic-body">Ogni scheda contiene contesto, spiegazione, esempio e perche' l'argomento conta.</div>
+              <div class="question-box">
+                <strong>Domanda di verifica</strong>
+                <p id="topicQuestion">Quale area vuoi rendere meno debole oggi?</p>
+                <p id="topicAnswer" class="small-note">La risposta spiegata comparira' con l'argomento.</p>
+              </div>
+              <button class="ghost-action" id="markTopicBtn" type="button">Segna studiato</button>
+            </article>
+            <article class="tool-card">
+              <h2>Archivio studiato</h2>
+              <ul id="studiedList" class="studied-list"></ul>
+              <h2>Ripasso programmato</h2>
+              <ul id="reviewList" class="studied-list"></ul>
+              <h2>Profilo cultura</h2>
+              <svg id="cultureModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar cultura"></svg>
+              <div id="cultureModuleMetrics" class="metric-list"></div>
+              <div id="culturePatternBox" class="analysis-box">Pattern: studia un argomento e programma ripasso.</div>
+              <div id="cultureTrainingBox" class="analysis-box">Allenamento: riassumi il tema in 5 frasi senza guardare.</div>
+            </article>
+          </div>
+        </section>
+
+        <section id="planning" class="page">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Piani strategici</p>
+              <h1>Obiettivo tuo o assegnato, piano tuo, valutazione del sistema.</h1>
+              <p class="page-subtitle">Allena pianificazione, gestione rischio, sostenibilita' e misurazione.</p>
+            </div>
+            <div class="button-row">
+              <a class="ghost-link" href="#dashboard">Quadro</a>
+              <button class="primary-action" id="newGoalBtn" type="button">Obiettivo random</button>
+            </div>
+          </div>
+
+          <div class="two-column">
+            <form class="tool-card planner-form" id="plannerForm">
+              <label>
+                Obiettivo
+                <textarea id="goalInput" rows="5" placeholder="Scrivi un tuo obiettivo oppure usa Obiettivo random."></textarea>
+              </label>
+              <label>
+                Il tuo piano
+                <textarea id="planInput" rows="12" placeholder="Scrivi passaggi, tempi, rischi, risorse, piano B e come misuri se sta funzionando."></textarea>
+              </label>
+              <div class="button-row left-actions">
+                <button class="ghost-action" id="clearGoalBtn" type="button">Obiettivo mio</button>
+                <button class="primary-action" id="analyzePlanBtn" type="button">Valuta piano</button>
+              </div>
+            </form>
+            <article class="tool-card">
+              <h2>Valutazione e miglioramento</h2>
+              <div id="planScore" class="plan-score">Scrivi un piano e fallo valutare.</div>
+              <ol id="planSteps" class="plan-steps"></ol>
+              <h2>Profilo pianificazione</h2>
+              <svg id="planningModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar pianificazione"></svg>
+              <div id="planningModuleMetrics" class="metric-list"></div>
+              <div id="planningPatternBox" class="analysis-box">Pattern: scrivi un piano per ricevere diagnosi.</div>
+              <div id="planningTrainingBox" class="analysis-box">Allenamento: usa sempre obiettivo, fasi, rischi, metrica.</div>
+            </article>
+          </div>
+        </section>
+
+        <section id="defense" class="page">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Difesa personale</p>
+              <h1>Mosse, esercizi progressivi e riflessi.</h1>
+              <p class="page-subtitle">Allena guardia, distanza, footwork, difesa responsabile e reazione a stimoli.</p>
+            </div>
+            <div class="button-row">
+              <a class="ghost-link" href="#dashboard">Quadro</a>
+              <button class="primary-action" id="newDefenseBtn" type="button">Drill random</button>
+            </div>
+          </div>
+
+          <div class="two-column">
+            <article class="tool-card">
+              <div class="panel-title-row">
+                <h2 id="defenseTitle">Guardia base</h2>
+                <span class="rank-badge" id="defenseLevelText">Livello 1</span>
+              </div>
+              <p id="defenseText">Allenamento progressivo e controllato.</p>
+              <ol id="defenseSteps" class="plan-steps"></ol>
+              <div class="button-row left-actions">
+                <button class="ghost-action" id="startTimerBtn" type="button">Timer 30s</button>
+                <button class="ghost-action" id="levelUpDefenseBtn" type="button">Aumenta livello</button>
+              </div>
+              <div class="timer-display" id="timerDisplay">00:30</div>
+            </article>
+
+            <article class="tool-card">
+              <h2>Gioco riflessi</h2>
+              <p id="reflexInstruction">Premi start: completa 5 bersagli. Ai livelli alti compaiono distrattori.</p>
+              <div class="reflex-arena" id="reflexArena">
+                <button class="reflex-target" id="reflexTarget" type="button" aria-label="Bersaglio riflessi"></button>
+                <button class="reflex-decoy" id="reflexDecoy" type="button" aria-label="Distrattore riflessi"></button>
+              </div>
+              <div class="button-row left-actions">
+                <button class="primary-action" id="startReflexBtn" type="button">Start riflessi</button>
+              </div>
+              <p class="small-note" id="reflexResult">Miglior tempo: nessuno.</p>
+            </article>
+            <article class="tool-card module-status">
+              <h2>Profilo difesa</h2>
+              <svg id="defenseModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar difesa"></svg>
+              <div id="defenseModuleMetrics" class="metric-list"></div>
+              <div id="defensePatternBox" class="analysis-box">Pattern: completa drill e riflessi per vedere punti deboli.</div>
+              <div id="defenseTrainingBox" class="analysis-box">Allenamento: guardia, distanza, footwork, difesa responsabile.</div>
+            </article>
+          </div>
+        </section>
+
+        <section id="logic" class="page">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Logica</p>
+              <h1>Indovinelli e deduzione a risposta multipla.</h1>
+              <p class="page-subtitle">Allena ragionamento, flessibilita' mentale e qualita' della spiegazione.</p>
+            </div>
+            <div class="button-row">
+              <a class="ghost-link" href="#dashboard">Quadro</a>
+              <button class="primary-action" id="newRiddleBtn" type="button">Nuovo indovinello</button>
+            </div>
+          </div>
+
+          <div class="two-column">
+            <article class="tool-card">
+              <span class="scenario-type" id="riddleType">Logica</span>
+              <h2 id="riddleTitle">Premi Nuovo indovinello</h2>
+              <p id="riddleText"></p>
+              <div id="riddleOptions" class="option-list"></div>
+            </article>
+            <article class="tool-card">
+              <h2>Spiegazione</h2>
+              <p id="riddleFeedback">Scegli una risposta e vedrai il ragionamento.</p>
+              <div class="metric-list" id="logicStats"></div>
+              <h2>Profilo logica</h2>
+              <svg id="logicModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar logica"></svg>
+              <div id="logicModuleMetrics" class="metric-list"></div>
+              <div id="logicPatternBox" class="analysis-box">Pattern: risolvi indovinelli per misurare ragionamento.</div>
+              <div id="logicTrainingBox" class="analysis-box">Allenamento: spiega sempre il perche' della risposta.</div>
+            </article>
+          </div>
+        </section>
+
+        <section id="memory" class="page">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Memoria</p>
+              <h1>Richiamo attivo, sequenze e parole.</h1>
+              <p class="page-subtitle">Allena sequenze, parole, posizioni, griglie e controllo della distrazione.</p>
+            </div>
+            <div class="button-row">
+              <a class="ghost-link" href="#dashboard">Quadro</a>
+              <button class="primary-action" id="newMemoryBtn" type="button">Nuovo esercizio</button>
+            </div>
+          </div>
+
+          <div class="two-column">
+            <article class="tool-card">
+              <span class="scenario-type" id="memoryType">Sequenza</span>
+              <h2 id="memoryTitle">Premi Nuovo esercizio</h2>
+              <div id="memoryStimulus" class="memory-stimulus">Pronto?</div>
+              <div id="memoryGrid" class="memory-grid" aria-label="Griglia memoria"></div>
+              <label class="free-answer-label" for="memoryAnswer">
+                Risposta
+                <textarea id="memoryAnswer" rows="4" placeholder="Scrivi cio' che ricordi, nello stesso ordine."></textarea>
+              </label>
+              <div class="button-row left-actions">
+                <button class="ghost-action" id="hideMemoryBtn" type="button">Nascondi</button>
+                <button class="primary-action" id="checkMemoryBtn" type="button">Controlla</button>
+              </div>
+            </article>
+            <article class="tool-card">
+              <h2>Feedback memoria</h2>
+              <div id="memoryFeedback" class="analysis-box">Gli esercizi diventano piu' difficili quando migliori.</div>
+              <div id="memoryStats" class="metric-list"></div>
+              <h2>Profilo memoria</h2>
+              <svg id="memoryModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar memoria"></svg>
+              <div id="memoryModuleMetrics" class="metric-list"></div>
+              <div id="memoryPatternBox" class="analysis-box">Pattern: ordine, omissioni, inversioni e distrazioni.</div>
+              <div id="memoryTrainingBox" class="analysis-box">Allenamento: usa chunking e richiamo attivo.</div>
+            </article>
+          </div>
+        </section>
+
+        <section id="influence" class="page">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Influenza e tattiche</p>
+              <h1>Capire leve sociali, usarle in modo pulito, riconoscere abusi.</h1>
+              <p class="page-subtitle">Allena negoziazione, framing, obiezioni, confini e influenza strategica pulita.</p>
+            </div>
+            <div class="button-row">
+              <a class="ghost-link" href="#dashboard">Quadro</a>
+              <button class="primary-action" id="newInfluenceBtn" type="button">Nuova tattica</button>
+            </div>
+          </div>
+
+          <div class="two-column">
+            <article class="tool-card">
+              <span class="scenario-type" id="influenceCategory">Tattica</span>
+              <h2 id="influenceTitle">Caricamento tattica</h2>
+              <div id="influenceLesson" class="topic-body"></div>
+              <div class="question-box">
+                <strong>Scenario fittizio</strong>
+                <p id="influenceScenario"></p>
+              </div>
+              <label class="free-answer-label" for="influenceAnswer">
+                Come la useresti senza abuso?
+                <textarea id="influenceAnswer" rows="7" placeholder="Scrivi una strategia pulita: obiettivo, leva, confini, rischio e frase concreta."></textarea>
+              </label>
+              <button class="primary-action" id="analyzeInfluenceBtn" type="button">Valuta strategia</button>
+            </article>
+            <article class="tool-card">
+              <h2>Valutazione tattica</h2>
+              <div id="influenceFeedback" class="analysis-box">Qui vedrai se stai usando influenza, pressione o confusione.</div>
+              <div id="influenceMetrics" class="metric-list"></div>
+              <h2>Profilo influenza</h2>
+              <svg id="influenceModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar influenza"></svg>
+              <div id="influenceModuleMetrics" class="metric-list"></div>
+              <div id="influencePatternBox" class="analysis-box">Pattern: obiettivo, trasparenza, confini, rischio.</div>
+              <div id="influenceTrainingBox" class="analysis-box">Allenamento: usa leve pulite e riconosci abusi.</div>
+            </article>
+          </div>
+        </section>
+
+        <section id="aesthetic" class="page">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Miglioramento estetico</p>
+              <h1>Look, cura personale, capelli, barba e presenza.</h1>
+              <p class="page-subtitle">Allena cura, coerenza, postura, stile, sostenibilita' e costanza.</p>
+            </div>
+            <div class="button-row">
+              <a class="ghost-link" href="#dashboard">Quadro</a>
+              <button class="primary-action" id="newStyleTipBtn" type="button">Consiglio random</button>
+            </div>
+          </div>
+
+          <div class="two-column">
+            <article class="tool-card">
+              <h2>Checklist oggi</h2>
+              <div id="aestheticChecklist" class="checklist"></div>
+              <button class="primary-action wide-action" id="saveAestheticBtn" type="button">Aggiorna estetica</button>
+            </article>
+            <article class="tool-card">
+              <h2>Consiglio verificato</h2>
+              <div id="styleTip" class="topic-body">Parti da igiene, taglio capelli adatto, barba curata, vestiti della taglia giusta, postura e sonno.</div>
+              <div id="aestheticScore" class="plan-score">Punteggio estetica: --</div>
+              <h2>Profilo estetica</h2>
+              <svg id="aestheticModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar estetica"></svg>
+              <div id="aestheticModuleMetrics" class="metric-list"></div>
+              <div id="aestheticPatternBox" class="analysis-box">Pattern: cura, coerenza, postura, sonno.</div>
+              <div id="aestheticTrainingBox" class="analysis-box">Allenamento: completa checklist 5 giorni di fila.</div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js?v=chess-level-elo-review-20260628"></script>
+  </body>
+</html>
