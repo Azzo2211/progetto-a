@@ -1,0 +1,7 @@
+.chrome-*/
+node_modules/
+dist/
+build/
+.next/
+*.log
+backup-prima-fix-scacchi-*/
