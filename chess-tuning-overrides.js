@@ -14,6 +14,40 @@
     return { ...base, ...(tuned[active] || {}) };
   }
 
+  function getLevelOptionsHtml() {
+    return botLevels
+      .map((item) => item.level)
+      .sort((a, b) => a - b)
+      .map((level) => {
+        const profile = getBotProfile(level);
+        return `<option value="${level}">Livello ${level} - ${profile.label} - ${profile.displayElo || profile.elo} Elo</option>`;
+      })
+      .join("");
+  }
+
+  function ensureHeaderBotLevelSelect() {
+    const badge = document.getElementById("activeBotLevelBadge");
+    if (!badge || document.getElementById("headerBotLevelSelect")) return;
+    const select = document.createElement("select");
+    select.id = "headerBotLevelSelect";
+    select.className = "bot-level-header-select";
+    select.setAttribute("aria-label", "Scegli livello bot");
+    select.addEventListener("change", handleBotLevelChange);
+    badge.replaceWith(select);
+  }
+
+  function syncBotLevelSelects(activeLevel) {
+    const levelsKey = botLevels.map((item) => item.level).sort((a, b) => a - b).join("|");
+    [document.getElementById("botLevelSelect"), document.getElementById("headerBotLevelSelect")].forEach((select) => {
+      if (!select) return;
+      if (select.dataset.optionsKey !== levelsKey) {
+        select.innerHTML = getLevelOptionsHtml();
+        select.dataset.optionsKey = levelsKey;
+      }
+      select.value = String(pendingBotLevel || activeLevel);
+    });
+  }
+
   window.getBotLevelConfig = function getBotLevelConfig(level) {
     return tunedLevel(level);
   };
@@ -140,6 +174,7 @@
   };
 
   window.renderBotLevel = function renderBotLevel() {
+    ensureHeaderBotLevelSelect();
     const level = getActiveBotLevel(state.chess.botLevel || 1);
     if (state.chess.botLevel !== level && !isStockfishEngineInitializing()) {
       state.chess.botLevel = level;
@@ -154,34 +189,22 @@
     const averageAccuracy = accuracyGames ? Math.round(stats.accuracySum / accuracyGames) : 0;
     const engineStatus = getEngineStatusText();
     const engineNotice = isStockfishEngineEnabled() ? "" : `<br><strong>${STOCKFISH_REQUIRED_NOTICE}</strong>`;
-    const badge = document.getElementById("activeBotLevelBadge");
-    if (badge) badge.textContent = `Bot L${level} - ${profile.displayElo || profile.elo}`;
     document.getElementById("botLevelText").innerHTML = `Livello ${level} - ${profile.displayElo || profile.elo} Elo stimato, ${profile.label}.<br>${profile.description || config.description || "Livello Stockfish calibrato."}<br>Modalita': ${spec.mode}; skill ${config.skillLevel}; depth ${spec.depth}; budget ${spec.moveTimeMs || spec.timeMs} ms; Top-${spec.topN}.<br>Errori target: mistake ${config.mistakeRatePercent}%, blunder ${config.blunderRatePercent}%, candidate inferiore ${config.randomMovePercent}%.<br>Motore: ${engineStatus}.<br>Record contro questo livello: ${stats.wins} vittorie, ${stats.losses} sconfitte, ${stats.draws} patte.<br>Range target futuro: ${targetMin}-${targetMax}%. Media reale engine-based: ${accuracyGames ? `${averageAccuracy}%` : "non disponibile"}.${engineNotice}`;
     renderBotLevelOptions(level);
   };
 
   window.renderBotLevelOptions = function renderBotLevelOptions(activeLevel) {
-    const select = document.getElementById("botLevelSelect");
-    if (!select) return;
-    const levels = botLevels.map((item) => item.level).sort((a, b) => a - b);
-    const optionsKey = levels.join("|");
-    if (select.dataset.optionsKey !== optionsKey) {
-      select.innerHTML = levels.map((level) => {
-        const profile = getBotProfile(level);
-        return `<option value="${level}">Livello ${level} - ${profile.label} - ${profile.displayElo || profile.elo} Elo</option>`;
-      }).join("");
-      select.dataset.optionsKey = optionsKey;
-    }
-    select.value = String(pendingBotLevel || activeLevel);
+    syncBotLevelSelects(activeLevel);
   };
 
   window.handleBotLevelChange = function handleBotLevelChange(event) {
     pendingBotLevel = getActiveBotLevel(Number(event.target.value));
+    syncBotLevelSelects(state.chess.botLevel || 1);
     renderBotLevelPreview(pendingBotLevel);
   };
 
   window.applySelectedBotLevel = function applySelectedBotLevel() {
-    const select = document.getElementById("botLevelSelect");
+    const select = document.getElementById("headerBotLevelSelect") || document.getElementById("botLevelSelect");
     const level = getActiveBotLevel(Number(select && select.value ? select.value : pendingBotLevel || state.chess.botLevel || 1));
     pendingBotLevel = null;
     state.chess.botLevel = level;
@@ -198,14 +221,15 @@
     const [targetMin, targetMax] = getBotAccuracyRange(previewLevel);
     const engineStatus = getEngineStatusText();
     const activeText = previewLevel === activeLevel ? "gia' attivo" : "da applicare alla prossima nuova partita";
-    const badge = document.getElementById("activeBotLevelBadge");
-    if (badge) badge.textContent = previewLevel === activeLevel ? `Bot L${activeLevel} - ${getBotProfile(activeLevel).displayElo || getBotProfile(activeLevel).elo}` : `Scelto L${previewLevel}`;
     document.getElementById("botLevelText").innerHTML = `Selezionato livello ${previewLevel} - ${profile.displayElo || profile.elo} Elo stimato, ${profile.label} (${activeText}).<br>${profile.description || config.description || "Livello Stockfish calibrato."}<br>Modalita': ${spec.mode}; skill ${config.skillLevel}; depth ${spec.depth}; budget ${spec.moveTimeMs || spec.timeMs} ms; Top-${spec.topN}.<br>Errori target: mistake ${config.mistakeRatePercent}%, blunder ${config.blunderRatePercent}%, candidate inferiore ${config.randomMovePercent}%.<br>Motore: ${engineStatus}. Range target: ${targetMin}-${targetMax}%.`;
   };
 
   document.addEventListener("DOMContentLoaded", () => {
     const applyButton = document.getElementById("applyBotLevelBtn");
+    const bodySelect = document.getElementById("botLevelSelect");
     if (applyButton) applyButton.addEventListener("click", applySelectedBotLevel);
+    if (bodySelect) bodySelect.addEventListener("change", handleBotLevelChange);
+    ensureHeaderBotLevelSelect();
     renderBotLevel();
   });
 })();
