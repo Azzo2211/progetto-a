@@ -1,0 +1,23 @@
+name: File reference test
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  artifact-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create test file
+        run: |
+          mkdir -p output
+          printf 'hello from artifact\n' > output/hello.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: file-ref-test
+          path: output/hello.txt
+          retention-days: 1
