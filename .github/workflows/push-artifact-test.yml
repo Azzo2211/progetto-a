@@ -1,0 +1,22 @@
+name: Push artifact test
+
+on:
+  push:
+    branches: [push-artifact-test]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Make artifact
+        run: |
+          mkdir -p out
+          printf 'push test\n' > out/test.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: push-artifact-test
+          path: out/test.txt
+          retention-days: 1
