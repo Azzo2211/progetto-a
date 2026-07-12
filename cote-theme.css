@@ -1,0 +1,18 @@
+:root {
+  --cote-bg: #07101e;
+  --cote-bg-soft: #10192a;
+  --cote-panel: rgba(15, 24, 42, 0.88);
+  --cote-panel-strong: rgba(27, 35, 56, 0.96);
+  --cote-red: #9b2438;
+  --cote-red-bright: #d24b5f;
+  --cote-gold: #e6c777;
+  --cote-ink: #f6f2e8;
+  --cote-muted: #aeb8ca;
+  --cote-line: rgba(230, 199, 119, 0.28);
+  --cote-accent: #b53b53;
+}
+
+body {
+  background:
+    radial-gradient(circle at 14% 8%, rgba(155, 36, 56, 0.24), transparent 30%),
+    radial-gradient(circle at 82% 
