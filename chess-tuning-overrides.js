@@ -183,3 +183,11 @@
     if (bodySelect) bodySelect.addEventListener("change", () => changeLevel(bodySelect.value));
   });
 })();
+
+(function loadCoteTheme() {
+  if (document.getElementById("coteThemeScript")) return;
+  const script = document.createElement("script");
+  script.id = "coteThemeScript";
+  script.src = "cote-theme.js?v=20260713-1";
+  document.head.appendChild(script);
+})();
