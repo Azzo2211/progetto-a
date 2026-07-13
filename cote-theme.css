@@ -1,17 +1,271 @@
 #chess.cote-theme {
   --cote-bg: #07101e;
   --cote-bg-soft: #10192a;
-  --cote-panel: rgba(15, 24, 42, 0.92);
+  --cote-panel: rgba(15, 24, 42, 0.94);
   --cote-panel-strong: rgba(27, 35, 56, 0.98);
   --cote-red: #8c2035;
   --cote-red-bright: #d04a61;
   --cote-gold: #e6c777;
   --cote-ink: #f7f3ea;
   --cote-muted: #aeb8ca;
-  --cote-line: rgba(230, 199, 119, 0.3);
+  --cote-line: rgba(230, 199, 119, 0.30);
 
   color: var(--cote-ink);
   padding: 20px;
   border-radius: 24px;
   background:
-    radial-gradient(circle at 12% 5%, rgba(154, 
+    radial-gradient(circle at 12% 5%, rgba(154, 35, 56, 0.28), transparent 30%),
+    radial-gradient(circle at 88% 12%, rgba(46, 74, 122, 0.30), transparent 34%),
+    linear-gradient(145deg, #050b14 0%, #0b1423 42%, #15182a 100%);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.30);
+}
+
+#chess.cote-theme .page-heading {
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  border: 1px solid var(--cote-line);
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(20, 29, 48, 0.97), rgba(48, 22, 38, 0.92));
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.28);
+}
+
+#chess.cote-theme .page-heading::after {
+  content: "ADVANCED NURTURING HIGH SCHOOL";
+  position: absolute;
+  right: 22px;
+  bottom: 9px;
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  color: rgba(230, 199, 119, 0.42);
+}
+
+#chess.cote-theme .tool-card,
+#chess.cote-theme .full-card {
+  background: linear-gradient(160deg, rgba(20, 29, 48, 0.96), rgba(14, 20, 34, 0.92));
+  border: 1px solid rgba(230, 199, 119, 0.24);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(10px);
+}
+
+#chess.cote-theme .tool-card:hover {
+  border-color: rgba(230, 199, 119, 0.48);
+}
+
+#chess.cote-theme .primary-action {
+  color: #fff8e8;
+  background: linear-gradient(135deg, #9c2940, #59182d);
+  border: 1px solid rgba(230, 199, 119, 0.50);
+  box-shadow: 0 10px 24px rgba(111, 25, 48, 0.35);
+}
+
+#chess.cote-theme .ghost-action,
+#chess.cote-theme .ghost-link,
+#chess.cote-theme select,
+#chess.cote-theme input {
+  background: rgba(8, 14, 25, 0.88);
+  color: var(--cote-ink);
+  border-color: rgba(230, 199, 119, 0.30);
+}
+
+#chess.cote-theme .rank-badge,
+#chess.cote-theme .bot-active-badge {
+  background: linear-gradient(135deg, var(--cote-red), #391728);
+  color: #fff7df;
+  border: 1px solid rgba(230, 199, 119, 0.55);
+  box-shadow: 0 8px 22px rgba(118, 24, 45, 0.30);
+}
+
+#chess.cote-theme .chess-board {
+  border: 5px solid #251924;
+  outline: 1px solid rgba(230, 199, 119, 0.72);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.42), 0 0 35px rgba(155, 36, 56, 0.15);
+}
+
+#chess.cote-theme .board-status,
+#chess.cote-theme .report-score,
+#chess.cote-theme .report-meta-item {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(33, 43, 67, 0.96), rgba(12, 20, 35, 0.96));
+  border: 1px solid rgba(230, 199, 119, 0.30);
+  border-radius: 14px;
+  color: var(--cote-ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 26px rgba(0, 0, 0, 0.18);
+}
+
+#chess.cote-theme .report-score::before,
+#chess.cote-theme .report-meta-item::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--cote-gold), var(--cote-red-bright));
+}
+
+#chess.cote-theme .report-score span,
+#chess.cote-theme .report-meta-item span {
+  color: var(--cote-muted);
+  letter-spacing: 0.04em;
+}
+
+#chess.cote-theme .report-score strong,
+#chess.cote-theme .report-meta-item strong {
+  color: #fff9e8;
+  text-shadow: 0 2px 14px rgba(230, 199, 119, 0.12);
+}
+
+#chess.cote-theme .analysis-box,
+#chess.cote-theme .report-note,
+#chess.cote-theme .recap-box {
+  background: rgba(8, 14, 25, 0.76);
+  border: 1px solid rgba(230, 199, 119, 0.20);
+  color: #dce3ef;
+}
+
+#chess.cote-theme .classification-counts,
+#chess.cote-theme .metric-list,
+#chess.cote-theme .tag-list {
+  color: #e8edf6;
+}
+
+#chess.cote-theme .move-review-item {
+  background: rgba(12, 20, 34, 0.94);
+  border-color: rgba(230, 199, 119, 0.20);
+}
+
+#chess.cote-theme #reportBotLevelSelect,
+#chess.cote-theme #botLevelSelect {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 9px 30px 9px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#chess.cote-theme .report-meta-item:has(#reportBotLevelSelect) {
+  min-width: 0;
+  padding-right: 10px;
+}
+
+#chess.cote-theme .bot-level-control {
+  min-width: 0;
+}
+
+.cote-mentor-card {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 18px;
+  padding: 15px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(59, 20, 37, 0.96), rgba(16, 25, 43, 0.98));
+  border: 1px solid rgba(230, 199, 119, 0.38);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.30);
+}
+
+.cote-mentor-image-wrap {
+  position: relative;
+  min-height: 178px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(230, 199, 119, 0.45);
+  background: linear-gradient(145deg, #1b2438, #090f1c);
+}
+
+.cote-mentor-image {
+  width: 100%;
+  height: 100%;
+  min-height: 178px;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+.cote-mentor-rank {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(5, 9, 17, 0.92);
+  color: #e6c777;
+  font-size: 11px;
+  font-weight: 800;
+  border: 1px solid rgba(230, 199, 119, 0.50);
+}
+
+.cote-mentor-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cote-mentor-kicker {
+  color: #e6c777;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.cote-mentor-name {
+  margin: 4px 0 7px;
+  font-size: 22px;
+  color: #fff;
+}
+
+.cote-mentor-role {
+  margin: 0 0 10px;
+  color: #d9c9d0;
+  font-size: 13px;
+}
+
+.cote-mentor-speech {
+  position: relative;
+  margin: 0;
+  padding: 13px 15px;
+  border-radius: 4px 14px 14px 14px;
+  background: rgba(247, 243, 234, 0.96);
+  color: #151927;
+  line-height: 1.5;
+  font-weight: 650;
+}
+
+.cote-mentor-speech::before {
+  content: "";
+  position: absolute;
+  left: -9px;
+  top: 0;
+  border-top: 10px solid rgba(247, 243, 234, 0.96);
+  border-left: 10px solid transparent;
+}
+
+.cote-fallback-letter {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 178px;
+  place-items: center;
+  font-size: 50px;
+  font-weight: 900;
+  color: #e6c777;
+  background: radial-gradient(circle at 50% 30%, rgba(156, 41, 64, 0.35), transparent 50%);
+}
+
+@media (max-width: 720px) {
+  #chess.cote-theme { padding: 12px; }
+  .cote-mentor-card { grid-template-columns: 92px minmax(0, 1fr); gap: 12px; }
+  .cote-mentor-image-wrap,
+  .cote-mentor-image,
+  .cote-fallback-letter { min-height: 132px; }
+  .cote-mentor-name { font-size: 18px; }
+}
