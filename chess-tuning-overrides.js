@@ -191,3 +191,11 @@
   script.src = "cote-theme.js?v=20260713-1";
   document.head.appendChild(script);
 })();
+
+(function loadScenarioTheme() {
+  if (document.getElementById("scenarioThemeScript")) return;
+  const script = document.createElement("script");
+  script.id = "scenarioThemeScript";
+  script.src = "scenario-theme.js?v=20260714-1";
+  document.head.appendChild(script);
+})();
