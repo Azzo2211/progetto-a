@@ -1,0 +1,3 @@
+(function(){
+  const extra=[
+    {type:"Lavoro",category:"reale",title:"Il cliente cambia richiesta dopo il preventivo",text:"Hai inviato un preventivo per 80 m² di materiale standard. Il cliente ora pretende un formato più costoso allo stesso prezzo e dice che aveva capito fosse incluso. Devi rispondere davanti al commerciale e al tecnico.",model:"Chiarisco cosa era incluso nel preventivo, mostro la voce precisa e propongo due alternative con differ
