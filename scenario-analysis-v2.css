@@ -1,0 +1,21 @@
+#scenarios.scenario-theme .scenario-lab-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 12px;
+  border: 1px solid rgba(86, 214, 198, .18);
+  border-radius: 14px;
+  background: rgba(4, 17, 22, .62);
+}
+
+#scenarios.scenario-theme .scenario-filter-field {
+  min-width: 0;
+}
+
+#scenarios.scenario-theme .scenario-filter-field span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--scenario-muted);
+  font-size: 10px;
+  font-weight:
