@@ -21,7 +21,6 @@
     if(!feedback||!panel||!textarea)return;
     const answer=textarea.value.trim();
     if(!answer)return;
-    const text=feedback.textContent||"";
     const cards=[...panel.querySelectorAll(".scenario-criterion-card")];
     cards.forEach(card=>{
       const label=card.querySelector(".scenario-criterion-head strong")?.textContent?.trim();
@@ -30,9 +29,7 @@
       const cfg=criterionMap[label];
       if(!cfg)return;
       const hits=evidence(answer,cfg.need);
-      const reason=hits.length
-        ? `${cfg.positive}. Nella tua risposta compaiono elementi come “${hits.join("”, “")}”. ${score<70?"Però il criterio è presente solo in parte o non è sviluppato abbastanza.":"Questo sostiene il punteggio ottenuto."}`
-        : `${cfg.missing}. Nella tua risposta non trovo riferimenti chiari a ${cfg.need.slice(0,3).join(", ")}.`;
+      const reason=hits.length?`${cfg.positive}. Nella tua risposta compaiono elementi come “${hits.join("”, “")}”. ${score<70?"Però il criterio è presente solo in parte o non è sviluppato abbastanza.":"Questo sostiene il punteggio ottenuto."}`:`${cfg.missing}. Nella tua risposta non trovo riferimenti chiari a ${cfg.need.slice(0,3).join(", ")}.`;
       const paragraphs=card.querySelectorAll("p");
       if(paragraphs[0])paragraphs[0].innerHTML=`<b>Perché questo voto sulla tua risposta:</b> ${reason}`;
       if(paragraphs[1])paragraphs[1].innerHTML=`<b>Cosa migliorare nella tua risposta:</b> ${score===100?"Il criterio è completo; mantieni la stessa precisione anche in scenari più difficili.":cfg.improve}`;
@@ -46,6 +43,7 @@
     if(!feedback)return;
     new MutationObserver(()=>setTimeout(render,20)).observe(feedback,{childList:true,subtree:true,characterData:true});
     const style=document.createElement("style");style.textContent=".scenario-answer-quoted{margin:10px 0 14px;padding:12px;border-left:4px solid #f0a35a;background:rgba(240,163,90,.08);border-radius:0 12px 12px 0}.scenario-answer-quoted p{margin:6px 0 0;color:#dbe8e7;font-style:italic}";document.head.appendChild(style);
+    const extra=document.createElement("script");extra.src="scenario-score-explain-v2.js?v=20260715-2";document.head.appendChild(extra);
   }
   document.addEventListener("DOMContentLoaded",attach);
 })();
