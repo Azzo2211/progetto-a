@@ -228,3 +228,11 @@
   script.src = "scenario-analysis-v2.js?v=20260714-1";
   document.head.appendChild(script);
 })();
+
+(function loadScenarioCriterionExplanations() {
+  if (document.getElementById("scenarioCriterionExplanationsScript")) return;
+  const script = document.createElement("script");
+  script.id = "scenarioCriterionExplanationsScript";
+  script.src = "scenario-criterion-explanations.js?v=20260714-2";
+  document.head.appendChild(script);
+})();
