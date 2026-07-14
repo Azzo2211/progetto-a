@@ -236,3 +236,19 @@
   script.src = "scenario-criterion-explanations.js?v=20260714-2";
   document.head.appendChild(script);
 })();
+
+(function loadScenarioSpecificExpansion() {
+  if (document.getElementById("scenarioSpecificExpansionScript")) return;
+  const script = document.createElement("script");
+  script.id = "scenarioSpecificExpansionScript";
+  script.src = "scenario-specific-expansion.js?v=20260715-1";
+  document.head.appendChild(script);
+})();
+
+(function loadScenarioResponseEvidence() {
+  if (document.getElementById("scenarioResponseEvidenceScript")) return;
+  const script = document.createElement("script");
+  script.id = "scenarioResponseEvidenceScript";
+  script.src = "scenario-response-evidence.js?v=20260715-1";
+  document.head.appendChild(script);
+})();
