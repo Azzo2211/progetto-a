@@ -1,0 +1,15 @@
+#scenarios.scenario-theme {
+  --scenario-bg: #08141a;
+  --scenario-panel: rgba(13, 29, 36, 0.96);
+  --scenario-panel-soft: rgba(18, 39, 46, 0.9);
+  --scenario-cyan: #56d6c6;
+  --scenario-orange: #f0a35a;
+  --scenario-red: #dc5f67;
+  --scenario-ink: #eef8f6;
+  --scenario-muted: #9db7b5;
+  --scenario-line: rgba(86, 214, 198, 0.28);
+  color: var(--scenario-ink);
+  padding: 20px;
+  border-radius: 24px;
+  background:
+    linear-gradient(rgba(6, 20, 26, .92), rgba(6
