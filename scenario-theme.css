@@ -1,7 +1,7 @@
 #scenarios.scenario-theme {
   --scenario-bg: #08141a;
   --scenario-panel: rgba(13, 29, 36, 0.96);
-  --scenario-panel-soft: rgba(18, 39, 46, 0.9);
+  --scenario-panel-soft: rgba(18, 39, 46, 0.90);
   --scenario-cyan: #56d6c6;
   --scenario-orange: #f0a35a;
   --scenario-red: #dc5f67;
@@ -12,4 +12,227 @@
   padding: 20px;
   border-radius: 24px;
   background:
-    linear-gradient(rgba(6, 20, 26, .92), rgba(6
+    radial-gradient(circle at 12% 8%, rgba(86, 214, 198, .16), transparent 30%),
+    radial-gradient(circle at 92% 4%, rgba(240, 163, 90, .15), transparent 28%),
+    linear-gradient(145deg, #061219, #0d2027 52%, #111c25);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, .28);
+}
+
+#scenarios.scenario-theme .page-heading {
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid var(--scenario-line);
+  background: linear-gradient(135deg, rgba(12, 35, 42, .97), rgba(20, 31, 39, .94));
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .24);
+}
+
+#scenarios.scenario-theme .page-heading::after {
+  content: "SOCIAL INTELLIGENCE LAB";
+  position: absolute;
+  right: 22px;
+  bottom: 9px;
+  color: rgba(86, 214, 198, .44);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .24em;
+}
+
+#scenarios.scenario-theme .tool-card,
+#scenarios.scenario-theme .module-status {
+  background: linear-gradient(155deg, var(--scenario-panel), rgba(8, 24, 30, .94));
+  border: 1px solid var(--scenario-line);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .22);
+  backdrop-filter: blur(10px);
+}
+
+#scenarios.scenario-theme .tool-card:hover {
+  border-color: rgba(86, 214, 198, .52);
+}
+
+#scenarios.scenario-theme .scenario-type {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  color: #07171c;
+  background: linear-gradient(135deg, var(--scenario-cyan), #9af0df);
+  border: 1px solid rgba(255, 255, 255, .35);
+  box-shadow: 0 8px 18px rgba(86, 214, 198, .18);
+  font-weight: 850;
+}
+
+#scenarios.scenario-theme #scenarioTitle {
+  margin-top: 14px;
+  color: #ffffff;
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1.12;
+}
+
+#scenarios.scenario-theme #scenarioText {
+  padding: 16px 18px;
+  border-left: 4px solid var(--scenario-orange);
+  border-radius: 0 14px 14px 0;
+  background: rgba(240, 163, 90, .08);
+  color: #dcebea;
+  line-height: 1.65;
+}
+
+#scenarios.scenario-theme textarea {
+  width: 100%;
+  box-sizing: border-box;
+  color: var(--scenario-ink);
+  background: rgba(5, 18, 23, .88);
+  border: 1px solid rgba(86, 214, 198, .28);
+  border-radius: 14px;
+  min-height: 220px;
+  padding: 15px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+#scenarios.scenario-theme textarea:focus {
+  outline: none;
+  border-color: var(--scenario-cyan);
+  box-shadow: 0 0 0 3px rgba(86, 214, 198, .12);
+}
+
+#scenarios.scenario-theme .primary-action {
+  background: linear-gradient(135deg, #2a9f94, #176b68);
+  color: white;
+  border: 1px solid rgba(154, 240, 223, .45);
+  box-shadow: 0 10px 22px rgba(35, 135, 128, .24);
+}
+
+#scenarios.scenario-theme .ghost-action,
+#scenarios.scenario-theme .ghost-link {
+  color: var(--scenario-ink);
+  background: rgba(7, 22, 28, .74);
+  border-color: rgba(86, 214, 198, .24);
+}
+
+#scenarios.scenario-theme .analysis-box {
+  background: rgba(5, 18, 23, .78);
+  border: 1px solid rgba(86, 214, 198, .20);
+  color: #dbe8e7;
+}
+
+#scenarios.scenario-theme .metric {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(7, 22, 28, .68);
+  border: 1px solid rgba(86, 214, 198, .14);
+}
+
+#scenarios.scenario-theme .bar-track {
+  background: rgba(255, 255, 255, .08);
+}
+
+#scenarios.scenario-theme .bar-fill {
+  background: linear-gradient(90deg, var(--scenario-cyan), var(--scenario-orange));
+}
+
+.scenario-briefing {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0 16px;
+}
+
+.scenario-briefing-item {
+  min-width: 0;
+  padding: 11px 12px;
+  border-radius: 13px;
+  background: rgba(7, 22, 28, .72);
+  border: 1px solid rgba(86, 214, 198, .18);
+}
+
+.scenario-briefing-item span {
+  display: block;
+  color: var(--scenario-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.scenario-briefing-item strong {
+  display: block;
+  margin-top: 5px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.scenario-answer-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 10px 0 2px;
+}
+
+.scenario-check-chip {
+  padding: 6px 9px;
+  border-radius: 999px;
+  color: var(--scenario-muted);
+  background: rgba(255, 255, 255, .045);
+  border: 1px solid rgba(86, 214, 198, .14);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.scenario-check-chip.active {
+  color: #06191d;
+  background: var(--scenario-cyan);
+  border-color: var(--scenario-cyan);
+}
+
+.scenario-word-count {
+  margin-left: auto;
+  color: var(--scenario-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.scenario-result-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.scenario-result-card {
+  padding: 13px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(17, 45, 51, .92), rgba(6, 22, 28, .92));
+  border: 1px solid rgba(86, 214, 198, .18);
+}
+
+.scenario-result-card span {
+  display: block;
+  color: var(--scenario-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+
+.scenario-result-card strong {
+  display: block;
+  margin-top: 5px;
+  color: #fff;
+  font-size: 22px;
+}
+
+.scenario-danger-note {
+  border-color: rgba(220, 95, 103, .35) !important;
+  background: rgba(220, 95, 103, .08) !important;
+}
+
+@media (max-width: 760px) {
+  #scenarios.scenario-theme { padding: 12px; }
+  .scenario-briefing,
+  .scenario-result-summary { grid-template-columns: 1fr; }
+  .scenario-word-count { width: 100%; margin-left: 0; }
+}
