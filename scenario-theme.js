@@ -220,3 +220,11 @@
     setTimeout(renderBriefing, 0);
   });
 })();
+
+(function loadScenarioAnalysisV2() {
+  if (document.getElementById("scenarioAnalysisV2Script")) return;
+  const script = document.createElement("script");
+  script.id = "scenarioAnalysisV2Script";
+  script.src = "scenario-analysis-v2.js?v=20260714-1";
+  document.head.appendChild(script);
+})();
