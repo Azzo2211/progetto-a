@@ -12,7 +12,7 @@
   --d-line-strong: rgba(255, 255, 255, 0.16);
   --d-ink: #eef1f4;
   --d-muted: #a1acb7;
-  --d-faint: #75808c;
+  --d-faint: #8a95a1;
   --d-amber: #f0a93a;
   --d-amber-soft: rgba(240, 169, 58, 0.14);
   --d-go: #3ccf7e;
@@ -172,7 +172,8 @@
 .def-tchip:hover { border-color: var(--d-amber); color: var(--d-amber); }
 .def-hero-side { display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; }
 .def-hero-fig { height: 150px; border-radius: 12px; overflow: hidden; background: var(--d-inset); }
-.def-hero.done, .def-hero.situ { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+.def-hero.today, .def-hero.situ { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+.def-hero.today .def-hero-side { min-width: 200px; }
 
 /* ---------- mappa del programma ---------- */
 .def-phases { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
@@ -217,6 +218,9 @@
 .def-node.open .def-node-num { border-color: var(--d-amber); color: var(--d-amber); }
 .def-node.open button { border-color: rgba(240, 169, 58, 0.35); }
 .def-node.locked button { opacity: 0.5; cursor: not-allowed; }
+.def-node.retry .def-node-num { border-color: var(--d-stop); color: var(--d-stop); }
+.def-warn { padding: 12px 14px; border-radius: 12px; border-left: 3px solid var(--d-stop); background: rgba(255, 91, 95, 0.07); color: var(--d-ink); line-height: 1.5; }
+.def-warn .def-ghost { margin-left: 8px; padding: 6px 10px; }
 
 /* ---------- libreria tecniche ---------- */
 .def-tlib { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
@@ -505,6 +509,11 @@
 .def-cat-meter i { display: block; height: 100%; background: var(--d-amber); }
 
 .def-situ { max-width: 820px; }
+.def-situ-head { position: sticky; top: 0; z-index: 3; padding-top: 8px; margin-top: -8px; background: linear-gradient(#141920 75%, rgba(20, 25, 32, 0)); }
+.def-nowrap { white-space: nowrap; }
+.def-timebar.idle i { opacity: 0.25; }
+.def-practice-note { margin: 0 0 12px; }
+.def-keys-hint { color: var(--d-faint); font-size: 0.85em; }
 .def-situ-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--d-muted); font-size: 0.86rem; font-weight: 650; }
 .def-situ-top span:nth-child(2) { font-variant-numeric: tabular-nums; }
 .def-timebar { height: 6px; margin: 10px 0 18px; border-radius: 6px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
@@ -594,7 +603,7 @@
   #defense .def-heading { flex-direction: column; align-items: stretch; padding: 14px; }
   .def-chip { align-self: flex-start; }
   .def-hero { grid-template-columns: minmax(0, 1fr); padding: 16px; }
-  .def-hero.done, .def-hero.situ { grid-template-columns: minmax(0, 1fr); }
+  .def-hero.today, .def-hero.situ { grid-template-columns: minmax(0, 1fr); }
   .def-tech { grid-template-columns: minmax(0, 1fr); }
   .def-tech-stage { position: static; }
   .def-warm { grid-template-columns: minmax(0, 1fr); }
@@ -609,7 +618,7 @@
   .def-arena.semaforo { height: min(52vh, 400px); }
   .def-phases { grid-template-columns: minmax(0, 1fr); }
   .def-tlib { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .def-tabs { display: flex; }
+  .def-tabs { display: flex; width: 100%; }
   .def-tabs button { flex: 1; padding: 9px 8px; }
   .def-result-rows { grid-template-columns: minmax(0, 1fr); }
   .def-opt-note { margin-left: 8px; }
@@ -617,6 +626,11 @@
   .def-opt-tag { grid-column: 2; }
   .def-plist.two { grid-template-columns: minmax(0, 1fr); }
   .def-run-tools { width: 100%; }
+}
+
+@media (max-width: 420px) {
+  .def-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  .def-tabs button { padding: 9px 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

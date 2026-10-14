@@ -96,14 +96,46 @@
   }
 
   // ---------- Stato ----------
+  const isObj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  const num = (v) => typeof v === "number" && Number.isFinite(v);
+  const numOrNull = (v) => (num(v) ? v : null);
+
+  /*
+   * Stato del modulo. Non si butta mai via: con una versione diversa o dati
+   * rovinati si tengono i campi validi e si scartano solo le voci illeggibili.
+   */
   function ensureLab(raw) {
-    const lab = raw && typeof raw === "object" && raw.version === VERSION ? raw : { version: VERSION };
-    if (!lab.sessions || typeof lab.sessions !== "object") lab.sessions = {};
-    if (!lab.reflex || typeof lab.reflex !== "object") lab.reflex = {};
-    ["semaforo", "direzione", "periferica"].forEach((k) => { if (!Array.isArray(lab.reflex[k])) lab.reflex[k] = []; });
-    if (!lab.situations || typeof lab.situations !== "object") lab.situations = {};
-    if (!Array.isArray(lab.days)) lab.days = [];
-    if (!Array.isArray(lab.log)) lab.log = [];
+    const lab = isObj(raw) ? raw : {};
+    lab.version = VERSION;
+    if (!isObj(lab.sessions)) lab.sessions = {};
+    Object.keys(lab.sessions).forEach((id) => {
+      const st = lab.sessions[id];
+      if (!isObj(st) || !num(st.done)) { delete lab.sessions[id]; return; }
+      if (!num(st.last)) st.last = 0;
+      if (!Array.isArray(st.history)) st.history = [];
+      st.history = st.history.filter(num);
+      if (!num(st.quality)) st.quality = st.history.length ? st.history.reduce((a, b) => a + b, 0) / st.history.length : null;
+    });
+    if (!isObj(lab.reflex)) lab.reflex = {};
+    ["semaforo", "direzione", "periferica"].forEach((k) => {
+      const list = Array.isArray(lab.reflex[k]) ? lab.reflex[k] : [];
+      lab.reflex[k] = list.filter((r) => isObj(r) && num(r.t)).map((r) => {
+        ["median", "threshold"].forEach((f) => { if (f in r) r[f] = numOrNull(r[f]); });
+        ["speed", "control", "score", "accuracy", "n"].forEach((f) => { if (f in r && !num(r[f])) r[f] = 0; });
+        return r;
+      });
+    });
+    if (!isObj(lab.situations)) lab.situations = {};
+    Object.keys(lab.situations).forEach((id) => {
+      const st = lab.situations[id];
+      if (!isObj(st) || !num(st.seen)) { delete lab.situations[id]; return; }
+      if (!num(st.box)) st.box = 1;
+      if (!num(st.due)) st.due = 0;
+    });
+    lab.days = Array.isArray(lab.days) ? lab.days.filter((d) => typeof d === "string") : [];
+    lab.log = Array.isArray(lab.log) ? lab.log.filter((e) => isObj(e) && num(e.t) && typeof e.kind === "string"
+      && (e.kind !== "session" || typeof e.id === "string")
+      && (e.kind !== "situ" || (typeof e.id === "string" && num(e.s)))) : [];
     return lab;
   }
 
@@ -119,18 +151,32 @@
   }
 
   // ---------- Programma ----------
+  const PASS = 0.4;          // autovalutazione minima per sbloccare la sessione dopo
+  const MIN_ROUNDS = 0.7;    // quota dei round da fare davvero perche' la sessione conti
+
   function sessionState(lab, id) {
-    return lab.sessions[id] || { done: 0, last: 0, quality: null, best: null };
+    return lab.sessions[id] || { done: 0, last: 0, quality: null, best: null, passed: false };
   }
 
+  // Sbloccata se la precedente e' stata completata con un'autovalutazione almeno discreta.
   function isUnlocked(lab, sessions, index) {
     if (index <= 0) return true;
     const prev = sessions[index - 1];
-    return !!prev && sessionState(lab, prev.id).done > 0;
+    if (!prev) return false;
+    const st = sessionState(lab, prev.id);
+    return st.done > 0 && (st.passed || (st.best || 0) >= PASS);
   }
 
+  function roundsNeeded(session) {
+    return Math.round(session.rounds.count * session.rounds.work * MIN_ROUNDS);
+  }
+
+  // La prima sessione non ancora superata (fatta e con autovalutazione sufficiente).
   function nextSessionIndex(lab, sessions) {
-    const i = sessions.findIndex((s) => sessionState(lab, s.id).done === 0);
+    const i = sessions.findIndex((s) => {
+      const st = sessionState(lab, s.id);
+      return !(st.done > 0 && (st.passed || (st.best || 0) >= PASS));
+    });
     return i === -1 ? null : i;
   }
 
@@ -147,23 +193,34 @@
 
   /*
    * answers: per ogni domanda di autovalutazione 2 (Si'), 1 (A volte), 0 (No).
-   * La qualita' della sessione e' la media 0-1. Si salva la media mobile delle
-   * ultime ripetizioni, non il massimo: ripetere non "lava" un risultato scarso.
+   * roundSeconds: secondi di round fatti davvero (senza pause e senza salti).
+   * - Con meno del 70% dei round la sessione e' "incompleta": resta nel registro
+   *   ma non sblocca nulla e non pesa su Tecnica e Costanza.
+   * - La qualita' e' la media mobile delle ultime ripetizioni, una per giorno:
+   *   ripetere la stessa sessione dieci volte in un giorno non "lava" il risultato.
    */
-  function recordSession(lab, session, answers, now = Date.now()) {
+  function recordSession(lab, session, answers, now = Date.now(), { roundSeconds = Infinity } = {}) {
     const valid = (answers || []).filter((a) => a === 0 || a === 1 || a === 2);
     const quality = valid.length ? valid.reduce((s, a) => s + a, 0) / (valid.length * 2) : 0;
-    const st = Object.assign({ done: 0, last: 0, quality: null, best: null, history: [] }, lab.sessions[session.id] || {});
-    const first = st.done === 0;
+    const complete = roundSeconds >= roundsNeeded(session);
+    if (!complete) {
+      addLog(lab, { t: now, kind: "session-partial", id: session.id, q: round(quality * 100) });
+      return { first: false, quality, complete: false, passed: false };
+    }
+    const st = Object.assign({ done: 0, last: 0, quality: null, best: null, history: [], passed: false }, lab.sessions[session.id] || {});
+    const wasPassed = st.done > 0 && (st.passed || (st.best || 0) >= PASS);
+    const sameDay = st.last && dayKey(st.last) === dayKey(now);
     st.done += 1;
     st.last = now;
-    st.history = [...(st.history || []), round(quality * 100) / 100].slice(-5);
-    st.quality = st.history.reduce((s, q) => s + q, 0) / st.history.length;
+    const q = round(quality * 100) / 100;
+    st.history = sameDay && st.history.length ? [...st.history.slice(0, -1), Math.max(st.history[st.history.length - 1], q)] : [...(st.history || []), q].slice(-5);
+    st.quality = st.history.reduce((a, b) => a + b, 0) / st.history.length;
     st.best = Math.max(st.best || 0, quality);
+    st.passed = st.passed || quality >= PASS;
     lab.sessions[session.id] = st;
     markDay(lab, now);
     addLog(lab, { t: now, kind: "session", id: session.id, q: round(quality * 100) });
-    return { first, quality };
+    return { first: !wasPassed && st.passed, quality, complete: true, passed: st.passed, repeat: wasPassed };
   }
 
   // ---------- Riflessi: piani delle prove ----------
@@ -212,7 +269,9 @@
     const med = median(valid);
     const speed = med == null ? 0 : clamp(round(100 - (med - 250) * (90 / 300)), 5, 100);
     const control = clamp(100 - commissions * 14 - early * 8 - omissions * 5, 0, 100);
-    return { median: med == null ? null : round(med), valid: valid.length, omissions, commissions, early, speed, control, n: trials.length };
+    // conta per Riflessi e record solo con almeno 2 verdi su 3 presi e pochi errori al rosso
+    const ok = valid.length >= Math.ceil(go.length * 2 / 3) && commissions <= 2;
+    return { median: med == null ? null : round(med), valid: valid.length, omissions, commissions, early, speed, control, ok, n: trials.length };
   }
 
   // trials: [{ dir, answer: dir|null, rt, early }]
@@ -225,7 +284,8 @@
     const accuracy = trials.length ? right.length / trials.length : 0;
     const speed = med == null ? 0 : clamp(round(100 - (med - 400) * (90 / 500)), 5, 100);
     const control = clamp(round(accuracy * 100 - early * 6), 0, 100);
-    return { median: med == null ? null : round(med), accuracy: round(accuracy * 100), wrong, missed, early, speed, control, n: trials.length };
+    const ok = accuracy >= 0.7;
+    return { median: med == null ? null : round(med), accuracy: round(accuracy * 100), wrong, missed, early, speed, control, ok, n: trials.length };
   }
 
   // trials: [{ flash, shapeOk, posOk }]
@@ -239,21 +299,25 @@
     const accuracy = round((pos / trials.length) * 100);
     const thrScore = clamp(100 - (threshold - 60) * (90 / 300), 5, 100);
     const score = round(thrScore * 0.6 + (both / trials.length) * 100 * 0.4);
-    return { threshold, accuracy, both: round((both / trials.length) * 100), score, n: trials.length };
+    const ok = trials.length >= 10;
+    return { threshold, accuracy, both: round((both / trials.length) * 100), score, ok, n: trials.length };
   }
 
+  // Ogni prova finita (o interrotta dopo meta') entra nel registro; il giorno conta solo se valida.
   function recordReflex(lab, kind, result, now = Date.now()) {
     if (!lab.reflex[kind]) lab.reflex[kind] = [];
     const entry = Object.assign({ t: now }, result);
     lab.reflex[kind].push(entry);
     if (lab.reflex[kind].length > 30) lab.reflex[kind] = lab.reflex[kind].slice(-30);
-    markDay(lab, now);
-    addLog(lab, { t: now, kind: "reflex", test: kind });
+    if (entry.ok) markDay(lab, now);
+    addLog(lab, { t: now, kind: "reflex", test: kind, ok: !!entry.ok });
     return entry;
   }
 
+  const validReflex = (r) => r.ok !== false && !r.aborted;
+
   function reflexBest(lab, kind) {
-    const list = lab.reflex[kind] || [];
+    const list = (lab.reflex[kind] || []).filter(validReflex);
     if (kind === "periferica") {
       const ok = list.filter((r) => r.threshold != null);
       return ok.length ? Math.min(...ok.map((r) => r.threshold)) : null;
@@ -304,7 +368,17 @@
   }
 
   // score: 2 migliore, 1 accettabile, 0 sbagliata o tempo scaduto.
+  /*
+   * Conta per il profilo solo la prima risposta e i ripassi in scadenza:
+   * rifare lo stesso giorno una situazione di cui hai appena visto le risposte e' pratica, non misura.
+   */
+  function isCounted(lab, situation, now = Date.now()) {
+    const st = lab.situations[situation.id];
+    return !st || !st.seen || st.due <= endOfDay(now);
+  }
+
   function recordSituation(lab, situation, score, { timedOut = false, now = Date.now() } = {}) {
+    const counted = isCounted(lab, situation, now);
     const st = Object.assign({ box: 0, due: 0, seen: 0, points: 0, last: 0, lastScore: null, timeouts: 0 }, lab.situations[situation.id] || {});
     const firstTime = st.seen === 0;
     st.seen += 1;
@@ -312,21 +386,35 @@
     st.last = now;
     st.lastScore = score;
     if (timedOut) st.timeouts = (st.timeouts || 0) + 1;
-    if (score === 2) st.box = clamp(st.box + 1, 1, SITU_INTERVALS.length - 1);
-    else if (score === 1) st.box = clamp(st.box, 1, 2);
-    else st.box = 1;
-    st.due = score === 2 ? addDays(now, SITU_INTERVALS[st.box]) : addDays(now, score === 1 ? 2 : 1);
+    if (counted) {
+      if (score === 2) st.box = clamp(st.box + 1, 1, SITU_INTERVALS.length - 1);
+      else if (score === 1) st.box = clamp(st.box, 1, 2);
+      else st.box = 1;
+      st.due = score === 2 ? addDays(now, SITU_INTERVALS[st.box]) : addDays(now, score === 1 ? 2 : 1);
+    } else if (score < 2) {
+      // in pratica sbagliata di nuovo: torna comunque domani
+      st.box = 1;
+      st.due = Math.min(st.due || Infinity, addDays(now, 1));
+    }
     lab.situations[situation.id] = st;
-    markDay(lab, now);
-    addLog(lab, { t: now, kind: "situ", id: situation.id, cat: situation.category, s: score, first: firstTime, to: timedOut });
+    if (!timedOut) markDay(lab, now);
+    addLog(lab, { t: now, kind: "situ", id: situation.id, cat: situation.category, s: score, first: firstTime, to: timedOut, c: counted });
     return st;
+  }
+
+  // Turno di sola pratica: nessuna situazione nuova ne' in scadenza.
+  function isPracticeTurn(lab, situations, ids, now = Date.now()) {
+    return ids.every((id) => {
+      const s = situations.find((x) => x.id === id);
+      return s && !isCounted(lab, s, now);
+    });
   }
 
   // Precisione per categoria dalle risposte registrate (tutte, anche i ripassi).
   function categoryStats(lab) {
     const stats = {};
     Object.keys(CATEGORIES).forEach((k) => { stats[k] = { points: 0, max: 0, n: 0 }; });
-    lab.log.filter((e) => e.kind === "situ" && stats[e.cat]).forEach((e) => {
+    lab.log.filter((e) => e.kind === "situ" && stats[e.cat] && e.c !== false).forEach((e) => {
       stats[e.cat].points += e.s;
       stats[e.cat].max += 2;
       stats[e.cat].n += 1;
@@ -346,17 +434,17 @@
   function profile(lab, sessions = [], now = Date.now()) {
     lab = ensureLab(lab);
     // Riflessi: velocita' nelle ultime 5 prove di Semaforo e Direzione
-    const sem = lastN(lab.reflex.semaforo.filter((r) => r.median != null), 5);
-    const dir = lastN(lab.reflex.direzione.filter((r) => r.median != null), 5);
+    const sem = lastN(lab.reflex.semaforo.filter((r) => r.median != null && validReflex(r)), 5);
+    const dir = lastN(lab.reflex.direzione.filter((r) => r.median != null && validReflex(r)), 5);
     const speedVals = [...sem.map((r) => r.speed), ...dir.map((r) => r.speed * 0.9 + 10)];
     const riflessi = smooth(25, 2, speedVals);
     const controlVals = [...lastN(lab.reflex.semaforo, 5).map((r) => r.control), ...lastN(lab.reflex.direzione, 5).map((r) => r.control)];
     const controllo = smooth(30, 2, controlVals);
 
     // Situazioni per gruppo (risposte come frazione 0-100)
-    const situ = lab.log.filter((e) => e.kind === "situ");
+    const situ = lab.log.filter((e) => e.kind === "situ" && e.c !== false);
     const groupVals = (group) => situ.filter((e) => CATEGORIES[e.cat] && CATEGORIES[e.cat].group === group).slice(-40).map((e) => e.s * 50);
-    const peri = lastN(lab.reflex.periferica.filter((r) => r.n), 5).map((r) => r.score);
+    const peri = lastN(lab.reflex.periferica.filter((r) => r.n && validReflex(r)), 5).map((r) => r.score);
     const prevSitu = smooth(30, 4, groupVals("prevenzione"));
     const prevenzione = peri.length ? prevSitu * 0.75 + smooth(30, 2, peri) * 0.25 : prevSitu;
     const decisione = smooth(30, 4, groupVals("decisione"));
@@ -365,7 +453,8 @@
     const states = sessions.map((s) => sessionState(lab, s.id)).filter((s) => s.done > 0);
     const total = Math.max(1, sessions.length);
     const progress = states.length / total;
-    const reps = states.reduce((sum, s) => sum + s.done, 0);
+    // ripetizioni: giorni distinti con almeno una sessione completa
+    const reps = new Set(lab.log.filter((e) => e.kind === "session").map((e) => dayKey(e.t))).size;
     const quality = states.length ? states.reduce((sum, s) => sum + (s.quality || 0), 0) / states.length : 0;
     const lastSession = states.length ? Math.max(...states.map((s) => s.last)) : 0;
     const idle = lastSession ? Math.max(0, (now - lastSession) / DAY - 10) : 0;
@@ -375,7 +464,7 @@
     const days14 = new Set();
     for (let i = 0; i < 14; i += 1) days14.add(dayKey(addDays(now, -i)));
     const activeDays = lab.days.filter((d) => days14.has(d)).length;
-    const sessions28 = lab.log.filter((e) => e.kind === "session" && e.t >= addDays(now, -27)).length;
+    const sessions28 = new Set(lab.log.filter((e) => e.kind === "session" && e.t >= addDays(now, -27)).map((e) => dayKey(e.t))).size;
     const costanza = activeDays || sessions28 ? Math.min(80, activeDays * 8) + 20 * Math.min(1, sessions28 / 8) : 0;
 
     tecnica = clamp(tecnica, 0, 100);
@@ -427,10 +516,11 @@
     VERSION, DAY, MIN_RT, GO_WINDOW, PHASES, CATEGORIES, DIMENSIONS, DIRECTIONS, SITU_INTERVALS,
     dayKey, addDays, endOfDay, median, rng, shuffle,
     ensureLab, markDay,
+    PASS, MIN_ROUNDS, roundsNeeded,
     sessionState, isUnlocked, nextSessionIndex, phaseProgress, currentPhase, recordSession,
     planSemaforo, planDirezione, planPeriferica, nextFlash,
     scoreSemaforo, scoreDirezione, scorePeriferica, recordReflex, reflexBest,
-    situState, dueSituations, pickTurn, recordSituation, categoryStats,
+    situState, dueSituations, pickTurn, recordSituation, categoryStats, isCounted, isPracticeTurn,
     profile, totalScore, weakest, nextAction
   };
 });

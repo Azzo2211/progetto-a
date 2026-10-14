@@ -1036,7 +1036,9 @@ function getModuleSkills(moduleKey) {
       ["Piano B", metric("adattamento") + (state.planScores.length ? 4 : 0)]
     ],
     // Difesa: categorie calcolate da sessioni, prove di riflessi e situazioni (defense/engine.js).
-    defense: window.DefenseEngine && window.defenseProfileSkills ? window.defenseProfileSkills().map((k) => [k.label, k.value]) : [],
+    defense: window.DefenseEngine && window.defenseProfileSkills ? (() => {
+      try { return window.defenseProfileSkills().map((k) => [k.label, k.value]); } catch (error) { console.warn("Profilo difesa non leggibile", error); return []; }
+    })() : [],
     logic: [
       ["Deduzione", metric("ragionamento") + state.logicSolved * 3],
       ["Precisione", logicAccuracy],
@@ -1115,7 +1117,7 @@ function dashboardTrend(moduleKey, average) {
       return studied ? `${studied}/${cards.length} schede studiate · ${due ? `${due} da ripassare oggi` : "nessun ripasso oggi"}` : "Biblioteca nuova · leggi la prima scheda";
     })() : "Biblioteca nuova · leggi la prima scheda",
     planning: state.planScores.length ? `${state.planScores.length} piani · media ${Math.round(averageArray(state.planScores))}` : "Base iniziale · scrivi un piano",
-    defense: window.defenseTrend ? window.defenseTrend() : "Fase 1 · inizia la prima sessione",
+    defense: window.defenseTrend ? (() => { try { return window.defenseTrend(); } catch (error) { return "Fase 1 · inizia la prima sessione"; } })() : "Fase 1 · inizia la prima sessione",
     logic: state.logicAttempts ? `${state.logicSolved}/${state.logicAttempts} corretti · media ${average}` : "Base iniziale · risolvi un indovinello",
     memory: state.memory.attempts ? `Livello ${state.memory.level} · ${state.memory.correct}/${state.memory.attempts} prove forti` : `Livello ${state.memory.level} · base iniziale`,
     influence: state.influence.attempts ? `${state.influence.attempts} analisi · media ${state.influence.average}` : "Base iniziale · prova una tattica",

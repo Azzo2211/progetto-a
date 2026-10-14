@@ -62,6 +62,21 @@
 
   function shuffle(list) { return E.shuffle(list, Math.random); }
 
+  // Scorre fino a un elemento; con movimento ridotto salta subito (styles.css ha scroll-behavior: smooth).
+  function scrollToEl(el, offset = 10) {
+    if (!el) return;
+    const y = window.scrollY + el.getBoundingClientRect().top - offset;
+    window.scrollTo({ top: Math.max(0, y), behavior: reduced ? "instant" : "auto" });
+  }
+
+  // Focus su un titolo (non su un pulsante): Invio o Spazio non fanno partire niente per sbaglio.
+  function focusHeading(box) {
+    const h = box && (box.querySelector("[data-focus-title]") || box.querySelector("h2, h3"));
+    if (!h) return;
+    if (!h.hasAttribute("tabindex")) h.setAttribute("tabindex", "-1");
+    h.focus({ preventScroll: true });
+  }
+
   /* ------------------------------------------------------ voce e suoni */
 
   let audio = null;
@@ -118,7 +133,9 @@
       const scene = SC[box.dataset.thumb];
       if (!scene) return;
       const frame = scene.frames[box.dataset.frame === "first" ? 0 : scene.frames.length - 1];
-      ui.figs.push(F.mount(box, { frames: [Object.assign({}, frame, { arrows: [], marks: [] })] }, { autoplay: false, viewBox: "22 34 276 214", label: (TECH.get(box.dataset.thumb) || {}).name || "" }));
+      ui.figs.push(F.mount(box, { frames: [Object.assign({}, frame, { arrows: [], marks: [] })] }, { autoplay: false, viewBox: "22 34 276 214" }));
+      const svg = box.querySelector("svg");
+      if (svg) { svg.setAttribute("aria-hidden", "true"); svg.removeAttribute("role"); }
     });
   }
 
@@ -200,31 +217,63 @@
     const action = E.nextAction(l, DATA);
     const idx = E.nextSessionIndex(l, P.sessions);
     const next = idx == null ? null : P.sessions[idx];
+    const doneToday = l.log.some((e) => e.kind === "session" && E.dayKey(e.t) === E.dayKey(Date.now()));
+    const TEST_NAMES = { semaforo: "Semaforo", direzione: "Direzione", periferica: "Periferica" };
     let hero;
-    if (next) {
+    if (next && action.kind === "session" && !action.tomorrow) {
       const st = E.sessionState(l, next.id);
       hero = `
         <article class="def-hero">
           <div class="def-hero-main">
-            <span class="def-kicker">${action.kind === "session" && action.tomorrow ? "Domani" : "Prossima sessione"} · Fase ${next.phase} · ${esc(E.PHASES[next.phase - 1].title)}</span>
+            <span class="def-kicker">${st.done ? "Da rifare" : "Prossima sessione"} · Fase ${next.phase} · ${esc(E.PHASES[next.phase - 1].title)}</span>
             <h2><span class="def-snum">${esc(next.id.replace("s", ""))}</span>${esc(next.title)}</h2>
             <p>${prose(next.goal)}</p>
             <div class="def-hero-meta">
               <span>circa ${sessionMinutes(next)} minuti</span>
               <span>${next.rounds.count} round da ${next.rounds.work} s</span>
-              ${st.done ? `<span>fatta ${st.done} ${st.done === 1 ? "volta" : "volte"}</span>` : ""}
+              ${st.done ? `<span>ultima autovalutazione ${Math.round((st.history[st.history.length - 1] || 0) * 100)}%</span>` : ""}
             </div>
             <div class="def-tchips">${next.techniques.map(techChip).join("")}</div>
           </div>
           <div class="def-hero-side">
             <div class="def-hero-fig" data-thumb="${esc(next.techniques[0])}"></div>
             <button class="def-primary" type="button" data-act="start-session" data-id="${esc(next.id)}">Inizia la sessione</button>
-            ${action.kind === "session" && action.tomorrow ? `<p class="def-note">Oggi hai già fatto una sessione: la prossima rende di più domani. Intanto prova i riflessi o le situazioni.</p>` : ""}
+          </div>
+        </article>`;
+    } else if (next || action.kind !== "review") {
+      // Sessione di oggi gia' fatta (o programma finito): il prossimo passo e' un altro allenamento.
+      let title;
+      let text;
+      let button;
+      if (action.kind === "situations") {
+        title = action.fresh ? "Un turno di situazioni" : `${action.count} situazioni da rivedere`;
+        text = action.fresh ? "Sei decisioni a tempo: allenano la parte che conta di più, accorgersi prima e scegliere bene." : "Sono quelle sbagliate nei giorni scorsi: rivederle al momento giusto è ciò che le fissa.";
+        button = `<button class="def-primary" type="button" data-act="go-situ">${action.fresh ? "Inizia un turno" : "Rivedile"}</button>`;
+      } else if (action.kind === "reflex") {
+        title = `Prova di riflessi: ${TEST_NAMES[action.test]}`;
+        text = "Un minuto, sempre con le stesse regole: così vedi davvero se migliori.";
+        button = `<button class="def-primary" type="button" data-act="go-reflex" data-kind="${esc(action.test)}">Fai la prova</button>`;
+      } else {
+        title = "Per oggi basta così";
+        text = "Hai fatto sessione, prove e situazioni. Il recupero fa parte dell'allenamento.";
+        button = "";
+      }
+      hero = `
+        <article class="def-hero today">
+          <div class="def-hero-main">
+            <span class="def-kicker">${doneToday ? "Sessione di oggi fatta · prossimo passo" : "Prossimo passo"}</span>
+            <h2>${esc(title)}</h2>
+            <p>${esc(text)}</p>
+            ${next ? `<p class="def-note">Prossima sessione: ${esc(next.id.replace("s", ""))} · ${esc(next.title)}. ${doneToday ? "Rende di più domani, ma puoi farla anche ora." : ""}</p>` : ""}
+          </div>
+          <div class="def-hero-side">
+            ${button}
+            ${next ? `<button class="def-ghost" type="button" data-act="start-session" data-id="${esc(next.id)}">${doneToday ? "Sessione comunque" : "Inizia la sessione"}</button>` : ""}
           </div>
         </article>`;
     } else {
       hero = `
-        <article class="def-hero done">
+        <article class="def-hero today">
           <div class="def-hero-main">
             <span class="def-kicker">Programma completato</span>
             <h2>Hai chiuso tutte e 4 le fasi.</h2>
@@ -240,8 +289,10 @@
       const items = P.sessions.map((s, i) => ({ s, i })).filter(({ s }) => s.phase === ph.n).map(({ s, i }) => {
         const st = E.sessionState(l, s.id);
         const open = E.isUnlocked(l, P.sessions, i);
-        const status = st.done ? "done" : open ? "open" : "locked";
-        const label = st.done ? `fatta${st.quality != null ? ` · ${Math.round(st.quality * 100)}%` : ""}` : open ? "da fare" : "bloccata";
+        const passed = st.done > 0 && (st.passed || (st.best || 0) >= E.PASS);
+        const status = passed ? "done" : st.done ? "retry" : open ? "open" : "locked";
+        const pct = st.quality != null ? ` · ${Math.round(st.quality * 100)}%` : "";
+        const label = passed ? `fatta${pct}` : st.done ? `da rifare${pct}` : open ? "da fare" : "bloccata";
         return `
           <li class="def-node ${status}">
             <button type="button" data-act="${open ? "start-session" : "locked"}" data-id="${esc(s.id)}" ${open ? "" : 'aria-disabled="true"'}>
@@ -337,12 +388,12 @@
     if (i < 0 || !E.isUnlocked(lab(), P.sessions, i)) return;
     stopEverything();
     const s = P.sessions[i];
-    ui.run = { session: s, step: "warmup", wi: 0, left: (WARM.get(s.warmup[0]) || { seconds: 30 }).seconds, endsAt: 0, paused: false, ti: 0, round: null, answers: s.check.map(() => null), before: Object.fromEntries(profileSkills().map((k) => [k.key, k.value])) };
+    ui.run = { startedAt: Date.now(), session: s, step: "warmup", wi: 0, left: (WARM.get(s.warmup[0]) || { seconds: 30 }).seconds, endsAt: 0, paused: false, ti: 0, round: null, answers: s.check.map(() => null), workDone: 0, lastTick: 0, before: Object.fromEntries(profileSkills().map((k) => [k.key, k.value])) };
     ui.view = null;
     beep(660, 90);
     renderRun(true);
     startClock();
-    window.scrollTo({ top: $("defense").offsetTop - 10, behavior: reduced ? "auto" : "smooth" });
+    scrollToEl($("defPanel-program"));
   }
 
   function startClock() {
@@ -350,6 +401,7 @@
     if (!r) return;
     if (r.step === "warmup" || r.step === "rounds") {
       if (!r.paused) r.endsAt = performance.now() + r.left * 1000;
+      r.lastTick = performance.now();
       if (r.step === "warmup") speak((WARM.get(r.session.warmup[r.wi]) || {}).name || "");
     }
     if (ui.tick) clearInterval(ui.tick);
@@ -358,9 +410,12 @@
 
   function onTick() {
     const r = ui.run;
-    if (!r || r.paused) return;
-    if (r.step !== "warmup" && r.step !== "rounds") return;
     const now = performance.now();
+    if (!r || r.paused) { if (r) r.lastTick = now; return; }
+    if (r.step !== "warmup" && r.step !== "rounds") return;
+    // secondi di round fatti davvero (massimo 1 s per scatto: niente salti dopo un blocco del browser)
+    if (r.step === "rounds" && r.round && r.round.phase === "work" && r.lastTick) r.workDone += Math.min(1, Math.max(0, (now - r.lastTick) / 1000));
+    r.lastTick = now;
     const left = (r.endsAt - now) / 1000;
     const prevWhole = Math.ceil(r.left);
     r.left = left;
@@ -508,7 +563,7 @@
         <div class="def-run-tools">
           <button type="button" class="def-ghost def-toggle" data-act="toggle-voice" aria-pressed="${prefs().voice}">Voce</button>
           <button type="button" class="def-ghost def-toggle" data-act="toggle-sound" aria-pressed="${prefs().sound}">Suoni</button>
-          <button type="button" class="def-ghost" data-act="quit-session">Esci</button>
+          <button type="button" class="def-ghost" data-act="quit-session">${r.step === "done" ? "Chiudi" : "Esci"}</button>
         </div>
       </div>
       ${stepper(r)}`;
@@ -537,7 +592,7 @@
     } else if (r.step === "tech") {
       const t = TECH.get(s.techniques[r.ti]);
       body = `
-        <div class="def-run-sub"><span>Tecnica ${r.ti + 1} di ${s.techniques.length}</span><h3>${esc(t.name)}</h3></div>
+        <div class="def-run-sub"><span>Tecnica ${r.ti + 1} di ${s.techniques.length}</span><h3 data-focus-title>${esc(t.name)}</h3></div>
         ${techniqueBody(t, { inSession: true })}
         <div class="def-row def-run-next">
           ${r.ti > 0 ? `<button type="button" class="def-ghost" data-act="tech-prev">Tecnica precedente</button>` : ""}
@@ -552,7 +607,7 @@
           <div class="def-clock big" id="defClock" aria-hidden="true">${mmss(r.left)}</div>
           <div class="def-clockbar"><i id="defClockBar"></i></div>
           <div class="def-call" id="defCall" aria-live="assertive">${rd.phase === "work" ? (rd.call ? `<strong>${esc(rd.call.text)}</strong><em>${esc(rd.call.tech)}</em>` : "<strong>In guardia</strong><em>muoviti leggero, aspetta il comando</em>") : rd.phase === "rest" ? "<strong>Respira</strong><em>cammina, scuoti le braccia, bevi un sorso</em>" : "<strong>In posizione</strong><em>spazio libero intorno a te</em>"}</div>
-          <p class="def-round-tip">Esegui ogni comando lento e pulito, poi torna in guardia e muoviti finché arriva il prossimo. ${s.phase >= 4 ? "Le cadute non vengono chiamate: allenale solo nella parte tecnica, su un tappeto." : ""}</p>
+          <p class="def-round-tip">Esegui ogni comando lento e pulito, poi torna in guardia e muoviti finché arriva il prossimo. La sessione conta se fai almeno il 70% dei round (${mmss(E.roundsNeeded(s))} su ${mmss(s.rounds.count * s.rounds.work)}): ora ${mmss(r.workDone)}. ${s.phase >= 4 ? "Le cadute non vengono chiamate: allenale solo nella parte tecnica, su un tappetino spesso." : ""}</p>
           <div class="def-row">
             <button type="button" class="def-primary" data-act="pause" data-autofocus>${r.paused ? "Riprendi" : "Pausa"}</button>
             <button type="button" class="def-ghost" data-act="round-skip">${rd.phase === "work" ? "Chiudi il round" : "Salta il riposo"}</button>
@@ -560,10 +615,12 @@
         </div>`;
     } else if (r.step === "check") {
       const all = r.answers.every((a) => a !== null);
+      const short = r.workDone < E.roundsNeeded(s);
       body = `
         <div class="def-check">
-          <h3>Com'è andata davvero?</h3>
-          <p>Rispondi pensando a tutta la sessione, non al momento migliore. Questa autovalutazione pesa sulla Tecnica del profilo.</p>
+          <h3 data-focus-title>Com'è andata davvero?</h3>
+          <p>Rispondi pensando a tutta la sessione, non al momento migliore. Questa autovalutazione pesa sulla Tecnica del profilo e serve almeno discreta (40%) per sbloccare la sessione successiva.</p>
+          ${short ? `<p class="def-warn">Hai fatto ${mmss(r.workDone)} di round su ${mmss(s.rounds.count * s.rounds.work)}: sotto il 70% la sessione resta nel registro come incompleta e non conta. <button type="button" class="def-ghost" data-act="redo-rounds">Torna ai round</button></p>` : ""}
           <ol>${s.check.map((q, i) => `
             <li>
               <span>${prose(q)}</span>
@@ -571,10 +628,24 @@
                 ${[[2, "Sì"], [1, "A volte"], [0, "No"]].map(([v, l]) => `<button type="button" data-act="check" data-q="${i}" data-v="${v}" aria-pressed="${r.answers[i] === v}">${l}</button>`).join("")}
               </div>
             </li>`).join("")}</ol>
-          <div class="def-row"><button type="button" class="def-primary" data-act="save-session" ${all ? "" : "disabled"}>Salva la sessione</button>${all ? "" : `<span class="def-note">Rispondi a tutte le domande.</span>`}</div>
+          <div class="def-row"><button type="button" class="def-primary" data-act="save-session" id="defSaveSession" ${all ? "" : "disabled"}>Salva la sessione</button><span class="def-note" id="defCheckNote">${all ? "" : "Rispondi a tutte le domande."}</span></div>
         </div>`;
     } else if (r.step === "done") {
       const res = r.result;
+      if (!res.complete) {
+        body = `
+          <div class="def-done">
+            <div class="def-done-score"><strong>${mmss(r.workDone)}</strong><span>di round fatti</span></div>
+            <div>
+              <h3 data-focus-title>Sessione incompleta.</h3>
+              <p>Per contare servono almeno ${mmss(E.roundsNeeded(s))} di round. È rimasta nel registro, ma non sblocca la sessione successiva e non cambia il profilo.</p>
+              <div class="def-row"><button type="button" class="def-primary" data-act="redo-rounds">Rifai i round</button><button type="button" class="def-ghost" data-act="end-session">Torna al programma</button></div>
+            </div>
+          </div>`;
+        box.innerHTML = `<div class="def-run">${head}${body}</div>`;
+        if (focus) focusHeading(box);
+        return;
+      }
       const after = Object.fromEntries(profileSkills().map((k) => [k.key, k.value]));
       const deltas = E.DIMENSIONS.map((d) => ({ label: d.label, d: after[d.key] - r.before[d.key], v: after[d.key] })).filter((x) => x.d !== 0);
       const idx = E.nextSessionIndex(lab(), P.sessions);
@@ -583,20 +654,25 @@
         <div class="def-done">
           <div class="def-done-score"><strong>${Math.round(res.quality * 100)}%</strong><span>autovalutazione</span></div>
           <div>
-            <h3>${res.first ? "Sessione completata." : "Sessione ripetuta."}</h3>
+            <h3 data-focus-title>${res.first ? "Sessione completata." : res.repeat ? "Sessione ripetuta." : "Sessione completata, da rifare."}</h3>
             <p>${res.quality >= 0.8 ? "Tecnica pulita: alla prossima ripetizione aumenta un poco la velocità, non la forza." : res.quality >= 0.5 ? "Buona base. Rifai le tecniche allo specchio puntando sul punto in cui hai risposto «A volte» o «No»." : "Meglio rifarla con calma: rallenta, tieni la guardia e conta i passi. Ripetere lento è il modo più veloce per imparare."}</p>
             ${deltas.length ? `<ul class="def-deltas">${deltas.map((x) => `<li><span>${esc(x.label)}</span><strong class="${x.d > 0 ? "up" : "down"}">${x.d > 0 ? "+" : ""}${x.d}</strong><em>${x.v}</em></li>`).join("")}</ul>` : ""}
             ${nxt && res.first ? `<p class="def-note">Sbloccata: sessione ${esc(nxt.id.replace("s", ""))}, ${esc(nxt.title)}. Fai la prossima domani: il corpo impara anche tra una sessione e l'altra.</p>` : ""}
-            <div class="def-row"><button type="button" class="def-primary" data-act="end-session" data-autofocus>Torna al programma</button></div>
+            ${!res.passed ? `<p class="def-note">La sessione successiva si sblocca quando l'autovalutazione arriva almeno al 40%. Rifai questa con calma, magari domani.</p>` : ""}
+            <div class="def-row"><button type="button" class="def-primary" data-act="end-session">Torna al programma</button></div>
           </div>
         </div>`;
     }
     box.innerHTML = `<div class="def-run">${head}${body}</div>`;
     if (r.step === "tech") wireFigure(box, s.techniques[r.ti]);
     if (r.step === "warmup" || r.step === "rounds") paintClock();
+    ui.renderedAt = Date.now();
     if (focus) {
-      const f = box.querySelector("[data-autofocus]");
-      if (f) f.focus({ preventScroll: true });
+      if (r.step === "check" || r.step === "done" || r.step === "tech") focusHeading(box);
+      else {
+        const f = box.querySelector("[data-autofocus]");
+        if (f) f.focus({ preventScroll: true });
+      }
     }
   }
 
@@ -619,13 +695,13 @@
   function saveSession() {
     const r = ui.run;
     if (!r || r.answers.some((a) => a === null)) return;
-    r.result = E.recordSession(lab(), r.session, r.answers);
+    r.result = E.recordSession(lab(), r.session, r.answers, Date.now(), { roundSeconds: r.workDone });
     r.step = "done";
     if (ui.tick) { clearInterval(ui.tick); ui.tick = null; }
     save();
     renderChip();
     renderRun(true);
-    announce("Sessione salvata");
+    announce(r.result.complete ? "Sessione salvata" : "Sessione incompleta: non conta");
   }
 
   /* ------------------------------------------------------------- riflessi */
@@ -733,9 +809,13 @@
     } else if (t.phase === "result") {
       box.innerHTML = resultMarkup(t);
     }
+    ui.renderedAt = Date.now();
     if (focus) {
-      const f = box.querySelector("[data-autofocus]");
-      if (f) f.focus({ preventScroll: true });
+      if (t.phase === "result") focusHeading(box);
+      else {
+        const f = box.querySelector("[data-autofocus]");
+        if (f) f.focus({ preventScroll: true });
+      }
     }
   }
 
@@ -794,8 +874,10 @@
     if (t.kind === "semaforo") setStim(trial.kind === "go" ? "<span>VAI</span>" : "<span>FERMO</span>", trial.kind === "go" ? "go" : "stop");
     else setStim(arrowSvg(trial.dir), "arrow");
     t.state = "stim";
-    t.stimAt = 0;
-    requestAnimationFrame((ts) => { if (ui.test === t) t.stimAt = ts; });
+    const shownAt = performance.now();
+    t.stimAt = shownAt;
+    // il timestamp del frame puo' precedere il cambio del DOM: si prende il piu' tardo dei due
+    requestAnimationFrame((ts) => { if (ui.test === t) t.stimAt = Math.max(ts, shownAt); });
     const windowMs = t.kind === "semaforo" ? E.GO_WINDOW : 1500;
     t.timer = setTimeout(() => endTrial(null, null), windowMs);
   }
@@ -816,8 +898,8 @@
       return;
     }
     if (t.state !== "stim") return;
-    const start = t.stimAt || timeStamp;
-    endTrial(Math.round(timeStamp - start), dir);
+    const rt = Math.round(timeStamp - (t.stimAt || timeStamp));
+    endTrial(rt >= 0 && rt < 5000 ? rt : null, dir);
   }
 
   function endTrial(rt, dir) {
@@ -866,7 +948,7 @@
         t.timer = setTimeout(() => {
           t.state = "shape";
           setStim(`<span class="def-fix dim">?</span>`, "peri");
-          $("defPeriAnswer").innerHTML = `<p>Al centro c'era…</p><div class="def-row"><button type="button" class="def-primary" data-act="peri-shape" data-shape="circle">Un cerchio</button><button type="button" class="def-primary" data-act="peri-shape" data-shape="square">Un quadrato</button></div>`;
+          $("defPeriAnswer").innerHTML = `<p>Al centro c'era… <span class="def-keys-hint">(tasti C e Q)</span></p><div class="def-row"><button type="button" class="def-primary" data-act="peri-shape" data-shape="circle">Un cerchio</button><button type="button" class="def-primary" data-act="peri-shape" data-shape="square">Un quadrato</button></div>`;
           const first = $("defPeriAnswer").querySelector("button");
           if (first) first.focus({ preventScroll: true });
         }, 180);
@@ -879,7 +961,8 @@
     if (!t || t.state !== "shape") return;
     t.shapePick = shape;
     t.state = "pos";
-    setStim(Array.from({ length: 8 }, (_, i) => { const q = periPos(i); return `<button type="button" class="def-peri-target" data-act="peri-pos" data-pos="${i}" style="left:${q.x}%;top:${q.y}%" aria-label="Posizione ${i + 1}"></button>`; }).join(""), "peri");
+    const names = ["in alto", "in alto a destra", "a destra", "in basso a destra", "in basso", "in basso a sinistra", "a sinistra", "in alto a sinistra"];
+    setStim(Array.from({ length: 8 }, (_, i) => { const q = periPos(i); return `<button type="button" class="def-peri-target" data-act="peri-pos" data-pos="${i}" style="left:${q.x}%;top:${q.y}%" aria-label="${names[i]}"></button>`; }).join(""), "peri");
     $("defPeriAnswer").innerHTML = `<p>Dov'era il punto? Tocca il cerchio giusto.</p>`;
     const first = $("defStim").querySelector("button");
     if (first) first.focus({ preventScroll: true });
@@ -901,14 +984,17 @@
     t.timer = setTimeout(nextTrial, 900);
   }
 
+  function scoreOf(t) {
+    return t.kind === "semaforo" ? E.scoreSemaforo(t.trials) : t.kind === "direzione" ? E.scoreDirezione(t.trials) : E.scorePeriferica(t.trials);
+  }
+
   function finishTest() {
     const t = ui.test;
     clearTimeout(t.timer);
-    const prev = reflexSummary(t.kind);
-    const prevBest = prev.best;
-    const res = t.kind === "semaforo" ? E.scoreSemaforo(t.trials) : t.kind === "direzione" ? E.scoreDirezione(t.trials) : E.scorePeriferica(t.trials);
-    // una prova senza nessuna risposta valida non si registra
-    const usable = t.kind === "periferica" ? res.n > 0 : res.median != null;
+    const prevBest = reflexSummary(t.kind).best;
+    const res = scoreOf(t);
+    // finita: si registra sempre (una prova fatta male pesa sul Controllo); senza nessuna risposta, no
+    const usable = t.kind === "periferica" ? res.n > 0 : res.median != null || res.commissions > 0 || res.early > 0;
     if (usable) {
       E.recordReflex(lab(), t.kind, res);
       save();
@@ -919,7 +1005,20 @@
     t.phase = "result";
     renderChip();
     renderTest(true);
-    announce("Prova finita");
+    const main = t.kind === "periferica" ? `lampo ${res.threshold} millisecondi` : res.median != null ? `${res.median} millisecondi` : "nessuna risposta valida";
+    announce(`Prova finita: ${main}${res.ok ? "" : ", non valida per i Riflessi"}`);
+  }
+
+  // Interrompere dopo meta' prova lascia traccia: niente "rifaccio finche' esce bene" senza conseguenze.
+  function abortTestRecording() {
+    const t = ui.test;
+    if (t && t.phase === "run" && t.plan && t.i >= t.plan.length / 2 && t.trials.length) {
+      const res = Object.assign(scoreOf(t), { ok: false, aborted: true });
+      E.recordReflex(lab(), t.kind, res);
+      save();
+      announce("Prova interrotta: registrata come non valida");
+    }
+    abortTest();
   }
 
   function resultMarkup(t) {
@@ -931,7 +1030,7 @@
     if (t.kind === "semaforo") {
       main = r.median != null ? `${r.median} ms` : "—";
       rows = [["Tempo mediano al verde", main], ["Risposte al rosso", `${r.commissions} su 6`], ["Anticipi", r.early], ["Verdi mancati", r.omissions], ["Velocità", `${r.speed}/100`], ["Controllo", `${r.control}/100`]];
-      read = r.commissions >= 2 ? "Parti anche quando non devi: rallenta di poco e aspetta di vedere il colore. Nella realtà, reagire a una finta costa caro." : r.early >= 2 ? "Troppi anticipi: stai indovinando il momento invece di guardare. Lascia che sia lo stimolo a farti partire." : r.median != null && r.median < 320 ? "Veloce e controllato. Mantieni il ritmo con una prova al giorno." : "Controllo buono. Per la velocità: postura comoda, dito già sul tasto, sguardo al centro.";
+      read = r.omissions >= 3 ? "Troppi verdi mancati: resta pronto, dito già sul tasto e sguardo al centro del riquadro." : r.commissions >= 2 ? "Parti anche quando non devi: rallenta di poco e aspetta di vedere il colore. Nella realtà, reagire a una finta costa caro." : r.early >= 2 ? "Troppi anticipi: stai indovinando il momento invece di guardare. Lascia che sia lo stimolo a farti partire." : r.median != null && r.median < 320 && r.control >= 80 ? "Veloce e controllato. Mantieni il ritmo con una prova al giorno." : "Controllo buono. Per la velocità: postura comoda, dito già sul tasto, sguardo al centro.";
     } else if (t.kind === "direzione") {
       main = r.median != null ? `${r.median} ms` : "—";
       rows = [["Tempo mediano (giuste)", main], ["Precisione", `${r.accuracy}%`], ["Direzioni sbagliate", r.wrong], ["Mancate", r.missed], ["Anticipi", r.early], ["Velocità", `${r.speed}/100`]];
@@ -941,16 +1040,16 @@
       rows = [["Durata del lampo a fine prova", main], ["Posizioni giuste", `${r.accuracy}%`], ["Forma e posizione giuste", `${r.both}%`], ["Punteggio", `${r.score}/100`]];
       read = r.threshold != null && r.threshold <= 120 ? "Campo visivo ampio: noti i bordi anche guardando al centro." : "Allenalo anche fuori: per strada, guarda avanti e conta quello che vedi ai lati senza girare la testa.";
     }
-    const better = t.prevBest != null && t.kind !== "periferica" && r.median != null && r.median < t.prevBest;
-    const betterP = t.prevBest != null && t.kind === "periferica" && r.threshold != null && r.threshold < t.prevBest;
+    const better = r.ok && t.prevBest != null && t.kind !== "periferica" && r.median != null && r.median < t.prevBest;
+    const betterP = r.ok && t.prevBest != null && t.kind === "periferica" && r.threshold != null && r.threshold < t.prevBest;
     return `
       <div class="def-back-row"><button type="button" class="def-ghost" data-act="test-back">← Riflessi</button></div>
       <div class="def-result">
-        <div class="def-result-main"><span class="def-kicker">${info.title}</span><strong>${main}</strong>${better || betterP ? `<em class="def-record">nuovo record</em>` : t.prevBest != null ? `<em>record ${t.prevBest} ms</em>` : ""}</div>
+        <div class="def-result-main"><span class="def-kicker">${info.title}</span><strong data-focus-title>${main}</strong>${better || betterP ? `<em class="def-record">nuovo record</em>` : t.prevBest != null ? `<em>record ${t.prevBest} ms</em>` : ""}</div>
         <dl class="def-result-rows">${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>
         <p class="def-result-read">${esc(read)}</p>
-        ${t.recorded ? "" : `<p class="def-note">Nessuna risposta valida: la prova non è stata registrata.</p>`}
-        <div class="def-row"><button type="button" class="def-primary" data-act="test-start" data-autofocus>Rifai</button><button type="button" class="def-ghost" data-act="test-back">Altre prove</button></div>
+        ${!t.recorded ? `<p class="def-note">Nessuna risposta: la prova non è stata registrata.</p>` : !r.ok ? `<p class="def-warn">Prova registrata ma non valida per i Riflessi e per il record: ${t.kind === "semaforo" ? "servono almeno 12 verdi presi su 18 e al massimo 2 risposte al rosso" : t.kind === "direzione" ? "serve almeno il 70% di direzioni giuste" : "servono almeno 10 prove"}. Pesa comunque sul Controllo.</p>` : ""}
+        <div class="def-row"><button type="button" class="def-primary" data-act="test-start">Rifai</button><button type="button" class="def-ghost" data-act="test-back">Altre prove</button></div>
       </div>`;
   }
 
@@ -970,6 +1069,7 @@
     const due = E.dueSituations(l, SITS);
     const seen = SITS.filter((s) => E.situState(l, s.id).seen > 0).length;
     const stats = E.categoryStats(l);
+    const practiceOnly = !due.length && seen >= SITS.length;
     const cats = Object.entries(E.CATEGORIES).map(([k, c]) => {
       const all = SITS.filter((s) => s.category === k);
       const st = stats[k];
@@ -986,11 +1086,11 @@
       <article class="def-hero situ">
         <div class="def-hero-main">
           <span class="def-kicker">Decisioni a tempo</span>
-          <h2>${due.length ? `${due.length} ${due.length === 1 ? "situazione da rivedere" : "situazioni da rivedere"}` : seen < SITS.length ? "Sei situazioni, pochi secondi ciascuna" : "Tutte viste: tieni allenata la testa"}</h2>
-          <p>Leggi, decidi prima che finisca il tempo, poi scopri il voto di ogni scelta. Le risposte sbagliate tornano il giorno dopo, quelle giuste sempre più di rado.</p>
+          <h2>${due.length ? `${due.length} ${due.length === 1 ? "situazione da rivedere" : "situazioni da rivedere"}` : !practiceOnly ? "Sei situazioni, decisioni a tempo" : "Per oggi hai finito"}</h2>
+          <p>${practiceOnly ? "Le hai viste tutte e nessuna è in scadenza: le prossime tornano nei giorni giusti. Puoi fare un turno di pratica, che non cambia il profilo." : "Leggi la situazione con calma, poi apri le opzioni: da lì parte il tempo. Le risposte sbagliate tornano il giorno dopo, quelle giuste sempre più di rado."}</p>
           <div class="def-hero-meta"><span>${seen}/${SITS.length} viste</span><span>tasti 1-4 per rispondere</span></div>
         </div>
-        <div class="def-hero-side"><button type="button" class="def-primary" data-act="situ-start">Inizia un turno</button></div>
+        <div class="def-hero-side"><button type="button" class="def-${practiceOnly ? "ghost" : "primary"}" data-act="situ-start">${practiceOnly ? "Turno di pratica" : "Inizia un turno"}</button></div>
       </article>
       <h3 class="def-section-title">Le sei aree</h3>
       <ul class="def-cats">${cats}</ul>
@@ -1000,9 +1100,16 @@
   function startSitu() {
     stopEverything();
     const queue = E.pickTurn(lab(), SITS, Math.min(6, SITS.length));
-    ui.situ = { queue, i: 0, results: [], picked: null, phase: "play" };
+    ui.situ = { queue, i: 0, results: [], picked: null, phase: "play", practice: E.isPracticeTurn(lab(), SITS, queue) };
     prepSitu();
     renderSituPlay(true);
+    scrollToEl($("defPanel-situ"));
+  }
+
+  // Tempo per decidere: parte quando compaiono le opzioni e tiene conto di quanto sono lunghe da leggere.
+  function decisionMs(s) {
+    const words = s.options.reduce((n, o) => n + o.text.split(/\s+/).length, 0);
+    return Math.max(12, Math.round(s.seconds * 0.6 + words * 0.25)) * 1000;
   }
 
   function prepSitu() {
@@ -1011,18 +1118,30 @@
     q.order = shuffle(s.options.map((_, i) => i));
     q.picked = null;
     q.timedOut = false;
+    q.stage = "read";
+    q.startedAt = 0;
+    q.limit = decisionMs(s);
+    ui.stepAt = Date.now();
+  }
+
+  function revealOptions() {
+    const q = ui.situ;
+    if (!q || q.stage !== "read") return;
+    q.stage = "decide";
     q.startedAt = Date.now();
     ui.stepAt = Date.now();
+    renderSituPlay(true);
   }
 
   function renderSituPlay(focus) {
     const box = $("defPanel-situ");
     const q = ui.situ;
     if (!box || !q) return;
-    if (q.phase === "summary") { box.innerHTML = situSummary(); focusFirst(box); return; }
+    if (q.phase === "summary") { box.innerHTML = situSummary(); ui.renderedAt = Date.now(); focusHeading(box); return; }
     const s = SIT.get(q.queue[q.i]);
     const cat = E.CATEGORIES[s.category];
     const answered = q.picked !== null;
+    const reading = q.stage === "read";
     const opts = q.order.map((oi, pos) => {
       const o = s.options[oi];
       const verdict = o.score === 2 ? "best" : o.score === 1 ? "ok" : "bad";
@@ -1039,16 +1158,19 @@
     const pickedOpt = answered && q.picked >= 0 ? s.options[q.picked] : null;
     box.innerHTML = `
       <div class="def-situ">
-        <div class="def-situ-top">
-          <span>${esc(cat.label)} · livello ${s.level}</span>
-          <span>${q.i + 1} / ${q.queue.length}</span>
-          <button type="button" class="def-ghost" data-act="situ-quit">Interrompi</button>
+        <div class="def-situ-head">
+          <div class="def-situ-top">
+            <span>${esc(cat.label)} · livello ${s.level}</span>
+            <span class="def-nowrap">${q.i + 1} / ${q.queue.length}</span>
+            <button type="button" class="def-ghost" data-act="situ-quit">${reading || answered ? "Interrompi" : "Interrompi (conta come scaduta)"}</button>
+          </div>
+          <div class="def-timebar ${answered ? "stopped" : ""} ${reading ? "idle" : ""}"><i id="defTimeFill" ${answered ? `style="width:${Math.round((q.leftFrac || 0) * 100)}%"` : ""}></i></div>
         </div>
-        <div class="def-timebar ${answered ? "stopped" : ""}"><i id="defTimeFill" ${answered ? `style="width:${Math.round((q.leftFrac || 0) * 100)}%"` : ""}></i></div>
-        <h2>${esc(s.title)}</h2>
+        ${q.practice ? `<p class="def-note def-practice-note">Turno di pratica: nessuna situazione nuova o in scadenza, queste risposte non cambiano il profilo.</p>` : ""}
+        <h2 data-focus-title>${esc(s.title)}</h2>
         <p class="def-situ-text">${prose(s.text)}</p>
-        <p class="def-situ-q">${prose(s.question)}</p>
-        <ol class="def-opts">${opts}</ol>
+        <p class="def-situ-q" ${reading ? "" : 'tabindex="-1" id="defSituQ"'}>${prose(s.question)}</p>
+        ${reading ? `<div class="def-row"><button type="button" class="def-primary" data-act="situ-reveal">Vedi le opzioni · ${Math.round(q.limit / 1000)} secondi per decidere</button></div>` : `<ol class="def-opts">${opts}</ol>`}
         ${answered ? `
           <div class="def-verdict ${q.timedOut ? "bad" : pickedOpt && pickedOpt.score === 2 ? "best" : pickedOpt && pickedOpt.score === 1 ? "ok" : "bad"}">
             <strong>${q.timedOut ? "Tempo scaduto." : pickedOpt.score === 2 ? "Scelta migliore." : pickedOpt.score === 1 ? "Accettabile, ma c'era di meglio." : "Scelta rischiosa."}</strong>
@@ -1057,9 +1179,9 @@
           </div>
           <div class="def-row"><button type="button" class="def-primary" data-act="situ-next" data-autofocus>${q.i < q.queue.length - 1 ? "Situazione successiva" : "Vedi il riepilogo"}</button></div>` : ""}
       </div>`;
-    if (!answered) {
+    if (!answered && !reading) {
       const fill = $("defTimeFill");
-      const total = s.seconds * 1000;
+      const total = q.limit;
       const left = Math.max(0, total - (Date.now() - q.startedAt));
       if (fill) {
         fill.style.transition = "none";
@@ -1072,7 +1194,12 @@
       if (q.timer) clearTimeout(q.timer);
       q.timer = setTimeout(() => situAnswer(-1), left);
     }
-    if (focus) focusFirst(box);
+    ui.renderedAt = Date.now();
+    if (focus) {
+      if (answered) { const v = box.querySelector(".def-verdict strong"); if (v) { v.setAttribute("tabindex", "-1"); v.focus({ preventScroll: true }); } }
+      else if (!reading && $("defSituQ")) $("defSituQ").focus({ preventScroll: true });
+      else focusHeading(box);
+    }
   }
 
   function focusFirst(box) {
@@ -1089,7 +1216,7 @@
     const score = timedOut ? 0 : s.options[index].score;
     q.picked = index;
     q.timedOut = timedOut;
-    q.leftFrac = timedOut ? 0 : Math.max(0, 1 - (Date.now() - q.startedAt) / (s.seconds * 1000));
+    q.leftFrac = timedOut ? 0 : Math.max(0, 1 - (Date.now() - q.startedAt) / q.limit);
     q.results.push({ id: s.id, score, timedOut });
     E.recordSituation(lab(), s, score, { timedOut });
     save();
@@ -1119,12 +1246,13 @@
       <div class="def-situ-sum">
         <div class="def-done-score"><strong>${pts}/${max}</strong><span>punti del turno</span></div>
         <div>
-          <h3>${pts >= max * 0.8 ? "Decisioni lucide." : pts >= max * 0.5 ? "Buona base, qualche scelta da rivedere." : "Turno difficile: è proprio così che si impara."}</h3>
+          <h3 data-focus-title>${pts >= max * 0.8 ? "Decisioni lucide." : pts >= max * 0.5 ? "Buona base, qualche scelta da rivedere." : "Turno difficile: è proprio così che si impara."}</h3>
+          ${q.practice ? `<p class="def-note">Turno di pratica: il profilo non cambia.</p>` : ""}
           <ul class="def-sum-list">${q.results.map((r) => {
             const s = SIT.get(r.id);
             return `<li class="${r.score === 2 ? "best" : r.score === 1 ? "ok" : "bad"}"><span>${esc(s.title)}</span><em>${r.timedOut ? "tempo scaduto · torna domani" : r.score === 2 ? "migliore" : r.score === 1 ? "accettabile · torna tra 2 giorni" : "da evitare · torna domani"}</em></li>`;
           }).join("")}</ul>
-          <div class="def-row"><button type="button" class="def-primary" data-act="situ-start" data-autofocus>Un altro turno</button><button type="button" class="def-ghost" data-act="situ-quit">Fine</button></div>
+          <div class="def-row"><button type="button" class="def-primary" data-act="situ-start">Un altro turno</button><button type="button" class="def-ghost" data-act="situ-quit">Fine</button></div>
         </div>
       </div>`;
   }
@@ -1175,13 +1303,16 @@
     }).join("");
     const recent = l.log.slice(-8).reverse().map((e) => {
       const when = new Date(e.t).toLocaleDateString("it-IT", { day: "numeric", month: "short" });
-      const what = e.kind === "session" ? `Sessione ${esc(e.id.replace("s", ""))} · ${e.q}%` : e.kind === "reflex" ? `Prova ${esc(TESTS[e.test] ? TESTS[e.test].title : e.test)}` : `${esc((SIT.get(e.id) || {}).title || e.id)} · ${e.s === 2 ? "migliore" : e.s === 1 ? "accettabile" : "da evitare"}`;
+      const what = e.kind === "session" ? `Sessione ${esc(e.id.replace("s", ""))} · ${e.q}%`
+        : e.kind === "session-partial" ? `Sessione ${esc(String(e.id || "").replace("s", ""))} · incompleta`
+        : e.kind === "reflex" ? `Prova ${esc(TESTS[e.test] ? TESTS[e.test].title : e.test)}${e.ok === false ? " · non valida" : ""}`
+        : `${esc((SIT.get(e.id) || {}).title || e.id)} · ${e.to ? "tempo scaduto" : e.s === 2 ? "migliore" : e.s === 1 ? "accettabile" : "da evitare"}${e.c === false ? " · pratica" : ""}`;
       return `<li><em>${esc(when)}</em><span>${what}</span></li>`;
     }).join("");
     box.innerHTML = `
       <div class="def-profile">
         <article class="def-pcard def-p-radar">
-          <svg class="module-radar def-radar" viewBox="0 0 280 280" aria-label="Profilo difesa">${radar}</svg>
+          <svg class="module-radar def-radar" viewBox="0 0 280 280" role="img" aria-label="Radar del profilo difesa: ${skills.map((k) => `${esc(k.label)} ${k.value}`).join(", ")}">${radar}</svg>
           <div class="def-total"><strong>${total}</strong><span>media delle 6 categorie${rank ? ` · rango ${rank}` : ""}</span></div>
           <ul class="def-dims">${skills.map((k) => `
             <li>
@@ -1227,7 +1358,9 @@
     if (!el || !$("defense").contains(el)) return;
     if (el.dataset.defTab) { setTab(el.dataset.defTab); return; }
     const act = el.dataset.act;
-    if (["situ-pick", "situ-next", "tech-next", "save-session"].includes(act) && (event.detail > 1 || Date.now() - (ui.stepAt || 0) < 300)) return;
+    if (["situ-pick", "situ-next", "tech-next", "save-session", "round-skip", "warm-next", "situ-reveal"].includes(act) && (event.detail > 1 || Date.now() - (ui.stepAt || 0) < 300)) return;
+    // clic da tastiera subito dopo un ridisegno (Invio ripetuto): ignorati
+    if (event.detail === 0 && Date.now() - (ui.renderedAt || 0) < 700 && ["situ-pick", "situ-next", "situ-reveal", "test-start", "save-session", "start-session"].includes(act)) return;
     if (act !== "situ-pick" && act !== "check" && act !== "frame" && act !== "practice") ui.stepAt = Date.now();
     switch (act) {
       case "tech":
@@ -1237,12 +1370,16 @@
         if (ui.tab !== "program") setTab("program");
         destroyFigs();
         renderTechnique(el.dataset.id);
-        window.scrollTo({ top: $("defense").offsetTop - 10, behavior: "auto" });
+        scrollToEl($("defPanel-program"));
         break;
-      case "back":
+      case "back": {
+        const from = ui.view && ui.view.id;
         ui.view = null;
         render();
+        const card = from && document.querySelector(`#defPanel-program .def-tcard[data-id="${from}"]`);
+        if (card) { scrollToEl(card, 80); card.focus({ preventScroll: true }); }
         break;
+      }
       case "frame": {
         const fig = ui.figs[ui.figs.length - 1];
         if (fig) {
@@ -1270,6 +1407,14 @@
         }
         break;
       case "start-session": startSession(el.dataset.id); break;
+      case "go-situ":
+        setTab("situ");
+        startSitu();
+        break;
+      case "go-reflex":
+        setTab("reflex");
+        testIntro(el.dataset.kind);
+        break;
       case "locked": announce("Sessione bloccata: completa prima quella precedente."); break;
       case "pause": togglePause(); break;
       case "warm-next":
@@ -1279,23 +1424,47 @@
       case "tech-prev": if (ui.run) { ui.run.ti -= 1; renderRun(true); } break;
       case "tech-next":
         if (!ui.run) break;
-        if (ui.run.ti < ui.run.session.techniques.length - 1) { ui.run.ti += 1; renderRun(true); window.scrollTo({ top: $("defense").offsetTop - 10, behavior: "auto" }); } else goStep("rounds");
+        if (ui.run.ti < ui.run.session.techniques.length - 1) { ui.run.ti += 1; renderRun(true); scrollToEl($("defPanel-program")); } else { goStep("rounds"); scrollToEl($("defPanel-program")); }
         break;
       case "round-skip":
         if (ui.run && ui.run.round) { ui.run.endsAt = performance.now(); ui.run.paused = false; onTick(); }
         break;
-      case "check":
+      case "check": {
         if (!ui.run) break;
-        ui.run.answers[Number(el.dataset.q)] = Number(el.dataset.v);
-        renderRun();
+        const qi = Number(el.dataset.q);
+        ui.run.answers[qi] = Number(el.dataset.v);
+        // aggiornamento sul posto: il focus resta dov'e'
+        el.parentElement.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", b === el ? "true" : "false"));
+        const all = ui.run.answers.every((a) => a !== null);
+        const btn = $("defSaveSession");
+        if (btn) btn.disabled = !all;
+        const note = $("defCheckNote");
+        if (note) note.textContent = all ? "" : "Rispondi a tutte le domande.";
+        break;
+      }
+      case "redo-rounds":
+        if (!ui.run) break;
+        ui.run.workDone = 0;
+        ui.run.result = null;
+        goStep("rounds");
+        if (!ui.tick) ui.tick = setInterval(onTick, 200);
         break;
       case "save-session": saveSession(); break;
-      case "end-session":
       case "quit-session":
+        // conferma in due tempi se la sessione e' avviata da piu' di un minuto
+        if (ui.run && ui.run.step !== "done" && Date.now() - ui.run.startedAt > 60000 && !el.dataset.armed) {
+          el.dataset.armed = "1";
+          el.textContent = "Conferma: esci";
+          setTimeout(() => { if (el.isConnected) { delete el.dataset.armed; el.textContent = "Esci"; } }, 3000);
+          break;
+        }
+        // fall through
+      case "end-session":
         if (ui.tick) { clearInterval(ui.tick); ui.tick = null; }
         if ("speechSynthesis" in window) try { window.speechSynthesis.cancel(); } catch (e) { /* niente */ }
         ui.run = null;
         render();
+        focusHeading($("defPanel-program"));
         break;
       case "toggle-voice":
         prefs().voice = !prefs().voice;
@@ -1312,8 +1481,10 @@
       case "test-start": startTest(); break;
       case "test-abort":
       case "test-back":
-        abortTest();
+        abortTestRecording();
+        renderChip();
         renderReflex();
+        focusHeading($("defPanel-reflex"));
         break;
       case "dir":
         // gia' gestito al pointerdown; qui arrivano solo tastiera e lettori di schermo
@@ -1326,10 +1497,14 @@
       case "situ-pick": situAnswer(Number(el.dataset.index)); break;
       case "situ-next": situNext(); break;
       case "situ-quit":
+        if (ui.situ && ui.situ.phase === "play" && ui.situ.stage === "decide" && ui.situ.picked === null) situAnswer(-1);
         if (ui.situ && ui.situ.timer) clearTimeout(ui.situ.timer);
         ui.situ = null;
+        renderChip();
         renderSitu();
+        focusHeading($("defPanel-situ"));
         break;
+      case "situ-reveal": revealOptions(); break;
       default: break;
     }
   }
@@ -1339,6 +1514,7 @@
   function onPointer(event) {
     const t = ui.test;
     if (!t || t.phase !== "run") return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
     if (t.kind === "semaforo" && event.target.closest("#defArena")) {
       event.preventDefault();
       respond(event.timeStamp || performance.now());
@@ -1366,7 +1542,7 @@
       return;
     }
     if (event.repeat || event.shiftKey) return;
-    if (ui.tab === "situ" && ui.situ && ui.situ.phase === "play" && ui.situ.picked === null) {
+    if (ui.tab === "situ" && ui.situ && ui.situ.phase === "play" && ui.situ.stage === "decide" && ui.situ.picked === null) {
       const pos = { 1: 0, 2: 1, 3: 2, 4: 3 }[event.key];
       if (pos !== undefined && Date.now() - (ui.stepAt || 0) > 250) {
         event.preventDefault();
@@ -1393,7 +1569,7 @@
       const list = [...tabs.querySelectorAll("[data-def-tab]")];
       const i = list.indexOf(document.activeElement);
       if (i < 0) return;
-      const j = event.key === "ArrowRight" ? (i + 1) % list.length : event.key === "ArrowLeft" ? (i - 1 + list.length) % list.length : -1;
+      const j = event.key === "ArrowRight" ? (i + 1) % list.length : event.key === "ArrowLeft" ? (i - 1 + list.length) % list.length : event.key === "Home" ? 0 : event.key === "End" ? list.length - 1 : -1;
       if (j < 0) return;
       event.preventDefault();
       list[j].focus();
@@ -1401,7 +1577,7 @@
     });
     // Se si lascia la pagina: prove interrotte, sessione in pausa, voce zitta.
     const pauseAll = () => {
-      if (ui.test && ui.test.phase === "run") { abortTest(); if (ui.tab === "reflex") renderReflex(); }
+      if (ui.test && ui.test.phase === "run") { abortTestRecording(); if (ui.tab === "reflex") renderReflex(); }
       if (ui.run && !ui.run.paused && (ui.run.step === "warmup" || ui.run.step === "rounds")) togglePause();
       if (ui.situ && ui.situ.phase === "play" && ui.situ.picked === null && ui.situ.timer) {
         // il tempo continua a scorrere: niente pausa per non dare vantaggi
@@ -1409,6 +1585,10 @@
       if ("speechSynthesis" in window) try { window.speechSynthesis.cancel(); } catch (e) { /* niente */ }
     };
     document.addEventListener("visibilitychange", () => { if (document.hidden) pauseAll(); });
+    // ricaricare a meta' sessione la perderebbe: il browser chiede conferma
+    window.addEventListener("beforeunload", (event) => {
+      if (ui.run && ui.run.step !== "done" && Date.now() - ui.run.startedAt > 60000) { event.preventDefault(); event.returnValue = ""; }
+    });
     window.addEventListener("hashchange", () => { if (!page.classList.contains("active-page") || location.hash !== "#defense") pauseAll(); });
     if ("speechSynthesis" in window) {
       try { window.speechSynthesis.onvoiceschanged = () => { itVoice = null; }; } catch (e) { /* niente */ }

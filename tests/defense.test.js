@@ -225,5 +225,97 @@ test("Stato vecchio o rovinato: si ricostruisce senza errori", () => {
   assert.ok(E.profile(fresh, P.sessions, T0));
 });
 
+test("Sessione saltata: senza il 70% dei round non conta e non sblocca", () => {
+  const lab = E.ensureLab(null);
+  const S = P.sessions;
+  const r = E.recordSession(lab, S[0], [2, 2, 2, 2], T0, { roundSeconds: 5 });
+  assert.strictEqual(r.complete, false);
+  assert.strictEqual(E.sessionState(lab, S[0].id).done, 0);
+  assert.ok(!E.isUnlocked(lab, S, 1));
+  const p = E.profile(lab, S, T0);
+  assert.strictEqual(p.tecnica, 10);
+  assert.strictEqual(p.costanza, 0);
+  // con i round fatti davvero conta
+  const ok = E.recordSession(lab, S[0], [2, 2, 2, 2], T0, { roundSeconds: E.roundsNeeded(S[0]) });
+  assert.ok(ok.complete && ok.first);
+  assert.ok(E.isUnlocked(lab, S, 1));
+});
+
+test("Autovalutazione bassa: la sessione dopo resta bloccata finche' non migliora", () => {
+  const lab = E.ensureLab(null);
+  const S = P.sessions;
+  const r = E.recordSession(lab, S[0], [0, 0, 1, 0], T0);
+  assert.ok(r.complete && !r.passed);
+  assert.ok(!E.isUnlocked(lab, S, 1));
+  assert.strictEqual(E.nextSessionIndex(lab, S), 0, "resta da rifare");
+  E.recordSession(lab, S[0], [2, 1, 2, 1], T0 + DAY);
+  assert.ok(E.isUnlocked(lab, S, 1));
+  assert.strictEqual(E.nextSessionIndex(lab, S), 1);
+});
+
+test("Stessa sessione dieci volte in un giorno: vale come un giorno", () => {
+  const lab = E.ensureLab(null);
+  for (let i = 0; i < 10; i += 1) E.recordSession(lab, P.sessions[0], [2, 2, 2, 2], T0 + i * 60000);
+  const st = E.sessionState(lab, P.sessions[0].id);
+  assert.strictEqual(st.history.length, 1);
+  const p = E.profile(lab, P.sessions, T0 + DAY / 3);
+  assert.ok(p.tecnica < 35, `tecnica ${p.tecnica}`);
+  assert.ok(p.costanza <= 11, `costanza ${p.costanza}`);
+});
+
+test("Situazioni ripetute lo stesso giorno: pratica, il profilo non cambia", () => {
+  const lab = E.ensureLab(null);
+  SITS.forEach((s) => E.recordSituation(lab, s, s.options.findIndex(() => false) === -1 ? 0 : 0, { now: T0 }));
+  const before = E.profile(lab, P.sessions, T0);
+  // rifatte subito, tutte giuste: non contano
+  for (let k = 0; k < 5; k += 1) SITS.forEach((s) => E.recordSituation(lab, s, 2, { now: T0 + 1000 }));
+  const after = E.profile(lab, P.sessions, T0 + 2000);
+  assert.strictEqual(after.decisione, before.decisione);
+  assert.strictEqual(after.prevenzione, before.prevenzione);
+  assert.ok(E.isPracticeTurn(lab, SITS, SITS.slice(0, 6).map((s) => s.id), T0 + 2000));
+  // il giorno dopo sono in scadenza e contano di nuovo
+  assert.ok(!E.isPracticeTurn(lab, SITS, SITS.slice(0, 6).map((s) => s.id), T0 + DAY));
+  SITS.forEach((s) => E.recordSituation(lab, s, 2, { now: T0 + DAY }));
+  assert.ok(E.profile(lab, P.sessions, T0 + DAY).decisione > after.decisione);
+});
+
+test("Riflessi: prove con poche risposte o a caso non contano e non fanno record", () => {
+  const lab = E.ensureLab(null);
+  const plan = E.planSemaforo(E.rng(4));
+  let first = true;
+  const lazy = E.scoreSemaforo(plan.map((p) => {
+    if (p.kind === "go" && first) { first = false; return { kind: "go", rt: 190, early: false }; }
+    return { kind: p.kind, rt: null, early: false };
+  }));
+  assert.strictEqual(lazy.ok, false);
+  const spam = E.scoreSemaforo(plan.map((p) => ({ kind: p.kind, rt: 200, early: false })));
+  assert.strictEqual(spam.ok, false, "risponde anche al rosso");
+  E.recordReflex(lab, "semaforo", lazy, T0);
+  E.recordReflex(lab, "semaforo", spam, T0);
+  assert.strictEqual(E.reflexBest(lab, "semaforo"), null);
+  const p = E.profile(lab, P.sessions, T0);
+  assert.strictEqual(p.riflessi, 25, "velocita' ignorata");
+  assert.ok(p.controllo < 30, `controllo ${p.controllo}`);
+  assert.strictEqual(p.costanza, 0, "prove non valide non segnano il giorno");
+  const dirRandom = E.scoreDirezione(E.planDirezione(E.rng(9)).map((x, i) => ({ dir: x.dir, answer: E.DIRECTIONS[i % 4], rt: 200, early: false })));
+  assert.ok(!dirRandom.ok || dirRandom.accuracy >= 70);
+});
+
+test("Dati rovinati o di un'altra versione: si tengono i dati buoni", () => {
+  const raw = { version: 2, sessions: { s01: { done: 3, last: T0, quality: 0.8, history: [0.8, null], passed: true }, s02: null },
+    reflex: { semaforo: [null, { t: T0, median: "300", speed: 80, control: 90, ok: true }] },
+    situations: { x: null }, log: [null, { t: T0, kind: "session" }, { t: T0, kind: "session", id: "s01", q: 80 }], days: [null, "2026-10-14"] };
+  const lab = E.ensureLab(raw);
+  assert.strictEqual(lab.version, E.VERSION);
+  assert.strictEqual(E.sessionState(lab, "s01").done, 3, "sessioni conservate");
+  assert.deepStrictEqual(lab.sessions.s01.history, [0.8]);
+  assert.strictEqual(lab.reflex.semaforo.length, 1);
+  assert.strictEqual(lab.reflex.semaforo[0].median, null, "mediana non numerica scartata");
+  assert.strictEqual(lab.log.length, 1);
+  assert.deepStrictEqual(lab.days, ["2026-10-14"]);
+  const p = E.profile(lab, P.sessions, T0);
+  Object.values(p).forEach((v) => assert.ok(Number.isFinite(v), "niente NaN"));
+});
+
 console.log(`${passed} test superati${failed.length ? `, ${failed.length} falliti` : ""}`);
 process.exit(failed.length ? 1 : 0);

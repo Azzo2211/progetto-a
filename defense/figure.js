@@ -47,8 +47,8 @@
 
   // Interpola due pose (stessa struttura). I campi non numerici prendono quelli di "b" a meta'.
   function mix(a, b, t) {
-    if (!a) return b;
-    if (!b) return a;
+    if (a == null) return b;
+    if (b == null) return a;
     if (typeof a === "number" && typeof b === "number") return lerp(a, b, t);
     if (Array.isArray(a) && Array.isArray(b)) return a.map(function (v, i) { return mix(v, b[i], t); });
     if (typeof a === "object" && typeof b === "object") {
