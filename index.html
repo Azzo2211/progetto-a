@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Metodo Integrale</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f7a6d'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-size='28' font-weight='700' text-anchor='middle' fill='%23ffffff'%3EMI%3C/text%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="styles.css?v=20261014-11" />
-    <link rel="stylesheet" href="chess/board-view.css?v=20261014-11" />
-    <link rel="stylesheet" href="chess/chess-ui.css?v=20261014-11" />
-    <link rel="stylesheet" href="scenarios/scenarios.css?v=20261014-11" />
-    <link rel="stylesheet" href="culture/culture.css?v=20261014-11" />
-    <link rel="stylesheet" href="defense/defense.css?v=20261014-11" />
+    <link rel="stylesheet" href="styles.css?v=20261015-1" />
+    <link rel="stylesheet" href="chess/board-view.css?v=20261015-1" />
+    <link rel="stylesheet" href="chess/chess-ui.css?v=20261015-1" />
+    <link rel="stylesheet" href="scenarios/scenarios.css?v=20261015-1" />
+    <link rel="stylesheet" href="culture/culture.css?v=20261015-1" />
+    <link rel="stylesheet" href="defense/defense.css?v=20261015-1" />
+    <link rel="stylesheet" href="defense/martial.css?v=20261015-1" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
@@ -147,7 +148,7 @@
             </a>
             <a class="mode-card" href="#defense">
               <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-defense"/></svg><strong>Difesa personale</strong></span>
-              <p>Programma in 4 fasi con figura animata, riflessi misurati e decisioni a tempo.</p>
+              <p>Arti marziali 5 giorni a settimana col metodo Johan Seong, più difesa, riflessi e decisioni.</p>
               <div class="mini-indicators" id="defenseCardIndicators"></div>
             </a>
             <a class="mode-card" href="#logic">
@@ -508,19 +509,21 @@
         <section id="defense" class="page def-page">
           <div class="page-heading def-heading">
             <div>
-              <p class="eyebrow">Difesa personale</p>
-              <h1>Il più forte è chi non ha bisogno di combattere.</h1>
-              <p class="page-subtitle">Accorgersi prima, calmare, uscire. E quando serve, proteggersi bene: tecnica lenta e pulita, riflessi misurati, decisioni a tempo.</p>
+              <p class="eyebrow">Arti marziali e difesa</p>
+              <h1>Guarda, copia, fallo tuo. Uno stile al giorno.</h1>
+              <p class="page-subtitle">Cinque allenamenti a settimana tra boxe, muay thai, taekwondo, karate, capoeira, lotta e kung fu, dalle basi in su. In più difesa personale, riflessi misurati e decisioni a tempo.</p>
             </div>
-            <button class="def-chip" id="defChip" type="button" title="Apri il profilo difesa"></button>
+            <button class="def-chip" id="defChip" type="button" title="Apri l'allenamento di oggi"></button>
           </div>
           <div class="def-tabs" role="tablist" aria-label="Sezioni della difesa">
-            <button type="button" role="tab" id="defTab-program" data-def-tab="program" aria-controls="defPanel-program" aria-selected="true">Programma</button>
+            <button type="button" role="tab" id="defTab-martial" data-def-tab="martial" aria-controls="defPanel-martial" aria-selected="true">Arti marziali</button>
+            <button type="button" role="tab" id="defTab-program" data-def-tab="program" aria-controls="defPanel-program" aria-selected="false" tabindex="-1">Difesa</button>
             <button type="button" role="tab" id="defTab-reflex" data-def-tab="reflex" aria-controls="defPanel-reflex" aria-selected="false" tabindex="-1">Riflessi</button>
             <button type="button" role="tab" id="defTab-situ" data-def-tab="situ" aria-controls="defPanel-situ" aria-selected="false" tabindex="-1">Situazioni</button>
             <button type="button" role="tab" id="defTab-profile" data-def-tab="profile" aria-controls="defPanel-profile" aria-selected="false" tabindex="-1">Profilo</button>
           </div>
-          <div class="def-panel" id="defPanel-program" role="tabpanel" aria-labelledby="defTab-program"></div>
+          <div class="def-panel" id="defPanel-martial" role="tabpanel" aria-labelledby="defTab-martial"></div>
+          <div class="def-panel" id="defPanel-program" role="tabpanel" aria-labelledby="defTab-program" hidden></div>
           <div class="def-panel" id="defPanel-reflex" role="tabpanel" aria-labelledby="defTab-reflex" hidden></div>
           <div class="def-panel" id="defPanel-situ" role="tabpanel" aria-labelledby="defTab-situ" hidden></div>
           <div class="def-panel" id="defPanel-profile" role="tabpanel" aria-labelledby="defTab-profile" hidden></div>
@@ -683,29 +686,32 @@
     <script src="chess/engine.js?v=20261014"></script>
     <script src="chess/bot.js?v=20261014"></script>
     <script src="chess/review.js?v=20261014"></script>
-    <script src="chess/board-view.js?v=20261014-11"></script>
-    <script src="chess/rating.js?v=20261014-11"></script>
-    <script src="chess/skills.js?v=20261014-11"></script>
-    <script src="chess/lessons.js?v=20261014-11"></script>
-    <script src="chess/coach.js?v=20261014-11"></script>
-    <script src="chess/trainer.js?v=20261014-11"></script>
-    <script src="scenarios/engine.js?v=20261014-11"></script>
-    <script src="scenarios/exams.js?v=20261014-11"></script>
-    <script src="scenarios/free.js?v=20261014-11"></script>
-    <script src="culture/engine.js?v=20261014-11"></script>
-    <script src="culture/cards.js?v=20261014-11"></script>
-    <script src="defense/engine.js?v=20261014-11"></script>
-    <script src="defense/program.js?v=20261014-11"></script>
-    <script src="defense/situations.js?v=20261014-11"></script>
-    <script src="defense/figure.js?v=20261014-11"></script>
-    <script src="defense/scenes.js?v=20261014-11"></script>
-    <script src="app.js?v=20261014-11"></script>
-    <script src="chess/chess-ui.js?v=20261014-11"></script>
-    <script src="chess/learn-ui.js?v=20261014-11"></script>
-    <script src="chess/grade-ui.js?v=20261014-11"></script>
-    <script src="cote-theme.js?v=20261014-11"></script>
-    <script src="scenarios/ui.js?v=20261014-11"></script>
-    <script src="culture/ui.js?v=20261014-11"></script>
-    <script src="defense/ui.js?v=20261014-11"></script>
+    <script src="chess/board-view.js?v=20261015-1"></script>
+    <script src="chess/rating.js?v=20261015-1"></script>
+    <script src="chess/skills.js?v=20261015-1"></script>
+    <script src="chess/lessons.js?v=20261015-1"></script>
+    <script src="chess/coach.js?v=20261015-1"></script>
+    <script src="chess/trainer.js?v=20261015-1"></script>
+    <script src="scenarios/engine.js?v=20261015-1"></script>
+    <script src="scenarios/exams.js?v=20261015-1"></script>
+    <script src="scenarios/free.js?v=20261015-1"></script>
+    <script src="culture/engine.js?v=20261015-1"></script>
+    <script src="culture/cards.js?v=20261015-1"></script>
+    <script src="defense/engine.js?v=20261015-1"></script>
+    <script src="defense/program.js?v=20261015-1"></script>
+    <script src="defense/situations.js?v=20261015-1"></script>
+    <script src="defense/figure.js?v=20261015-1"></script>
+    <script src="defense/scenes.js?v=20261015-1"></script>
+    <script src="defense/martial.js?v=20261015-1"></script>
+    <script src="defense/martial-data.js?v=20261015-1"></script>
+    <script src="app.js?v=20261015-1"></script>
+    <script src="chess/chess-ui.js?v=20261015-1"></script>
+    <script src="chess/learn-ui.js?v=20261015-1"></script>
+    <script src="chess/grade-ui.js?v=20261015-1"></script>
+    <script src="cote-theme.js?v=20261015-1"></script>
+    <script src="scenarios/ui.js?v=20261015-1"></script>
+    <script src="culture/ui.js?v=20261015-1"></script>
+    <script src="defense/martial-ui.js?v=20261015-1"></script>
+    <script src="defense/ui.js?v=20261015-1"></script>
   </body>
 </html>

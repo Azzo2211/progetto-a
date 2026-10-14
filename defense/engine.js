@@ -43,8 +43,8 @@
     { key: "decisione", label: "Decisione", text: "Scegliere bene sotto tempo: calmare, cedere gli oggetti, la legge, il dopo." },
     { key: "riflessi", label: "Riflessi", text: "Tempo di reazione mediano nelle prove Semaforo e Direzione." },
     { key: "controllo", label: "Controllo", text: "Non partire a vuoto: niente risposte al rosso, anticipi o direzioni sbagliate." },
-    { key: "tecnica", label: "Tecnica", text: "Sessioni del programma completate e qualità dell'autovalutazione. Cala se smetti." },
-    { key: "costanza", label: "Costanza", text: "Giorni di allenamento nelle ultime due settimane e sessioni nell'ultimo mese." }
+    { key: "tecnica", label: "Tecnica", text: "Livelli superati nelle arti marziali e sessioni del programma di difesa, con quanto ti riesce. Cala se smetti." },
+    { key: "costanza", label: "Costanza", text: "Giorni di allenamento (arti marziali, sessioni, prove, situazioni) nelle ultime due settimane e nell'ultimo mese." }
   ];
 
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -431,8 +431,14 @@
 
   function lastN(list, n) { return list.slice(-n); }
 
-  function profile(lab, sessions = [], now = Date.now()) {
+  /*
+   * extras (facoltativo): contributo delle arti marziali.
+   * { days: ["2026-10-14", ...] giorni di allenamento, tecnica: 0-100 | null }
+   */
+  function profile(lab, sessions = [], now = Date.now(), extras = null) {
     lab = ensureLab(lab);
+    const ex = extras && typeof extras === "object" ? extras : { days: [], tecnica: null };
+    const exDays = Array.isArray(ex.days) ? ex.days.filter((d) => typeof d === "string") : [];
     // Riflessi: velocita' nelle ultime 5 prove di Semaforo e Direzione
     const sem = lastN(lab.reflex.semaforo.filter((r) => r.median != null && validReflex(r)), 5);
     const dir = lastN(lab.reflex.direzione.filter((r) => r.median != null && validReflex(r)), 5);
@@ -459,12 +465,18 @@
     const lastSession = states.length ? Math.max(...states.map((s) => s.last)) : 0;
     const idle = lastSession ? Math.max(0, (now - lastSession) / DAY - 10) : 0;
     let tecnica = states.length ? 12 + progress * 50 + quality * 38 * Math.min(1, reps / 6) - Math.min(25, idle) : 10;
+    // con le arti marziali: media dei due allenamenti tecnici (o solo quello praticato)
+    if (num(ex.tecnica)) tecnica = states.length ? (tecnica + ex.tecnica) / 2 : ex.tecnica;
 
     // Costanza: giorni di allenamento negli ultimi 14 giorni e sessioni negli ultimi 28
     const days14 = new Set();
     for (let i = 0; i < 14; i += 1) days14.add(dayKey(addDays(now, -i)));
-    const activeDays = lab.days.filter((d) => days14.has(d)).length;
-    const sessions28 = new Set(lab.log.filter((e) => e.kind === "session" && e.t >= addDays(now, -27)).map((e) => dayKey(e.t))).size;
+    const allDays = new Set([...lab.days, ...exDays]);
+    const activeDays = [...allDays].filter((d) => days14.has(d)).length;
+    const from28 = dayKey(addDays(now, -27));
+    const sessionDays = new Set(lab.log.filter((e) => e.kind === "session" && e.t >= addDays(now, -27)).map((e) => dayKey(e.t)));
+    exDays.forEach((d) => { if (d >= from28 && d <= dayKey(now)) sessionDays.add(d); });
+    const sessions28 = sessionDays.size;
     const costanza = activeDays || sessions28 ? Math.min(80, activeDays * 8) + 20 * Math.min(1, sessions28 / 8) : 0;
 
     tecnica = clamp(tecnica, 0, 100);

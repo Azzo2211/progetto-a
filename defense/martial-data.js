@@ -1,0 +1,4455 @@
+/*
+ * Progetto A - Difesa: le discipline del "metodo Johan Seong" (6 livelli ciascuna).
+ * Ogni esercizio: dose (serie, ripetizioni o secondi, recupero), criterio di riuscita,
+ * versione piu' facile, preparatori (prepFor) e una ricerca video.
+ * Schema controllato da tests/martial.test.js.
+ */
+window.MartialDisciplines = [
+  {
+    "id": "boxe",
+    "name": "Boxe",
+    "tagline": "Pugni dritti, gambe vive, testa sempre fuori linea.",
+    "intro": "La boxe è la base di quasi ogni sport da combattimento: guardia, distanza, pugni dritti e una testa che si muove. Come Johan Seong, guarda un pugile per un round, poi ripeti ciò che hai visto finché diventa tuo.",
+    "equipment": "Sacco, bende e guantoni (dal livello 2), specchio, corda facoltativa",
+    "mottos": [
+      "Guarda un round, ripeti cento jab.",
+      "Il jab apre la porta, i piedi la tengono aperta.",
+      "Copia il ritmo prima della forza."
+    ],
+    "levels": [
+      {
+        "level": 1,
+        "title": "Guardia, passi e pugni dritti",
+        "focus": "Impari a stare in guardia, a muoverti senza incrociare i piedi e a tirare jab e diretto lenti, tornando sempre in posizione.",
+        "exercises": [
+          {
+            "id": "boxe-1-1",
+            "name": "Riscaldamento del pugile",
+            "kind": "riscaldamento",
+            "how": "Scaldi caviglie, spalle e polsi e alzi il battito con saltelli leggeri. Serve a muoverti elastico e a proteggere le articolazioni prima dei pugni.",
+            "steps": [
+              "Rotazioni lente di collo, spalle, polsi, anche e caviglie: 20-30 secondi ciascuna.",
+              "Saltelli sul posto sugli avampiedi, come con la corda, alternando piedi uniti e passo alternato.",
+              "Ultimi 30 secondi: pugni leggeri nell'aria, braccia sciolte."
+            ],
+            "cues": [
+              "Talloni appena staccati da terra",
+              "Spalle rilassate, respiro regolare"
+            ],
+            "success": "Riuscito se: completi i 2 giri senza fermarti e alla fine ti senti caldo, con il respiro accelerato ma controllato.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 30
+            },
+            "video": "boxing warm up routine at home"
+          },
+          {
+            "id": "boxe-1-2",
+            "name": "Guardia di base",
+            "kind": "tecnica",
+            "how": "La guardia è la tua casa: ogni pugno parte da qui e torna qui. Lavori allo specchio per fissare la posizione di piedi, mani e mento.",
+            "steps": [
+              "Piedi larghi quanto le spalle, sinistro avanti (destro avanti se sei mancino), punte girate di circa 45°.",
+              "Ginocchia morbide, peso su entrambi i piedi, tallone posteriore leggermente sollevato.",
+              "Pugno posteriore alla guancia, pugno anteriore all'altezza dello zigomo, gomiti stretti sui fianchi, mento basso."
+            ],
+            "cues": [
+              "Mento basso, occhi su",
+              "Gomiti a proteggere fegato e costole",
+              "Mai i piedi sulla stessa linea"
+            ],
+            "success": "Riuscito se: allo specchio tieni la guardia per 60 secondi senza abbassare le mani né raddrizzare le ginocchia.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "boxing stance and guard tutorial beginner"
+          },
+          {
+            "id": "boxe-1-3",
+            "name": "Passo-richiamo (step and drag)",
+            "kind": "tecnica",
+            "how": "È lo spostamento base della boxe: il piede verso la direzione si muove per primo, l'altro lo segue della stessa misura. Così resti sempre in equilibrio e in guardia.",
+            "steps": [
+              "Avanti: spingi col piede dietro, il piede avanti scivola di 10-20 cm, poi il piede dietro lo raggiunge.",
+              "Indietro, a sinistra e a destra con la stessa regola: si muove prima il piede più vicino alla direzione.",
+              "Fai 4 passi per direzione, poi cambia; segna due linee a terra se ti aiuta."
+            ],
+            "cues": [
+              "Passi corti, piedi mai incrociati",
+              "Distanza tra i piedi sempre uguale",
+              "La testa non sale e non scende"
+            ],
+            "success": "Riuscito se: per 60 secondi ti muovi in tutte e 4 le direzioni senza incrociare i piedi e senza perdere la guardia.",
+            "dose": {
+              "sets": 4,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "boxing footwork step and drag beginner"
+          },
+          {
+            "id": "boxe-1-4",
+            "name": "Jab (diretto anteriore)",
+            "kind": "tecnica",
+            "how": "Il jab è il colpo più usato: misura la distanza, disturba e apre le combinazioni. Lo tiri lento allo specchio per imparare la traiettoria dritta e il ritorno.",
+            "steps": [
+              "Dalla guardia distendi il braccio anteriore in linea retta verso il tuo naso riflesso nello specchio.",
+              "Negli ultimi centimetri ruota il pugno (palmo verso il basso) e alza la spalla anteriore a coprire il mento.",
+              "Torna in guardia sulla stessa linea, alla stessa velocità dell'andata."
+            ],
+            "cues": [
+              "Il gomito non si apre di lato",
+              "L'altra mano resta incollata alla guancia",
+              "Non bloccare il gomito in iperestensione"
+            ],
+            "success": "Riuscito se: tiri 15 jab di fila allo specchio con traiettoria dritta, pugno ruotato e mano posteriore sempre al viso.",
+            "dose": {
+              "sets": 3,
+              "reps": 15,
+              "rest": 45
+            },
+            "video": "how to throw a jab boxing beginner"
+          },
+          {
+            "id": "boxe-1-5",
+            "name": "Diretto posteriore (cross)",
+            "kind": "tecnica",
+            "how": "Il diretto è il più potente dei pugni dritti: la forza nasce dalla rotazione del piede posteriore e dell'anca, non dal braccio. Lento e preciso.",
+            "steps": [
+              "Dalla guardia ruota il piede posteriore sulla punta, come per schiacciare un insetto, e porta l'anca avanti.",
+              "Il braccio posteriore parte dritto, pugno ruotato all'arrivo, spalla a coprire il mento.",
+              "Rientra in guardia: anca, spalla e pugno tornano insieme al loro posto."
+            ],
+            "cues": [
+              "Tallone posteriore che ruota verso l'esterno",
+              "Il peso non va oltre il ginocchio anteriore",
+              "Mano anteriore alta mentre colpisci"
+            ],
+            "success": "Riuscito se: in 15 diretti allo specchio vedi sempre il tallone posteriore ruotare e la mano anteriore restare al viso.",
+            "dose": {
+              "sets": 3,
+              "reps": 15,
+              "rest": 45
+            },
+            "video": "how to throw a cross punch boxing"
+          },
+          {
+            "id": "boxe-1-6",
+            "name": "Spalle in guardia",
+            "kind": "condizionamento",
+            "how": "Le spalle si stancano prima di tutto il resto. Tiri pugni dritti leggeri e continui per abituarle a tenere le mani alte anche da stanco.",
+            "steps": [
+              "In guardia, alterna jab e diretto leggeri e veloci senza fermarti per tutto il tempo.",
+              "Ogni 10 secondi fai 2 passi avanti e 2 indietro senza smettere di colpire.",
+              "Nel recupero scuoti le braccia ma resta in piedi."
+            ],
+            "cues": [
+              "Velocità, non forza",
+              "Le mani tornano sempre al viso"
+            ],
+            "success": "Riuscito se: completi tutti i giri senza abbassare le mani sotto il mento e senza fermarti prima del timer.",
+            "easier": "Fai 20 secondi di lavoro invece di 30, oppure solo jab con il braccio anteriore.",
+            "dose": {
+              "sets": 4,
+              "work": 30,
+              "rest": 30
+            },
+            "video": "boxing shoulder endurance drill"
+          }
+        ]
+      },
+      {
+        "level": 2,
+        "title": "Gancio, montante e primo sacco",
+        "focus": "Completi i quattro pugni base con gancio e montante, abbini l'uno-due e prendi confidenza con il sacco: bende, guantoni e distanza giusta.",
+        "exercises": [
+          {
+            "id": "boxe-2-1",
+            "name": "Corda e shadow leggero",
+            "kind": "riscaldamento",
+            "how": "Alzi il battito e scaldi spalle e anche. Se non hai la corda, saltelli imitando il gesto. Chiudi con shadow lento per ripassare guardia e passi.",
+            "steps": [
+              "Primo giro: corda o saltelli sul posto, alternando piedi uniti e passo di corsa.",
+              "Secondo giro: rotazioni di spalle, busto e anche, poi saltelli laterali.",
+              "Terzo giro: shadow lento con jab, diretto e passo-richiamo."
+            ],
+            "cues": [
+              "Sugli avampiedi, leggero",
+              "Respira dal naso finché ci riesci"
+            ],
+            "success": "Riuscito se: completi i 3 giri senza fermarti e nello shadow finale mantieni la guardia di base.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 30
+            },
+            "video": "boxing jump rope warm up beginner"
+          },
+          {
+            "id": "boxe-2-2",
+            "name": "Gancio anteriore",
+            "kind": "tecnica",
+            "how": "Il gancio è un colpo circolare corto: non lo carichi col braccio, lo lanci ruotando piede e anca anteriori. Il braccio resta piegato a circa 90° e quasi parallelo al pavimento.",
+            "steps": [
+              "Dalla guardia sposta un po' di peso sul piede anteriore e ruotalo sulla punta, tallone verso l'esterno.",
+              "Anca e spalla girano insieme; il braccio, piegato a 90°, descrive un arco corto all'altezza del mento.",
+              "Fermati quando il pugno è davanti al tuo naso, poi torna in guardia."
+            ],
+            "cues": [
+              "Gomito all'altezza del pugno, non più alto",
+              "Arco corto: non allargare il colpo",
+              "Mano posteriore incollata alla guancia"
+            ],
+            "success": "Riuscito se: allo specchio tiri 12 ganci con braccio a 90°, piede anteriore che ruota e senza caricare indietro il braccio.",
+            "dose": {
+              "sets": 3,
+              "reps": 12,
+              "rest": 45
+            },
+            "video": "how to throw a lead hook boxing beginner"
+          },
+          {
+            "id": "boxe-2-3",
+            "name": "Montante (uppercut)",
+            "kind": "tecnica",
+            "how": "Il montante sale dal basso verso il mento. La spinta arriva dalle gambe e dalla rotazione dell'anca; il pugno parte vicino al corpo, senza abbassare la mano prima.",
+            "steps": [
+              "Piega leggermente le ginocchia e sposta il peso sul lato del pugno che tirerai.",
+              "Spingi con le gambe e ruota l'anca: il pugno sale vicino al corpo, palmo verso di te, fino all'altezza del mento.",
+              "Torna subito in guardia. Fai tutte le ripetizioni con una mano, poi con l'altra."
+            ],
+            "cues": [
+              "Non abbassare il pugno prima di tirare",
+              "La potenza parte dalle gambe",
+              "Gomito vicino al fianco"
+            ],
+            "success": "Riuscito se: tiri 10 montanti per lato senza abbassare la mano prima del colpo e con le ginocchia che si piegano e spingono.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "how to throw an uppercut boxing beginner"
+          },
+          {
+            "id": "boxe-2-4",
+            "name": "Uno-due (jab-diretto)",
+            "kind": "combinazione",
+            "how": "La combinazione più importante: il jab apre, il diretto chiude. Lavori sul ritmo: il diretto parte mentre il jab rientra, senza pause.",
+            "steps": [
+              "Tira il jab; mentre il braccio anteriore rientra, il diretto parte con la rotazione del piede posteriore.",
+              "Dopo l'uno-due torna in guardia e fai un passo indietro o laterale.",
+              "Le prime 10 lente, poi aumenta la velocità mantenendo la tecnica."
+            ],
+            "cues": [
+              "Suono regolare: ta-tà",
+              "Mai entrambe le mani lontane dal viso"
+            ],
+            "success": "Riuscito se: completi 20 uno-due fluidi allo specchio senza fermarti tra jab e diretto e uscendo sempre dopo.",
+            "dose": {
+              "sets": 3,
+              "reps": 20,
+              "rest": 45
+            },
+            "video": "boxing 1-2 combination jab cross"
+          },
+          {
+            "id": "boxe-2-5",
+            "name": "Primo lavoro al sacco",
+            "kind": "sacco",
+            "how": "Il sacco ti insegna distanza e impatto. Con bende e guantoni colpisci al 50%: conta la tecnica, non la forza. Polsi dritti e nocche giuste prima di tutto.",
+            "steps": [
+              "Mettiti a una distanza in cui il jab arriva con il braccio quasi disteso.",
+              "Tira jab e uno-due girando attorno al sacco con il passo-richiamo.",
+              "Senza sacco: stesso lavoro in shadow allo specchio, mirando a un punto fisso."
+            ],
+            "cues": [
+              "Polso dritto, colpisci con le prime due nocche",
+              "50% di forza, 100% di tecnica",
+              "Dopo ogni colpo: mani al viso"
+            ],
+            "success": "Riuscito se: completi i 3 round al sacco senza dolore ai polsi, tenendo la distanza e tornando in guardia dopo ogni colpo.",
+            "easier": "Senza sacco o se i polsi fanno male: fai i round in shadow, oppure al sacco solo jab leggeri al 30%.",
+            "dose": {
+              "sets": 3,
+              "work": 90,
+              "rest": 60
+            },
+            "video": "heavy bag basics for beginners boxing"
+          },
+          {
+            "id": "boxe-2-6",
+            "name": "Plank con tocchi di spalla",
+            "kind": "condizionamento",
+            "how": "Un tronco stabile trasmette la forza delle gambe ai pugni e incassa meglio. Il plank con tocchi allena l'addome a non ruotare.",
+            "steps": [
+              "Posizione di piegamento con braccia tese, piedi un po' larghi, corpo in linea.",
+              "Tocca la spalla opposta con una mano, poi con l'altra, alternando, senza far ruotare il bacino."
+            ],
+            "cues": [
+              "Bacino fermo, glutei contratti",
+              "Non inarcare la zona lombare"
+            ],
+            "success": "Riuscito se: completi i 3 giri da 40 secondi con il bacino che non oscilla visibilmente (controlla allo specchio).",
+            "easier": "Fai i tocchi con le ginocchia appoggiate a terra, oppure tieni solo il plank fermo.",
+            "dose": {
+              "sets": 3,
+              "work": 40,
+              "rest": 30
+            },
+            "video": "plank shoulder taps proper form"
+          }
+        ]
+      },
+      {
+        "level": 3,
+        "title": "Schivate, parate e combinazioni",
+        "focus": "Impari a togliere la testa dalla linea dei pugni (slip), a parare jab e ganci e a chiudere le combinazioni corte uscendo dal sacco con un passo.",
+        "exercises": [
+          {
+            "id": "boxe-3-1",
+            "name": "Shadow di riscaldamento",
+            "kind": "riscaldamento",
+            "how": "Scaldi tutto il corpo con lo shadow: passi, pugni leggeri e movimenti di busto. È anche il momento di ripassare i quattro pugni prima del lavoro tecnico.",
+            "steps": [
+              "Giro 1: saltelli e passo-richiamo in tutte le direzioni.",
+              "Giro 2: jab, diretto, gancio e montante lenti, uno per volta.",
+              "Giro 3: uno-due con un passo in uscita dopo ogni combinazione."
+            ],
+            "cues": [
+              "Sciolto, al 50%",
+              "Guardia sempre chiusa"
+            ],
+            "success": "Riuscito se: completi i 3 giri senza fermarti e senza mai incrociare i piedi negli spostamenti.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 30
+            },
+            "video": "shadow boxing warm up beginner"
+          },
+          {
+            "id": "boxe-3-2",
+            "name": "Schivata laterale (slip)",
+            "kind": "tecnica",
+            "how": "Lo slip toglie la testa dalla traiettoria di un pugno dritto di pochi centimetri, restando pronto a rispondere. Si muovono ginocchia e busto, non solo il collo.",
+            "steps": [
+              "In guardia piega leggermente le ginocchia e ruota il busto: la testa va appena fuori dalla linea, oltre il ginocchio anteriore.",
+              "Torna al centro, poi fai lo slip dall'altro lato, verso il ginocchio posteriore.",
+              "Allo specchio immagina un jab diretto al tuo naso: la testa deve uscire dalla sua linea."
+            ],
+            "cues": [
+              "Movimento piccolo: pochi centimetri bastano",
+              "Occhi sempre avanti, non guardare a terra",
+              "Mani alte durante la schivata"
+            ],
+            "success": "Riuscito se: fai 10 slip per lato allo specchio con la testa che esce dalla linea centrale e le mani sempre al viso.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "how to slip punches boxing beginner"
+          },
+          {
+            "id": "boxe-3-3",
+            "name": "Parata e copertura",
+            "kind": "tecnica",
+            "how": "Le difese con le mani: la parata (parry) devia il jab con un piccolo colpo del palmo, la copertura assorbe il gancio con avambraccio e gomito alti. Movimenti piccoli e vicini al viso.",
+            "steps": [
+              "Parry: con la mano posteriore devia di pochi centimetri un jab immaginario, poi riporta subito la mano alla guancia.",
+              "Copertura: contro un gancio immaginario alza il gomito e incolla l'avambraccio alla tempia, ruotando un po' il busto.",
+              "Alterna parry e copertura su entrambi i lati."
+            ],
+            "cues": [
+              "Non andare incontro al colpo: lascialo arrivare",
+              "Mani che si muovono poco"
+            ],
+            "success": "Riuscito se: completi 10 ripetizioni per lato con la mano che non si allontana più di una spanna dal viso.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "boxing parry and block defense tutorial"
+          },
+          {
+            "id": "boxe-3-4",
+            "name": "Combinazioni corte in shadow",
+            "kind": "combinazione",
+            "how": "Colleghi pugni e difese in sequenze da 3 movimenti: è qui che la tecnica diventa boxe. Ogni combinazione finisce con una difesa o un passo in uscita.",
+            "steps": [
+              "Sequenza A: jab-jab-diretto (1-1-2), poi passo indietro.",
+              "Sequenza B: jab-diretto-gancio (1-2-3), poi slip.",
+              "Sequenza C: slip, diretto, gancio. Alterna le tre sequenze per tutto il round."
+            ],
+            "cues": [
+              "Ogni combinazione finisce in guardia",
+              "Espira a ogni colpo"
+            ],
+            "success": "Riuscito se: in ogni round esegui le 3 sequenze alternate senza perdere l'equilibrio e chiudendo sempre con difesa o uscita.",
+            "dose": {
+              "sets": 3,
+              "work": 90,
+              "rest": 45
+            },
+            "video": "shadow boxing combinations beginner 1-2-3"
+          },
+          {
+            "id": "boxe-3-5",
+            "name": "Sacco: 1-2-3 e uscita",
+            "kind": "sacco",
+            "how": "Al sacco provi le combinazioni corte con impatto reale. Dopo ogni combinazione esci con un passo laterale: non restare fermo davanti al bersaglio.",
+            "steps": [
+              "Bende e guantoni. Tira 1-2-3 al 60%, poi passo laterale o indietro.",
+              "Ogni 30 secondi aggiungi uno slip prima di ripartire con la combinazione.",
+              "Senza sacco: stesse combinazioni in shadow, con l'uscita dopo ogni sequenza."
+            ],
+            "cues": [
+              "Gancio con braccio a 90°, anche da vicino",
+              "Esci dalla linea dopo aver colpito"
+            ],
+            "success": "Riuscito se: chiudi 3 round da 2 minuti uscendo dopo ogni combinazione e senza dolore a polsi o nocche.",
+            "easier": "Senza sacco: fai i round in shadow. Se ti stanchi troppo: round da 90 secondi e solo uno-due.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 60
+            },
+            "video": "heavy bag combinations beginner footwork"
+          },
+          {
+            "id": "boxe-3-6",
+            "name": "Circuito pugni e squat",
+            "kind": "condizionamento",
+            "how": "Alterni pugni veloci e squat per abituarti a colpire con le gambe stanche, come a fine round. Alleni insieme la resistenza di spalle e gambe.",
+            "steps": [
+              "Primi 20 secondi: jab e diretto veloci e leggeri in guardia.",
+              "Ultimi 25 secondi: squat a corpo libero, schiena dritta, cosce parallele al pavimento se ci arrivi."
+            ],
+            "cues": [
+              "Mani alte anche nello squat",
+              "Ginocchia in linea con le punte"
+            ],
+            "success": "Riuscito se: completi i 4 giri senza fermarti e con almeno 10 squat corretti in ogni giro.",
+            "easier": "Fai squat meno profondi fino a una sedia e riduci i pugni a 15 secondi.",
+            "dose": {
+              "sets": 4,
+              "work": 45,
+              "rest": 30
+            },
+            "video": "boxing conditioning circuit squats punches"
+          }
+        ]
+      },
+      {
+        "level": 4,
+        "title": "Roll, angoli e ritmo",
+        "focus": "Aggiungi il roll sotto il gancio, il pivot per cambiare angolo e combinazioni da 4-5 colpi con difesa. Inizi a variare il ritmo nei round al sacco.",
+        "exercises": [
+          {
+            "id": "boxe-4-1",
+            "name": "Corda e mobilità",
+            "kind": "riscaldamento",
+            "how": "Corda o saltelli per il battito, poi mobilità di anche e busto: oggi lavori di gambe e di rotazioni, quindi servono articolazioni pronte.",
+            "steps": [
+              "Giro 1: corda o saltelli, cambiando ritmo ogni 20 secondi.",
+              "Giro 2: rotazioni del busto, cerchi delle anche, affondi lenti alternati.",
+              "Giro 3: shadow con slip, parate e uno-due."
+            ],
+            "cues": [
+              "Aumenta piano l'intensità",
+              "Busto sciolto nelle rotazioni"
+            ],
+            "success": "Riuscito se: completi i 3 giri e arrivi al lavoro tecnico caldo e senza rigidità a schiena o anche.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 30
+            },
+            "video": "boxing warm up mobility jump rope"
+          },
+          {
+            "id": "boxe-4-2",
+            "name": "Roll sotto il gancio (bob and weave)",
+            "kind": "tecnica",
+            "how": "Il roll fa passare la testa sotto un gancio disegnando una U con le gambe. Pieghi le ginocchia, non la schiena, e ti ritrovi pronto a rispondere dall'altro lato.",
+            "steps": [
+              "Dalla guardia piega le ginocchia e sposta il peso da un lato all'altro: la testa disegna una U sotto un gancio immaginario.",
+              "Busto appena in avanti ma schiena dritta: non scendere più del necessario per passare sotto il colpo.",
+              "Risali in guardia dall'altro lato. Puoi tendere una corda all'altezza delle spalle come riferimento."
+            ],
+            "cues": [
+              "Scendi con le gambe, non con la schiena",
+              "Occhi sempre avanti",
+              "Mani alte per tutto il movimento"
+            ],
+            "success": "Riuscito se: fai 10 roll per lato passando sotto la corda, senza guardare a terra e senza piegare la schiena.",
+            "easier": "Fai il movimento più piccolo e lento, solo come piegamento laterale delle ginocchia, senza corda.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "bob and weave boxing rope drill"
+          },
+          {
+            "id": "boxe-4-3",
+            "name": "Pivot e cambio d'angolo",
+            "kind": "tecnica",
+            "how": "Il pivot ti fa girare sul piede anteriore, uscendo dalla linea d'attacco dell'avversario. Dopo una combinazione cambi angolo invece di indietreggiare dritto.",
+            "steps": [
+              "Dalla guardia ruota sull'avampiede anteriore e porta il piede posteriore in un arco di 45-90° verso l'esterno.",
+              "Fai un jab, poi pivot; un uno-due, poi pivot. Resta in guardia anche durante la rotazione.",
+              "Usa una linea o un punto a terra per controllare di cambiare davvero angolo."
+            ],
+            "cues": [
+              "Ruota sull'avampiede, non sul tallone",
+              "Larghezza dei piedi invariata dopo il pivot"
+            ],
+            "success": "Riuscito se: completi 8 pivot per lato dopo un colpo, ritrovandoti sempre in guardia stabile e girato di almeno 45°.",
+            "easier": "Fai prima solo il pivot senza colpire, lentamente, poi aggiungi il jab.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "boxing pivot footwork tutorial"
+          },
+          {
+            "id": "boxe-4-4",
+            "name": "Combinazioni lunghe con difesa",
+            "kind": "combinazione",
+            "how": "Sequenze da 4-5 movimenti che mescolano attacco e difesa. Allenano la fluidità: ogni colpo prepara il successivo e ogni difesa porta a un contrattacco.",
+            "steps": [
+              "Sequenza A: 1-2, slip, 2-3 (jab, diretto, schivata, diretto, gancio).",
+              "Sequenza B: 1-2-3, roll, poi gancio e diretto in uscita dal roll.",
+              "Sequenza C: 1-1-2, pivot, diretto. Alterna le tre per tutto il round in shadow."
+            ],
+            "cues": [
+              "Ritmo: veloce, pausa, veloce",
+              "Chiudi ogni sequenza in guardia o con un'uscita"
+            ],
+            "success": "Riuscito se: completi i 3 round passando da una sequenza all'altra senza fermarti a pensare più di 2-3 secondi.",
+            "easier": "Usa sequenze da 3 colpi con una sola difesa, oppure fai il primo round al rallentatore.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 45
+            },
+            "video": "shadow boxing combinations with defense"
+          },
+          {
+            "id": "boxe-4-5",
+            "name": "Sacco con cambi di ritmo",
+            "kind": "sacco",
+            "how": "Round da 2 minuti in cui alterni lavoro tecnico e raffiche brevi: impari a dosare l'energia e a non colpire sempre alla stessa velocità.",
+            "steps": [
+              "Bende e guantoni. Lavora 20 secondi con combinazioni tecniche e movimento attorno al sacco.",
+              "Poi 10 secondi di raffica veloce di uno-due al 70%, quindi ricomincia il ciclo.",
+              "Senza sacco: fai lo stesso schema in shadow, con le raffiche nell'aria."
+            ],
+            "cues": [
+              "Raffica veloce, non scomposta",
+              "Dopo la raffica: muoviti e respira"
+            ],
+            "success": "Riuscito se: completi 4 round da 2 minuti rispettando i cicli 20+10 e con la guardia alta anche alla fine dell'ultimo.",
+            "easier": "Senza sacco: round in shadow. Se sei stanco: 3 round con raffiche da 5 secondi.",
+            "dose": {
+              "sets": 4,
+              "work": 120,
+              "rest": 60
+            },
+            "video": "heavy bag workout rhythm changes boxing"
+          },
+          {
+            "id": "boxe-4-6",
+            "name": "Piegamenti e mountain climber",
+            "kind": "condizionamento",
+            "how": "Circuito per spalle, petto e tronco: la forza resistente che ti serve per tenere alta la guardia e tirare pugni fino all'ultimo round.",
+            "steps": [
+              "Primi 30 secondi: piegamenti a ritmo costante, corpo in linea.",
+              "Ultimi 30 secondi: mountain climber, portando le ginocchia al petto in modo alternato."
+            ],
+            "cues": [
+              "Corpo dritto come una tavola",
+              "Respira, non trattenere il fiato"
+            ],
+            "success": "Riuscito se: completi i 4 giri con almeno 10 piegamenti per giro, tutti con il petto vicino al pavimento.",
+            "easier": "Piegamenti con le ginocchia a terra o con le mani su una panca; mountain climber lenti.",
+            "dose": {
+              "sets": 4,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "push ups mountain climbers circuit"
+          }
+        ]
+      },
+      {
+        "level": 5,
+        "title": "Contrattacchi e lavoro al corpo",
+        "focus": "Impari a cambiare livello per colpire al corpo e a contrattaccare dopo una schivata. Prima prepari gambe e tronco a scendere e ruotare.",
+        "exercises": [
+          {
+            "id": "boxe-5-1",
+            "name": "Riscaldamento completo",
+            "kind": "riscaldamento",
+            "how": "Battito, mobilità e shadow: oggi scendi spesso con le gambe e ruoti il busto, quindi scalda bene anche, ginocchia e zona lombare.",
+            "steps": [
+              "Giro 1: corda o saltelli sul posto, ritmo crescente.",
+              "Giro 2: squat lenti, rotazioni del busto e cerchi delle anche.",
+              "Giro 3: shadow con slip, roll e combinazioni lente."
+            ],
+            "cues": [
+              "Scendi gradualmente in profondità",
+              "Spalle sciolte"
+            ],
+            "success": "Riuscito se: completi i 3 giri e riesci a fare uno squat profondo senza fastidio a ginocchia o schiena.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 30
+            },
+            "video": "boxing full warm up routine"
+          },
+          {
+            "id": "boxe-5-2",
+            "name": "Cambio di livello in guardia",
+            "kind": "preparatorio",
+            "how": "Per colpire al corpo devi abbassarti con le gambe tenendo la guardia e la schiena dritta. Questo esercizio rinforza le cosce e fissa il movimento.",
+            "steps": [
+              "Dalla guardia piega le ginocchia fino a portare la testa all'altezza del petto di un avversario immaginario.",
+              "Resta giù 2 secondi con le mani al viso e la schiena dritta, poi risali in guardia.",
+              "Ogni 5 ripetizioni fai un passo avanti mentre scendi."
+            ],
+            "cues": [
+              "Piega le ginocchia, non la vita",
+              "Il mento resta dietro le mani"
+            ],
+            "success": "Riuscito se: fai 12 cambi di livello allo specchio con schiena dritta e mani al viso in tutte le ripetizioni.",
+            "dose": {
+              "sets": 3,
+              "reps": 12,
+              "rest": 30
+            },
+            "video": "boxing level change drill body shots",
+            "prepFor": "boxe-5-3"
+          },
+          {
+            "id": "boxe-5-3",
+            "name": "Gancio e montante al corpo",
+            "kind": "tecnica",
+            "how": "I colpi al corpo stancano l'avversario e abbassano la sua guardia. Scendi con le gambe, colpisci tra fegato e costole e risali subito: la testa non resta ferma in basso.",
+            "steps": [
+              "Cambia livello piegando le ginocchia; gancio anteriore al corpo, gomito più basso e busto inclinato verso il colpo.",
+              "Montante posteriore al corpo: spinta delle gambe, pugno che sale all'altezza dello stomaco.",
+              "Dopo ogni colpo al corpo risali in guardia o aggiungi un colpo alla testa (corpo-testa)."
+            ],
+            "cues": [
+              "Testa fuori dal centro mentre scendi",
+              "La mano libera resta al viso",
+              "Risali subito, non restare chinato"
+            ],
+            "success": "Riuscito se: fai 10 colpi al corpo per lato con le gambe che scendono e la mano libera sempre al viso, verificato allo specchio.",
+            "easier": "Fai i colpi al corpo con un piccolo piegamento, senza scendere molto, e un solo tipo di colpo per serie.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "how to throw body shots boxing"
+          },
+          {
+            "id": "boxe-5-4",
+            "name": "Schivata e contro (slip-counter)",
+            "kind": "tecnica",
+            "how": "Il contrattacco sfrutta il momento in cui l'avversario ha appena colpito. Schivi un jab immaginario e rispondi subito: la schivata carica il tuo colpo.",
+            "steps": [
+              "Slip all'esterno (verso destra se sei ortodosso) e rispondi subito con un diretto alla testa o al corpo.",
+              "Slip all'interno (verso sinistra) e rispondi con un gancio anteriore alla testa.",
+              "Alterna i due lati; quando ti viene naturale aggiungi un secondo colpo."
+            ],
+            "cues": [
+              "Schivata e colpo sono un solo movimento",
+              "Resta compatto: niente schivate ampie"
+            ],
+            "success": "Riuscito se: completi 10 contrattacchi per lato in cui il colpo parte subito, senza pausa, alla fine della schivata.",
+            "easier": "Separa i tempi: schivata, pausa, colpo. Unisci i movimenti solo quando sono puliti.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "slip and counter punch drill boxing"
+          },
+          {
+            "id": "boxe-5-5",
+            "name": "Sacco: testa e corpo",
+            "kind": "sacco",
+            "how": "Combini colpi alla testa e al corpo sul sacco, con cambi di livello e contrattacchi. È la stessa logica dei livelli precedenti, ma su due altezze.",
+            "steps": [
+              "Bende e guantoni. Sequenze: 1-2, gancio al corpo, gancio alla testa; jab al corpo, diretto alla testa.",
+              "Ogni 30 secondi inserisci uno slip e un contrattacco, poi esci con un pivot.",
+              "Senza sacco: stesse sequenze in shadow, abbassandoti davvero per i colpi al corpo."
+            ],
+            "cues": [
+              "Cambio di livello con le gambe",
+              "Esci dopo ogni sequenza"
+            ],
+            "success": "Riuscito se: completi 4 round da 2 minuti alternando sempre testa e corpo e senza fermarti più di 3 secondi.",
+            "easier": "Senza sacco: lavora in shadow. Se è troppo: 3 round con una sola sequenza testa-corpo.",
+            "dose": {
+              "sets": 4,
+              "work": 120,
+              "rest": 60
+            },
+            "video": "heavy bag body head combinations boxing"
+          },
+          {
+            "id": "boxe-5-6",
+            "name": "Tronco che incassa",
+            "kind": "condizionamento",
+            "how": "Addome e obliqui forti proteggono quando colpisci al corpo e trasmettono la rotazione ai pugni. Lavori in isometria, senza movimenti bruschi.",
+            "steps": [
+              "Primi 20 secondi: hollow hold, zona lombare appoggiata a terra, gambe e spalle sollevate.",
+              "Ultimi 25 secondi: plank laterale, cambiando lato a metà del tempo."
+            ],
+            "cues": [
+              "Zona lombare sempre incollata a terra nell'hollow",
+              "Fianchi alti nel plank laterale"
+            ],
+            "success": "Riuscito se: completi i 3 giri tenendo le posizioni per tutto il tempo senza appoggiarti.",
+            "easier": "Hollow con le ginocchia piegate; plank laterale con il ginocchio di sotto a terra.",
+            "dose": {
+              "sets": 3,
+              "work": 45,
+              "rest": 30
+            },
+            "video": "hollow hold side plank core workout"
+          }
+        ]
+      },
+      {
+        "level": 6,
+        "title": "Round lunghi e stile tuo",
+        "focus": "Aggiungi lo shoulder roll e lavori su round da 3 minuti, in shadow e al sacco: osservi uno stile, lo copi, lo rendi tuo.",
+        "exercises": [
+          {
+            "id": "boxe-6-1",
+            "name": "Riscaldamento da round",
+            "kind": "riscaldamento",
+            "how": "Prepari corpo e testa ai round lunghi: battito progressivo, mobilità di spalle e busto e shadow con tutto quello che hai imparato finora.",
+            "steps": [
+              "Giro 1: corda o saltelli, poi rotazioni di spalle, busto e anche.",
+              "Giro 2: shadow con difese, pivot e combinazioni a velocità media."
+            ],
+            "cues": [
+              "Aumenta l'intensità poco alla volta",
+              "Ripassa tutto, al 60%"
+            ],
+            "success": "Riuscito se: completi i 2 giri e alla fine ti senti caldo e sciolto in spalle, busto e caviglie.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 30
+            },
+            "video": "boxing warm up before rounds"
+          },
+          {
+            "id": "boxe-6-2",
+            "name": "Mobilità di spalle e busto",
+            "kind": "preparatorio",
+            "how": "Lo shoulder roll richiede spalle mobili e una buona rotazione del busto. Prepari le articolazioni con movimenti lenti e controllati, senza forzare.",
+            "steps": [
+              "Rotazioni toraciche a quattro zampe: una mano dietro la testa, apri il gomito verso il soffitto seguendolo con lo sguardo.",
+              "In piedi, in guardia: ruota il busto portando la spalla anteriore verso il mento e ritorna, lentamente."
+            ],
+            "cues": [
+              "Movimenti lenti, mai a scatti",
+              "Respira mentre ruoti"
+            ],
+            "success": "Riuscito se: completi le serie con rotazioni ampie e senza dolore, con la spalla anteriore che arriva vicino al mento.",
+            "dose": {
+              "sets": 2,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "thoracic rotation mobility drill",
+            "prepFor": "boxe-6-3"
+          },
+          {
+            "id": "boxe-6-3",
+            "name": "Shoulder roll (Philly shell)",
+            "kind": "tecnica",
+            "how": "Difesa avanzata: la spalla anteriore alta devia il diretto mentre il busto ruota indietro, e la rotazione carica il tuo diretto di risposta. Richiede tempismo e guardia matura.",
+            "steps": [
+              "Guardia Philly shell: mano anteriore bassa davanti allo stomaco, spalla anteriore alta, mano posteriore alla guancia.",
+              "Contro un diretto immaginario ruota il busto verso il piede posteriore: il colpo scivola sulla spalla.",
+              "Rientra con la rotazione opposta e rispondi con un diretto posteriore."
+            ],
+            "cues": [
+              "Mento nascosto dietro la spalla",
+              "Il peso va un po' sul piede posteriore",
+              "Rispondi subito dopo il roll"
+            ],
+            "success": "Riuscito se: allo specchio fai 10 shoulder roll con risposta, con il mento sempre coperto dalla spalla.",
+            "easier": "Resta in guardia classica con le mani alte e fai solo la rotazione della spalla con il diretto di risposta.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 45
+            },
+            "video": "shoulder roll philly shell tutorial"
+          },
+          {
+            "id": "boxe-6-4",
+            "name": "Shadow da copia",
+            "kind": "shadow",
+            "how": "Il cuore del metodo: guardi un pugile in un video per un minuto, poi in shadow copi ritmo, passi e combinazioni. Osserva, ripeti, rendilo tuo.",
+            "steps": [
+              "Prima di ogni round guarda 1 minuto di un pugile e scegli 2 cose da copiare (un passo, una combinazione, una difesa).",
+              "Shadow da 3 minuti: inserisci le 2 cose nel tuo modo di boxare, con difese e uscite.",
+              "Ultimo round: mescola tutto liberamente, come se avessi un avversario davanti."
+            ],
+            "cues": [
+              "Copia una cosa per volta",
+              "Muoviti sempre: niente pause a pensare"
+            ],
+            "success": "Riuscito se: completi 3 round da 3 minuti usando in ogni round almeno 3 volte le cose scelte, senza mai fermarti.",
+            "easier": "Fai round da 2 minuti e copia una sola cosa per round.",
+            "dose": {
+              "sets": 3,
+              "work": 180,
+              "rest": 60
+            },
+            "video": "shadow boxing full round technique"
+          },
+          {
+            "id": "boxe-6-5",
+            "name": "Round lunghi al sacco",
+            "kind": "sacco",
+            "how": "Round da 3 minuti come in un incontro: combinazioni da 5-6 colpi, testa e corpo, difese e uscite. Impari a gestire fiato e lucidità quando sei stanco.",
+            "steps": [
+              "Bende e guantoni. Ogni round: combinazioni lunghe, una difesa (slip, roll o shoulder roll) e uscita con pivot.",
+              "Ultimi 30 secondi di ogni round: ritmo alto ma tecnica pulita.",
+              "Senza sacco: stessi round in shadow, mantenendo la stessa struttura."
+            ],
+            "cues": [
+              "Espira a ogni colpo",
+              "Stanco? Muoviti di più, colpisci meglio",
+              "Mani alte anche nei momenti di pausa"
+            ],
+            "success": "Riuscito se: completi 4 round da 3 minuti senza fermarti dentro il round e con la guardia ancora alta nell'ultimo minuto.",
+            "easier": "Senza sacco: round in shadow. Se è troppo: 3 round da 2 minuti, ultimo minuto a ritmo medio.",
+            "dose": {
+              "sets": 4,
+              "work": 180,
+              "rest": 60
+            },
+            "video": "heavy bag 3 minute rounds boxing workout"
+          },
+          {
+            "id": "boxe-6-6",
+            "name": "Finale: raffiche veloci",
+            "kind": "condizionamento",
+            "how": "Chiudi con raffiche brevi di pugni dritti alla massima velocità mantenendo la tecnica: alleni la capacità di accelerare a fine incontro.",
+            "steps": [
+              "20 secondi di uno-due velocissimi, nell'aria o leggeri al sacco, restando in guardia.",
+              "Recupero di 20 secondi camminando e respirando, poi ripeti."
+            ],
+            "cues": [
+              "Velocità con le mani che tornano al viso",
+              "Gomiti mai bloccati in estensione"
+            ],
+            "success": "Riuscito se: completi le 5 raffiche senza rallentare visibilmente nell'ultima e senza perdere la guardia.",
+            "easier": "Fai 3 raffiche da 15 secondi, oppure a velocità media.",
+            "dose": {
+              "sets": 5,
+              "work": 20,
+              "rest": 20
+            },
+            "video": "boxing speed punches drill"
+          }
+        ]
+      }
+    ],
+    "color": "#ff7a59",
+    "short": "Boxe"
+  },
+  {
+    "id": "muaythai",
+    "name": "Muay Thai",
+    "tagline": "Otto armi, una guardia: pugni, calci, ginocchia e gomiti.",
+    "intro": "La Muay Thai è l'arte delle otto armi: pugni, calci, ginocchiate e gomitate, con una guardia alta e un ritmo inconfondibile. Come Johan Seong, guarda un thai boxer, ripeti la sua postura e il suo ritmo, poi rendili tuoi.",
+    "equipment": "Sacco, bende e guantoni, specchio, tappetino; parastinchi facoltativi",
+    "mottos": [
+      "Prima la guardia, poi la tibia.",
+      "Ogni calcio torna a casa: in guardia.",
+      "Osserva il ritmo, poi metti il peso."
+    ],
+    "levels": [
+      {
+        "level": 1,
+        "title": "Guardia thai e teep",
+        "focus": "Impari la guardia thai, alta e frontale, a muoverti senza perderla, i pugni dritti e il teep, il calcio a spinta che tiene a distanza.",
+        "exercises": [
+          {
+            "id": "muaythai-1-1",
+            "name": "Riscaldamento thai",
+            "kind": "riscaldamento",
+            "how": "Scaldi caviglie, ginocchia e anche, che in Muay Thai lavorano tantissimo, poi alzi il battito con saltelli leggeri sugli avampiedi.",
+            "steps": [
+              "Rotazioni di caviglie, ginocchia, anche e spalle: 20-30 secondi ciascuna.",
+              "Saltelli sul posto sugli avampiedi, poi ginocchia alte alternate lente.",
+              "Ultimi 30 secondi: oscillazioni controllate della gamba avanti e indietro, tenendoti al muro."
+            ],
+            "cues": [
+              "Oscillazioni morbide, mai a strappo",
+              "Respira regolare"
+            ],
+            "success": "Riuscito se: completi i 2 giri senza fermarti e senti anche e caviglie calde e mobili.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 30
+            },
+            "video": "muay thai warm up routine at home"
+          },
+          {
+            "id": "muaythai-1-2",
+            "name": "Guardia thai e passi",
+            "kind": "tecnica",
+            "how": "La guardia thai è più alta e frontale di quella della boxe, con il peso un po' più sul piede posteriore: la gamba anteriore resta libera per calciare e parare.",
+            "steps": [
+              "Piedi larghi circa quanto le spalle, sinistro avanti se sei destro; bacino quasi frontale, peso un po' più sul piede dietro.",
+              "Mani alte all'altezza della fronte, avambracci un po' in avanti, gomiti stretti, mento basso.",
+              "Muoviti con il passo-richiamo avanti, indietro e di lato: prima il piede verso la direzione, l'altro segue."
+            ],
+            "cues": [
+              "Petto e bacino quasi rivolti avanti",
+              "Gamba anteriore leggera, pronta ad alzarsi",
+              "Piedi mai incrociati"
+            ],
+            "success": "Riuscito se: per 60 secondi ti muovi in 4 direzioni allo specchio senza incrociare i piedi né abbassare le mani.",
+            "dose": {
+              "sets": 4,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "muay thai stance and footwork beginner"
+          },
+          {
+            "id": "muaythai-1-3",
+            "name": "Jab e diretto thai",
+            "kind": "tecnica",
+            "how": "I pugni dritti funzionano come nella boxe, ma partono dalla guardia thai, più frontale, e devono lasciarti pronto a calciare subito dopo.",
+            "steps": [
+              "Jab: braccio anteriore dritto, pugno ruotato all'arrivo, spalla a coprire il mento, ritorno sulla stessa linea.",
+              "Diretto: ruota piede e anca posteriori, il braccio parte dritto, poi torna in guardia alta.",
+              "Alterna jab e diretto lenti allo specchio."
+            ],
+            "cues": [
+              "Le mani tornano alla fronte",
+              "Il peso non cade in avanti"
+            ],
+            "success": "Riuscito se: tiri 15 pugni alternati allo specchio con traiettoria dritta e la mano libera sempre alta.",
+            "dose": {
+              "sets": 3,
+              "reps": 15,
+              "rest": 45
+            },
+            "video": "muay thai jab cross technique beginner"
+          },
+          {
+            "id": "muaythai-1-4",
+            "name": "Equilibrio su una gamba",
+            "kind": "preparatorio",
+            "how": "Il teep, e tutta la Muay Thai, si reggono su un piede alla volta. Prima del calcio alleni l'equilibrio con il ginocchio alto, come nella fase iniziale del teep.",
+            "steps": [
+              "In guardia alza il ginocchio anteriore all'altezza dell'anca e resta in equilibrio sull'altra gamba, ginocchio morbido.",
+              "Tieni 10 secondi, appoggia, ripeti; poi cambia gamba. Sguardo fisso su un punto davanti a te."
+            ],
+            "cues": [
+              "Ginocchio d'appoggio morbido",
+              "Mani in guardia, busto dritto"
+            ],
+            "success": "Riuscito se: tieni il ginocchio alto per tutto il tempo di ogni serie, per gamba, senza appoggiare il piede fuori tempo.",
+            "dose": {
+              "sets": 2,
+              "work": 30,
+              "rest": 15,
+              "perSide": true
+            },
+            "video": "single leg balance drill for kicking",
+            "prepFor": "muaythai-1-5"
+          },
+          {
+            "id": "muaythai-1-5",
+            "name": "Teep (calcio frontale a spinta)",
+            "kind": "tecnica",
+            "how": "Il teep è il jab delle gambe: spinge via e tiene a distanza. Alzi il ginocchio e spingi con la pianta del piede, poi torni subito in guardia. Lento, per l'equilibrio.",
+            "steps": [
+              "Alza il ginocchio della gamba anteriore verso il petto, mani in guardia.",
+              "Spingi in avanti con la pianta o il tallone all'altezza della pancia, portando le anche avanti.",
+              "Ritira la gamba piegata e riappoggiala in guardia. Poi ripeti con la gamba posteriore."
+            ],
+            "cues": [
+              "Prima il ginocchio, poi la spinta",
+              "Anche avanti, busto appena indietro",
+              "Riappoggia il piede in guardia, non a caso"
+            ],
+            "success": "Riuscito se: fai 8 teep per gamba senza mettere giù il piede prima del ritorno e senza perdere l'equilibrio.",
+            "easier": "Appoggia una mano al muro e fai il teep lento, solo all'altezza del ginocchio.",
+            "dose": {
+              "sets": 4,
+              "reps": 8,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "muay thai teep push kick tutorial"
+          },
+          {
+            "id": "muaythai-1-6",
+            "name": "Squat e polpacci",
+            "kind": "condizionamento",
+            "how": "Gambe e caviglie forti reggono passi, teep e calci. Squat e salite sulle punte rinforzano cosce, glutei e polpacci senza attrezzi.",
+            "steps": [
+              "Primi 25 secondi: squat a corpo libero, schiena dritta, talloni a terra.",
+              "Ultimi 20 secondi: salite sulle punte lente, con un secondo di pausa in alto."
+            ],
+            "cues": [
+              "Ginocchia in linea con le punte",
+              "Talloni a terra nello squat"
+            ],
+            "success": "Riuscito se: completi i 3 giri senza fermarti e con almeno 12 squat corretti per giro.",
+            "easier": "Fai squat fino a una sedia, toccandola appena con i glutei.",
+            "dose": {
+              "sets": 3,
+              "work": 45,
+              "rest": 30
+            },
+            "video": "bodyweight squats calf raises"
+          }
+        ]
+      },
+      {
+        "level": 2,
+        "title": "Calcio circolare e ginocchiata",
+        "focus": "Impari il calcio circolare con la tibia, l'arma simbolo della Muay Thai, e la ginocchiata dritta. Primo contatto con il sacco a bassa intensità.",
+        "exercises": [
+          {
+            "id": "muaythai-2-1",
+            "name": "Saltelli e mobilità delle anche",
+            "kind": "riscaldamento",
+            "how": "Il calcio circolare chiede anche mobili e caviglie pronte. Alzi il battito, poi muovi le anche in tutte le direzioni con movimenti controllati.",
+            "steps": [
+              "Giro 1: saltelli o corda, poi ginocchia alte lente.",
+              "Giro 2: cerchi delle anche, poi ginocchio che sale e ruota verso l'esterno e ritorno (apri e chiudi il cancello).",
+              "Giro 3: shadow lento con jab, diretto e teep."
+            ],
+            "cues": [
+              "Movimenti ampi ma controllati",
+              "Mai oscillazioni a strappo"
+            ],
+            "success": "Riuscito se: completi i 3 giri e senti le anche calde e libere quando sollevi il ginocchio di lato.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 30
+            },
+            "video": "hip mobility warm up muay thai"
+          },
+          {
+            "id": "muaythai-2-2",
+            "name": "Pivot sul piede d'appoggio",
+            "kind": "preparatorio",
+            "how": "Il calcio circolare nasce dalla rotazione sull'avampiede della gamba d'appoggio. Senza pivot il ginocchio si torce e il calcio perde forza: prima impari solo questo.",
+            "steps": [
+              "In guardia sali sull'avampiede anteriore e ruotalo verso l'esterno finché il tallone punta in avanti.",
+              "Insieme ruota l'anca e alza il ginocchio posteriore di lato, all'altezza del fianco, poi torna in guardia.",
+              "Fai tutte le ripetizioni da un lato, poi dall'altro; usa il muro per l'equilibrio se serve."
+            ],
+            "cues": [
+              "Ruota sull'avampiede, mai sul tallone",
+              "Ginocchio d'appoggio leggermente piegato"
+            ],
+            "success": "Riuscito se: fai 10 pivot per lato con il tallone d'appoggio che punta in avanti e senza fastidio al ginocchio.",
+            "dose": {
+              "sets": 2,
+              "reps": 10,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "muay thai roundhouse kick pivot drill",
+            "prepFor": "muaythai-2-3"
+          },
+          {
+            "id": "muaythai-2-3",
+            "name": "Calcio circolare con la tibia",
+            "kind": "tecnica",
+            "how": "Il calcio simbolo della Muay Thai: colpisci con la tibia, non con il piede, ruotando tutta l'anca. Lo impari lento e basso, all'altezza della coscia.",
+            "steps": [
+              "Piccolo passo fuori linea col piede anteriore, punta verso l'esterno; sali sull'avampiede e ruota.",
+              "La gamba posteriore sale quasi tesa e gira con l'anca; il braccio dello stesso lato scende per bilanciare, l'altra mano protegge il viso.",
+              "Colpisci all'altezza della coscia con la parte medio-bassa della tibia, poi la gamba torna in guardia."
+            ],
+            "cues": [
+              "Colpisci con la tibia, non con il collo del piede",
+              "È l'anca che gira, non solo la gamba",
+              "Una mano sempre al viso"
+            ],
+            "success": "Riuscito se: fai 8 calci per lato con pivot completo e ritorno in guardia senza inciampare, verificato allo specchio.",
+            "easier": "Tieniti con una mano al muro o a una sedia e fai il calcio lento all'altezza del ginocchio.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "muay thai roundhouse kick tutorial beginner"
+          },
+          {
+            "id": "muaythai-2-4",
+            "name": "Ginocchiata dritta (khao trong)",
+            "kind": "tecnica",
+            "how": "La ginocchiata dritta sale spingendo le anche in avanti, non solo sollevando la gamba. Nel combattimento parte spesso con le mani che tirano verso il basso.",
+            "steps": [
+              "Dalla guardia allunga le mani in avanti come per afferrare le spalle di un avversario.",
+              "Spingi le anche avanti e porta il ginocchio posteriore in su e in avanti, punta del piede verso il basso.",
+              "Mentre il ginocchio sale tira le mani verso il basso; poi torna in guardia. Fai un lato per volta."
+            ],
+            "cues": [
+              "Anche avanti, busto leggermente indietro",
+              "Sali sulla punta del piede d'appoggio"
+            ],
+            "success": "Riuscito se: fai 10 ginocchiate per lato con le anche che spingono in avanti e l'equilibrio stabile a ogni ritorno.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "muay thai straight knee technique"
+          },
+          {
+            "id": "muaythai-2-5",
+            "name": "Primo sacco: pugni, teep e calcio",
+            "kind": "sacco",
+            "how": "Prendi la distanza col sacco e senti l'impatto. Pugni e teep al 50%, calci circolari bassi e leggeri: la tibia si abitua poco alla volta, mai forzare.",
+            "steps": [
+              "Bende e guantoni (parastinchi facoltativi). Jab-diretto e teep al sacco, girandogli attorno.",
+              "Ogni 20 secondi aggiungi un calcio circolare basso al 30-50%, lento e tecnico.",
+              "Senza sacco: stesso lavoro in shadow allo specchio, mirando all'altezza della coscia."
+            ],
+            "cues": [
+              "Forza bassa, tecnica alta",
+              "Colpisci con la tibia, non con il piede",
+              "Dopo ogni colpo: guardia"
+            ],
+            "success": "Riuscito se: completi i 3 round tornando in guardia dopo ogni colpo e senza dolore a tibie, piedi o polsi.",
+            "easier": "Senza sacco o con le tibie doloranti: round in shadow, oppure al sacco solo pugni e teep.",
+            "dose": {
+              "sets": 3,
+              "work": 90,
+              "rest": 60
+            },
+            "video": "muay thai heavy bag basics beginner"
+          },
+          {
+            "id": "muaythai-2-6",
+            "name": "Affondi e plank",
+            "kind": "condizionamento",
+            "how": "Gambe forti reggono i calci e un tronco stabile trasmette la rotazione dell'anca. Affondi e plank lavorano su entrambi senza attrezzi.",
+            "steps": [
+              "Primi 25 secondi: affondi alternati, ginocchio posteriore che sfiora il pavimento.",
+              "Ultimi 20 secondi: plank sugli avambracci, corpo in linea dalla testa ai talloni."
+            ],
+            "cues": [
+              "Ginocchio anteriore sopra la caviglia",
+              "Nel plank glutei contratti, schiena neutra"
+            ],
+            "success": "Riuscito se: completi i 3 giri senza fermarti, con affondi profondi e ginocchio anteriore stabile.",
+            "easier": "Affondi meno profondi tenendoti a una sedia; plank con le ginocchia a terra.",
+            "dose": {
+              "sets": 3,
+              "work": 45,
+              "rest": 30
+            },
+            "video": "lunges and plank workout"
+          }
+        ]
+      },
+      {
+        "level": 3,
+        "title": "Check, parate e combinazioni",
+        "focus": "Impari a parare i calci con la tibia (check), a difenderti dai pugni con parry e copertura e a legare pugni e calci in combinazioni corte al sacco.",
+        "exercises": [
+          {
+            "id": "muaythai-3-1",
+            "name": "Shadow thai di riscaldamento",
+            "kind": "riscaldamento",
+            "how": "Scaldi il corpo con lo shadow: passi, teep, pugni e calci bassi lenti. Ti serve anche per ripassare le tecniche del livello precedente.",
+            "steps": [
+              "Giro 1: saltelli e passi in guardia in tutte le direzioni.",
+              "Giro 2: cerchi delle anche e apertura del ginocchio, poi teep lenti.",
+              "Giro 3: jab, diretto e calcio circolare basso al rallentatore."
+            ],
+            "cues": [
+              "Al 50%, sciolto",
+              "Mani alte anche quando calci"
+            ],
+            "success": "Riuscito se: completi i 3 giri senza fermarti e senza perdere l'equilibrio nei calci lenti.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 30
+            },
+            "video": "muay thai shadow boxing warm up"
+          },
+          {
+            "id": "muaythai-3-2",
+            "name": "Check (parata con la tibia)",
+            "kind": "tecnica",
+            "how": "Il check ferma il calcio circolare: alzi il ginocchio e presenti la tibia al colpo. È la difesa principale della Muay Thai e richiede equilibrio su una gamba.",
+            "steps": [
+              "Dalla guardia, con il peso sul piede posteriore, alza il ginocchio anteriore verso il gomito dello stesso lato.",
+              "Ruota appena il ginocchio verso l'esterno, così la tibia è rivolta al calcio in arrivo; mani alte.",
+              "Riappoggia il piede in guardia. Poi fai il check con la gamba posteriore."
+            ],
+            "cues": [
+              "Ginocchio e gomito quasi si toccano",
+              "Busto dritto, non piegarti indietro",
+              "Mani alte durante il check"
+            ],
+            "success": "Riuscito se: fai 10 check per gamba allo specchio senza perdere l'equilibrio e con le mani sempre all'altezza del viso.",
+            "easier": "Tieni una mano al muro e alza il ginocchio solo fino all'altezza dell'anca.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "muay thai check kick defense tutorial"
+          },
+          {
+            "id": "muaythai-3-3",
+            "name": "Parry e copertura alta",
+            "kind": "tecnica",
+            "how": "Contro i pugni usi le mani: il parry devia il jab con un piccolo colpo del palmo, la copertura alta protegge la testa dai ganci con l'avambraccio incollato alla tempia.",
+            "steps": [
+              "Parry: con la mano posteriore devia di pochi centimetri un jab immaginario e riporta subito la mano.",
+              "Copertura alta: contro un gancio immaginario incolla avambraccio e guantone alla tempia, gomito alto.",
+              "Alterna i due movimenti su entrambi i lati, restando in guardia thai."
+            ],
+            "cues": [
+              "Movimenti piccoli, vicini al viso",
+              "Non chiudere gli occhi"
+            ],
+            "success": "Riuscito se: completi 10 ripetizioni per lato con la mano che non si allontana più di una spanna dal viso.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "muay thai blocking punches parry cover"
+          },
+          {
+            "id": "muaythai-3-4",
+            "name": "Combinazioni corte in shadow",
+            "kind": "combinazione",
+            "how": "Leghi pugni, calci e difese in sequenze da 2-3 tecniche. In Muay Thai le combinazioni finiscono spesso con un calcio: i pugni lo preparano e lo nascondono.",
+            "steps": [
+              "Sequenza A: jab, poi calcio circolare basso con la gamba posteriore.",
+              "Sequenza B: teep anteriore, poi jab-diretto.",
+              "Sequenza C: check, riappoggi il piede in avanti e tiri il diretto. Alterna le tre per tutto il round."
+            ],
+            "cues": [
+              "Dopo il calcio torna in guardia",
+              "Il pugno nasconde il calcio che arriva"
+            ],
+            "success": "Riuscito se: in ogni round alterni le 3 sequenze senza perdere l'equilibrio e tornando sempre in guardia.",
+            "dose": {
+              "sets": 3,
+              "work": 90,
+              "rest": 45
+            },
+            "video": "muay thai basic combinations shadow"
+          },
+          {
+            "id": "muaythai-3-5",
+            "name": "Sacco: pugni, calci e ginocchiate",
+            "kind": "sacco",
+            "how": "Al sacco provi le combinazioni corte con un impatto reale ma controllato. Alterni pugni, calci bassi e medi e ginocchiate, con un check ogni tanto.",
+            "steps": [
+              "Bende e guantoni. Jab e calcio basso; jab-diretto e ginocchiata; teep e jab-diretto, al 60%.",
+              "Ogni 30 secondi fai un check come se il sacco calciasse, poi riparti.",
+              "Senza sacco: stesse combinazioni in shadow davanti allo specchio."
+            ],
+            "cues": [
+              "Tibia sul sacco, non il piede",
+              "Rientra in guardia dopo ogni sequenza"
+            ],
+            "success": "Riuscito se: completi 3 round da 2 minuti senza dolore alle tibie e tornando sempre in guardia dopo ogni sequenza.",
+            "easier": "Senza sacco: round in shadow. Se le tibie sono sensibili: calci al 30% o solo pugni e ginocchiate.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 60
+            },
+            "video": "muay thai heavy bag combinations beginner"
+          },
+          {
+            "id": "muaythai-3-6",
+            "name": "Collo e tronco in isometria",
+            "kind": "condizionamento",
+            "how": "Collo e tronco forti servono nel clinch e per incassare. Lavori solo in isometria con la tua mano come resistenza: spinta moderata, mai movimenti bruschi.",
+            "steps": [
+              "Collo: mano sulla fronte, spingi la testa contro la mano senza muoverla per 5 secondi; poi mano dietro la nuca e ai lati.",
+              "Tronco: il resto del tempo in plank sugli avambracci, corpo in linea."
+            ],
+            "cues": [
+              "Spinta al 50%, la testa non si muove",
+              "Respira durante la tenuta"
+            ],
+            "success": "Riuscito se: completi i 3 giri senza dolore al collo e tenendo il plank fino alla fine del timer.",
+            "easier": "Spingi più piano con il collo; plank con le ginocchia a terra.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "neck isometric exercises for fighters"
+          }
+        ]
+      },
+      {
+        "level": 4,
+        "title": "Gomitate, clinch e ritmo",
+        "focus": "Aggiungi le gomitate (al sacco solo controllate), la postura del clinch da solo con le ginocchiate e combinazioni da 4 tecniche con il ritmo thai.",
+        "exercises": [
+          {
+            "id": "muaythai-4-1",
+            "name": "Corda, mobilità e shadow",
+            "kind": "riscaldamento",
+            "how": "Battito, mobilità e shadow: oggi lavori molto con anche, spalle e gomiti, quindi scaldali bene prima di colpire.",
+            "steps": [
+              "Giro 1: corda o saltelli, cambiando ritmo ogni 20 secondi.",
+              "Giro 2: cerchi delle anche, rotazioni di spalle e gomiti, ginocchia alte.",
+              "Giro 3: shadow con teep, check e calci bassi lenti."
+            ],
+            "cues": [
+              "Intensità crescente",
+              "Gomiti e spalle sciolti"
+            ],
+            "success": "Riuscito se: completi i 3 giri e arrivi caldo al lavoro tecnico, senza rigidità ad anche e spalle.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 30
+            },
+            "video": "muay thai jump rope warm up"
+          },
+          {
+            "id": "muaythai-4-2",
+            "name": "Gomitata orizzontale e ascendente",
+            "kind": "tecnica",
+            "how": "La gomitata (sok) è un'arma della corta distanza: ruota come un gancio ma molto più corta. La impari in shadow; al sacco solo leggera e controllata.",
+            "steps": [
+              "Orizzontale: mano aperta vicino all'orecchio, ruota piede e anca e porta l'avambraccio parallelo al pavimento davanti al viso.",
+              "Ascendente: il gomito sale dal basso verso il mento con la spinta delle gambe, mano vicino alla testa.",
+              "L'altra mano resta alta a coprire. Fai tutte le ripetizioni da un lato, poi dall'altro."
+            ],
+            "cues": [
+              "Colpisci con la parte dell'avambraccio vicino al gomito",
+              "Distanza cortissima: a mezzo passo dal bersaglio",
+              "Al sacco al massimo al 30-40%"
+            ],
+            "success": "Riuscito se: fai 8 gomitate per lato, alternando i due tipi, con rotazione dell'anca e mano libera sempre alta allo specchio.",
+            "easier": "Fai solo la gomitata orizzontale, lenta, in shadow.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "muay thai elbow strikes tutorial"
+          },
+          {
+            "id": "muaythai-4-3",
+            "name": "Postura da clinch e ginocchiate",
+            "kind": "tecnica",
+            "how": "Il clinch da solo si allena come postura e forza: presa alta, gomiti stretti, anche avanti. Al sacco appeso simuli la presa sulla testa e porti ginocchiate leggere.",
+            "steps": [
+              "Presa: mani una sopra l'altra dietro la parte alta del sacco (o dietro una testa immaginaria), gomiti stretti davanti al petto.",
+              "Postura: schiena dritta, anche avanti, piedi sotto il corpo; tira leggermente il sacco verso di te.",
+              "Da qui porta ginocchiate dritte alternate leggere. Senza sacco: stessa postura e ginocchiate nell'aria."
+            ],
+            "cues": [
+              "Gomiti stretti, non aperti",
+              "Anche avanti, testa alta",
+              "Ginocchiate leggere: conta la postura"
+            ],
+            "success": "Riuscito se: tieni la postura per 45 secondi con gomiti stretti e anche avanti, senza piegarti in avanti con la schiena.",
+            "easier": "Senza ginocchiate: tieni solo la presa e la postura, oppure fai il lavoro senza sacco.",
+            "dose": {
+              "sets": 3,
+              "work": 45,
+              "rest": 45
+            },
+            "video": "muay thai clinch knees heavy bag drill"
+          },
+          {
+            "id": "muaythai-4-4",
+            "name": "Combinazioni da 4 tecniche",
+            "kind": "combinazione",
+            "how": "Sequenze più lunghe che mescolano pugni, calci, ginocchia e gomiti. Ogni tecnica prepara la successiva e il ritmo thai le lega.",
+            "steps": [
+              "Sequenza A: jab-diretto-gancio, poi calcio basso con la gamba posteriore.",
+              "Sequenza B: teep, jab-diretto, ginocchiata posteriore.",
+              "Sequenza C: jab, passo dentro e gomitata orizzontale, ginocchiata, check. Alterna in shadow per tutto il round."
+            ],
+            "cues": [
+              "Il gancio carica il calcio posteriore",
+              "Ogni sequenza finisce in guardia"
+            ],
+            "success": "Riuscito se: completi i 3 round passando da una sequenza all'altra senza fermarti più di 2-3 secondi e senza perdere l'equilibrio.",
+            "easier": "Riduci a sequenze da 3 tecniche, oppure fai il primo round al rallentatore.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 45
+            },
+            "video": "muay thai combinations shadow boxing"
+          },
+          {
+            "id": "muaythai-4-5",
+            "name": "Round al sacco: ritmo thai",
+            "kind": "sacco",
+            "how": "Round da 2 minuti con tutte le armi imparate. Alterni fasi lente e tecniche a brevi accelerazioni, come nel ritmo di un incontro thai.",
+            "steps": [
+              "Bende e guantoni. 30 secondi tecnici con combinazioni lunghe, poi 10 secondi di calci o ginocchiate rapide; ripeti.",
+              "Gomitate solo leggere e controllate; dopo ogni sequenza fai un check o un passo fuori.",
+              "Senza sacco: stesso schema in shadow."
+            ],
+            "cues": [
+              "Accelera senza perdere la guardia",
+              "Gomitate al massimo al 30-40%"
+            ],
+            "success": "Riuscito se: completi 4 round da 2 minuti rispettando i cicli e con le mani ancora alte nell'ultimo round.",
+            "easier": "Senza sacco: round in shadow. Se è troppo: 3 round con accelerazioni da 5 secondi.",
+            "dose": {
+              "sets": 4,
+              "work": 120,
+              "rest": 60
+            },
+            "video": "muay thai heavy bag workout rounds"
+          },
+          {
+            "id": "muaythai-4-6",
+            "name": "Tronco per calciare",
+            "kind": "condizionamento",
+            "how": "Calci e ginocchiate partono dal tronco. Leg raise e russian twist rinforzano addome e obliqui, che guidano la rotazione dell'anca.",
+            "steps": [
+              "Primi 25 secondi: leg raise da sdraiato, gambe quasi tese, zona lombare a terra.",
+              "Ultimi 20 secondi: russian twist da seduto, busto inclinato, ruoti da un lato all'altro."
+            ],
+            "cues": [
+              "Zona lombare a terra nei leg raise",
+              "Ruota il busto, non solo le braccia"
+            ],
+            "success": "Riuscito se: completi i 3 giri senza fermarti e senza staccare la zona lombare da terra nei leg raise.",
+            "easier": "Leg raise con le ginocchia piegate; russian twist con i piedi appoggiati.",
+            "dose": {
+              "sets": 3,
+              "work": 45,
+              "rest": 30
+            },
+            "video": "leg raises russian twist core workout"
+          }
+        ]
+      },
+      {
+        "level": 5,
+        "title": "Calcio al corpo e switch kick",
+        "focus": "Porti il calcio circolare all'altezza del corpo e impari il calcio con cambio di guardia (switch kick), dopo aver preparato anche ed equilibrio.",
+        "exercises": [
+          {
+            "id": "muaythai-5-1",
+            "name": "Riscaldamento dinamico",
+            "kind": "riscaldamento",
+            "how": "Battito e mobilità dinamica delle anche, più lunga del solito: oggi i calci salgono di altezza e le anche devono essere davvero calde.",
+            "steps": [
+              "Giro 1: corda o saltelli, poi ginocchia alte.",
+              "Giro 2: oscillazioni controllate della gamba avanti e di lato, tenendoti al muro, aumentando piano l'ampiezza.",
+              "Giro 3: shadow con calci bassi lenti e teep."
+            ],
+            "cues": [
+              "Ampiezza crescente, mai a strappo",
+              "Fermati se senti tirare forte"
+            ],
+            "success": "Riuscito se: completi i 3 giri e le oscillazioni dell'ultimo giro sono più ampie del primo, senza dolore.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 30
+            },
+            "video": "dynamic leg swings warm up kicking"
+          },
+          {
+            "id": "muaythai-5-2",
+            "name": "Mobilità delle anche per calciare",
+            "kind": "flessibilita",
+            "how": "Per calciare al corpo servono adduttori e flessori dell'anca liberi. Progressione lenta e senza molleggi: arrivi al punto di tensione, respiri, non forzi.",
+            "steps": [
+              "Affondo laterale lento (cossack squat): scendi su una gamba tenendo l'altra tesa, 3 secondi giù, poi cambia lato.",
+              "Affondo basso con ginocchio posteriore a terra: porta piano l'anca avanti e respira.",
+              "Seduto a farfalla: piante unite, schiena dritta, lascia scendere le ginocchia senza spingerle."
+            ],
+            "cues": [
+              "Tensione sì, dolore acuto no",
+              "Nessun molleggio",
+              "Espira mentre scendi"
+            ],
+            "success": "Riuscito se: completi la sequenza senza dolore acuto e scendi nell'affondo laterale con il tallone ancora a terra.",
+            "easier": "Affondo laterale meno profondo tenendoti a una sedia; farfalla con la schiena appoggiata al muro.",
+            "dose": {
+              "sets": 2,
+              "work": 60,
+              "rest": 15,
+              "perSide": true
+            },
+            "video": "hip mobility routine for kicking",
+            "prepFor": "muaythai-5-4"
+          },
+          {
+            "id": "muaythai-5-3",
+            "name": "Equilibrio sull'avampiede",
+            "kind": "preparatorio",
+            "how": "Il calcio al corpo e lo switch kick ti tengono su un avampiede mentre ruoti. Qui impari a stare in equilibrio sulla punta e a fermarti nella posizione del calcio.",
+            "steps": [
+              "Sali sull'avampiede di una gamba, ruotalo verso l'esterno e porta l'altro ginocchio alto di lato, come nel calcio.",
+              "Tieni la posizione 3 secondi con le mani in guardia, poi torna giù con controllo.",
+              "Ripeti dall'altro lato. Tieni il muro vicino per sicurezza."
+            ],
+            "cues": [
+              "Ginocchio d'appoggio leggermente piegato",
+              "Busto stabile, non cadere indietro"
+            ],
+            "success": "Riuscito se: tieni 6 volte per lato la posizione per 3 secondi senza toccare il muro.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "balance drill for roundhouse kick",
+            "prepFor": "muaythai-5-4"
+          },
+          {
+            "id": "muaythai-5-4",
+            "name": "Calcio al corpo e switch kick",
+            "kind": "tecnica",
+            "how": "Due tecniche: il calcio circolare all'altezza delle costole e lo switch kick, in cui un cambio di guardia veloce ti fa calciare con la gamba anteriore con più potenza.",
+            "steps": [
+              "Calcio al corpo: stessa meccanica del calcio basso, ma più rotazione sul piede d'appoggio e tibia all'altezza delle costole.",
+              "Switch kick: il piede anteriore arretra mentre il posteriore avanza appena (cambio guardia), poi calcio circolare con la gamba che era davanti.",
+              "Lento, allo specchio; dopo ogni calcio torna nella guardia di partenza."
+            ],
+            "cues": [
+              "Il tallone d'appoggio punta verso il bersaglio",
+              "Cambio guardia piccolo e veloce",
+              "Mano opposta sempre al viso"
+            ],
+            "success": "Riuscito se: fai 8 calci per lato (metà al corpo, metà switch kick) all'altezza del fianco, tornando in guardia senza inciampare.",
+            "easier": "Calcio circolare posteriore senza cambio, all'altezza della coscia, tenendoti al muro se serve.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "muay thai switch kick tutorial"
+          },
+          {
+            "id": "muaythai-5-5",
+            "name": "Sacco: calci al corpo in combinazione",
+            "kind": "sacco",
+            "how": "Inserisci il calcio al corpo e lo switch kick nelle combinazioni al sacco. Prima la tecnica, poi la potenza: altezza e pivot contano più della forza.",
+            "steps": [
+              "Bende e guantoni. Sequenze: jab-diretto, switch kick al corpo; jab-diretto-gancio, calcio al corpo posteriore.",
+              "Dopo ogni calcio fai un check e torna in guardia.",
+              "Senza sacco: stesse sequenze in shadow, calciando all'altezza del fianco."
+            ],
+            "cues": [
+              "Altezza costole, non più su",
+              "Calcio al 50-60%"
+            ],
+            "success": "Riuscito se: completi 4 round da 2 minuti con pivot corretto a ogni calcio e check dopo ogni sequenza.",
+            "easier": "Senza sacco: round in shadow. Se è difficile: calci bassi alla coscia, 3 round.",
+            "dose": {
+              "sets": 4,
+              "work": 120,
+              "rest": 60
+            },
+            "video": "muay thai body kick heavy bag combinations"
+          },
+          {
+            "id": "muaythai-5-6",
+            "name": "Affondi bulgari",
+            "kind": "condizionamento",
+            "how": "La forza su una gamba sola rende stabile il piede d'appoggio e più potente la spinta dei calci. Usa il corpo libero o manubri leggeri.",
+            "steps": [
+              "Piede posteriore appoggiato su una sedia o panca, piede anteriore un passo avanti.",
+              "Scendi finché la coscia anteriore è quasi parallela al pavimento, poi risali spingendo sul tallone."
+            ],
+            "cues": [
+              "Ginocchio anteriore in linea con la punta",
+              "Busto dritto, scendi in verticale"
+            ],
+            "success": "Riuscito se: completi 10 ripetizioni per gamba in tutte le serie con il ginocchio stabile e senza perdere l'equilibrio.",
+            "easier": "Affondi statici con entrambi i piedi a terra, tenendoti a un appoggio.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "bulgarian split squat proper form"
+          }
+        ]
+      },
+      {
+        "level": 6,
+        "title": "Calcio alto e round lunghi",
+        "focus": "Porti il calcio circolare alla testa solo dopo flessibilità ed equilibrio dedicati, e chiudi con round da 3 minuti al sacco con tutte le otto armi.",
+        "exercises": [
+          {
+            "id": "muaythai-6-1",
+            "name": "Riscaldamento da round",
+            "kind": "riscaldamento",
+            "how": "Riscaldamento lungo e progressivo: battito, oscillazioni delle gambe e shadow completo. Il calcio alto si prova solo con muscoli caldi.",
+            "steps": [
+              "Giro 1: corda o saltelli, poi ginocchia alte e calciata dietro (talloni ai glutei).",
+              "Giro 2: oscillazioni controllate avanti e di lato, ampiezza crescente, poi shadow con calci medi lenti."
+            ],
+            "cues": [
+              "Mai calci alti a freddo",
+              "Ampiezza crescente"
+            ],
+            "success": "Riuscito se: completi i 2 giri e nelle ultime oscillazioni la gamba sale più in alto che all'inizio, senza dolore.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 30
+            },
+            "video": "muay thai warm up before training"
+          },
+          {
+            "id": "muaythai-6-2",
+            "name": "Flessibilità per il calcio alto",
+            "kind": "flessibilita",
+            "how": "Il calcio alla testa richiede anche aperte e muscoli posteriori della coscia elastici. Allunghi in modo lento e statico, senza molleggi, solo dopo il riscaldamento.",
+            "steps": [
+              "Affondo basso con ginocchio a terra: anca avanti, respirando lento.",
+              "Gamba tesa appoggiata su una sedia, busto dritto che si inclina appena in avanti: senti il retro e l'interno della coscia.",
+              "Seduto a gambe divaricate quanto ti è comodo, schiena dritta, mani avanti: respira e rilassati."
+            ],
+            "cues": [
+              "Tensione sì, dolore acuto no",
+              "Niente molleggi",
+              "Espira e rilassa, non spingere"
+            ],
+            "success": "Riuscito se: completi la sequenza senza dolore acuto, respirando lento in ogni posizione per tutto il tempo.",
+            "easier": "Usa un appoggio più basso, come un gradino, e riduci l'ampiezza delle posizioni.",
+            "dose": {
+              "sets": 2,
+              "work": 45,
+              "rest": 15,
+              "perSide": true
+            },
+            "video": "stretching routine for high kicks",
+            "prepFor": "muaythai-6-4"
+          },
+          {
+            "id": "muaythai-6-3",
+            "name": "Calcio lento al muro",
+            "kind": "preparatorio",
+            "how": "Tenendoti al muro porti il calcio circolare lentamente fino all'altezza più alta che controlli e la tieni: costruisci forza e flessibilità attiva, la base del calcio alto.",
+            "steps": [
+              "Una mano al muro o allo schienale di una sedia, pivot sul piede d'appoggio.",
+              "Porta la gamba in rotazione lenta fino all'altezza massima che controlli e tieni 2 secondi in estensione.",
+              "Ritorna lentamente in guardia. Ogni settimana prova a salire di pochi centimetri."
+            ],
+            "cues": [
+              "Lento in salita, lento in discesa",
+              "L'anca ruota sopra la gamba d'appoggio"
+            ],
+            "success": "Riuscito se: fai 6 calci lenti per lato tenendo 2 secondi l'estensione, senza cadere e senza dolore all'anca.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "slow roundhouse kick wall drill",
+            "prepFor": "muaythai-6-4"
+          },
+          {
+            "id": "muaythai-6-4",
+            "name": "Calcio circolare alto",
+            "kind": "tecnica",
+            "how": "Il calcio alla testa usa la meccanica del calcio al corpo, con pivot completo e busto che si inclina per bilanciare. Fallo solo quando il calcio lento al muro è stabile.",
+            "steps": [
+              "Passo fuori linea, sali sull'avampiede e ruota fino a portare il tallone d'appoggio verso il bersaglio.",
+              "L'anca si apre sopra la gamba d'appoggio e la tibia sale all'altezza della testa; il busto si inclina, la mano opposta protegge il viso.",
+              "Calci lenti e controllati allo specchio, poi torna in guardia. Sali all'altezza che controlli, non oltre."
+            ],
+            "cues": [
+              "Pivot completo, mai sul tallone",
+              "Busto inclinato, mano al viso",
+              "Meglio un calcio al corpo pulito che uno alto sporco"
+            ],
+            "success": "Riuscito se: fai 6 calci per lato all'altezza della spalla o più su, tornando in guardia senza perdere l'equilibrio.",
+            "easier": "Calcio al corpo all'altezza delle costole; quello alto solo quando il calcio lento al muro arriva in alto.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "muay thai head kick tutorial"
+          },
+          {
+            "id": "muaythai-6-5",
+            "name": "Round lunghi: otto armi",
+            "kind": "sacco",
+            "how": "Round da 3 minuti come in un incontro: pugni, calci, ginocchiate e gomitate controllate, con difese e ritmo che cresce. Impari a restare lucido da stanco.",
+            "steps": [
+              "Bende e guantoni. Ogni round: combinazioni lunghe che finiscono con calcio o ginocchiata, check e teep per tenere la distanza.",
+              "Gomitate solo leggere e controllate; ultimi 30 secondi di ogni round a ritmo alto.",
+              "Senza sacco: stessi round in shadow, con la stessa struttura."
+            ],
+            "cues": [
+              "Espira a ogni colpo",
+              "Mani alte anche da stanco",
+              "Gomitate al 30-40%"
+            ],
+            "success": "Riuscito se: completi 4 round da 3 minuti senza fermarti dentro il round e con calci ancora tecnici nell'ultimo.",
+            "easier": "Senza sacco: round in shadow. Se è troppo: 3 round da 2 minuti.",
+            "dose": {
+              "sets": 4,
+              "work": 180,
+              "rest": 60
+            },
+            "video": "muay thai heavy bag 3 minute rounds"
+          },
+          {
+            "id": "muaythai-6-6",
+            "name": "Ginocchiate in clinch a resistenza",
+            "kind": "condizionamento",
+            "how": "Chiudi con le ginocchiate dalla postura del clinch: allenano la resistenza di gambe, tronco e presa, come nelle fasi di clinch di un incontro.",
+            "steps": [
+              "Presa del clinch sul sacco, gomiti stretti, anche avanti; ginocchiate dritte alternate a ritmo sostenuto.",
+              "Senza sacco: stessa postura con le mani in presa e ginocchiate alternate nell'aria."
+            ],
+            "cues": [
+              "Postura prima della velocità",
+              "Schiena dritta, non piegarti in avanti"
+            ],
+            "success": "Riuscito se: completi i 3 giri senza fermarti e con la postura del clinch mantenuta fino alla fine.",
+            "easier": "Riduci a 40 secondi di lavoro oppure fai ginocchiate più lente.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 45
+            },
+            "video": "muay thai clinch knees conditioning"
+          }
+        ]
+      }
+    ],
+    "color": "#f5b53f",
+    "short": "Muay Thai"
+  },
+  {
+    "id": "capoeira",
+    "name": "Capoeira",
+    "tagline": "Ginga che non si ferma, schivate basse, calci in cerchio.",
+    "intro": "La capoeira insegna a muoverti senza fermarti mai: schivi basso, giri e rispondi. È lo stile perfetto da copiare alla Johan Seong: guardi il movimento in video, lo rifai lento e lo rendi tuo, un livello alla volta.",
+    "equipment": "Tappetino, spazio libero di 2x2 m, un muro sgombro, musica",
+    "mottos": [
+      "Prima la ginga, poi tutto il resto.",
+      "Guarda il cerchio, copia il cerchio, diventa il cerchio.",
+      "Basso quando schivi, morbido quando calci."
+    ],
+    "levels": [
+      {
+        "level": 1,
+        "title": "Ginga e prime schivate",
+        "focus": "Impari la ginga, il passo base che non si ferma mai, e le prime schivate basse. Anche e caviglie si aprono, il corpo resta morbido.",
+        "exercises": [
+          {
+            "id": "capoeira-1-1",
+            "name": "Mobilità anche e caviglie",
+            "kind": "riscaldamento",
+            "how": "Prepari anche, caviglie e schiena ai movimenti bassi della capoeira. Movimenti ampi e controllati, senza molleggi e senza dolore.",
+            "steps": [
+              "Circonduzioni delle anche in piedi, 10 per verso, ginocchia morbide.",
+              "Affondi laterali alternati lenti, scendendo solo fin dove sei comodo.",
+              "Gatto-mucca a quattro zampe e rotazioni delle caviglie da seduto."
+            ],
+            "cues": [
+              "Respira lento, nessun dolore acuto",
+              "Ampiezza che cresce a ogni giro"
+            ],
+            "success": "Riuscito se: completi i giri senza fretta e alla fine scendi in affondo laterale più comodo di quando hai iniziato.",
+            "dose": {
+              "sets": 2,
+              "work": 120,
+              "rest": 20
+            },
+            "video": "capoeira warm up hip mobility beginner"
+          },
+          {
+            "id": "capoeira-1-2",
+            "name": "Ginga di base",
+            "kind": "tecnica",
+            "how": "La ginga è il passo oscillante della capoeira: un triangolo di appoggi che ti tiene sempre in movimento, mai fermo e mai frontale. Da qui nasce tutto.",
+            "steps": [
+              "Piedi larghi quanto le spalle, ginocchia piegate, peso sugli avampiedi.",
+              "Porta un piede indietro in diagonale e il braccio opposto davanti al viso.",
+              "Torna al centro e ripeti con l'altro piede: ritmo costante, tre tempi."
+            ],
+            "cues": [
+              "Braccio sempre a coprire il viso",
+              "Busto leggermente inclinato in avanti",
+              "Ginocchia piegate, mai rigide"
+            ],
+            "success": "Riuscito se: fai 60 secondi di ginga continua allo specchio con il braccio che copre sempre il viso sul lato giusto.",
+            "easier": "Fai la ginga a metà velocità contando ad alta voce 1-2-3, senza braccia, finché i piedi non vanno da soli.",
+            "dose": {
+              "sets": 4,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "capoeira ginga tutorial beginner"
+          },
+          {
+            "id": "capoeira-1-3",
+            "name": "Esquiva baixa",
+            "kind": "tecnica",
+            "how": "Schivata bassa: scendi abbassando il busto verso il ginocchio avanti e proteggi la testa con il braccio. È la difesa base contro i calci alti.",
+            "steps": [
+              "Dalla ginga, piega le ginocchia e porta il busto in basso verso il ginocchio avanti.",
+              "Un braccio copre la testa, l'altra mano è pronta a toccare terra.",
+              "Risali in ginga e ripeti dall'altro lato."
+            ],
+            "cues": [
+              "Sguardo sempre avanti, non a terra",
+              "Scendi con le gambe, non solo con la schiena"
+            ],
+            "success": "Riuscito se: completi tutte le ripetizioni per lato tenendo lo sguardo avanti e il braccio sopra la testa.",
+            "easier": "Scendi solo a metà, con le mani sulle cosce, e tieni la posizione 2 secondi prima di risalire.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "capoeira esquiva baixa tutorial"
+          },
+          {
+            "id": "capoeira-1-4",
+            "name": "Cocorinha (accosciata di difesa)",
+            "kind": "tecnica",
+            "how": "Ti accovacci del tutto, talloni a terra se puoi, e copri la testa con un braccio. È una schivata rapida e la base di tutti i movimenti a terra.",
+            "steps": [
+              "Dalla ginga scendi in accosciata profonda, piedi paralleli, talloni giù.",
+              "Un braccio copre la testa, l'altra mano tocca terra davanti a te.",
+              "Risali in ginga senza spingerti con le mani sulle ginocchia."
+            ],
+            "cues": [
+              "Talloni a terra se possibile",
+              "Schiena lunga, testa protetta"
+            ],
+            "success": "Riuscito se: scendi e risali 8 volte di fila senza perdere l'equilibrio e senza spingerti sulle ginocchia.",
+            "easier": "Metti un libro sotto i talloni oppure scendi solo fino a cosce parallele, con una mano appoggiata a terra.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30
+            },
+            "video": "capoeira cocorinha tutorial"
+          },
+          {
+            "id": "capoeira-1-5",
+            "name": "Ginga, esquiva e cocorinha",
+            "kind": "combinazione",
+            "how": "Metti insieme quello che hai copiato: ginga continua, una schivata, di nuovo ginga. Il punto è non fermarsi mai tra un movimento e l'altro.",
+            "steps": [
+              "Ginga per 3 tempi completi.",
+              "Esquiva baixa a destra, ginga, esquiva baixa a sinistra.",
+              "Ginga e cocorinha, poi ricomincia la sequenza senza pause."
+            ],
+            "cues": [
+              "Il movimento non si ferma",
+              "Rientra sempre in ginga"
+            ],
+            "success": "Riuscito se: ripeti la sequenza per tutto il round senza fermarti e senza saltare un passaggio.",
+            "easier": "Fai una pausa di un tempo tra un movimento e l'altro e usa una musica lenta di berimbau per il ritmo.",
+            "dose": {
+              "sets": 3,
+              "work": 90,
+              "rest": 45
+            },
+            "video": "capoeira ginga esquiva drill beginner"
+          },
+          {
+            "id": "capoeira-1-6",
+            "name": "Gambe basse e core",
+            "kind": "condizionamento",
+            "how": "La capoeira vive in basso: rinforzi gambe e addome per reggere ginga e schivate senza tirarti su dopo un minuto.",
+            "steps": [
+              "Squat lenti a corpo libero: 3 secondi in discesa, 1 in salita, per 30 secondi.",
+              "Plank sugli avambracci con bacino in linea, per 30 secondi.",
+              "Alterna i due esercizi senza pausa per tutta la serie."
+            ],
+            "cues": [
+              "Ginocchia in linea con le punte",
+              "Bacino fermo nel plank"
+            ],
+            "success": "Riuscito se: completi tutte le serie mantenendo la tecnica pulita fino all'ultima ripetizione.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "bodyweight squat and plank form"
+          }
+        ]
+      },
+      {
+        "level": 2,
+        "title": "Negativa, rolê e meia lua de frente",
+        "focus": "Scendi a terra con la negativa, ti sposti con il rolê e lanci il primo calcio circolare. Apri anche e spalle per stare comodo in basso.",
+        "exercises": [
+          {
+            "id": "capoeira-2-1",
+            "name": "Ginga e mobilità spalle",
+            "kind": "riscaldamento",
+            "how": "Scaldi spalle, polsi e anche: oggi le mani vanno a terra. Parti con la ginga leggera e passi alle circonduzioni.",
+            "steps": [
+              "Ginga leggera per un minuto per alzare la temperatura.",
+              "Circonduzioni ampie delle braccia avanti e indietro, poi rotazioni dei polsi.",
+              "A quattro zampe, sposta il peso avanti e indietro sulle mani, dita aperte."
+            ],
+            "cues": [
+              "Polsi caldi prima di caricarli",
+              "Spalle lontane dalle orecchie"
+            ],
+            "success": "Riuscito se: finisci con polsi e spalle caldi e carichi il peso sulle mani senza fastidio.",
+            "dose": {
+              "sets": 2,
+              "work": 120,
+              "rest": 20
+            },
+            "video": "capoeira warm up shoulders wrists"
+          },
+          {
+            "id": "capoeira-2-2",
+            "name": "Anche aperte: 90/90 e affondo basso",
+            "kind": "flessibilita",
+            "how": "La negativa chiede anche mobili e una gamba distesa a terra. Apri le anche con posizioni tenute, respirando, senza molleggi.",
+            "steps": [
+              "Seduto in 90/90: entrambe le ginocchia piegate a 90°, busto dritto, 30 secondi.",
+              "Affondo basso con il ginocchio dietro a terra, bacino che scende piano, 30 secondi.",
+              "Ripeti tutto dall'altro lato, cercando un po' più di ampiezza a ogni respiro."
+            ],
+            "cues": [
+              "Tensione sì, dolore acuto no",
+              "Respiri lunghi, rilassati nella posizione"
+            ],
+            "success": "Riuscito se: tieni ogni posizione per tutto il tempo respirando calmo, senza dolore e senza rimbalzare.",
+            "easier": "Metti un cuscino sotto il bacino nel 90/90 e sotto il ginocchio nell'affondo, e riduci l'ampiezza.",
+            "dose": {
+              "sets": 2,
+              "work": 60,
+              "rest": 15,
+              "perSide": true
+            },
+            "video": "90 90 hip stretch beginner",
+            "prepFor": "capoeira-2-3"
+          },
+          {
+            "id": "capoeira-2-3",
+            "name": "Negativa",
+            "kind": "tecnica",
+            "how": "Posizione bassa a terra: una gamba piegata sotto di te, l'altra distesa, una mano a terra e un braccio che copre il viso. Schivata e base per ripartire.",
+            "steps": [
+              "Dalla ginga scendi in accosciata su una gamba e distendi l'altra davanti, tallone a terra.",
+              "Appoggia una mano a terra vicino al corpo, l'altro braccio protegge il viso.",
+              "Il busto resta basso e raccolto, poi risali in ginga."
+            ],
+            "cues": [
+              "Peso sulla mano e sul piede piegato",
+              "Testa bassa e protetta",
+              "Gamba distesa morbida, non bloccata"
+            ],
+            "success": "Riuscito se: entri in negativa e tieni 3 secondi su entrambi i lati senza sederti a terra e con il braccio sul viso.",
+            "easier": "Tieni il bacino più alto e piega un po' la gamba avanti; all'inizio usa entrambe le mani a terra.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "capoeira negativa tutorial"
+          },
+          {
+            "id": "capoeira-2-4",
+            "name": "Rolê",
+            "kind": "tecnica",
+            "how": "Il rolê è il giro laterale in basso, senza mai mettere la testa a terra: ruoti su mani e piedi. Serve a uscire dalla negativa e cambiare posizione.",
+            "steps": [
+              "Dalla negativa, appoggia entrambe le mani a terra dal lato della gamba distesa.",
+              "Ruota sulle mani e porta la gamba piegata dietro, passando a quattro zampe di lato.",
+              "Completa la rotazione fino alla negativa sull'altro lato o di nuovo in ginga."
+            ],
+            "cues": [
+              "La testa non tocca mai terra",
+              "Resta basso durante il giro"
+            ],
+            "success": "Riuscito se: fai il rolê da negativa a negativa su entrambi i lati, fluido e senza mai appoggiare la testa.",
+            "easier": "Fai il giro a quattro zampe, lento, fermandoti a metà con mani e piedi a terra prima di completarlo.",
+            "dose": {
+              "sets": 4,
+              "reps": 5,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "capoeira role tutorial beginner"
+          },
+          {
+            "id": "capoeira-2-5",
+            "name": "Meia lua de frente",
+            "kind": "tecnica",
+            "how": "Primo calcio circolare: la gamba distesa disegna un arco davanti a te, da fuori a dentro. Ampio, controllato, con il viso sempre coperto.",
+            "steps": [
+              "Dalla ginga, porta in avanti il piede dietro con la gamba distesa.",
+              "Disegna un arco da fuori a dentro all'altezza del petto, poi riabbassa la gamba.",
+              "Rientra in ginga e ripeti con l'altra gamba."
+            ],
+            "cues": [
+              "Gamba distesa ma ginocchio non bloccato",
+              "Braccio sul viso durante il calcio"
+            ],
+            "success": "Riuscito se: fai le ripetizioni per lato con l'arco controllato fino al petto, senza perdere l'equilibrio.",
+            "easier": "Calcia all'altezza del bacino e appoggiati con una mano al muro per l'equilibrio.",
+            "dose": {
+              "sets": 4,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "capoeira meia lua de frente tutorial"
+          },
+          {
+            "id": "capoeira-2-6",
+            "name": "Quadrupedia e camminata dell'orso",
+            "kind": "condizionamento",
+            "how": "Abitui polsi, spalle e core a portare il peso sulle mani: è la base per rolê, negativa e, più avanti, per l'au.",
+            "steps": [
+              "Ginocchia sollevate di pochi centimetri da terra, mani sotto le spalle.",
+              "Cammina avanti e indietro a passi corti, mano e piede opposti insieme.",
+              "Aggiungi qualche passo laterale tenendo la schiena piatta."
+            ],
+            "cues": [
+              "Ginocchia basse, schiena piatta",
+              "Dita aperte, peso su tutta la mano"
+            ],
+            "success": "Riuscito se: resti in quadrupedia per tutto il tempo senza appoggiare le ginocchia a terra.",
+            "dose": {
+              "sets": 3,
+              "work": 45,
+              "rest": 30
+            },
+            "video": "bear crawl tutorial beginner"
+          }
+        ]
+      },
+      {
+        "level": 3,
+        "title": "Calci, esquiva lateral e sequenze",
+        "focus": "Aggiungi bênção e queixada, schivi di lato e costruisci le prime sequenze brevi di attacco e difesa, sempre dentro la ginga.",
+        "exercises": [
+          {
+            "id": "capoeira-3-1",
+            "name": "Ginga e anche dinamiche",
+            "kind": "riscaldamento",
+            "how": "Scaldi tutto il corpo con la ginga e prepari le anche ai calci con slanci controllati, mai a strappo.",
+            "steps": [
+              "Ginga continua per 90 secondi, con ampiezza crescente.",
+              "Slanci della gamba distesa avanti e di lato, 10 per gamba, con una mano al muro.",
+              "Circonduzioni del ginocchio verso l'esterno e verso l'interno, 8 per verso."
+            ],
+            "cues": [
+              "Slanci controllati, non a strappo",
+              "Ampiezza che sale piano"
+            ],
+            "success": "Riuscito se: alla fine gli slanci arrivano più in alto dei primi, senza fastidio alle anche.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 20
+            },
+            "video": "dynamic leg swings warm up"
+          },
+          {
+            "id": "capoeira-3-2",
+            "name": "Esquiva lateral",
+            "kind": "tecnica",
+            "how": "Schivata di lato: sposti il busto fuori dalla linea scendendo su una gamba, con una mano a terra e il braccio a coprire la testa.",
+            "steps": [
+              "Dalla ginga, apri un piede di lato e piega quella gamba, l'altra resta distesa.",
+              "Porta il busto basso sopra la gamba piegata, una mano a terra, l'altro braccio sulla testa.",
+              "Risali in ginga e schiva dall'altro lato."
+            ],
+            "cues": [
+              "Esci dalla linea, non andare indietro",
+              "Sguardo sempre avanti"
+            ],
+            "success": "Riuscito se: completi le ripetizioni per lato con la mano a terra e lo sguardo avanti, risalendo senza perdere il ritmo.",
+            "easier": "Scendi meno, appoggia la mano sul ginocchio invece che a terra e tieni 2 secondi prima di risalire.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "capoeira esquiva lateral tutorial"
+          },
+          {
+            "id": "capoeira-3-3",
+            "name": "Bênção (calcio frontale a spinta)",
+            "kind": "tecnica",
+            "how": "Calcio dritto a spinta con la pianta del piede, all'altezza della pancia. Serve ad allontanare l'avversario e a tenere la distanza.",
+            "steps": [
+              "Dalla ginga, porta in alto davanti al petto il ginocchio della gamba dietro.",
+              "Spingi il piede in avanti con la pianta, con l'anca che accompagna.",
+              "Richiama il ginocchio e rientra in ginga."
+            ],
+            "cues": [
+              "Ginocchio su prima di spingere",
+              "Colpisci con la pianta, non con le dita"
+            ],
+            "success": "Riuscito se: ogni calcio sale con il ginocchio prima della spinta e rientri in ginga senza barcollare.",
+            "easier": "Appoggia una mano al muro e fai solo ginocchio su e spinta lenta, senza ginga.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "capoeira bencao kick tutorial"
+          },
+          {
+            "id": "capoeira-3-4",
+            "name": "Queixada",
+            "kind": "tecnica",
+            "how": "Calcio circolare da dentro a fuori: la gamba sale incrociata davanti al corpo e si apre ad arco. Il busto ruota per dare ampiezza.",
+            "steps": [
+              "Dalla ginga, fai un passo incrociato in diagonale con il piede avanti.",
+              "La gamba dietro sale e disegna un arco da dentro a fuori.",
+              "Riporta giù la gamba e rientra in ginga, braccio sempre a coprire il viso."
+            ],
+            "cues": [
+              "Prima il passo, poi il calcio",
+              "Arco largo, gamba distesa ma morbida"
+            ],
+            "success": "Riuscito se: fai le ripetizioni per lato con passo e arco nell'ordine giusto, all'altezza del petto, senza perdere l'equilibrio.",
+            "easier": "Calcia all'altezza del bacino con una mano al muro; aggiungi la ginga quando l'arco è pulito.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "capoeira queixada tutorial"
+          },
+          {
+            "id": "capoeira-3-5",
+            "name": "Sequenze di attacco e difesa",
+            "kind": "combinazione",
+            "how": "Colleghi calci e schivate come in un dialogo: chiedi, rispondi, torni in ginga. Copia il ritmo che vedi in video, poi rendilo tuo.",
+            "steps": [
+              "Sequenza A: ginga, meia lua de frente, esquiva baixa, ginga.",
+              "Sequenza B: ginga, bênção, negativa, rolê, ginga.",
+              "Sequenza C: ginga, esquiva lateral, queixada, ginga. Alterna A, B e C per tutto il round."
+            ],
+            "cues": [
+              "Tra un colpo e l'altro torni in ginga",
+              "Ritmo prima della velocità"
+            ],
+            "success": "Riuscito se: alterni le tre sequenze per tutto il round, su entrambi i lati, senza fermarti a pensare.",
+            "easier": "Fai una sola sequenza per round, lenta, e aggiungi le altre quando la prima è automatica.",
+            "dose": {
+              "sets": 4,
+              "work": 90,
+              "rest": 45
+            },
+            "video": "capoeira sequence drill solo"
+          },
+          {
+            "id": "capoeira-3-6",
+            "name": "Forza in basso: negativa e accosciata",
+            "kind": "condizionamento",
+            "how": "Rinforzi gambe e spalle restando bassi, come nel gioco. Passi da una posizione all'altra senza mai tornare in piedi.",
+            "steps": [
+              "Cocorinha, negativa a destra, di nuovo cocorinha, negativa a sinistra.",
+              "Tieni il bacino basso per tutta la serie.",
+              "Respira con ritmo: espira scendendo, inspira tornando al centro."
+            ],
+            "cues": [
+              "Non tornare mai in piedi durante la serie",
+              "Mano a terra leggera"
+            ],
+            "success": "Riuscito se: completi ogni serie restando basso per tutto il tempo, senza mai alzarti in piedi.",
+            "dose": {
+              "sets": 3,
+              "work": 45,
+              "rest": 30
+            },
+            "video": "capoeira floor movement conditioning"
+          }
+        ]
+      },
+      {
+        "level": 4,
+        "title": "Armada, martelo e ritmo",
+        "focus": "Impari il primo calcio girato (armada) con il suo preparatorio e il martelo. Allunghi le sequenze e giochi sulla musica per tenere il ritmo.",
+        "exercises": [
+          {
+            "id": "capoeira-4-1",
+            "name": "Ginga, anche e spalle",
+            "kind": "riscaldamento",
+            "how": "Riscaldamento completo per un livello con rotazioni e calci più alti: ginga, mobilità e slanci leggeri.",
+            "steps": [
+              "Ginga per 90 secondi con un'esquiva baixa ogni quattro tempi.",
+              "Slanci delle gambe avanti, di lato e in cerchio, con una mano al muro.",
+              "Rotazioni del busto e circonduzioni delle braccia, ampie e lente."
+            ],
+            "cues": [
+              "Aumenta l'ampiezza a poco a poco",
+              "Nessun calcio forte a freddo"
+            ],
+            "success": "Riuscito se: arrivi agli slanci laterali con le anche calde e senza sentire tirare.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 20
+            },
+            "video": "capoeira warm up routine"
+          },
+          {
+            "id": "capoeira-4-2",
+            "name": "Giro sull'avampiede",
+            "kind": "preparatorio",
+            "how": "L'armada nasce da una rotazione completa. Prima impari il giro senza calcio: piedi, anche e sguardo che arriva prima del corpo.",
+            "steps": [
+              "Dalla ginga, incrocia il piede avanti davanti all'altro, punta verso l'esterno.",
+              "Gira sugli avampiedi guardando oltre la spalla e completa il giro tornando frontale.",
+              "Gira verso destra e verso sinistra, fermandoti in guardia ogni volta."
+            ],
+            "cues": [
+              "La testa gira per prima",
+              "Ginocchia morbide, peso sugli avampiedi"
+            ],
+            "success": "Riuscito se: completi ogni giro e ti fermi in guardia stabile, senza passetti di correzione.",
+            "easier": "Fai mezzo giro alla volta: fermati a metà, controlla l'equilibrio, poi completa.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "capoeira armada spin footwork drill",
+            "prepFor": "capoeira-4-3"
+          },
+          {
+            "id": "capoeira-4-3",
+            "name": "Armada",
+            "kind": "tecnica",
+            "how": "Calcio girato: ruoti il corpo e la gamba distesa arriva da dietro ad arco, da dentro a fuori. Cerchi controllo e sguardo, non altezza.",
+            "steps": [
+              "Dalla ginga, incrocia il piede e inizia il giro guardando oltre la spalla.",
+              "Quando lo sguardo ha trovato il bersaglio, la gamba dietro sale ad arco.",
+              "Appoggia il piede e chiudi in ginga, braccia a protezione del viso."
+            ],
+            "cues": [
+              "Prima lo sguardo, poi la gamba",
+              "Altezza bassa ma giro completo",
+              "Atterra in ginga, non rigido"
+            ],
+            "success": "Riuscito se: fai le ripetizioni per lato con giro completo e gamba all'altezza del bacino, chiudendo in guardia stabile.",
+            "easier": "Fai il giro con la gamba che sale solo all'altezza del ginocchio, con una mano che sfiora il muro.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "capoeira armada tutorial beginner"
+          },
+          {
+            "id": "capoeira-4-4",
+            "name": "Martelo em pé",
+            "kind": "tecnica",
+            "how": "Calcio circolare con il collo del piede: il ginocchio sale, l'anca ruota e la gamba si distende di lato. È il colpo più diretto della capoeira.",
+            "steps": [
+              "Dalla ginga, porta in alto di lato il ginocchio della gamba dietro.",
+              "Ruota l'anca e il piede d'appoggio, distendi la gamba e colpisci con il collo del piede.",
+              "Richiama il ginocchio e rientra in ginga."
+            ],
+            "cues": [
+              "Ginocchio prima, poi distendi",
+              "Il piede d'appoggio ruota con l'anca"
+            ],
+            "success": "Riuscito se: ogni martelo parte dal ginocchio, si distende all'altezza del bacino e rientra in ginga senza perdere l'equilibrio.",
+            "easier": "Appoggiati al muro con una mano e fai il calcio lento, all'altezza del ginocchio.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "capoeira martelo em pe tutorial"
+          },
+          {
+            "id": "capoeira-4-5",
+            "name": "Jogo da solo con musica",
+            "kind": "shadow",
+            "how": "Metti una musica di capoeira e gioca da solo: ginga continua, calci e schivate che si alternano come se avessi qualcuno davanti.",
+            "steps": [
+              "Ginga sul ritmo del berimbau per i primi 20 secondi.",
+              "Inserisci meia lua de frente, queixada, martelo e armada, alternati a esquiva e negativa.",
+              "Ogni tanto scendi a terra con un rolê e risali in ginga."
+            ],
+            "cues": [
+              "Dopo ogni calcio, una difesa",
+              "Segui la musica, non la fretta"
+            ],
+            "success": "Riuscito se: tieni il round intero in movimento continuo usando almeno 4 calci e 3 difese diverse.",
+            "easier": "Usa solo ginga, meia lua de frente, esquiva baixa e negativa, con musica lenta.",
+            "dose": {
+              "sets": 4,
+              "work": 120,
+              "rest": 45
+            },
+            "video": "capoeira solo training jogo music"
+          },
+          {
+            "id": "capoeira-4-6",
+            "name": "Spalle e core per l'au",
+            "kind": "condizionamento",
+            "how": "Prepari spalle, polsi e addome al lavoro a testa in giù dei prossimi livelli. Tutto controllato, niente salti: 20 secondi per esercizio.",
+            "steps": [
+              "Plank alto con tocchi alternati delle spalle, bacino fermo, 20 secondi.",
+              "Pike push-up con i piedi a terra: anche alte, testa che scende tra le mani, 20 secondi.",
+              "Hollow hold da sdraiato: lombari a terra, gambe e spalle sollevate, 20 secondi."
+            ],
+            "cues": [
+              "Gomiti sopra i polsi, mai oltre",
+              "Bacino fermo, schiena mai inarcata"
+            ],
+            "success": "Riuscito se: completi le tre serie con tecnica pulita, senza dolore ai polsi e senza inarcare la schiena.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "pike push up beginner progression"
+          }
+        ]
+      },
+      {
+        "level": 5,
+        "title": "Compasso e basi dell'au",
+        "focus": "Apri anche e spalle per i movimenti avanzati: impari la meia lua de compasso lenta con le mani a terra, l'au a terra e la verticale breve al muro.",
+        "exercises": [
+          {
+            "id": "capoeira-5-1",
+            "name": "Polsi, spalle e anche",
+            "kind": "riscaldamento",
+            "how": "Oggi carichi le mani e ruoti forte le anche: scaldi bene polsi, spalle e catena posteriore prima di tutto il resto.",
+            "steps": [
+              "Rotazioni dei polsi, poi a quattro zampe sposta il peso avanti con le dita in avanti e poi rivolte verso di te.",
+              "Circonduzioni delle braccia e gatto-mucca lento.",
+              "Ginga e slanci delle gambe di lato e in cerchio, con ampiezza crescente."
+            ],
+            "cues": [
+              "Polsi caldi prima di ogni appoggio",
+              "Mai rimbalzare negli allunghi"
+            ],
+            "success": "Riuscito se: carichi il peso sulle mani senza fastidio ai polsi e gli slanci arrivano comodi all'altezza del bacino.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 20
+            },
+            "video": "wrist warm up handstand prep"
+          },
+          {
+            "id": "capoeira-5-2",
+            "name": "Ischiocrurali e adduttori",
+            "kind": "flessibilita",
+            "how": "Il compasso chiede gambe larghe e busto che scende verso terra. Allunghi dietro e interno coscia con posizioni tenute, mai a molleggio.",
+            "steps": [
+              "In piedi a gambe larghe, porta le mani a terra con le ginocchia morbide e respira 30 secondi.",
+              "Sposta il peso su una gamba piegata, l'altra distesa di lato: 30 secondi per lato.",
+              "Seduto a farfalla, piante dei piedi unite e busto lungo, senza spingere sulle ginocchia."
+            ],
+            "cues": [
+              "Allungo che sale piano, senza molleggi",
+              "Tensione sopportabile, mai dolore acuto"
+            ],
+            "success": "Riuscito se: tieni ogni posizione per il tempo indicato respirando calmo e tocchi terra con le mani a gambe larghe.",
+            "easier": "Appoggia le mani su un rialzo, come libri o una sedia bassa, e piega di più le ginocchia.",
+            "dose": {
+              "sets": 2,
+              "work": 90,
+              "rest": 15
+            },
+            "video": "straddle hamstring stretch beginner",
+            "prepFor": "capoeira-5-3"
+          },
+          {
+            "id": "capoeira-5-3",
+            "name": "Meia lua de compasso (lenta)",
+            "kind": "tecnica",
+            "how": "Calcio girato con le mani a terra: il busto scende, guardi tra le gambe e la gamba disegna un grande arco. Prima lento e basso, poi più ampio.",
+            "steps": [
+              "Dalla ginga a gambe larghe, porta entrambe le mani a terra davanti al piede avanti.",
+              "Guarda dietro tra le gambe, ruota sull'avampiede e fai salire la gamba dietro ad arco.",
+              "Completa il giro, appoggia il piede e torna in ginga: le mani si staccano per ultime."
+            ],
+            "cues": [
+              "Mani a terra prima di alzare la gamba",
+              "Guarda il bersaglio tra le gambe",
+              "Arco basso finché il giro non è pulito"
+            ],
+            "success": "Riuscito se: fai le ripetizioni per lato con le mani a terra e il giro completo, chiudendo in ginga senza cadere.",
+            "easier": "Fai solo la rotazione con le mani a terra e la gamba che striscia vicino al suolo, senza sollevarla.",
+            "dose": {
+              "sets": 3,
+              "reps": 5,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "meia lua de compasso tutorial beginner"
+          },
+          {
+            "id": "capoeira-5-4",
+            "name": "Au a terra (mani e piedi)",
+            "kind": "tecnica",
+            "how": "Prima forma dell'au: ti sposti di lato passando il peso dai piedi alle mani e di nuovo ai piedi, con le anche basse. Impari l'ordine degli appoggi senza rischi.",
+            "steps": [
+              "In piedi di lato rispetto a una linea a terra, gambe larghe, braccia in alto.",
+              "Appoggia la prima mano sulla linea, poi la seconda, mentre il primo piede si stacca appena.",
+              "Passa il peso sulle mani, porta i piedi uno dopo l'altro dall'altra parte e risali di lato."
+            ],
+            "cues": [
+              "Ordine: mano, mano, piede, piede",
+              "Anche basse, sguardo tra le mani",
+              "Braccia distese, gomiti non piegati"
+            ],
+            "success": "Riuscito se: fai le ripetizioni per lato seguendo la linea, con l'ordine mano-mano-piede-piede e senza cadere di lato.",
+            "easier": "Resta a quattro zampe e sposta mani e piedi di lato a passetti, senza mai staccare due appoggi insieme.",
+            "dose": {
+              "sets": 3,
+              "reps": 5,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "capoeira au progression beginner"
+          },
+          {
+            "id": "capoeira-5-5",
+            "name": "Verticale breve al muro",
+            "kind": "preparatorio",
+            "how": "Abitui spalle e polsi a reggere il peso a testa in giù, con il muro come sicurezza e il petto rivolto verso il muro. Tenute brevi, uscita sempre controllata.",
+            "steps": [
+              "In plank con i piedi contro il muro e le mani a terra, a circa un corpo di distanza.",
+              "Sali con i piedi sul muro e avvicina le mani a piccoli passi, fino a un angolo che controlli.",
+              "Tieni 10-15 secondi a braccia distese, poi scendi camminando all'indietro con mani e piedi."
+            ],
+            "cues": [
+              "Braccia distese, spalle spinte verso l'alto",
+              "Tenute brevi: esci prima di stancarti"
+            ],
+            "success": "Riuscito se: sali e scendi controllato ogni volta, tenendo almeno 10 secondi a braccia distese e senza dolore ai polsi.",
+            "easier": "Metti i piedi su una sedia o un gradino invece che sul muro e tieni la posizione a squadra (pike).",
+            "dose": {
+              "sets": 4,
+              "work": 20,
+              "rest": 45
+            },
+            "video": "wall walk handstand beginner"
+          },
+          {
+            "id": "capoeira-5-6",
+            "name": "Jogo con compasso e au a terra",
+            "kind": "shadow",
+            "how": "Round di gioco da solo in cui inserisci i movimenti nuovi: compasso lento e au a terra entrano nella ginga senza romperne il ritmo.",
+            "steps": [
+              "Ginga e calci già noti per i primi 30 secondi.",
+              "Ogni 20-30 secondi inserisci una meia lua de compasso lenta o un au a terra.",
+              "Dopo ogni movimento a terra risali in ginga oppure scendi in negativa e rolê."
+            ],
+            "cues": [
+              "Movimenti nuovi lenti, il resto fluido",
+              "Spazio libero intorno, almeno 2x2 m"
+            ],
+            "success": "Riuscito se: inserisci almeno 3 compassi e 3 au a terra per round senza fermare la ginga.",
+            "easier": "Fai il round senza compasso: ginga, calci base, esquiva e un au a terra ogni tanto.",
+            "dose": {
+              "sets": 4,
+              "work": 120,
+              "rest": 45
+            },
+            "video": "capoeira solo jogo meia lua de compasso"
+          }
+        ]
+      },
+      {
+        "level": 6,
+        "title": "Au, compasso e jogo lungo",
+        "focus": "Porti au e compasso nel movimento: verticale assistita breve, au con le gambe piegate e round lunghi di gioco. Sempre i preparatori prima.",
+        "exercises": [
+          {
+            "id": "capoeira-6-1",
+            "name": "Riscaldamento completo da roda",
+            "kind": "riscaldamento",
+            "how": "Scaldi polsi, spalle, anche e schiena, poi aggiungi ginga e calci leggeri: oggi lavori in alto e a testa in giù.",
+            "steps": [
+              "Polsi e spalle: rotazioni e spostamenti del peso sulle mani a quattro zampe.",
+              "Anche: slanci delle gambe e circonduzioni, con ampiezza crescente.",
+              "Ginga con meia lua de frente e queixada leggere per un minuto."
+            ],
+            "cues": [
+              "Niente au a freddo",
+              "Ascolta polsi e spalle"
+            ],
+            "success": "Riuscito se: carichi le mani senza fastidio e i calci leggeri salgono comodi all'altezza del petto.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 20
+            },
+            "video": "capoeira full warm up"
+          },
+          {
+            "id": "capoeira-6-2",
+            "name": "Verticale assistita al muro",
+            "kind": "preparatorio",
+            "how": "Rinforzi la posizione a testa in giù che l'au attraversa. Petto verso il muro, salita camminando, tenute brevi e uscita sempre controllata.",
+            "steps": [
+              "Dal plank con i piedi al muro, sali camminando con piedi e mani fino al massimo angolo che controlli.",
+              "Tieni 15-20 secondi: braccia distese, addome chiuso, sguardo tra le mani.",
+              "Scendi camminando con le mani in avanti, senza lasciarti cadere."
+            ],
+            "cues": [
+              "Spalle spinte verso l'alto",
+              "Esci quando le braccia iniziano a tremare"
+            ],
+            "success": "Riuscito se: tieni 15 secondi a braccia distese in ogni serie e scendi sempre camminando, senza crolli.",
+            "easier": "Resta a un angolo di 45° con le mani più lontane dal muro, oppure con i piedi su una sedia.",
+            "dose": {
+              "sets": 4,
+              "work": 25,
+              "rest": 45
+            },
+            "video": "chest to wall handstand beginner",
+            "prepFor": "capoeira-6-4"
+          },
+          {
+            "id": "capoeira-6-3",
+            "name": "Anche e ischiocrurali a fondo",
+            "kind": "flessibilita",
+            "how": "Prima del compasso completo apri bene dietro coscia e anche. Posizioni tenute più a lungo, respiro lento, nessun molleggio.",
+            "steps": [
+              "Gambe larghe con le mani a terra, poi cammina con le mani verso un piede e verso l'altro.",
+              "Affondo basso con il ginocchio dietro a terra e busto alto, per lato.",
+              "Accosciata laterale tenuta (cossack): una gamba piegata, l'altra distesa con la punta in alto."
+            ],
+            "cues": [
+              "Respira e rilassati nella posizione",
+              "Mai dolore acuto, mai rimbalzi"
+            ],
+            "success": "Riuscito se: completi le posizioni respirando calmo e scendi nell'accosciata laterale più in basso che al livello 5.",
+            "easier": "Usa un rialzo sotto le mani e un cuscino sotto il ginocchio, e riduci l'ampiezza della metà.",
+            "dose": {
+              "sets": 2,
+              "work": 120,
+              "rest": 15
+            },
+            "video": "cossack squat stretch beginner",
+            "prepFor": "capoeira-6-5"
+          },
+          {
+            "id": "capoeira-6-4",
+            "name": "Au basso (ruota bassa)",
+            "kind": "tecnica",
+            "how": "La ruota della capoeira in versione bassa: gambe piegate e aperte, anche che passano sopra le mani senza arrivare in verticale. Su tappetino, in spazio libero.",
+            "steps": [
+              "Di lato a una linea, gambe larghe, guarda il punto a terra dove andrà la prima mano.",
+              "Mano, poi l'altra mano: spingi con la gamba e porta le anche sopra le mani, gambe piegate e aperte.",
+              "Atterra con un piede e poi l'altro dall'altra parte della linea e torna in ginga."
+            ],
+            "cues": [
+              "Mano, mano, piede, piede",
+              "Gambe piegate, anche sopra le mani",
+              "Sguardo tra le mani fino all'atterraggio"
+            ],
+            "success": "Riuscito se: fai le ripetizioni per lato atterrando in piedi sulla linea, con l'ordine degli appoggi giusto e senza cadere.",
+            "easier": "Torna all'au a terra del livello 5 e alza le anche un po' alla volta, senza staccare i due piedi insieme.",
+            "dose": {
+              "sets": 3,
+              "reps": 5,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "capoeira au tutorial bent legs"
+          },
+          {
+            "id": "capoeira-6-5",
+            "name": "Meia lua de compasso completa",
+            "kind": "tecnica",
+            "how": "Il compasso con il suo ritmo: rotazione con le mani a terra, gamba alta ad arco e rientro rapido in ginga. Velocità solo se il giro resta pulito.",
+            "steps": [
+              "Dalla ginga, mani a terra e sguardo tra le gambe verso il bersaglio.",
+              "Ruota sull'avampiede e porta la gamba ad arco all'altezza del petto.",
+              "Atterra, stacca le mani e rientra subito in ginga o in esquiva."
+            ],
+            "cues": [
+              "Sguardo sempre sul bersaglio",
+              "Velocità solo se il giro è pulito"
+            ],
+            "success": "Riuscito se: fai le ripetizioni per lato con la gamba all'altezza del petto e chiusura in ginga, senza perdere l'equilibrio.",
+            "easier": "Torna alla versione lenta del livello 5, con la gamba all'altezza del bacino e una pausa a metà giro.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "meia lua de compasso tutorial"
+          },
+          {
+            "id": "capoeira-6-6",
+            "name": "Jogo lungo da solo",
+            "kind": "shadow",
+            "how": "Round lunghi con la musica: usi tutto quello che hai copiato, dal basso all'alto, come se avessi qualcuno davanti nella roda.",
+            "steps": [
+              "Ginga, calci base e schivate per entrare nel round.",
+              "Inserisci armada, martelo, compasso e au basso, alternati a negativa e rolê.",
+              "Negli ultimi 30 secondi alza il ritmo restando pulito, poi chiudi in ginga."
+            ],
+            "cues": [
+              "Ogni attacco ha una difesa vicina",
+              "Au e compasso solo se sei ancora lucido"
+            ],
+            "success": "Riuscito se: tieni ogni round in movimento continuo usando almeno 6 tecniche diverse, au e compasso compresi.",
+            "easier": "Fai round da 90 secondi e sostituisci l'au basso con l'au a terra e il compasso con la versione lenta.",
+            "dose": {
+              "sets": 4,
+              "work": 180,
+              "rest": 60
+            },
+            "video": "capoeira solo training jogo"
+          }
+        ]
+      }
+    ],
+    "color": "#3ccf7e",
+    "short": "Capoeira"
+  },
+  {
+    "id": "lotta",
+    "name": "Lotta",
+    "tagline": "Basso, rapido, sempre il primo a rialzarsi.",
+    "intro": "La lotta si copia con tutto il corpo: livello basso, anche mobili, rialzi immediati. Come Johan Seong, guardi il gesto nel video e lo ripeti da solo sul tappetino finché diventa tuo. Qui solo drill individuali, nessun partner.",
+    "equipment": "Tappetino spesso o materasso, sbarra per trazioni, manubri, asciugamano",
+    "mottos": [
+      "Chi resta basso, resta in piedi.",
+      "Osserva il passo, rifallo cento volte, poi è tuo.",
+      "Il tappeto non mente: conta solo la ripetizione pulita."
+    ],
+    "levels": [
+      {
+        "level": 1,
+        "title": "Posizione e livello",
+        "focus": "Impari la posizione di lotta, a muoverti senza incrociare i piedi, a cambiare livello con la schiena dritta e i primi movimenti a terra.",
+        "exercises": [
+          {
+            "id": "lotta-1-1",
+            "name": "Riscaldamento da lottatore",
+            "kind": "riscaldamento",
+            "how": "Scaldi anche, spalle, ginocchia e caviglie prima di andare a terra. Movimenti fluidi e ritmo che sale piano: niente rotazioni del collo.",
+            "steps": [
+              "30 secondi di corsetta sul posto, poi 10 giri di anca per lato con le mani sui fianchi.",
+              "10 squat a corpo libero lenti e 10 circonduzioni delle spalle avanti e indietro.",
+              "Chiudi con 10 affondi alternati e qualche passo di camminata dell'orso sul tappetino."
+            ],
+            "cues": [
+              "Ritmo crescente, mai a scatti",
+              "Collo fermo e rilassato"
+            ],
+            "success": "Riuscito se: completi i 3 giri senza fermarti e senti anche e spalle calde e sciolte.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 15
+            },
+            "video": "wrestling warm up routine at home"
+          },
+          {
+            "id": "lotta-1-2",
+            "name": "Posizione e passi di lotta",
+            "kind": "tecnica",
+            "how": "La posizione di lotta è la base di tutto: piedi larghi, ginocchia piegate, busto in avanti, mani pronte. Ti muovi in ogni direzione senza mai incrociare i piedi.",
+            "steps": [
+              "Piedi poco più larghi delle spalle, un piede leggermente avanti, ginocchia piegate, peso sugli avampiedi.",
+              "Busto in avanti, schiena dritta, gomiti stretti ai fianchi, mani davanti all'altezza del petto.",
+              "Passi corti avanti, indietro e di lato: si muove prima il piede verso cui vai, l'altro lo segue.",
+              "Gira in cerchio attorno a un punto immaginario, a destra e a sinistra, sempre in posizione."
+            ],
+            "cues": [
+              "Mai incrociare i piedi",
+              "Spalle sopra le ginocchia, ginocchia sopra le punte",
+              "Gomiti chiusi, mani vive"
+            ],
+            "success": "Riuscito se: allo specchio tieni la posizione per tutto il round senza alzarti dritto e senza mai incrociare i piedi.",
+            "dose": {
+              "sets": 4,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "wrestling stance and motion tutorial"
+          },
+          {
+            "id": "lotta-1-3",
+            "name": "Cambio di livello",
+            "kind": "tecnica",
+            "how": "Il cambio di livello (level change) ti porta in basso prima di ogni entrata. Scendi piegando le ginocchia, non la schiena: testa su, petto aperto.",
+            "steps": [
+              "Parti dalla posizione di lotta, mani avanti all'altezza del petto.",
+              "Abbassa le anche piegando le ginocchia finché le cosce sono quasi parallele al suolo, busto dritto.",
+              "Tieni un secondo in basso, poi risali in posizione senza alzarti del tutto."
+            ],
+            "cues": [
+              "Scendi con le gambe, non con la testa",
+              "Schiena dritta, sguardo avanti"
+            ],
+            "success": "Riuscito se: allo specchio fai tutte le ripetizioni con la schiena dritta e la testa sempre più alta dei fianchi.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 30
+            },
+            "video": "wrestling level change drill"
+          },
+          {
+            "id": "lotta-1-4",
+            "name": "Gambetta (shrimp)",
+            "kind": "tecnica",
+            "how": "La gambetta (shrimp o hip escape) sposta le anche quando sei schiena a terra: è il movimento base per creare spazio e rialzarti. Sempre su tappetino o materasso.",
+            "steps": [
+              "Sdraiato sulla schiena, ginocchia piegate, piedi a terra, mani davanti al petto.",
+              "Spingi con un piede, ruota sul fianco opposto e porta le anche indietro, formando una C col corpo.",
+              "Torna sulla schiena e ripeti dall'altro lato, avanzando lungo il tappetino."
+            ],
+            "cues": [
+              "Spingi dal piede, la testa resta appoggiata",
+              "Le anche vanno indietro, le mani spingono avanti"
+            ],
+            "success": "Riuscito se: fai tutte le ripetizioni per lato e ogni gambetta ti sposta indietro di almeno 20 cm sul tappetino.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "shrimp hip escape drill beginner"
+          },
+          {
+            "id": "lotta-1-5",
+            "name": "Stand-up tecnico lento",
+            "kind": "tecnica",
+            "how": "Lo stand-up tecnico ti fa rialzare da terra restando protetto: una mano dietro, un piede piantato, la gamba libera passa sotto. Lento e pulito.",
+            "steps": [
+              "Seduto, una mano a terra dietro di te, il piede opposto piantato vicino al gluteo, l'altra mano avanti in difesa.",
+              "Spingi con mano e piede, solleva le anche e fai passare la gamba tesa indietro sotto il corpo.",
+              "Appoggia il piede dietro e alzati direttamente in posizione di lotta, mani avanti."
+            ],
+            "cues": [
+              "Le anche si alzano prima della testa",
+              "Arrivi in posizione, non in piedi dritto"
+            ],
+            "success": "Riuscito se: ti rialzi 5 volte per lato arrivando subito in posizione di lotta, senza appoggiare il ginocchio.",
+            "dose": {
+              "sets": 3,
+              "reps": 5,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "technical stand up tutorial"
+          },
+          {
+            "id": "lotta-1-6",
+            "name": "Ponte di glutei",
+            "kind": "condizionamento",
+            "how": "Il ponte di glutei rinforza glutei e lombari che userai per spingere da sotto. Il peso resta su piedi e spalle, mai sul collo o sulla testa.",
+            "steps": [
+              "Sdraiato sulla schiena, ginocchia piegate, piedi a terra alla larghezza delle anche, braccia lungo i fianchi.",
+              "Spingi coi talloni e solleva il bacino finché spalle, anche e ginocchia sono in linea.",
+              "Stringi i glutei 2 secondi in alto e scendi lento."
+            ],
+            "cues": [
+              "Peso sulle spalle, collo libero",
+              "Spingi dai talloni"
+            ],
+            "success": "Riuscito se: completi 15 ripetizioni per serie tenendo 2 secondi in alto senza inarcare la schiena.",
+            "dose": {
+              "sets": 3,
+              "reps": 15,
+              "rest": 30
+            },
+            "video": "glute bridge proper form"
+          }
+        ]
+      },
+      {
+        "level": 2,
+        "title": "Penetrazione e sprawl",
+        "focus": "Impari le due armi base della lotta: il passo di penetrazione per entrare e lo sprawl per difenderti, più la caduta indietro sicura.",
+        "exercises": [
+          {
+            "id": "lotta-2-1",
+            "name": "Circuito di movimento a terra",
+            "kind": "riscaldamento",
+            "how": "Scaldi il corpo coi movimenti che userai oggi: camminata dell'orso, gambette, ponti e squat. Ritmo morbido, tutto sul tappetino.",
+            "steps": [
+              "20 secondi di camminata dell'orso avanti e indietro, ginocchia basse.",
+              "4 gambette per lato e 8 ponti di glutei.",
+              "10 squat e 10 giri di anca per lato, poi ricomincia."
+            ],
+            "cues": [
+              "Fluido, senza strappi",
+              "Collo sempre rilassato"
+            ],
+            "success": "Riuscito se: completi i 3 giri senza pause oltre il recupero e senti anche e spalle calde.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 15
+            },
+            "video": "wrestling ground movement warm up"
+          },
+          {
+            "id": "lotta-2-2",
+            "name": "Passo di penetrazione",
+            "kind": "tecnica",
+            "how": "Il passo di penetrazione (penetration step) è l'entrata base di quasi tutte le prese alle gambe: cambi livello, avanzi profondo, il ginocchio sfiora il tappetino e ti rialzi.",
+            "steps": [
+              "Dalla posizione, cambia livello e fai un passo lungo in avanti col piede davanti, busto dritto.",
+              "Lascia scendere il ginocchio della gamba avanti sul tappetino, morbido, testa su.",
+              "Spingi col piede dietro, porta quella gamba avanti accanto all'altra e rialzati in posizione."
+            ],
+            "cues": [
+              "Il ginocchio appoggia, non sbatte",
+              "Testa su, schiena dritta"
+            ],
+            "success": "Riuscito se: fai 8 entrate per lato col ginocchio che tocca il tappetino senza rumore e la schiena dritta allo specchio.",
+            "easier": "Senza appoggiare il ginocchio: affondo profondo in avanti col busto dritto e ritorno in posizione.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "wrestling penetration step drill"
+          },
+          {
+            "id": "lotta-2-3",
+            "name": "Sprawl",
+            "kind": "tecnica",
+            "how": "Lo sprawl è la difesa base dalle entrate alle gambe: lanci i piedi indietro, schiacci le anche verso il tappetino e torni subito in posizione. Sempre su superficie morbida.",
+            "steps": [
+              "Dalla posizione di lotta, appoggia le mani a terra davanti a te.",
+              "Lancia le gambe indietro e larghe, abbassa le anche verso il tappetino, petto in fuori e testa su.",
+              "Riporta i piedi sotto di te con un saltello e torna in posizione, mani avanti."
+            ],
+            "cues": [
+              "Anche basse, gambe larghe",
+              "Testa su, mai verso il pavimento"
+            ],
+            "success": "Riuscito se: fai 8 sprawl per serie con le anche che sfiorano il tappetino e torni in posizione in meno di 2 secondi.",
+            "easier": "Sprawl a due tempi: mani a terra, una gamba indietro alla volta, poi rientra una gamba alla volta.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 45
+            },
+            "video": "how to sprawl wrestling"
+          },
+          {
+            "id": "lotta-2-4",
+            "name": "Caduta indietro (ushiro ukemi)",
+            "kind": "tecnica",
+            "how": "Impari a cadere indietro senza farti male: mento al petto, schiena tonda, braccia che battono il materasso e assorbono l'urto. Solo su materasso spesso, mai da in piedi.",
+            "steps": [
+              "Seduto sul materasso con le gambe avanti, mento al petto, braccia tese davanti.",
+              "Rotola indietro sulla schiena tonda e batti il materasso con le braccia tese a 45° dal corpo, palmi giù.",
+              "Quando è facile, parti accosciato: siediti vicino ai talloni e rotola indietro allo stesso modo."
+            ],
+            "cues": [
+              "Mento al petto: la testa non tocca mai",
+              "Battono le braccia intere, non i gomiti"
+            ],
+            "success": "Riuscito se: fai 8 cadute con la testa che non tocca mai il materasso e le braccia che battono insieme alla schiena.",
+            "easier": "Resta da seduto: rotola indietro solo fino alle scapole e batti le braccia, senza partire accosciato.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30
+            },
+            "video": "ushiro ukemi back breakfall beginner"
+          },
+          {
+            "id": "lotta-2-5",
+            "name": "Penetrazione e sprawl alternati",
+            "kind": "combinazione",
+            "how": "Colleghi attacco e difesa: un passo di penetrazione, ritorno in posizione, uno sprawl, ritorno in posizione. Ritmo costante, tecnica pulita prima della velocità.",
+            "steps": [
+              "Parti in posizione, fai un passo di penetrazione e torna in posizione.",
+              "Subito uno sprawl e torna in posizione con le mani avanti.",
+              "Continua ad alternare per tutto il round, cambiando il piede avanti a metà."
+            ],
+            "cues": [
+              "Ogni ritorno finisce in posizione",
+              "Pulito prima che veloce"
+            ],
+            "success": "Riuscito se: completi tutti i round senza fermarti e senza perdere la schiena dritta nelle entrate.",
+            "dose": {
+              "sets": 4,
+              "work": 45,
+              "rest": 30
+            },
+            "video": "penetration step sprawl drill solo"
+          },
+          {
+            "id": "lotta-2-6",
+            "name": "Presa alla sbarra (dead hang)",
+            "kind": "condizionamento",
+            "how": "La presa è metà della lotta. Resti appeso alla sbarra a braccia tese e spalle attive: costruisci forza di presa e spalle solide.",
+            "steps": [
+              "Afferra la sbarra con presa prona, mani alla larghezza delle spalle.",
+              "Stacca i piedi e resta appeso, spalle leggermente tirate giù, corpo fermo.",
+              "Scendi appoggiando i piedi con calma, senza lasciare la presa di colpo."
+            ],
+            "cues": [
+              "Spalle lontane dalle orecchie",
+              "Corpo fermo, niente oscillazioni"
+            ],
+            "success": "Riuscito se: resti appeso 30 secondi in tutte e 3 le serie senza mollare la presa.",
+            "easier": "Appeso con i piedi appoggiati su una sedia o a terra, scaricando parte del peso.",
+            "dose": {
+              "sets": 3,
+              "work": 30,
+              "rest": 60
+            },
+            "video": "dead hang grip strength"
+          }
+        ]
+      },
+      {
+        "level": 3,
+        "title": "Uscite da sotto e go-behind",
+        "focus": "Impari a uscire da sotto e a girare dietro: sit-out, ponte con rotazione sulle spalle, sprawl con go-behind e le prime reazioni su segnale.",
+        "exercises": [
+          {
+            "id": "lotta-3-1",
+            "name": "Giri di anca e mobilità",
+            "kind": "riscaldamento",
+            "how": "Prepari anche e schiena ai movimenti da sotto: giri di anca, gatto-mucca, cambi d'anca da seduto e ponti leggeri, tutto sul tappetino.",
+            "steps": [
+              "10 giri di anca per lato in piedi, poi 8 gatto-mucca a quattro zampe.",
+              "Seduto con le mani dietro, porta le ginocchia da un lato all'altro per 10 volte (cambio d'anca).",
+              "10 ponti di glutei lenti e 4 gambette per lato."
+            ],
+            "cues": [
+              "Ampiezza crescente, senza dolore",
+              "Respira lungo"
+            ],
+            "success": "Riuscito se: completi i 2 giri e il cambio d'anca da seduto ti viene fluido da entrambi i lati.",
+            "dose": {
+              "sets": 2,
+              "work": 90,
+              "rest": 15
+            },
+            "video": "hip mobility warm up grappling"
+          },
+          {
+            "id": "lotta-3-2",
+            "name": "Uscita seduta (sit-out)",
+            "kind": "tecnica",
+            "how": "Il sit-out ti fa uscire da sotto quando sei a quattro zampe: infili una gamba sotto il corpo, ti siedi sull'anca e ti giri verso il tappetino. Basso e compatto.",
+            "steps": [
+              "Parti a quattro zampe sul tappetino, mani sotto le spalle, ginocchia sotto le anche.",
+              "Pianta il piede esterno, infila l'altra gamba sotto il corpo verso il lato opposto e siediti sull'anca, gomiti stretti.",
+              "Ruota il busto verso il tappetino, torna sulle ginocchia e ripeti dall'altro lato."
+            ],
+            "cues": [
+              "Anche basse, mai seduto dritto",
+              "Gomiti incollati al corpo"
+            ],
+            "success": "Riuscito se: fai 6 sit-out per lato fluidi, tornando ogni volta a quattro zampe senza fermarti a metà.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "wrestling sit out drill"
+          },
+          {
+            "id": "lotta-3-3",
+            "name": "Ponte con rotazione sulle spalle",
+            "kind": "tecnica",
+            "how": "Dal ponte di glutei spingi le anche in alto e ruoti su una spalla, come per ribaltare chi ti sta sopra. Il peso va sulla spalla, mai sul collo o sulla testa.",
+            "steps": [
+              "Sdraiato sul tappetino, ginocchia piegate, piedi vicini ai glutei, braccia strette al petto.",
+              "Spingi forte coi piedi, solleva le anche e ruota sopra una spalla guardando verso quel lato.",
+              "Torna giù controllato al centro e ripeti dall'altro lato."
+            ],
+            "cues": [
+              "Peso sulla spalla, testa girata e libera",
+              "Spinta dalle anche, non dal collo"
+            ],
+            "success": "Riuscito se: fai 6 rotazioni per lato con le anche che salgono sopra la spalla e la testa che non spinge mai sul tappetino.",
+            "easier": "Ponte di glutei con una piccola rotazione delle anche verso un lato, senza salire sulla spalla.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "bridge and roll upa drill solo"
+          },
+          {
+            "id": "lotta-3-4",
+            "name": "Sprawl e go-behind a vuoto",
+            "kind": "combinazione",
+            "how": "Dopo lo sprawl giri attorno all'avversario immaginario per finire dietro di lui (go-behind). Anche basse, mani al centro, i piedi camminano in cerchio.",
+            "steps": [
+              "Fai uno sprawl e resta giù: anche basse, petto pesante, mani a terra al centro.",
+              "Cammina coi piedi in cerchio verso un lato per un quarto o mezzo giro, mani ferme al centro.",
+              "Porta le ginocchia sotto di te come se fossi dietro l'avversario, poi torna in posizione in piedi."
+            ],
+            "cues": [
+              "Mani ferme, girano i piedi",
+              "Anche basse per tutto il giro"
+            ],
+            "success": "Riuscito se: fai 5 sprawl con go-behind per lato senza alzare le anche durante il giro.",
+            "dose": {
+              "sets": 3,
+              "reps": 5,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "sprawl and go behind drill solo"
+          },
+          {
+            "id": "lotta-3-5",
+            "name": "Shadow di lotta su segnale",
+            "kind": "shadow",
+            "how": "Ti muovi in posizione e reagisci a un segnale esterno, un timer a intervalli casuali o un video con comandi: al segnale sprawl o entrata, poi torni a muoverti.",
+            "steps": [
+              "Avvia un timer a intervalli casuali o un video di reaction drill per la lotta.",
+              "Muoviti in posizione: passi, cerchi, finte di cambio di livello.",
+              "Al segnale fai uno sprawl o un passo di penetrazione, alternando, e torna subito in posizione."
+            ],
+            "cues": [
+              "Reagisci, non anticipare",
+              "Sempre in posizione tra un segnale e l'altro"
+            ],
+            "success": "Riuscito se: in tutti i round reagisci a ogni segnale entro un secondo e non esci mai dalla posizione.",
+            "easier": "Round da 60 secondi con sprawl a due tempi al segnale.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 60
+            },
+            "video": "wrestling reaction drill sprawl shot"
+          },
+          {
+            "id": "lotta-3-6",
+            "name": "Camminata del contadino",
+            "kind": "condizionamento",
+            "how": "Cammini tenendo due manubri pesanti: costruisci presa, spalle e tronco, la forza di chi tiene e non molla. Postura alta, passi corti.",
+            "steps": [
+              "Prendi due manubri pesanti, uno per mano, braccia lungo i fianchi.",
+              "Cammina avanti e indietro a passi corti, spalle basse, busto dritto.",
+              "Appoggia i manubri piegando le gambe, non la schiena."
+            ],
+            "cues": [
+              "Spalle basse, petto alto",
+              "Stringi forte le maniglie"
+            ],
+            "success": "Riuscito se: cammini 40 secondi per serie senza appoggiare i manubri e senza piegarti di lato.",
+            "easier": "Manubri più leggeri, oppure tenuta da fermo in piedi per lo stesso tempo.",
+            "dose": {
+              "sets": 3,
+              "work": 40,
+              "rest": 60
+            },
+            "video": "farmers walk dumbbell form"
+          }
+        ]
+      },
+      {
+        "level": 4,
+        "title": "Doppia gamba e switch",
+        "focus": "Porti le basi a tecniche intermedie: doppia gamba a vuoto, switch da sotto, caduta laterale e shadow a ritmo con catene corte.",
+        "exercises": [
+          {
+            "id": "lotta-4-1",
+            "name": "Circuito a terra",
+            "kind": "riscaldamento",
+            "how": "Ripassi in sequenza i movimenti a terra già imparati: gambette, ponti, sit-out e stand-up tecnico. Leggero: serve a scaldare e a ricordare.",
+            "steps": [
+              "4 gambette per lato e 6 ponti di glutei.",
+              "4 sit-out per lato partendo da quattro zampe.",
+              "3 stand-up tecnici per lato e 5 sprawl leggeri."
+            ],
+            "cues": [
+              "Morbido, senza forzare",
+              "Ogni rialzo finisce in posizione"
+            ],
+            "success": "Riuscito se: completi i 2 giri senza pause e tutti i movimenti ti vengono fluidi da entrambi i lati.",
+            "dose": {
+              "sets": 2,
+              "work": 120,
+              "rest": 20
+            },
+            "video": "grappling solo drills warm up"
+          },
+          {
+            "id": "lotta-4-2",
+            "name": "Doppia gamba a vuoto (double leg)",
+            "kind": "tecnica",
+            "how": "La doppia gamba (double leg) è la presa più classica: cambio di livello, passo di penetrazione, braccia che chiudono dietro ginocchia immaginarie, spinta avanti. Senza proiettare.",
+            "steps": [
+              "Cambia livello e fai il passo di penetrazione, ginocchio avanti che sfiora il tappetino.",
+              "Chiudi le braccia come attorno alle cosce di un avversario, testa su e di lato, petto vicino.",
+              "Porta avanti il piede dietro, rialzati e spingi in avanti per 2-3 passi, poi torna in posizione."
+            ],
+            "cues": [
+              "Testa su e di lato, mai giù",
+              "Le anche restano sotto di te"
+            ],
+            "success": "Riuscito se: fai 6 entrate per lato con schiena dritta e testa alta, arrivando ogni volta in piedi in spinta.",
+            "easier": "Solo cambio di livello e passo di penetrazione con le braccia che chiudono, senza rialzo e spinta.",
+            "dose": {
+              "sets": 4,
+              "reps": 6,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "double leg takedown solo drill"
+          },
+          {
+            "id": "lotta-4-3",
+            "name": "Switch da sotto",
+            "kind": "tecnica",
+            "how": "Lo switch è un'uscita da sotto: da quattro zampe ti siedi sull'anca, allunghi il braccio indietro come sopra quello dell'avversario e ruoti per finirgli dietro.",
+            "steps": [
+              "Parti a quattro zampe sul tappetino, mani sotto le spalle.",
+              "Porta una gamba sotto l'altra e siediti sull'anca, allungando indietro il braccio dello stesso lato.",
+              "Ruota le anche verso il tappetino e torna sulle ginocchia girato di lato, come dietro l'avversario."
+            ],
+            "cues": [
+              "Seduto basso, mai sulla schiena",
+              "Il braccio guida la rotazione"
+            ],
+            "success": "Riuscito se: fai 6 switch per lato fluidi, finendo ogni volta sulle ginocchia girato rispetto alla partenza.",
+            "easier": "Fai solo la prima metà: siediti sull'anca allungando il braccio e torna a quattro zampe.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "wrestling switch drill solo"
+          },
+          {
+            "id": "lotta-4-4",
+            "name": "Caduta laterale (yoko ukemi)",
+            "kind": "tecnica",
+            "how": "Cadi sul fianco in sicurezza: la gamba scivola via, ti abbassi, rotoli sul lato e il braccio batte il materasso. Solo su materasso spesso, mai da in piedi.",
+            "steps": [
+              "Da seduto: allunga una gamba di lato e rotola sul fianco, battendo il braccio dello stesso lato a 45°.",
+              "Quando è facile, parti accosciato: la gamba scivola avanti di traverso, ti siedi vicino al tallone e rotoli sul fianco.",
+              "Mento al petto e testa staccata dal materasso; torna su e cambia lato."
+            ],
+            "cues": [
+              "La testa non tocca mai il materasso",
+              "Batte tutto il braccio, palmo giù"
+            ],
+            "success": "Riuscito se: fai 6 cadute per lato da accosciato con la testa sempre staccata dal materasso.",
+            "easier": "Resta sdraiato sulla schiena: rotola da un fianco all'altro battendo il braccio, senza partire accosciato.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "yoko ukemi side breakfall beginner"
+          },
+          {
+            "id": "lotta-4-5",
+            "name": "Shadow di lotta a ritmo",
+            "kind": "shadow",
+            "how": "Round di lotta a vuoto: ti muovi in posizione e inserisci catene corte che conosci. Il ritmo è costante e la tecnica non cala quando arriva la fatica.",
+            "steps": [
+              "Muoviti in posizione con passi, cerchi e finte di cambio di livello.",
+              "Ogni 10-15 secondi inserisci una catena: doppia gamba, oppure sprawl e go-behind.",
+              "Ogni tanto scendi a terra, fai una gambetta e uno stand-up tecnico e riparti."
+            ],
+            "cues": [
+              "Respira e resta basso",
+              "Ogni catena finisce in posizione"
+            ],
+            "success": "Riuscito se: completi i 3 round da 2 minuti senza fermarti e senza alzarti dritto tra un'azione e l'altra.",
+            "easier": "Round da 90 secondi e solo azioni in piedi, senza scendere a terra.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 60
+            },
+            "video": "wrestling shadow drill solo"
+          },
+          {
+            "id": "lotta-4-6",
+            "name": "Circuito del lottatore",
+            "kind": "condizionamento",
+            "how": "Un circuito che mescola tirare, difendere e muoversi a terra: trazioni, sprawl e camminata dell'orso. Allena la resistenza specifica di un incontro.",
+            "steps": [
+              "5 trazioni alla sbarra, controllate, braccia tese in basso.",
+              "Subito 5 sprawl completi sul tappetino, tornando ogni volta in posizione.",
+              "Camminata dell'orso avanti e indietro fino alla fine del tempo, poi recupera."
+            ],
+            "cues": [
+              "Tecnica pulita anche da stanco",
+              "Niente slancio nelle trazioni"
+            ],
+            "success": "Riuscito se: completi i 4 giri facendo tutte le trazioni e tutti gli sprawl senza saltarne nessuno.",
+            "easier": "Trazioni negative (sali con una sedia e scendi lento) e sprawl a due tempi.",
+            "dose": {
+              "sets": 4,
+              "work": 90,
+              "rest": 60
+            },
+            "video": "wrestling conditioning circuit at home"
+          }
+        ]
+      },
+      {
+        "level": 5,
+        "title": "Gamba singola e ri-entrate",
+        "focus": "Prepari anche e gambe per le entrate profonde, poi impari la gamba singola a vuoto e la catena sprawl, rialzo e nuova entrata.",
+        "exercises": [
+          {
+            "id": "lotta-5-1",
+            "name": "Riscaldamento dinamico da lotta",
+            "kind": "riscaldamento",
+            "how": "Alzi temperatura e ritmo: corsetta, giri di anca, affondi, cambi di livello, sprawl leggeri e stand-up tecnici. Arrivi pronto alle entrate profonde.",
+            "steps": [
+              "30 secondi di corsetta sul posto e 10 giri di anca per lato.",
+              "8 affondi alternati e 5 cambi di livello lenti.",
+              "4 sprawl leggeri e 2 stand-up tecnici per lato."
+            ],
+            "cues": [
+              "Ritmo che sale piano",
+              "Collo rilassato, niente rotazioni"
+            ],
+            "success": "Riuscito se: completi i 2 giri in modo continuo e arrivi alle entrate con gambe e anche calde.",
+            "dose": {
+              "sets": 2,
+              "work": 120,
+              "rest": 20
+            },
+            "video": "wrestling dynamic warm up"
+          },
+          {
+            "id": "lotta-5-2",
+            "name": "Mobilità di anche e caviglie",
+            "kind": "flessibilita",
+            "how": "Le entrate profonde chiedono anche aperte e caviglie mobili. Tieni posizioni di affondo e accosciata con calma: allungamento lieve, mai dolore.",
+            "steps": [
+              "Affondo basso col ginocchio dietro su un cuscino: spingi piano le anche avanti, busto dritto.",
+              "Accosciata profonda coi talloni a terra, tenendoti a un appoggio se serve, gomiti che aprono le ginocchia.",
+              "Respira lento e aumenta l'ampiezza poco alla volta, senza molleggiare."
+            ],
+            "cues": [
+              "Tensione lieve, mai dolore acuto",
+              "Nessun molleggio"
+            ],
+            "success": "Riuscito se: tieni ogni posizione per tutto il tempo respirando calmo, senza dolore e col busto dritto.",
+            "easier": "Affondo più alto e accosciata con i talloni rialzati su un libro o tenendoti a una sedia.",
+            "dose": {
+              "sets": 2,
+              "work": 45,
+              "rest": 15,
+              "perSide": true
+            },
+            "video": "hip flexor and deep squat mobility",
+            "prepFor": "lotta-5-4"
+          },
+          {
+            "id": "lotta-5-3",
+            "name": "Rialzo da mezzo ginocchio",
+            "kind": "preparatorio",
+            "how": "Ti alleni a salire potente da un ginocchio, il gesto che chiude ogni entrata bassa. Ginocchio su materasso o cuscino, schiena dritta.",
+            "steps": [
+              "Parti con un ginocchio a terra su un cuscino e l'altro piede avanti, busto dritto.",
+              "Spingi con entrambi i piedi e alzati portando avanti la gamba dietro, come a chiudere un'entrata.",
+              "Torna giù controllato, appoggiando il ginocchio senza sbattere."
+            ],
+            "cues": [
+              "Busto dritto, testa su",
+              "Il ginocchio appoggia piano"
+            ],
+            "success": "Riuscito se: fai 8 rialzi per lato senza appoggiare le mani e senza piegare la schiena in avanti.",
+            "easier": "Fai lo stesso rialzo tenendoti con una mano a una sedia o al muro.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "half kneeling stand up drill wrestling",
+            "prepFor": "lotta-5-4"
+          },
+          {
+            "id": "lotta-5-4",
+            "name": "Gamba singola a vuoto (single leg)",
+            "kind": "tecnica",
+            "how": "La gamba singola (single leg) attacca una gamba sola: entri all'esterno del piede avanti, testa all'interno, mani chiuse sotto il ginocchio, poi ti rialzi portando la gamba con te.",
+            "steps": [
+              "Cambia livello e fai un passo di penetrazione all'esterno del piede avanti dell'avversario immaginario.",
+              "Ginocchio sul tappetino, testa alta e all'interno, mani che chiudono attorno a un ginocchio immaginario.",
+              "Rialzati con la schiena dritta, porta la gamba immaginaria all'altezza dell'anca e fai due passi in cerchio.",
+              "Torna in posizione e ripeti; poi lo stesso numero dall'altro lato."
+            ],
+            "cues": [
+              "Testa alta e all'interno",
+              "Schiena dritta nel rialzo"
+            ],
+            "success": "Riuscito se: fai 6 entrate per lato col ginocchio morbido sul tappetino e rialzo a schiena dritta senza usare le mani.",
+            "easier": "Gamba singola alta: entri con un affondo profondo senza appoggiare il ginocchio e ti rialzi.",
+            "dose": {
+              "sets": 4,
+              "reps": 6,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "single leg takedown solo drill"
+          },
+          {
+            "id": "lotta-5-5",
+            "name": "Sprawl, rialzo e ri-entrata",
+            "kind": "combinazione",
+            "how": "Catena reattiva: ti difendi con lo sprawl, torni in posizione e attacchi subito con una nuova entrata. Insegna a non restare fermo dopo la difesa.",
+            "steps": [
+              "Dalla posizione di lotta, fai uno sprawl completo.",
+              "Torna in posizione con un saltello, mani avanti, piedi già pronti.",
+              "Entra subito con doppia gamba o gamba singola a vuoto, alternando, e torna in posizione."
+            ],
+            "cues": [
+              "Zero pause tra difesa e attacco",
+              "Ogni entrata parte da un cambio di livello"
+            ],
+            "success": "Riuscito se: completi 6 catene per serie senza fermarti tra sprawl ed entrata e con la schiena dritta.",
+            "easier": "Sprawl a due tempi, ritorno in posizione, un respiro di pausa e solo passo di penetrazione.",
+            "dose": {
+              "sets": 4,
+              "reps": 6,
+              "rest": 60
+            },
+            "video": "sprawl to shot drill wrestling"
+          },
+          {
+            "id": "lotta-5-6",
+            "name": "Presa con asciugamano alla sbarra",
+            "kind": "condizionamento",
+            "how": "Appeso a un asciugamano avvolto sulla sbarra alleni la presa che serve per controllare polsi e braccia. Più dura della sbarra liscia: parti con poco.",
+            "steps": [
+              "Fai passare un asciugamano robusto sopra la sbarra e afferra un capo per mano.",
+              "Stacca i piedi e resta appeso con le braccia tese e le spalle attive.",
+              "Scendi appoggiando i piedi prima di perdere la presa."
+            ],
+            "cues": [
+              "Stringi con tutte le dita",
+              "Scendi prima di cedere di colpo"
+            ],
+            "success": "Riuscito se: resti appeso all'asciugamano 20 secondi in tutte e 3 le serie senza scivolare.",
+            "easier": "Una mano sull'asciugamano e una sulla sbarra, oppure piedi appoggiati su una sedia.",
+            "dose": {
+              "sets": 3,
+              "work": 20,
+              "rest": 60
+            },
+            "video": "towel hang grip training"
+          }
+        ]
+      },
+      {
+        "level": 6,
+        "title": "Catene di lotta",
+        "focus": "Colleghi tutto in catene complete in piedi e da sotto, sempre dopo i preparatori, e chiudi con round lunghi di lotta a vuoto.",
+        "exercises": [
+          {
+            "id": "lotta-6-1",
+            "name": "Riscaldamento completo a terra",
+            "kind": "riscaldamento",
+            "how": "Ripassi tutto il vocabolario a terra in un circuito leggero: gambette, ponti, sit-out, switch, stand-up e sprawl. Scaldi il corpo e la memoria.",
+            "steps": [
+              "4 gambette per lato e 6 ponti di glutei.",
+              "3 sit-out e 3 switch per lato, lenti.",
+              "3 stand-up tecnici per lato e 5 sprawl leggeri."
+            ],
+            "cues": [
+              "Leggero: è riscaldamento",
+              "Collo sempre rilassato"
+            ],
+            "success": "Riuscito se: completi i 2 giri senza pause e senza esitare su nessun movimento.",
+            "dose": {
+              "sets": 2,
+              "work": 120,
+              "rest": 20
+            },
+            "video": "wrestling solo drill circuit"
+          },
+          {
+            "id": "lotta-6-2",
+            "name": "Apertura anche per lo shot",
+            "kind": "flessibilita",
+            "how": "Prima delle entrate profonde apri anche e inguine con posizioni tenute: affondo basso e 90/90 da seduto. Tensione lieve, mai dolore.",
+            "steps": [
+              "Affondo basso col ginocchio dietro su un cuscino: spingi piano le anche avanti, busto dritto.",
+              "Seduto in 90/90 (una gamba avanti e una di lato, piegate a 90°), busto alto, poi porta le ginocchia sull'altro lato.",
+              "Respira lento e aumenta l'ampiezza poco alla volta, senza molleggiare."
+            ],
+            "cues": [
+              "Mai dolore acuto",
+              "Nessun molleggio"
+            ],
+            "success": "Riuscito se: tieni le posizioni per tutto il tempo, respiro calmo e busto dritto, senza dolore.",
+            "easier": "Affondo più alto e 90/90 con le mani a terra dietro di te a sostenere il busto.",
+            "dose": {
+              "sets": 2,
+              "work": 45,
+              "rest": 15,
+              "perSide": true
+            },
+            "video": "90 90 hip mobility for wrestlers",
+            "prepFor": "lotta-6-4"
+          },
+          {
+            "id": "lotta-6-3",
+            "name": "Hip heist a tre appoggi",
+            "kind": "preparatorio",
+            "how": "L'hip heist ti fa passare da seduto a quattro zampe in un attimo: è il motore di sit-out, switch e stand-up. Prepara la catena da sotto.",
+            "steps": [
+              "Seduto, mani dietro, piedi a terra; solleva le anche e resta su tre appoggi togliendo una mano.",
+              "Fai passare la gamba opposta sotto il corpo e ruota fino a finire a quattro zampe, girato di lato.",
+              "Torna seduto e ripeti dall'altro lato."
+            ],
+            "cues": [
+              "Anche alte durante il passaggio",
+              "Peso su mano e piede, collo libero"
+            ],
+            "success": "Riuscito se: fai 8 hip heist per lato fluidi, senza appoggiare il gluteo durante il passaggio.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "hip heist drill grappling",
+            "prepFor": "lotta-6-5"
+          },
+          {
+            "id": "lotta-6-4",
+            "name": "Catena in piedi: doppia e singola",
+            "kind": "tecnica",
+            "how": "Catena di entrate a vuoto: finta di cambio di livello, doppia gamba, poi passaggio a gamba singola come se l'avversario si difendesse, rialzo e cerchio.",
+            "steps": [
+              "Finta: scendi di livello a metà e risali, poi entra davvero con la doppia gamba.",
+              "Immagina che l'avversario arretri: sposta testa e mani su una gamba sola e passa a gamba singola.",
+              "Rialzati con la schiena dritta, porta la gamba all'anca, due passi in cerchio e torna in posizione."
+            ],
+            "cues": [
+              "Nessun passaggio da in piedi dritto",
+              "Testa alta in ogni fase"
+            ],
+            "success": "Riuscito se: fai 5 catene complete per lato senza fermarti tra i passaggi e con la schiena dritta allo specchio.",
+            "easier": "Esegui solo finta e doppia gamba, poi torna in posizione, senza il passaggio a gamba singola.",
+            "dose": {
+              "sets": 4,
+              "reps": 5,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "double leg to single leg chain drill"
+          },
+          {
+            "id": "lotta-6-5",
+            "name": "Catena a terra: sit-out, switch, rialzo",
+            "kind": "combinazione",
+            "how": "Da quattro zampe colleghi le uscite: sit-out, switch, hip heist e stand-up tecnico, fino a tornare in piedi in posizione. Fluido e basso.",
+            "steps": [
+              "Parti a quattro zampe sul tappetino: sit-out verso un lato e rientra.",
+              "Subito switch verso l'altro lato, finendo sulle ginocchia girato.",
+              "Siediti, fai uno stand-up tecnico e arriva in posizione di lotta, mani avanti."
+            ],
+            "cues": [
+              "Mai fermo sulla schiena",
+              "Anche basse fino al rialzo"
+            ],
+            "success": "Riuscito se: fai 4 catene complete per lato senza fermarti, finendo sempre in posizione di lotta.",
+            "easier": "Spezza la catena: sit-out e rialzo, poi switch e rialzo, con una pausa tra i due.",
+            "dose": {
+              "sets": 4,
+              "reps": 4,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "wrestling bottom escape chain drill"
+          },
+          {
+            "id": "lotta-6-6",
+            "name": "Round lunghi di lotta a vuoto",
+            "kind": "shadow",
+            "how": "Round lunghi come un incontro: in piedi entrate e difese, a terra uscite e rialzi. Il ritmo lo scegli tu, ma non ti fermi fino al timer.",
+            "steps": [
+              "Muoviti in posizione con finte; inserisci doppia gamba, gamba singola o sprawl con go-behind.",
+              "Circa ogni 30 secondi scendi a terra: una catena da sotto e rialzo con stand-up tecnico.",
+              "Nell'ultimo minuto di ogni round alza il ritmo mantenendo la tecnica."
+            ],
+            "cues": [
+              "La tecnica non cala con la fatica",
+              "Respira e resta basso"
+            ],
+            "success": "Riuscito se: completi 4 round da 3 minuti senza fermarti e senza alzarti dritto tra un'azione e l'altra.",
+            "easier": "Round da 2 minuti, solo azioni in piedi, con un recupero più lungo se serve.",
+            "dose": {
+              "sets": 4,
+              "work": 180,
+              "rest": 60
+            },
+            "video": "wrestling shadow drill rounds"
+          }
+        ]
+      }
+    ],
+    "color": "#c38bff",
+    "short": "Lotta"
+  },
+  {
+    "id": "kungfu",
+    "name": "Kung Fu (Wing Chun)",
+    "tagline": "Linea centrale, gomiti bassi, pugni a catena.",
+    "intro": "Il Wing Chun è economia pura: linea centrale, difesa e attacco nello stesso tempo. Come Johan Seong, guardi il gesto in video, lo copi lento allo specchio e lo ripeti finché non diventa un riflesso.",
+    "equipment": "Specchio, cuscino morbido fissato al muro o sacco, bende",
+    "mottos": [
+      "La linea più corta è la prima da copiare.",
+      "Gomito basso, mente calma, mani vive.",
+      "Cento pugni lenti preparano il primo veloce."
+    ],
+    "levels": [
+      {
+        "level": 1,
+        "title": "Posizione e pugno centrale",
+        "focus": "Impari la posizione base del Wing Chun, la linea centrale, la guardia e il pugno verticale. Tutto lento, allo specchio: prima la forma, poi la velocità.",
+        "exercises": [
+          {
+            "id": "kungfu-1-1",
+            "name": "Polsi, spalle e anche",
+            "kind": "riscaldamento",
+            "how": "Prepari articolazioni e muscoli alla posizione bassa e ai colpi di mano: polsi, gomiti, spalle e anche, con movimenti ampi e calmi.",
+            "steps": [
+              "Rotazioni di polsi e gomiti, poi circonduzioni ampie delle spalle avanti e indietro.",
+              "Rotazioni del bacino e delle ginocchia a piedi uniti.",
+              "Squat lenti a metà ampiezza per scaldare le gambe."
+            ],
+            "cues": [
+              "Movimenti ampi e lenti",
+              "Respira con calma"
+            ],
+            "success": "Riuscito se: completi il giro senza fretta e alla fine senti polsi, spalle e gambe caldi.",
+            "dose": {
+              "sets": 2,
+              "work": 120,
+              "rest": 20
+            },
+            "video": "wing chun warm up exercises"
+          },
+          {
+            "id": "kungfu-1-2",
+            "name": "Posizione yee jee kim yeung",
+            "kind": "tecnica",
+            "how": "La posizione base: ginocchia piegate e rivolte un po' verso l'interno, bacino in avanti, peso al centro. Ti dà stabilità e radice per ogni tecnica.",
+            "steps": [
+              "Piedi uniti e ginocchia piegate: apri le punte, poi i talloni, fino a circa la larghezza delle spalle.",
+              "Ginocchia leggermente verso l'interno, bacino in avanti, schiena dritta.",
+              "Pugni ai fianchi, peso distribuito al centro, respiro tranquillo."
+            ],
+            "cues": [
+              "Ginocchia verso dentro, mai oltre le punte",
+              "Bacino leggermente in avanti",
+              "Spalle rilassate, mento basso"
+            ],
+            "success": "Riuscito se: tieni la posizione 45 secondi allo specchio con ginocchia verso dentro e schiena dritta, senza alzarti.",
+            "easier": "Piega meno le ginocchia e tieni 20-30 secondi, aggiungendo 5 secondi a ogni sessione.",
+            "dose": {
+              "sets": 4,
+              "work": 45,
+              "rest": 30
+            },
+            "video": "yee jee kim yeung stance tutorial"
+          },
+          {
+            "id": "kungfu-1-3",
+            "name": "Pugno verticale (yat chi kuen)",
+            "kind": "tecnica",
+            "how": "Il pugno del Wing Chun parte dal centro e va dritto sulla linea centrale, con il pugno verticale e il gomito basso. Colpisci con le nocche inferiori.",
+            "steps": [
+              "In posizione, porta il pugno davanti al centro del petto, gomito verso il basso.",
+              "Distendi il braccio dritto in avanti sulla linea centrale, pugno verticale.",
+              "Ritira lungo la stessa linea e ripeti con l'altro braccio."
+            ],
+            "cues": [
+              "Gomito sempre basso, verso il centro",
+              "Non bloccare il gomito in fondo al colpo",
+              "Spalle ferme e rilassate"
+            ],
+            "success": "Riuscito se: allo specchio ogni pugno parte e arriva sulla linea centrale, con gomito basso e spalla che non si alza.",
+            "easier": "Fai il pugno lento con l'altra mano che sfiora il gomito, per sentire che resta basso.",
+            "dose": {
+              "sets": 3,
+              "reps": 15,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "wing chun vertical punch tutorial"
+          },
+          {
+            "id": "kungfu-1-4",
+            "name": "Guardia (man sao e wu sao)",
+            "kind": "tecnica",
+            "how": "La guardia del Wing Chun: una mano avanti sulla linea centrale (man sao) e l'altra dietro a protezione (wu sao). Insieme chiudono il centro.",
+            "steps": [
+              "In posizione, porta una mano avanti sulla linea centrale, gomito a circa un pugno dal corpo.",
+              "L'altra mano, verticale, resta vicino al gomito avanti a protezione del centro.",
+              "Cambia mano lentamente lungo la linea, senza mai aprire il centro."
+            ],
+            "cues": [
+              "Mani sulla linea centrale",
+              "Gomiti bassi e vicini al corpo"
+            ],
+            "success": "Riuscito se: tieni la guardia e fai 10 cambi lenti allo specchio senza che le mani escano dalla linea centrale.",
+            "easier": "Fai i cambi da seduto su una sedia, concentrandoti solo sulle mani.",
+            "dose": {
+              "sets": 3,
+              "work": 45,
+              "rest": 30
+            },
+            "video": "wing chun man sao wu sao guard"
+          },
+          {
+            "id": "kungfu-1-5",
+            "name": "Apertura di Siu Nim Tao",
+            "kind": "shadow",
+            "how": "L'inizio della prima forma: apertura della posizione, mani incrociate e pugni centrali. La forma è il tuo manuale: la copi un pezzo alla volta.",
+            "steps": [
+              "Apri la posizione come hai imparato e porta i pugni ai fianchi.",
+              "Incrocia le mani in basso (gaun sao), poi in alto (tan sao), poi riporta i pugni ai fianchi.",
+              "Pugno centrale, polso che ruota (huen sao), pugno chiuso e ritiro. Prima a sinistra, poi a destra."
+            ],
+            "cues": [
+              "Lento, come se lo scrivessi",
+              "Linea centrale sempre visibile allo specchio"
+            ],
+            "success": "Riuscito se: esegui l'apertura 5 volte di fila senza guardare il video e senza saltare un passaggio.",
+            "easier": "Fai un pezzo alla volta guardando il video e fermati dopo ogni passaggio.",
+            "dose": {
+              "sets": 4,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "siu nim tao first section tutorial"
+          },
+          {
+            "id": "kungfu-1-6",
+            "name": "Tenuta in posizione e pugni lenti",
+            "kind": "condizionamento",
+            "how": "Resistenza nella posizione bassa: resti in yee jee kim yeung e lanci pugni lenti e precisi. Gambe e spalle imparano a lavorare rilassate.",
+            "steps": [
+              "Entra in posizione e controlla ginocchia e bacino allo specchio.",
+              "Lancia pugni lenti alternati, uno ogni 2 secondi, per tutta la serie.",
+              "Se la posizione cede, fermati, sistemala e riparti."
+            ],
+            "cues": [
+              "La posizione non si alza",
+              "Pugni lenti, spalle giù"
+            ],
+            "success": "Riuscito se: resti in posizione per tutte le serie senza alzarti e senza perdere la linea dei pugni.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "wing chun stance training punches"
+          }
+        ]
+      },
+      {
+        "level": 2,
+        "title": "Tan sao e pugno a catena",
+        "focus": "Impari tan sao, la prima mano di difesa, e il pugno a catena lento. Aggiungi la sezione lenta della forma e difesa e attacco nello stesso tempo.",
+        "exercises": [
+          {
+            "id": "kungfu-2-1",
+            "name": "Mobilità e posizione",
+            "kind": "riscaldamento",
+            "how": "Scaldi polsi, spalle e gambe, poi entri in posizione con pugni leggeri per attivare la linea centrale.",
+            "steps": [
+              "Rotazioni di polsi, gomiti e spalle, 10 per verso.",
+              "Rotazioni del bacino e squat lenti a metà ampiezza.",
+              "In yee jee kim yeung, 20 pugni lenti alternati."
+            ],
+            "cues": [
+              "Scalda prima di accelerare",
+              "Pugni leggeri, solo per sentire la linea"
+            ],
+            "success": "Riuscito se: arrivi ai pugni in posizione con polsi e spalle caldi, senza rigidità.",
+            "dose": {
+              "sets": 2,
+              "work": 120,
+              "rest": 20
+            },
+            "video": "wing chun warm up routine"
+          },
+          {
+            "id": "kungfu-2-2",
+            "name": "Tan sao",
+            "kind": "tecnica",
+            "how": "Tan sao è la mano a palmo in su che devia sulla linea centrale. Il gomito resta basso: è la struttura, non la forza, a spostare il colpo.",
+            "steps": [
+              "In posizione, porta la mano avanti dal centro con il palmo rivolto in alto.",
+              "Gomito basso, a circa un pugno dal corpo; punta delle dita all'altezza della gola.",
+              "Ritira la mano e ripeti con l'altra, sempre sulla linea centrale."
+            ],
+            "cues": [
+              "Gomito basso e al centro",
+              "Polso dritto, palmo in alto",
+              "Nessuna tensione nella spalla"
+            ],
+            "success": "Riuscito se: allo specchio ogni tan sao finisce sulla linea centrale con il gomito a un pugno dal corpo e la spalla rilassata.",
+            "easier": "Fai il movimento lento con l'altra mano che sostiene il gomito, finché la posizione non diventa naturale.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "wing chun tan sao tutorial"
+          },
+          {
+            "id": "kungfu-2-3",
+            "name": "Pugno a catena lento (lin wan kuen)",
+            "kind": "tecnica",
+            "how": "Pugni verticali in sequenza sulla linea centrale: mentre uno esce, l'altro rientra passando sotto. Lento ora, per costruire il binario giusto.",
+            "steps": [
+              "In posizione, un pugno avanti e l'altro davanti al centro del petto.",
+              "Il pugno dietro esce sopra il braccio avanti, che rientra passando sotto.",
+              "Continua lento, un pugno al secondo, sempre sulla stessa linea."
+            ],
+            "cues": [
+              "I pugni si incrociano sulla linea centrale",
+              "Gomiti bassi, spalle giù",
+              "Non bloccare il gomito"
+            ],
+            "success": "Riuscito se: tieni il ritmo di un pugno al secondo per tutta la serie, con i pugni sempre sulla linea centrale allo specchio.",
+            "easier": "Fai pugni singoli alternati con una pausa tra l'uno e l'altro, senza incrociarli.",
+            "dose": {
+              "sets": 4,
+              "work": 45,
+              "rest": 30
+            },
+            "video": "wing chun chain punch tutorial beginner"
+          },
+          {
+            "id": "kungfu-2-4",
+            "name": "Siu Nim Tao: tan sao e fook sao",
+            "kind": "shadow",
+            "how": "La parte lenta della forma: tan sao, poi wu sao e fook sao ripetuti tre volte. La fai lentissima per costruire la struttura del gomito.",
+            "steps": [
+              "Dopo l'apertura, porta avanti un tan sao lentissimo, con il gomito che scorre sulla linea centrale.",
+              "Ruota il polso (huen sao) e riporta indietro la mano in wu sao; poi avanti in fook sao, sempre lento.",
+              "Ripeti wu sao e fook sao tre volte, poi pak sao, colpo di palmo e pugno al fianco. Poi l'altro braccio."
+            ],
+            "cues": [
+              "Lento: un braccio dura almeno 30 secondi",
+              "Il gomito guida, la spalla resta ferma"
+            ],
+            "success": "Riuscito se: esegui la sequenza con entrambe le braccia senza guardare il video, mantenendo la posizione bassa.",
+            "easier": "Fai solo tan sao e un fook sao per braccio guardando il video; aggiungi le ripetizioni nelle sessioni dopo.",
+            "dose": {
+              "sets": 3,
+              "work": 90,
+              "rest": 30
+            },
+            "video": "siu nim tao section one slow"
+          },
+          {
+            "id": "kungfu-2-5",
+            "name": "Tan sao e pugno insieme (tan da)",
+            "kind": "combinazione",
+            "how": "Il Wing Chun difende e colpisce nello stesso tempo: una mano fa tan sao, l'altra lancia il pugno. Copi il tempo unico, senza pause.",
+            "steps": [
+              "In posizione, immagina un colpo che arriva verso il tuo lato destro.",
+              "La mano destra fa tan sao mentre la sinistra lancia un pugno verticale, insieme.",
+              "Ritira entrambe e ripeti sull'altro lato."
+            ],
+            "cues": [
+              "Le due mani partono insieme",
+              "Corpo fermo, struttura solida"
+            ],
+            "success": "Riuscito se: allo specchio tan sao e pugno arrivano nello stesso istante in tutte le ripetizioni, su entrambi i lati.",
+            "easier": "Fai prima tan sao e poi il pugno, separati, e avvicina i due tempi a ogni serie.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "wing chun tan da drill solo"
+          },
+          {
+            "id": "kungfu-2-6",
+            "name": "Spalle e avambracci",
+            "kind": "condizionamento",
+            "how": "Il pugno a catena chiede spalle resistenti e rilassate. Le rinforzi con esercizi semplici a corpo libero, 20 secondi ciascuno.",
+            "steps": [
+              "Plank sugli avambracci per 20 secondi.",
+              "Braccia tese avanti all'altezza delle spalle, piccoli cerchi lenti per 20 secondi.",
+              "Stringi e apri forte le mani per 20 secondi."
+            ],
+            "cues": [
+              "Spalle basse anche quando bruciano",
+              "Respira, non trattenere il fiato"
+            ],
+            "success": "Riuscito se: completi tutte le serie senza alzare le spalle e senza interrompere gli esercizi.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "shoulder endurance bodyweight exercises"
+          }
+        ]
+      },
+      {
+        "level": 3,
+        "title": "Bong sao, pak sao e passi",
+        "focus": "Aggiungi bong sao e pak sao, la rotazione e il passo avanti. Inizi a colpire un cuscino morbido a muro con il pugno a catena, controllato.",
+        "exercises": [
+          {
+            "id": "kungfu-3-1",
+            "name": "Mobilità e mani leggere",
+            "kind": "riscaldamento",
+            "how": "Scaldi polsi, gomiti, spalle e anche, poi richiami tan sao e pugni lenti in posizione per entrare nel lavoro.",
+            "steps": [
+              "Rotazioni di polsi, gomiti e spalle, poi circonduzioni del bacino.",
+              "Squat lenti e rotazioni sul posto per scaldare le gambe.",
+              "In posizione: 10 tan sao e 20 pugni a catena lenti."
+            ],
+            "cues": [
+              "Prima caldo, poi veloce",
+              "Controlla ginocchia e gomiti"
+            ],
+            "success": "Riuscito se: arrivi a tan sao e pugni con le articolazioni calde e senza rigidità nelle spalle.",
+            "dose": {
+              "sets": 2,
+              "work": 120,
+              "rest": 20
+            },
+            "video": "wing chun warm up drills"
+          },
+          {
+            "id": "kungfu-3-2",
+            "name": "Bong sao",
+            "kind": "tecnica",
+            "how": "Bong sao è il braccio ad ala: gomito alto davanti a te e avambraccio inclinato verso il centro. Devia un colpo che preme, poi torna subito in tan sao o pugno.",
+            "steps": [
+              "In posizione, ruota l'avambraccio e alza il gomito davanti al petto, più in alto del polso.",
+              "L'avambraccio è inclinato verso la linea centrale, l'altra mano in wu sao.",
+              "Torna in tan sao o in pugno e ripeti dall'altro lato."
+            ],
+            "cues": [
+              "Gomito più alto del polso",
+              "Bong sao dura poco: poi cambi",
+              "Spalla rilassata"
+            ],
+            "success": "Riuscito se: allo specchio ogni bong sao ha il gomito più alto del polso e l'avambraccio sul centro, con ritorno pulito in tan sao.",
+            "easier": "Fai il movimento lento da fermo, controllando la posizione del gomito prima di ogni ripetizione.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "wing chun bong sao tutorial"
+          },
+          {
+            "id": "kungfu-3-3",
+            "name": "Pak sao e pugno (pak da)",
+            "kind": "tecnica",
+            "how": "Pak sao è un colpo secco di palmo che sposta il braccio avversario verso il centro. Lo abbini al pugno: pak e colpo nello stesso tempo.",
+            "steps": [
+              "In guardia, la mano dietro fa un pak sao corto verso la linea centrale, palmo aperto.",
+              "Mentre fa pak, l'altra mano lancia il pugno verticale.",
+              "Torna in guardia e cambia lato."
+            ],
+            "cues": [
+              "Pak corto, mai oltre la linea centrale",
+              "Pak e pugno insieme"
+            ],
+            "success": "Riuscito se: il pak non supera mai la linea centrale e il pugno parte insieme, in tutte le ripetizioni su entrambi i lati.",
+            "easier": "Fai prima pak e poi pugno, in due tempi separati, e avvicinali a ogni serie.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "wing chun pak sao punch drill"
+          },
+          {
+            "id": "kungfu-3-4",
+            "name": "Rotazione e passo avanti",
+            "kind": "tecnica",
+            "how": "Footwork base: la rotazione (juen ma) gira il corpo sui talloni e ti porta fuori linea; il passo avanti ti porta in distanza senza perdere la posizione.",
+            "steps": [
+              "Da yee jee kim yeung, ruota su talloni e bacino verso un lato, con il peso che passa sulla gamba dietro.",
+              "Torna al centro e ruota dall'altro lato, mani in guardia.",
+              "Passo avanti: muovi prima il piede avanti, poi richiama quello dietro, a distanza costante."
+            ],
+            "cues": [
+              "Ruota con il bacino, non con le spalle",
+              "Distanza tra i piedi sempre uguale"
+            ],
+            "success": "Riuscito se: fai 10 rotazioni e 10 passi avanti e indietro allo specchio senza alzarti e senza cambiare la distanza tra i piedi.",
+            "easier": "Fai la rotazione con le mani sui fianchi e passi corti a metà velocità.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "wing chun footwork juen ma tutorial"
+          },
+          {
+            "id": "kungfu-3-5",
+            "name": "Pugno a catena al cuscino a muro",
+            "kind": "sacco",
+            "how": "Primo contatto: pugni a catena su un cuscino spesso o un pad morbido fissato al muro, per sentire distanza e nocche giuste. Precisione, non forza.",
+            "steps": [
+              "Metti le bende e fissa al muro un cuscino spesso o un pad morbido all'altezza del petto. Mai muro nudo.",
+              "In posizione a un braccio di distanza, pugni a catena a velocità media con le nocche inferiori.",
+              "Senza cuscino: stesso lavoro a vuoto allo specchio, senza distendere del tutto il gomito."
+            ],
+            "cues": [
+              "Polso dritto all'impatto",
+              "Forza leggera, ritmo costante",
+              "Se il polso fa male, fermati"
+            ],
+            "success": "Riuscito se: colpisci per tutto il round con il polso dritto e i pugni che arrivano sempre sullo stesso punto.",
+            "easier": "Fai il round a vuoto davanti allo specchio, oppure al sacco con i guantoni a velocità lenta.",
+            "dose": {
+              "sets": 5,
+              "work": 30,
+              "rest": 30
+            },
+            "video": "wing chun wall bag chain punch beginner"
+          },
+          {
+            "id": "kungfu-3-6",
+            "name": "Resistenza in posizione",
+            "kind": "condizionamento",
+            "how": "Pugni a catena lenti in posizione bassa, con qualche passo avanti e indietro: gambe e spalle reggono più a lungo senza irrigidirsi.",
+            "steps": [
+              "In yee jee kim yeung, pugni a catena lenti per 20 secondi.",
+              "Tre passi avanti con i pugni, tre passi indietro in guardia.",
+              "Ripeti fino a fine serie, senza alzare la posizione."
+            ],
+            "cues": [
+              "Posizione bassa fino alla fine",
+              "Spalle rilassate"
+            ],
+            "success": "Riuscito se: chiudi tutte le serie senza alzarti dalla posizione e senza che le spalle salgano.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "wing chun stepping chain punch"
+          }
+        ]
+      },
+      {
+        "level": 4,
+        "title": "Fook sao, calcio e catene",
+        "focus": "Aggiungi fook sao e il calcio frontale basso, colleghi mani e passi in combinazioni più lunghe e arrivi a metà della forma.",
+        "exercises": [
+          {
+            "id": "kungfu-4-1",
+            "name": "Mobilità, anche e pugni",
+            "kind": "riscaldamento",
+            "how": "Oggi lavorano anche le gambe: scaldi anche e ginocchia per il calcio, oltre a polsi e spalle per le mani.",
+            "steps": [
+              "Rotazioni di polsi, gomiti e spalle, poi circonduzioni del bacino.",
+              "Slanci controllati della gamba avanti e ginocchio al petto, 10 per gamba.",
+              "In posizione: tan sao, bong sao e pugni lenti per un minuto."
+            ],
+            "cues": [
+              "Slanci controllati, mai a strappo",
+              "Mani e gambe calde prima dei colpi"
+            ],
+            "success": "Riuscito se: alzi il ginocchio all'altezza dell'anca in equilibrio e le mani si muovono sciolte.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 20
+            },
+            "video": "wing chun warm up legs kicks"
+          },
+          {
+            "id": "kungfu-4-2",
+            "name": "Fook sao",
+            "kind": "tecnica",
+            "how": "Fook sao è la mano che controlla dall'alto: polso piegato, gomito verso il centro. Sente e guida il braccio dell'altro, poi si trasforma in pugno.",
+            "steps": [
+              "In posizione, porta la mano avanti con il polso piegato e le dita rilassate verso il basso.",
+              "Gomito basso e verso la linea centrale, a circa un pugno dal corpo.",
+              "Dal fook sao ruota il polso e lancia un pugno verticale, poi torna in fook sao."
+            ],
+            "cues": [
+              "Gomito verso il centro",
+              "Mano leggera, non rigida"
+            ],
+            "success": "Riuscito se: allo specchio il gomito del fook sao resta sulla linea centrale e il passaggio al pugno è fluido, su entrambi i lati.",
+            "easier": "Tieni solo il fook sao per 5 secondi per lato, senza il passaggio al pugno.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "wing chun fook sao tutorial"
+          },
+          {
+            "id": "kungfu-4-3",
+            "name": "Calcio frontale basso (jing gerk)",
+            "kind": "tecnica",
+            "how": "Calcio dritto di tallone, basso, tra ginocchio e pancia. Parte senza preavviso e viaggia sulla linea centrale, con le mani sempre in guardia.",
+            "steps": [
+              "In posizione, porta il peso su una gamba e alza davanti a te il ginocchio dell'altra.",
+              "Spingi il tallone in avanti sulla linea centrale, punta del piede verso l'alto.",
+              "Richiama la gamba e riprendi la posizione, mani in guardia per tutto il tempo."
+            ],
+            "cues": [
+              "Colpisci di tallone",
+              "Calcio basso: mai sopra la pancia",
+              "Mani in guardia"
+            ],
+            "success": "Riuscito se: completi le ripetizioni per lato senza perdere l'equilibrio, con il tallone che spinge sulla linea centrale.",
+            "easier": "Appoggia una mano al muro e fai il calcio lento all'altezza del ginocchio.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "wing chun front kick tutorial"
+          },
+          {
+            "id": "kungfu-4-4",
+            "name": "Pak, catena e passo",
+            "kind": "combinazione",
+            "how": "Colleghi difesa, attacco e footwork: pak sao, pugni a catena e passo avanti, poi tan sao e rotazione per uscire. Copia il ritmo, poi accelera appena.",
+            "steps": [
+              "Pak sao con pugno, poi 3 pugni a catena avanzando di un passo.",
+              "Tan sao con pugno, poi rotazione (juen ma) di lato.",
+              "Calcio frontale basso, ritorno in guardia e riparti dall'altro lato."
+            ],
+            "cues": [
+              "Mani e piedi arrivano insieme",
+              "Ritmo prima della velocità"
+            ],
+            "success": "Riuscito se: ripeti la sequenza per tutto il round su entrambi i lati, senza fermarti e senza alzare la posizione.",
+            "easier": "Fai solo il primo passaggio della sequenza, lento, e aggiungi gli altri quando è automatico.",
+            "dose": {
+              "sets": 4,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "wing chun solo drills combinations"
+          },
+          {
+            "id": "kungfu-4-5",
+            "name": "Siu Nim Tao: prima metà",
+            "kind": "shadow",
+            "how": "Esegui la forma dall'apertura fino a metà, collegando le parti che hai copiato. Lenta dove serve, decisa nei colpi.",
+            "steps": [
+              "Apertura, mani incrociate e pugni centrali.",
+              "Sezione lenta: tan sao, wu sao e tre fook sao per braccio, poi pak sao e palmo.",
+              "Prosegui con i gum sao (palmi che premono) ai lati, dietro e davanti, come nel video."
+            ],
+            "cues": [
+              "Posizione bassa per tutta la forma",
+              "Respira lento, non trattenere"
+            ],
+            "success": "Riuscito se: esegui la prima metà della forma 2 volte di fila senza guardare il video e senza perdere la posizione.",
+            "easier": "Esegui una sezione alla volta con il video, fermandoti tra una e l'altra.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 30
+            },
+            "video": "siu nim tao full form slow"
+          },
+          {
+            "id": "kungfu-4-6",
+            "name": "Intervalli di pugno a catena",
+            "kind": "condizionamento",
+            "how": "Resistenza specifica: brevi raffiche di pugno a catena alternate a recupero attivo in guardia. Alleni spalle e respiro.",
+            "steps": [
+              "15 secondi di pugno a catena a velocità sostenuta, sempre sulla linea centrale.",
+              "15 secondi di guardia con passi avanti e indietro, respirando.",
+              "Ripeti fino a fine serie, senza perdere la tecnica nelle ultime raffiche."
+            ],
+            "cues": [
+              "Veloce ma rilassato",
+              "Gomiti mai bloccati"
+            ],
+            "success": "Riuscito se: ogni raffica resta sulla linea centrale fino all'ultima serie, senza alzare le spalle.",
+            "dose": {
+              "sets": 3,
+              "work": 90,
+              "rest": 45
+            },
+            "video": "wing chun chain punch endurance"
+          }
+        ]
+      },
+      {
+        "level": 5,
+        "title": "Lap sao, calcio in passo e velocità",
+        "focus": "Prepari equilibrio e spalle, poi aggiungi lap sao, il calcio in avanzamento e il pugno a catena veloce al cuscino. Velocità solo con tecnica pulita.",
+        "exercises": [
+          {
+            "id": "kungfu-5-1",
+            "name": "Riscaldamento completo",
+            "kind": "riscaldamento",
+            "how": "Scaldi tutto il corpo con mobilità, footwork e mani: oggi la velocità sale e le articolazioni devono essere pronte.",
+            "steps": [
+              "Rotazioni di polsi, gomiti, spalle, bacino e ginocchia.",
+              "Passi avanti e indietro e rotazioni in guardia per un minuto.",
+              "Pugni a catena lenti, poi medi, per 30 secondi."
+            ],
+            "cues": [
+              "Velocità solo dopo il caldo",
+              "Sciogli le spalle tra un esercizio e l'altro"
+            ],
+            "success": "Riuscito se: arrivi ai pugni a velocità media con le spalle sciolte e senza fastidi ai polsi.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 20
+            },
+            "video": "wing chun full warm up"
+          },
+          {
+            "id": "kungfu-5-2",
+            "name": "Equilibrio su una gamba",
+            "kind": "preparatorio",
+            "how": "Il calcio in avanzamento chiede equilibrio sulla gamba d'appoggio. Lo alleni da solo, con le mani sempre in guardia.",
+            "steps": [
+              "In posizione, porta il peso su una gamba e alza il ginocchio dell'altra all'altezza dell'anca.",
+              "Tieni 10 secondi con le mani in guardia, poi distendi lento il calcio frontale e richiama.",
+              "Ripeti con l'altra gamba, occhi fissi su un punto davanti a te."
+            ],
+            "cues": [
+              "Ginocchio d'appoggio leggermente piegato",
+              "Bacino fermo"
+            ],
+            "success": "Riuscito se: tieni 10 secondi su ogni gamba e distendi il calcio lento senza appoggiare il piede.",
+            "easier": "Sfiora il muro con una mano finché non tieni l'equilibrio da solo.",
+            "dose": {
+              "sets": 3,
+              "reps": 5,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "single leg balance drill martial arts",
+            "prepFor": "kungfu-5-4"
+          },
+          {
+            "id": "kungfu-5-3",
+            "name": "Lap sao e pugno",
+            "kind": "tecnica",
+            "how": "Lap sao afferra e tira corto il braccio avversario mentre l'altra mano colpisce. Da solo copi il tempo unico di tirata e colpo.",
+            "steps": [
+              "Da guardia, la mano dietro afferra un polso immaginario davanti a te e lo tira corto verso il basso.",
+              "Nello stesso tempo l'altra mano lancia il pugno verticale sulla linea centrale.",
+              "Versione con bong sao: bong sao, poi l'altra mano fa lap e il braccio del bong colpisce. Cambia lato."
+            ],
+            "cues": [
+              "Tirata corta, non un'onda",
+              "Tira e colpisci insieme"
+            ],
+            "success": "Riuscito se: allo specchio tirata e pugno arrivano nello stesso istante, in tutte le ripetizioni su entrambi i lati.",
+            "easier": "Fai lap sao e pugno in due tempi separati, poi avvicinali finché non diventano uno.",
+            "dose": {
+              "sets": 3,
+              "reps": 10,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "wing chun lap sao bong sao drill"
+          },
+          {
+            "id": "kungfu-5-4",
+            "name": "Calcio in avanzamento con pugni",
+            "kind": "tecnica",
+            "how": "Passo avanti, calcio frontale basso e subito pugni a catena: attacchi su due livelli senza rompere la posizione.",
+            "steps": [
+              "Da guardia, passo avanti e calcio frontale basso di tallone.",
+              "Appoggia il piede in avanti e lancia da 3 a 5 pugni a catena.",
+              "Torna in guardia con un passo indietro e ripeti, alternando le gambe."
+            ],
+            "cues": [
+              "Mani in guardia mentre calci",
+              "Appoggia in avanti, non indietro"
+            ],
+            "success": "Riuscito se: fai le ripetizioni per lato senza perdere l'equilibrio, con i pugni che partono appena il piede tocca terra.",
+            "easier": "Fai il calcio da fermo, senza passo, poi i pugni; aggiungi il passo quando sei stabile.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "wing chun kick and chain punch"
+          },
+          {
+            "id": "kungfu-5-5",
+            "name": "Scioltezza delle spalle",
+            "kind": "preparatorio",
+            "how": "La velocità del pugno a catena viene dal rilassamento, non dalla forza. Sciogli spalle e braccia prima delle raffiche.",
+            "steps": [
+              "Braccia lungo i fianchi, scuoti spalle e mani per 20 secondi.",
+              "Pugni a catena lentissimi con le braccia morbide, sentendo solo il gomito che scorre.",
+              "Accelera per 10 secondi, poi torna lento; spalle sempre giù."
+            ],
+            "cues": [
+              "Spalle basse, collo lungo",
+              "Rilassa tra un pugno e l'altro"
+            ],
+            "success": "Riuscito se: anche accelerando senti le spalle rilassate e i pugni restano sulla linea centrale.",
+            "dose": {
+              "sets": 2,
+              "work": 60,
+              "rest": 20
+            },
+            "video": "wing chun chain punch relaxation",
+            "prepFor": "kungfu-5-6"
+          },
+          {
+            "id": "kungfu-5-6",
+            "name": "Pugno a catena veloce al cuscino",
+            "kind": "sacco",
+            "how": "Raffiche di pugno a catena veloci su cuscino o pad morbido a muro, con le bende. Velocità alta, forza media, precisione massima.",
+            "steps": [
+              "Con le bende, a un braccio dal cuscino morbido fissato al muro. Mai su superfici dure.",
+              "Raffiche di 10 secondi veloci, poi 10 secondi lenti per controllare la linea.",
+              "Senza cuscino: stesse raffiche a vuoto, senza distendere del tutto il gomito."
+            ],
+            "cues": [
+              "Polso dritto a ogni impatto",
+              "Veloce ma rilassato",
+              "Dolore al polso: stop"
+            ],
+            "success": "Riuscito se: tieni le raffiche veloci per tutto il round con i polsi dritti e i pugni sempre sullo stesso punto.",
+            "easier": "Fai le raffiche a velocità media, oppure a vuoto davanti allo specchio, senza contatto.",
+            "dose": {
+              "sets": 5,
+              "work": 45,
+              "rest": 40
+            },
+            "video": "wing chun wall bag training"
+          }
+        ]
+      },
+      {
+        "level": 6,
+        "title": "Forma completa e round lunghi",
+        "focus": "Esegui Siu Nim Tao completa, prepari equilibrio e spalle e chiudi con round lunghi al cuscino o in shadow: pugni a catena veloci, mani e calci bassi.",
+        "exercises": [
+          {
+            "id": "kungfu-6-1",
+            "name": "Mobilità, footwork e mani",
+            "kind": "riscaldamento",
+            "how": "Prepari tutto il corpo per la forma completa e i round lunghi: articolazioni, gambe e mani, dal lento al medio.",
+            "steps": [
+              "Rotazioni di polsi, gomiti, spalle, bacino e ginocchia.",
+              "Passi avanti, indietro e rotazioni in guardia per un minuto.",
+              "Tan sao, bong sao, fook sao e pugni lenti in posizione."
+            ],
+            "cues": [
+              "Dal lento al medio, mai di colpo",
+              "Controlla polsi e spalle"
+            ],
+            "success": "Riuscito se: arrivi alle mani in posizione con le articolazioni calde e il respiro tranquillo.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 20
+            },
+            "video": "wing chun warm up drills full"
+          },
+          {
+            "id": "kungfu-6-2",
+            "name": "Tenuta lunga della posizione",
+            "kind": "preparatorio",
+            "how": "La forma completa dura qualche minuto in posizione bassa. Alleni la tenuta con respiro calmo e mani in guardia.",
+            "steps": [
+              "Entra in yee jee kim yeung e controlla ginocchia, bacino e spalle allo specchio.",
+              "Tieni la posizione con le mani in guardia e un respiro lento e basso.",
+              "Negli ultimi 15 secondi aggiungi tan sao lenti alternati, senza alzarti."
+            ],
+            "cues": [
+              "Respira lento, spalle giù",
+              "Le ginocchia non cedono verso l'esterno"
+            ],
+            "success": "Riuscito se: tieni la posizione per tutto il tempo senza alzarti e senza aprire le ginocchia.",
+            "easier": "Tieni 45 secondi per serie e piega meno le ginocchia.",
+            "dose": {
+              "sets": 3,
+              "work": 90,
+              "rest": 30
+            },
+            "video": "wing chun stance training long hold",
+            "prepFor": "kungfu-6-3"
+          },
+          {
+            "id": "kungfu-6-3",
+            "name": "Siu Nim Tao completa",
+            "kind": "shadow",
+            "how": "Esegui la prima forma dall'inizio alla fine. È il riassunto di tutto quello che hai copiato: struttura, linea centrale, rilassamento.",
+            "steps": [
+              "Prima esecuzione lenta, controllando ogni posizione allo specchio.",
+              "Seconda esecuzione a ritmo normale, lenta solo nella sezione di tan sao e fook sao.",
+              "Terza esecuzione senza specchio, con lo sguardo su un punto fisso."
+            ],
+            "cues": [
+              "Posizione bassa dall'inizio alla fine",
+              "Linea centrale in ogni gesto"
+            ],
+            "success": "Riuscito se: completi la forma intera 3 volte senza guardare il video e senza alzare la posizione.",
+            "easier": "Fai la forma a sezioni con una pausa tra l'una e l'altra, oppure due esecuzioni invece di tre.",
+            "dose": {
+              "sets": 3,
+              "work": 180,
+              "rest": 45
+            },
+            "video": "siu nim tao complete form"
+          },
+          {
+            "id": "kungfu-6-4",
+            "name": "Equilibrio e scioltezza",
+            "kind": "preparatorio",
+            "how": "Prima dei round lunghi prepari l'equilibrio per i calci e spalle sciolte per le raffiche.",
+            "steps": [
+              "Ginocchio all'anca e calcio frontale lento, 5 per gamba, senza appoggiare il piede.",
+              "Scuoti spalle e braccia, poi pugni a catena morbidi e lentissimi.",
+              "Chiudi con 10 secondi di pugni veloci e rilassati."
+            ],
+            "cues": [
+              "Equilibrio prima della potenza",
+              "Spalle basse"
+            ],
+            "success": "Riuscito se: tieni l'equilibrio su ogni calcio lento e i pugni veloci restano rilassati.",
+            "dose": {
+              "sets": 2,
+              "work": 90,
+              "rest": 20
+            },
+            "video": "wing chun kicking balance drill",
+            "prepFor": "kungfu-6-5"
+          },
+          {
+            "id": "kungfu-6-5",
+            "name": "Round lunghi al cuscino",
+            "kind": "sacco",
+            "how": "Round lunghi su cuscino o pad morbido a muro, o al sacco, con le bende: pak sao, lap sao, pugni a catena, calci bassi e passi. Ritmo alto, tecnica pulita.",
+            "steps": [
+              "Con le bende, lavora sul pad morbido a muro o sul sacco: mai su superfici dure.",
+              "Alterna raffiche di pugno a catena, pak da, lap sao e calcio frontale basso al sacco o a vuoto.",
+              "Muoviti con passi e rotazioni tra una raffica e l'altra. Senza sacco: stesso round in shadow."
+            ],
+            "cues": [
+              "Raffiche brevi, poi esci con il passo",
+              "Polsi dritti all'impatto"
+            ],
+            "success": "Riuscito se: completi tutti i round mantenendo linea centrale, polsi dritti e posizione bassa fino all'ultimo minuto.",
+            "easier": "Fai round da 90 secondi, oppure tutto in shadow davanti allo specchio, senza contatto.",
+            "dose": {
+              "sets": 4,
+              "work": 180,
+              "rest": 60
+            },
+            "video": "wing chun heavy bag training drills"
+          }
+        ]
+      }
+    ],
+    "color": "#ff5b6e",
+    "short": "Kung Fu"
+  }
+];

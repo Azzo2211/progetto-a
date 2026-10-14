@@ -21,7 +21,7 @@
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const ui = {
-    tab: "program",
+    tab: "martial",
     view: null,        // { type: "technique", id } | { type: "session" }
     run: null,         // sessione in corso
     test: null,        // prova di riflessi in corso
@@ -144,6 +144,13 @@
   function renderChip() {
     const chip = $("defChip");
     if (!chip) return;
+    const m = window.DefenseMartialUI ? window.DefenseMartialUI.chip() : null;
+    if (m) {
+      chip.innerHTML = `
+        <span class="def-chip-phase" ${m.color ? `style="background:${m.color}"` : ""}>${esc(m.label)}</span>
+        <span class="def-chip-text"><strong>Oggi · ${esc(m.title)}</strong><em>${esc(m.sub)} · profilo ${profileTotal()}</em></span>`;
+      return;
+    }
     const l = lab();
     const done = P.sessions.filter((s) => E.sessionState(l, s.id).done > 0).length;
     const phase = E.PHASES[Math.min(E.PHASES.length, E.currentPhase(l, P.sessions)) - 1];
@@ -175,6 +182,7 @@
   }
 
   function stopEverything() {
+    if (window.DefenseMartialUI) window.DefenseMartialUI.stop();
     if (ui.tick) { clearInterval(ui.tick); ui.tick = null; }
     if (ui.test) abortTest();
     if (ui.situ && ui.situ.timer) { clearTimeout(ui.situ.timer); ui.situ.timer = null; }
@@ -184,7 +192,8 @@
   function render() {
     renderChip();
     destroyFigs();
-    if (ui.tab === "program") renderProgram();
+    if (ui.tab === "martial") { if (window.DefenseMartialUI) window.DefenseMartialUI.render(); }
+    else if (ui.tab === "program") renderProgram();
     else if (ui.tab === "reflex") renderReflex();
     else if (ui.tab === "situ") renderSitu();
     else renderProfile();
@@ -1261,7 +1270,8 @@
 
   // Stessa scala del quadro (10-99), cosi' pagina e quadro mostrano gli stessi numeri.
   function profileSkills() {
-    const values = E.profile(lab(), P.sessions);
+    const extras = window.DefenseMartialUI ? window.DefenseMartialUI.extras() : null;
+    const values = E.profile(lab(), P.sessions, Date.now(), extras);
     return E.DIMENSIONS.map((d) => ({ key: d.key, label: d.label, value: Math.round(Math.max(10, Math.min(99, values[d.key]))), text: d.text }));
   }
 
@@ -1274,7 +1284,7 @@
     decisione: "Rivedi le situazioni sbagliate quando tornano e leggi bene le note: il principio conta più della singola risposta.",
     riflessi: "Una prova di Semaforo e una di Direzione al giorno, riposato. I tempi migliorano in poche settimane.",
     controllo: "Nel Semaforo aspetta di vedere il colore: meglio 30 ms più lento che partire al rosso.",
-    tecnica: "Fai la prossima sessione del programma e rispondi onestamente all'autovalutazione.",
+    tecnica: "Fai l'allenamento di arti marziali di oggi e segna onestamente cosa ti è riuscito; sali di livello solo quando è pulito.",
     costanza: "Bastano dieci minuti quasi ogni giorno: una prova di riflessi o un turno di situazioni contano."
   };
 
@@ -1323,6 +1333,7 @@
         </article>
         <div class="def-pside">
           <article class="def-pcard def-weak"><span class="def-kicker">Da allenare</span><h3>${esc(weak.label)} · ${weak.value}</h3><p>${esc(ADVICE[weak.key])}</p></article>
+          ${window.DefenseMartialUI ? window.DefenseMartialUI.profileCard() : ""}
           <article class="def-pcard"><h3>Programma</h3><ul class="def-plist">${phases}</ul></article>
           <article class="def-pcard"><h3>Riflessi</h3><ul class="def-plist">${tests}</ul></article>
           <article class="def-pcard"><h3>Situazioni</h3><ul class="def-plist two">${cats}</ul></article>
@@ -1343,6 +1354,7 @@
 
   window.defenseTrend = function () {
     if (!E) return "";
+    if (window.DefenseMartialUI) { const m = window.DefenseMartialUI.trend(); if (m) return m; }
     const l = lab();
     const done = P.sessions.filter((s) => E.sessionState(l, s.id).done > 0).length;
     const phase = Math.min(E.PHASES.length, E.currentPhase(l, P.sessions));
@@ -1562,7 +1574,7 @@
     page.addEventListener("pointerdown", onPointer);
     document.addEventListener("keydown", onKey);
     const chip = $("defChip");
-    if (chip) chip.addEventListener("click", () => setTab("profile"));
+    if (chip) chip.addEventListener("click", () => setTab("martial"));
     // Tab con le frecce (pattern ARIA delle schede)
     const tabs = page.querySelector(".def-tabs");
     if (tabs) tabs.addEventListener("keydown", (event) => {
@@ -1593,6 +1605,6 @@
     if ("speechSynthesis" in window) {
       try { window.speechSynthesis.onvoiceschanged = () => { itVoice = null; }; } catch (e) { /* niente */ }
     }
-    setTab("program");
+    setTab("martial");
   });
 })();

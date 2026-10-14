@@ -108,6 +108,22 @@ La pagina Cultura (cartella `culture/`) è una biblioteca di schede brevi da cap
 
 **Profilo (6 categorie, calcolato dalle risposte)**: Comprensione, Collegamenti e Applicazione = percentuale di risposte giuste a quel tipo di domanda (con una partenza prudente al 35%); Memoria = risposte giuste nei ripassi, cala se lasci scadere i ripassi da più di una settimana; Ampiezza = schede consolidate e aree coperte; Costanza = ripassi fatti in tempo e giorni di studio nelle ultime due settimane. Rifare la verifica di una scheda già studiata non cambia le statistiche.
 
+## Modulo difesa: arti marziali "metodo Johan Seong"
+
+La scheda **Arti marziali** è la parte principale della pagina Difesa. Il tema è Johan Seong di Lookism (usato solo come motivazione nei testi: osserva, copia, fallo tuo).
+
+| File | Cosa fa |
+|---|---|
+| `defense/martial-data.js` | 7 discipline (boxe, muay thai, taekwondo, karate, capoeira, lotta, kung fu Wing Chun), 6 livelli ciascuna da 5-6 esercizi: dose (serie, ripetizioni o secondi, recupero), criterio di "riuscito", versione più facile, esercizi preparatori prima di quelli difficili o di flessibilità, ricerca video su YouTube. |
+| `defense/martial.js` | Settimana a rotazione, livelli, storico. Senza DOM, testato in `tests/martial.test.js`. |
+| `defense/martial-ui.js`, `defense/martial.css` | Le viste Oggi, Settimana, Stili, Progressi. |
+
+**Settimana**: di base 5 giorni (lunedì-venerdì, modificabili). Ogni giorno uno stile diverso; le discipline cambiano di settimana in settimana (prima quelle che non fai da più tempo) e ogni giorno si può cambiare a mano. Gli stili si possono togliere dalla rotazione.
+
+**Allenamento**: gli esercizi del livello attuale, ognuno con timer (serie a tempo o a ripetizioni, recupero, cambio lato, segnali casuali per lo shadow). Per ogni esercizio segni "Riuscito" o "Non ancora"; alla fine decidi tu se salire di livello (l'app consiglia di salire con almeno l'80% riuscito). All'ultimo livello si può dichiarare lo stile "copiato al 100%". Il livello si può cambiare a mano anche dalla scheda dello stile.
+
+**Progressi**: settimana in corso, settimane complete di fila, allenamenti e minuti, quanto hai copiato di ogni stile, calendario delle ultime 8 settimane, cambi di livello e ultimi allenamenti. Gli allenamenti contano anche per Tecnica e Costanza nel profilo della Difesa.
+
 ## Modulo difesa: programma, riflessi, situazioni
 
 La pagina Difesa (cartella `defense/`) parte da un principio: prima si evita, poi si calma, poi si esce. La tecnica serve a proteggersi e ad andarsene.
@@ -136,6 +152,7 @@ node tests/chess-trainer.test.js
 node tests/scenarios.test.js
 node tests/culture.test.js
 node tests/defense.test.js
+node tests/martial.test.js
 node tools/verify-lessons.js           # controlla esempi ed esercizi delle lezioni con Stockfish
 node tools/calibrate.js self:8 6       # precisione media del livello 8 su 6 partite bot contro bot
 node tools/calibrate.js match:10-12 10 # scontro diretto tra due livelli
