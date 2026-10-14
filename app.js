@@ -1055,6 +1055,7 @@ function renderDashboard() {
   const average = abilities.reduce((sum, item) => sum + item.value, 0) / abilities.length;
   document.getElementById("disciplineScore").textContent = Math.round(average);
   document.getElementById("overallRank").textContent = rankFromScore(average);
+  renderRankCard(average);
 
   const weakest = [...abilities].sort((a, b) => a.value - b.value)[0];
   const strongest = [...abilities].sort((a, b) => b.value - a.value)[0];
@@ -1066,6 +1067,25 @@ function renderDashboard() {
   renderGlobalParameters();
   renderAllModuleStatus();
   renderModeCardIndicators();
+}
+
+// Tessera del rango nel quadro: lettera, scala E-S e punti mancanti al rango successivo.
+function renderRankCard(score) {
+  const rank = rankFromScore(score);
+  const order = ["E", "D", "C", "B", "A", "S"];
+  const thresholds = { D: 45, C: 60, B: 70, A: 80, S: 90 };
+  const card = document.getElementById("rankCard");
+  const letter = document.getElementById("rankLetter");
+  if (card) card.dataset.rank = rank;
+  if (letter) letter.textContent = rank;
+  document.querySelectorAll("#rankScale li").forEach((item) => {
+    const index = order.indexOf(item.dataset.rank);
+    item.classList.toggle("current", item.dataset.rank === rank);
+    item.classList.toggle("reached", index < order.indexOf(rank));
+  });
+  const next = order[order.indexOf(rank) + 1];
+  const nextBox = document.getElementById("rankNext");
+  if (nextBox) nextBox.textContent = next ? `Mancano ${Math.max(1, Math.ceil(thresholds[next] - score))} punti al rango ${next}.` : "Rango massimo raggiunto.";
 }
 
 function buildFinalRecap(abilities) {
@@ -1128,7 +1148,7 @@ function buildRadarMarkup(values, size, center, maxRadius, showLabels) {
   };
   const rings = [0.33, 0.66, 1].map((ratio) => {
     const points = angles.map((_, index) => pointFor(maxRadius * ratio, index).join(",")).join(" ");
-    return `<polygon class="radar-grid" points="${points}"></polygon>`;
+    return `<polygon class="radar-grid${ratio === 1 ? " radar-grid-outer" : ""}" points="${points}"></polygon>`;
   }).join("");
   const axes = angles.map((_, index) => {
     const [x, y] = pointFor(maxRadius, index);
@@ -1143,11 +1163,11 @@ function buildRadarMarkup(values, size, center, maxRadius, showLabels) {
     const value = clamp(item.value || 0, 0, 100);
     const [x, y] = pointFor(maxRadius * (value / 100), index);
     if (!showLabels) return `<circle class="radar-dot" cx="${x}" cy="${y}" r="4"></circle>`;
-    const [labelX, labelY] = pointFor(maxRadius + 42, index);
-    const [valueX, valueY] = pointFor(maxRadius + 58, index);
+    const [labelX, labelY] = pointFor(maxRadius + 40, index);
+    const [valueX, valueY] = [labelX, labelY + 14];
     return `<circle class="radar-dot" cx="${x}" cy="${y}" r="5"></circle><text class="radar-label" x="${labelX}" y="${labelY}">${item.label}</text><text class="radar-value" x="${valueX}" y="${valueY}">${Math.round(value)} ${rankFromScore(value)}</text>`;
   }).join("");
-  return `<rect x="0" y="0" width="${size}" height="${size}" rx="8" fill="#ffffff"></rect>${rings}${axes}<polygon class="radar-shape" points="${shapePoints}"></polygon>${dots}`;
+  return `<rect class="radar-bg" x="0" y="0" width="${size}" height="${size}" rx="8"></rect>${rings}${axes}<polygon class="radar-shape" points="${shapePoints}"></polygon>${dots}`;
 }
 
 function renderGlobalParameters() {
@@ -1169,7 +1189,7 @@ function renderModuleStatus(moduleKey) {
   const score = getModuleScore(moduleKey);
   const radar = document.getElementById(`${moduleKey}ModuleRadar`);
   const metricBox = document.getElementById(`${moduleKey}ModuleMetrics`);
-  if (radar) radar.innerHTML = buildRadarMarkup(skills, 280, 140, 82, false);
+  if (radar) radar.innerHTML = buildRadarMarkup(skills, 280, 140, 122, false);
   if (metricBox) {
     metricBox.classList.add("module-skill-panel");
     metricBox.innerHTML = `
@@ -2926,8 +2946,13 @@ function buildEvalSparkline(values, activeIndex = null, moves = []) {
     <line x1="${activePoint.x.toFixed(1)}" y1="${padding}" x2="${activePoint.x.toFixed(1)}" y2="${height - padding}" class="eval-sparkline-active-line"></line>
     <circle cx="${activePoint.x.toFixed(1)}" cy="${activePoint.y.toFixed(1)}" r="6" class="eval-sparkline-active-dot"></circle>
   ` : "";
+  // Area chiara = vantaggio del Bianco, fondo scuro = Nero (stile chess.com).
+  const first = coordinates[0];
+  const last = coordinates[coordinates.length - 1];
+  const areaPoints = [`0,${height}`, `0,${first.y.toFixed(1)}`, points, `${width},${last.y.toFixed(1)}`, `${width},${height}`].join(" ");
   return `
-    <line x1="${padding}" y1="${height / 2}" x2="${width - padding}" y2="${height / 2}" class="eval-sparkline-mid"></line>
+    <polygon points="${areaPoints}" class="eval-sparkline-area"></polygon>
+    <line x1="0" y1="${height / 2}" x2="${width}" y2="${height / 2}" class="eval-sparkline-mid"></line>
     <polyline points="${points}" class="eval-sparkline-line"></polyline>
     <circle cx="${points.split(" ").pop().split(",")[0]}" cy="${points.split(" ").pop().split(",")[1]}" r="4" class="eval-sparkline-dot"></circle>
     ${pointMarkup}
@@ -3196,7 +3221,6 @@ function updateReviewEvalBar(score) {
   if (!fill) return;
   const width = clamp(ChessAnalysis.winPercent(score || 0), 3, 97);
   fill.style.width = `${width}%`;
-  fill.style.background = score >= 0 ? "rgba(31, 122, 109, 0.72)" : "rgba(184, 74, 58, 0.72)";
 }
 
 function renderMistakes() {

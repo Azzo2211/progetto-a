@@ -62,7 +62,7 @@
     const link = document.createElement("link");
     link.id = "scenarioThemeStylesheet";
     link.rel = "stylesheet";
-    link.href = "scenario-theme.css?v=20260714-1";
+    link.href = "scenario-theme.css?v=20261014";
     document.head.appendChild(link);
   }
 

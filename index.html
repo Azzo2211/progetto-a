@@ -4,9 +4,22 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Metodo Integrale</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f7a6d'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-size='28' font-weight='700' text-anchor='middle' fill='%23ffffff'%3EMI%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="styles.css?v=20261014-2" />
   </head>
   <body>
+    <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="i-dashboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></symbol>
+      <symbol id="i-chess" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6.3" r="2.8"/><path d="M9.6 10.4h4.8l1.3 6.6H8.3z"/><path d="M6.5 20.5h11"/></symbol>
+      <symbol id="i-scenarios" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h10.5A1.5 1.5 0 0 1 16 7v6a1.5 1.5 0 0 1-1.5 1.5H9l-3.5 3v-3H4A1.5 1.5 0 0 1 2.5 13V7A1.5 1.5 0 0 1 4 5.5z"/><path d="M19 9h1a1.5 1.5 0 0 1 1.5 1.5v6A1.5 1.5 0 0 1 20 18h-.5v2.5L16.5 18H12"/></symbol>
+      <symbol id="i-culture" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.6c-2-1.5-5-2-8.5-1.5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5v-13c-3.5-.5-6.5 0-8.5 1.5z"/><path d="M12 6.6v13"/></symbol>
+      <symbol id="i-planning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 21V3.8"/><path d="M5.5 4.5h11.5l-2.2 3.6L17 11.7H5.5"/></symbol>
+      <symbol id="i-defense" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7.5 3v5.5c0 4.6-3.2 8-7.5 9.5-4.3-1.5-7.5-4.9-7.5-9.5V6z"/></symbol>
+      <symbol id="i-logic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6.5" r="2.3"/><circle cx="18" cy="8.5" r="2.3"/><circle cx="10.5" cy="18" r="2.3"/><path d="M8.3 6.9l7.4 1.2M7 8.6l2.6 7.2M16.5 10.3l-4.6 5.9"/></symbol>
+      <symbol id="i-memory" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l8.5 4.5-8.5 4.5L3.5 8z"/><path d="M3.5 12.2l8.5 4.5 8.5-4.5"/><path d="M3.5 16.2l8.5 4.5 8.5-4.5"/></symbol>
+      <symbol id="i-influence" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2"/><path d="M8 8a5.7 5.7 0 0 0 0 8M16 8a5.7 5.7 0 0 1 0 8M5.2 5.2a9.6 9.6 0 0 0 0 13.6M18.8 5.2a9.6 9.6 0 0 1 0 13.6"/></symbol>
+      <symbol id="i-aesthetic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.5l1.9 5.3 5.3 1.9-5.3 1.9L11 17.9l-1.9-5.3-5.3-1.9 5.3-1.9z"/><path d="M18.5 15.5v5M16 18h5"/></symbol>
+    </svg>
     <div class="app-shell">
       <aside class="sidebar" aria-label="Navigazione principale">
         <a class="brand" href="#dashboard" aria-label="Vai al quadro">
@@ -18,16 +31,17 @@
         </a>
 
         <nav class="nav-list">
-          <a href="#dashboard" class="nav-link active" data-route="dashboard">Quadro</a>
-          <a href="#chess" class="nav-link" data-route="chess">Scacchi</a>
-          <a href="#scenarios" class="nav-link" data-route="scenarios">Scenari</a>
-          <a href="#culture" class="nav-link" data-route="culture">Cultura</a>
-          <a href="#planning" class="nav-link" data-route="planning">Piani</a>
-          <a href="#defense" class="nav-link" data-route="defense">Difesa</a>
-          <a href="#logic" class="nav-link" data-route="logic">Logica</a>
-          <a href="#memory" class="nav-link" data-route="memory">Memoria</a>
-          <a href="#influence" class="nav-link" data-route="influence">Influenza</a>
-          <a href="#aesthetic" class="nav-link" data-route="aesthetic">Estetica</a>
+          <a href="#dashboard" class="nav-link active" data-route="dashboard"><svg class="nav-icon" aria-hidden="true"><use href="#i-dashboard"/></svg><span>Quadro</span></a>
+          <span class="nav-group-label">Allenamenti</span>
+          <a href="#chess" class="nav-link" data-route="chess"><svg class="nav-icon" aria-hidden="true"><use href="#i-chess"/></svg><span>Scacchi</span></a>
+          <a href="#scenarios" class="nav-link" data-route="scenarios"><svg class="nav-icon" aria-hidden="true"><use href="#i-scenarios"/></svg><span>Scenari</span></a>
+          <a href="#culture" class="nav-link" data-route="culture"><svg class="nav-icon" aria-hidden="true"><use href="#i-culture"/></svg><span>Cultura</span></a>
+          <a href="#planning" class="nav-link" data-route="planning"><svg class="nav-icon" aria-hidden="true"><use href="#i-planning"/></svg><span>Piani</span></a>
+          <a href="#defense" class="nav-link" data-route="defense"><svg class="nav-icon" aria-hidden="true"><use href="#i-defense"/></svg><span>Difesa</span></a>
+          <a href="#logic" class="nav-link" data-route="logic"><svg class="nav-icon" aria-hidden="true"><use href="#i-logic"/></svg><span>Logica</span></a>
+          <a href="#memory" class="nav-link" data-route="memory"><svg class="nav-icon" aria-hidden="true"><use href="#i-memory"/></svg><span>Memoria</span></a>
+          <a href="#influence" class="nav-link" data-route="influence"><svg class="nav-icon" aria-hidden="true"><use href="#i-influence"/></svg><span>Influenza</span></a>
+          <a href="#aesthetic" class="nav-link" data-route="aesthetic"><svg class="nav-icon" aria-hidden="true"><use href="#i-aesthetic"/></svg><span>Estetica</span></a>
         </nav>
 
         <div class="side-note">
@@ -48,13 +62,18 @@
 
           <div class="dashboard-grid">
             <article class="summary-card score-panel">
-              <div class="score-ring" aria-label="Indice generale">
-                <span id="disciplineScore">42</span>
-                <small>indice</small>
+              <div class="rank-card" id="rankCard" data-rank="E" aria-label="Rango generale">
+                <strong class="rank-card-letter" id="rankLetter">E</strong>
+                <span class="rank-card-label">Rango generale</span>
+                <span class="rank-card-index"><b id="disciplineScore">42</b> su 100</span>
+                <ol class="rank-scale" id="rankScale" aria-label="Scala dei ranghi">
+                  <li data-rank="E">E</li><li data-rank="D">D</li><li data-rank="C">C</li><li data-rank="B">B</li><li data-rank="A">A</li><li data-rank="S">S</li>
+                </ol>
               </div>
-              <div>
+              <div class="score-copy">
                 <h2>Situazione</h2>
                 <p id="profileSummary">Completa prove nelle modalita' e il quadro iniziera' a leggere i tuoi pattern.</p>
+                <p class="rank-next" id="rankNext"></p>
               </div>
             </article>
 
@@ -88,56 +107,47 @@
 
           <div class="mode-grid" aria-label="Modalita disponibili">
             <a class="mode-card" href="#chess">
-              <span>01</span>
-              <strong>Scacchi</strong>
+              <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-chess"/></svg><strong>Scacchi</strong></span>
               <p>Bot adattivo, errori ricorrenti e revisione mossa per mossa.</p>
               <div class="mini-indicators" id="chessCardIndicators"></div>
             </a>
             <a class="mode-card" href="#scenarios">
-              <span>02</span>
-              <strong>Scenari</strong>
+              <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-scenarios"/></svg><strong>Scenari</strong></span>
               <p>Situazioni complesse con risposta libera e metriche profonde.</p>
               <div class="mini-indicators" id="scenariosCardIndicators"></div>
             </a>
             <a class="mode-card" href="#culture">
-              <span>03</span>
-              <strong>Cultura generale</strong>
+              <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-culture"/></svg><strong>Cultura generale</strong></span>
               <p>Argomenti completi, difficolta' e domanda di verifica.</p>
               <div class="mini-indicators" id="cultureCardIndicators"></div>
             </a>
             <a class="mode-card" href="#planning">
-              <span>04</span>
-              <strong>Piani strategici</strong>
+              <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-planning"/></svg><strong>Piani strategici</strong></span>
               <p>Obiettivi random o tuoi, valutazione e miglioramento.</p>
               <div class="mini-indicators" id="planningCardIndicators"></div>
             </a>
             <a class="mode-card" href="#defense">
-              <span>05</span>
-              <strong>Difesa personale</strong>
+              <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-defense"/></svg><strong>Difesa personale</strong></span>
               <p>Mosse semplici, progressione tecnica e riflessi.</p>
               <div class="mini-indicators" id="defenseCardIndicators"></div>
             </a>
             <a class="mode-card" href="#logic">
-              <span>06</span>
-              <strong>Logica</strong>
+              <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-logic"/></svg><strong>Logica</strong></span>
               <p>Indovinelli a scelta multipla con spiegazione.</p>
               <div class="mini-indicators" id="logicCardIndicators"></div>
             </a>
             <a class="mode-card" href="#memory">
-              <span>07</span>
-              <strong>Memoria</strong>
+              <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-memory"/></svg><strong>Memoria</strong></span>
               <p>Sequenze, parole e richiamo attivo per ricordare meglio.</p>
               <div class="mini-indicators" id="memoryCardIndicators"></div>
             </a>
             <a class="mode-card" href="#influence">
-              <span>08</span>
-              <strong>Influenza</strong>
+              <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-influence"/></svg><strong>Influenza</strong></span>
               <p>Tattiche sociali, scenari fittizi e uso etico della leva.</p>
               <div class="mini-indicators" id="influenceCardIndicators"></div>
             </a>
             <a class="mode-card" href="#aesthetic">
-              <span>09</span>
-              <strong>Estetica</strong>
+              <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-aesthetic"/></svg><strong>Estetica</strong></span>
               <p>Routine look, cura personale, capelli, barba e stile.</p>
               <div class="mini-indicators" id="aestheticCardIndicators"></div>
             </a>
@@ -341,7 +351,7 @@
               <div id="scenarioFeedback" class="analysis-box">Scrivi una risposta libera: il coach valutera' lucidita', rischio, tempismo, etica, assertivita' e piano B.</div>
               <div class="social-bars" id="scenarioBars"></div>
             </article>
-            <article class="tool-card module-status">
+            <article class="tool-card module-status profile-wide">
               <h2>Profilo scenari</h2>
               <svg id="scenariosModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar scenari"></svg>
               <div id="scenariosModuleMetrics" class="metric-list"></div>
@@ -640,8 +650,8 @@
     <script src="chess/engine.js?v=20261014"></script>
     <script src="chess/bot.js?v=20261014"></script>
     <script src="chess/review.js?v=20261014"></script>
-    <script src="app.js?v=20261014"></script>
-    <script src="cote-theme.js?v=20261014"></script>
-    <script src="scenario-theme.js?v=20260714-1"></script>
+    <script src="app.js?v=20261014-2"></script>
+    <script src="cote-theme.js?v=20261014-2"></script>
+    <script src="scenario-theme.js?v=20261014"></script>
   </body>
 </html>

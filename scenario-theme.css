@@ -236,3 +236,23 @@
   .scenario-result-summary { grid-template-columns: 1fr; }
   .scenario-word-count { width: 100%; margin-left: 0; }
 }
+/* Profilo nel tema scuro: superfici scure e barre leggibili. */
+#scenarios.scenario-theme .module-score-card {
+  background: linear-gradient(145deg, rgba(17, 45, 51, 0.92), rgba(6, 22, 28, 0.92));
+  border-color: rgba(86, 214, 198, 0.22);
+}
+
+#scenarios.scenario-theme .module-score-card span { color: var(--scenario-muted); }
+#scenarios.scenario-theme .module-score-card strong { color: #ffffff; }
+#scenarios.scenario-theme .module-score-card em { color: var(--scenario-cyan); }
+
+#scenarios.scenario-theme .dashboard-value-row span { color: #cfe1df; }
+#scenarios.scenario-theme .dashboard-value-row strong { color: #ffffff; }
+
+#scenarios.scenario-theme .mini-track { background: rgba(255, 255, 255, 0.09); }
+#scenarios.scenario-theme .mini-fill { background: linear-gradient(90deg, var(--scenario-cyan), var(--scenario-orange)); }
+
+#scenarios.scenario-theme .page-subtitle { color: var(--scenario-muted); }
+#scenarios.scenario-theme .free-answer-label { color: var(--scenario-muted); }
+#scenarios.scenario-theme .tool-card p,
+#scenarios.scenario-theme .small-note { color: var(--scenario-muted); }

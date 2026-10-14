@@ -8,7 +8,12 @@ const types = {
   ".html": "text/html; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
-  ".wasm": "application/wasm"
+  ".wasm": "application/wasm",
+  ".woff2": "font/woff2",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".json": "application/json; charset=utf-8",
+  ".txt": "text/plain; charset=utf-8"
 };
 
 const commonHeaders = {
