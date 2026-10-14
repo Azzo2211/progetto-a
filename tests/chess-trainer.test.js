@@ -218,7 +218,10 @@ test("Profilo: ogni errore ha la sua categoria", () => {
   ];
   const events = Skills.gameEvents(moves, { color: "w", result: "loss", reason: "checkmate" });
   const sum = (key) => events.filter((e) => e.category === key).reduce((t, e) => t + e.points, 0);
-  assert.ok(sum("concentration") < -8, "blunder + pezzo in presa");
+  const moveOne = events.filter((e) => e.moveNumber === 1 && e.category === "concentration");
+  assert.strictEqual(moveOne.length, 1, "un blunder con pezzo in presa conta una volta sola");
+  assert.ok(moveOne[0].points <= -5, "pezzo in presa pesa molto");
+  assert.ok(sum("concentration") < -5);
   assert.ok(events.some((e) => e.category === "threatVision" && e.points < 0), "minaccia non vista");
   assert.ok(events.some((e) => e.category === "threatVision" && e.points > 0), "errore del bot punito");
   assert.ok(events.some((e) => e.category === "calculation" && e.points > 0), "mossa grande");
@@ -242,6 +245,20 @@ test("Profilo: il totale e' la media e i punti dipendono dall'avversario", () =>
   const after = Skills.applyGame(base, good, { botElo: 1400 }).skills;
   const avg = Math.round(Skills.CATEGORIES.reduce((t, c) => t + after[c.key], 0) / 6);
   assert.strictEqual(Skills.total(after), avg);
+});
+
+test("Profilo: una sconfitta non alza il profilo contro bot forti", () => {
+  const base = Skills.createSkills();
+  const events = [
+    { category: "kingSafety", points: 3, label: "Arrocco", moveNumber: null },
+    { category: "kingSafety", points: -1, label: "Sconfitta", moveNumber: null },
+    { category: "calculation", points: 6, label: "Brillante", moveNumber: 5 },
+    { category: "calculation", points: 4, label: "Grande", moveNumber: 9 }
+  ];
+  const lost = Skills.applyGame(base, events, { botElo: 2000, result: "loss" }).changes;
+  assert.ok(lost.kingSafety <= 2 && lost.calculation <= 2, JSON.stringify(lost));
+  const missed = Skills.gameEvents([fakeMove(0, "Bianco", "missed", { categories: ["noPlan"] })], { color: "w" });
+  assert.deepStrictEqual(missed.map((e) => e.category), ["threatVision"], "mossa mancata: solo Visione minacce");
 });
 
 test("Profilo: i vecchi valori casuali vengono azzerati", () => {

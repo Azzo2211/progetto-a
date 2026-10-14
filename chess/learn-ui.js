@@ -351,10 +351,16 @@
     const games = state.chess.skillGames || [];
     const stats = Object.fromEntries(S.CATEGORIES.map((c) => [c.key, { errors: 0, labels: {}, recent: [], historic: 0 }]));
     games.forEach((game) => {
+      const counted = new Set();
       (game.events || []).forEach((event) => {
         if (event.points >= 0 || !stats[event.category]) return;
         const entry = stats[event.category];
-        entry.errors += 1;
+        // piu' eventi sulla stessa mossa contano come un errore solo
+        const key = `${event.category}-${event.moveNumber}`;
+        if (!counted.has(key)) {
+          counted.add(key);
+          entry.errors += 1;
+        }
         entry.labels[event.label] = (entry.labels[event.label] || 0) + 1;
         entry.recent.push({ label: event.label, moveNumber: event.moveNumber, date: game.date, botElo: game.botElo });
       });
@@ -468,6 +474,7 @@
     const category = S.BY_KEY[screen.category];
     if (!category) return;
     ensureTrainer();
+    const startedOn = screen;
     setFeedback("Preparo gli esercizi...", "info");
     let all;
     try {
@@ -476,6 +483,7 @@
       setFeedback("Esercizi non disponibili: apri il sito da http://localhost:8765 (serve il server locale).", "bad");
       return;
     }
+    if (screen !== startedOn) return; // l'utente ha cambiato schermata nel frattempo
     const profile = window.chessRatingProfile();
     const target = profile.puzzle.rating;
     const seen = profile.puzzle.seen || {};
@@ -637,6 +645,7 @@
 
   async function startLessonExercises() {
     const lesson = screen.lesson;
+    const startedOn = screen;
     const p = lessonProgress(lesson.id);
     p.attempts += 1;
     saveState();
@@ -654,7 +663,7 @@
         setFeedback("Esercizi non disponibili: apri il sito da http://localhost:8765 (serve il server locale).", "bad");
       }
     }
-    if (!queue.length) return;
+    if (!queue.length || screen !== startedOn) return;
     session = { kind: "lesson", lesson, queue, index: 0, results: [], done: false };
     screen.stage = "exercise";
     render();

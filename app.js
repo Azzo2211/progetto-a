@@ -2733,9 +2733,10 @@ function updateChessProfileFromReview(analysis, moves) {
 
   // Profilo a categorie: ogni errore e ogni mossa buona ha una categoria.
   if (playerMoves.length >= 5 && window.ChessSkills) {
+    const gradeBefore = window.chessCertifiedGrade ? chessCertifiedGrade() : null;
     const events = ChessSkills.gameEvents(moves, { color: "w", result: analysis.result, reason: currentGame.endReason });
     const weight = currentGame.rated ? 1 : currentGame.assisted ? 0.5 : 0.7;
-    const applied = ChessSkills.applyGame(state.chess.skills, events, { botElo: analysis.botElo, weight, date: currentGame.date });
+    const applied = ChessSkills.applyGame(state.chess.skills, events, { botElo: analysis.botElo, weight, result: analysis.result, date: currentGame.date });
     state.chess.skills = applied.skills;
     currentGame.skillChanges = applied.changes;
     state.chess.skillGames = (state.chess.skillGames || []).concat([{
@@ -2746,6 +2747,9 @@ function updateChessProfileFromReview(analysis, moves) {
       rated: Boolean(currentGame.rated),
       events: events.filter((event) => event.moveNumber !== null).map((event) => ({ category: event.category, points: event.points, label: event.label, moveNumber: event.moveNumber }))
     }]).slice(-20);
+    // Il profilo puo' essere l'ultimo requisito mancante per un grado.
+    const gradeAfter = window.chessCertifiedGrade ? chessCertifiedGrade() : null;
+    if (gradeBefore && gradeAfter && ChessRating.gradeIndex(gradeAfter.key) > ChessRating.gradeIndex(gradeBefore.key)) currentGame.promotedTo = gradeAfter;
   }
   saveState();
   renderDashboard();
@@ -3308,6 +3312,7 @@ function renderChessCoachSummary(gameAnalysis) {
   const good = moves.filter((move) => ["brilliant", "great", "best"].includes(move.quality));
   const worst = moves.filter((move) => isErrorQuality(move.quality)).sort((a, b) => (b.loss || 0) - (a.loss || 0))[0];
   const parts = [`${gameAnalysis.resultLabel}. Precisione ${gameAnalysis.accuracy}%${gameAnalysis.gameRating ? `, hai giocato come un ${gameAnalysis.gameRating}` : ""}.`];
+  if (currentGame.promotedTo) parts.unshift(`Nuovo grado ${currentGame.promotedTo.key}: ${currentGame.promotedTo.name}!`);
   if (good.length) parts.push(`${good.length} mosse da Migliore o meglio: bene.`);
   let actions = [];
   if (worst) {

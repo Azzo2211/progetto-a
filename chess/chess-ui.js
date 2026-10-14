@@ -712,7 +712,15 @@
   function pickBot(level) {
     const next = getActiveBotLevel(level);
     const previousLevel = getActiveBotLevel(state.chess.botLevel);
-    if (next === previousLevel) return;
+    if (next === previousLevel) {
+      // stesso bot scelto, ma la partita (senza mosse) e' ancora contro un altro
+      if (!getSafeChessMoves().length && getActiveBotLevel(currentGame.botLevel) !== next) {
+        syncCurrentGameBotLevel();
+        renderBoard({ animate: false });
+        renderBotPicker();
+      }
+      return;
+    }
     const boardEl = document.getElementById("botLadder");
     const fromTile = boardEl && boardEl.querySelector(`[data-bot-level="${next}"] img`);
     const fromRect = fromTile ? fromTile.getBoundingClientRect() : null;
@@ -831,8 +839,23 @@
   }
   window.chessProfileScore = profileScore;
 
+  // Un grado raggiunto resta tuo: se un requisito cambia dopo (nuove regole,
+  // un periodo storto) il grado non scende.
   function certifiedGrade() {
-    return window.ChessRating.certifiedGrade(ratingProfile(), { lessonsDone, profileScore: profileScore() });
+    const R = window.ChessRating;
+    const profile = ratingProfile();
+    if (profile.certifiedKey === undefined) {
+      // Prima volta con il requisito del profilo: chi aveva gia' un grado lo tiene.
+      profile.certifiedKey = R.certifiedGrade(profile, { lessonsDone, profileScore: null }).key;
+      saveState();
+    }
+    const computed = R.certifiedGrade(profile, { lessonsDone, profileScore: profileScore() });
+    if (R.gradeIndex(computed.key) > R.gradeIndex(profile.certifiedKey)) {
+      profile.certifiedKey = computed.key;
+      saveState();
+      return computed;
+    }
+    return R.GRADES[R.gradeIndex(profile.certifiedKey)];
   }
   window.chessCertifiedGrade = certifiedGrade;
 
@@ -1016,6 +1039,7 @@
     });
     document.addEventListener("keydown", onKey);
     window.addEventListener("resize", () => placeBotCursor(false));
+    if (window.ResizeObserver) new ResizeObserver(() => placeBotCursor(false)).observe(document.getElementById("botLadder"));
     // Preload dei pezzi del set scelto (evita lo sfarfallio alla prima mossa).
     ["K", "Q", "R", "B", "N", "P"].forEach((p) => ["w", "b"].forEach((c) => {
       const img = new Image();

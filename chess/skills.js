@@ -130,7 +130,8 @@
 
   function total(skills) {
     const s = ensureSkills(skills);
-    return Math.round(CATEGORIES.reduce((sum, c) => sum + s[c.key], 0) / CATEGORIES.length);
+    // media dei valori arrotondati: uguale al totale mostrato nel quadro
+    return Math.round(CATEGORIES.reduce((sum, c) => sum + Math.round(s[c.key]), 0) / CATEGORIES.length);
   }
 
   const QUIET_GAP = 8;
@@ -166,19 +167,21 @@
       const isError = q === "mistake" || q === "blunder";
       const previous = index > 0 ? moves[index - 1] : null;
 
-      // Errori: ogni pattern ha la sua categoria.
-      if (q === "blunder") add("concentration", -6, "Blunder", move);
-      patterns.forEach((pattern) => {
+      // Errori: ogni pattern ha la sua categoria. Una mossa mancata conta solo
+      // come occasione mancata (il pattern di riserva non si somma).
+      const errorPatterns = q === "missed" ? [] : patterns;
+      if (q === "blunder" && !errorPatterns.some((p) => PATTERN_CATEGORY[p])) add("concentration", -6, "Blunder", move);
+      errorPatterns.forEach((pattern) => {
         const category = PATTERN_CATEGORY[pattern];
         if (!category) return;
         const weight = q === "blunder" ? 1.2 : q === "mistake" ? 1 : 0.5;
         const base = { hangingPiece: -5, missedThreat: -5, calculation: -4, kingSafety: -5, development: -3, noPlan: -3, weakEndgame: -4, concentration: -5 }[pattern] || -3;
         add(category, base * weight, patternLabel(pattern), move);
       });
-      if (isError && !patterns.length) add(isSharp(move) ? "calculation" : "strategy", q === "blunder" ? -3 : -3, q === "blunder" ? "Blunder senza un pattern preciso" : "Errore", move);
-      if ((q === "inexact" || q === "inaccuracy") && !patterns.length) add(isSharp(move) ? "calculation" : "strategy", -1, "Imprecisione", move);
+      if (q === "mistake" && !errorPatterns.length) add(isSharp(move) ? "calculation" : "strategy", -3, "Errore", move);
+      if ((q === "inexact" || q === "inaccuracy") && !errorPatterns.length) add(isSharp(move) ? "calculation" : "strategy", -1, "Imprecisione", move);
       if (q === "missed") add("threatVision", -4, "Occasione mancata", move);
-      if (isError && typeof move.timeSeconds === "number" && move.timeSeconds < 5 && !patterns.includes("concentration")) {
+      if (isError && typeof move.timeSeconds === "number" && move.timeSeconds < 5 && !errorPatterns.includes("concentration")) {
         add("impulseControl", -3, "Errore giocato in fretta", move);
       }
       if (isError && typeof move.timeSeconds === "number" && move.timeSeconds < 5) fastErrors += 1;
@@ -243,7 +246,9 @@
       const current = skills[c.key];
       const levelElo = eloForScore(current);
       const diff = typeof ctx.botElo === "number" ? ctx.botElo - levelElo : 0;
-      const kPos = Math.max(0.2, Math.min(1.8, 1 + diff / 600));
+      let kPos = Math.max(0.2, Math.min(1.8, 1 + diff / 600));
+      // Una sconfitta non da' bonus per la forza del bot.
+      if (ctx.result === "loss") kPos = Math.min(kPos, 1);
       const kNeg = Math.max(0.5, Math.min(1.5, 1 - diff / 1200));
       let delta = 0;
       events.filter((e) => e.category === c.key).forEach((e) => {
@@ -251,13 +256,14 @@
         delta += scaled;
         log.push({ ...e, scaled: Math.round(scaled * 10) / 10 });
       });
-      delta = Math.max(-MAX_GAME_CHANGE, Math.min(MAX_GAME_CHANGE, delta));
+      delta = Math.max(-MAX_GAME_CHANGE, Math.min(ctx.result === "loss" ? 2 : MAX_GAME_CHANGE, delta));
       const next = Math.max(10, Math.min(99, current + delta));
       changes[c.key] = Math.round((next - current) * 10) / 10;
       skills[c.key] = Math.round(next * 10) / 10;
     });
     skills.games += 1;
-    skills.lastGame = { date: ctx.date || new Date().toISOString(), botElo: ctx.botElo, changes, log: log.slice(0, 80) };
+    const importantLog = log.slice().sort((a, b) => Math.abs(b.scaled) - Math.abs(a.scaled)).slice(0, 80);
+    skills.lastGame = { date: ctx.date || new Date().toISOString(), botElo: ctx.botElo, changes, log: importantLog };
     skills.history = (skills.history || []).concat([{
       date: ctx.date || new Date().toISOString(),
       values: Object.fromEntries(CATEGORIES.map((c) => [c.key, skills[c.key]]))

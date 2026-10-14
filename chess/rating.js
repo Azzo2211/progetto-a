@@ -110,7 +110,9 @@
       puzzle: { ...base.puzzle, ...(p.puzzle || {}), seen: { ...((p.puzzle && p.puzzle.seen) || {}) } },
       ratedGames: Array.isArray(p.ratedGames) ? p.ratedGames : [],
       lessons: p.lessons && typeof p.lessons === "object" ? p.lessons : {},
-      wins: Array.isArray(p.wins) ? p.wins : []
+      wins: Array.isArray(p.wins) ? p.wins : [],
+      // grado piu' alto gia' certificato (i gradi non scendono)
+      certifiedKey: typeof p.certifiedKey === "string" ? p.certifiedKey : undefined
     };
   }
 
