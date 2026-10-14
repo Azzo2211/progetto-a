@@ -47,7 +47,7 @@ const defaultState = {
     levelStats: {},
     levelScheme: 2,
     mode: "rated",
-    ui: { theme: "accademia", pieceSet: "staunty", sound: true, coords: true, evalBarInGame: false, orientation: "white" },
+    ui: { theme: "accademia", pieceSet: "elite", eliteSet: true, sound: true, coords: true, evalBarInGame: false, orientation: "white" },
     rating: {},
     lessons: {},
     mistakeBank: []
@@ -1858,6 +1858,8 @@ function renderBoard(options = {}) {
   const activeLastMove = reviewBoard ? reviewMoveSquares : lastMoveSquares;
   const lastMove = activeLastMove ? { from: coord(activeLastMove.fromRow, activeLastMove.fromCol), to: coord(activeLastMove.toRow, activeLastMove.toCol) } : null;
   const checkedKing = getCheckedKingSquare(displayBoard);
+  const checkedColor = checkedKing ? (isWhite(displayBoard[checkedKing.row][checkedKing.col]) ? "w" : "b") : null;
+  const mated = checkedKing && getAllLegalMoves(displayBoard, checkedColor).length === 0 ? coord(checkedKing.row, checkedKing.col) : null;
   const reviewMove = reviewBoard && currentGame.reviewIndex >= 0 ? currentGame.moves[currentGame.reviewIndex] || null : null;
   const decorations = window.chessBoardDecorations ? window.chessBoardDecorations(reviewMove) : { arrows: [], marks: {} };
   let badge = null;
@@ -1869,6 +1871,7 @@ function renderBoard(options = {}) {
     position: displayBoard,
     lastMove,
     check: checkedKing ? coord(checkedKing.row, checkedKing.col) : null,
+    mated,
     selected: interactive ? selected : null,
     targets: interactive ? targets : [],
     arrows: decorations.arrows,

@@ -7,7 +7,7 @@
   "use strict";
 
   const Kit = window.ChessBoardKit;
-  const UI_DEFAULTS = { theme: "accademia", pieceSet: "staunty", sound: true, coords: true, evalBarInGame: false, orientation: "white" };
+  const UI_DEFAULTS = { theme: "accademia", pieceSet: "elite", sound: true, coords: true, evalBarInGame: false, orientation: "white" };
 
   // Mentori: uno per grado. Il coach e' legato al TUO grado, non al bot.
   const MENTORS = {
@@ -30,7 +30,17 @@
   function ui() {
     if (!state.chess.ui || typeof state.chess.ui !== "object") state.chess.ui = { ...UI_DEFAULTS };
     state.chess.ui = { ...UI_DEFAULTS, ...state.chess.ui };
+    // Una sola volta: passa al nuovo set "Elite" (poi resta la scelta dell'utente).
+    if (!state.chess.ui.eliteSet) {
+      state.chess.ui.pieceSet = "elite";
+      state.chess.ui.eliteSet = true;
+    }
+    if (!Kit.PIECE_SETS[state.chess.ui.pieceSet]) state.chess.ui.pieceSet = "elite";
     return state.chess.ui;
+  }
+
+  function pieceImg(code, set = ui().pieceSet) {
+    return Kit.pieceSrc(set, code);
   }
 
   function chessMode() {
@@ -182,7 +192,7 @@
     const order = ["q", "r", "b", "n", "p"];
     const sorted = types.slice().sort((a, b) => order.indexOf(a) - order.indexOf(b));
     const set = ui().pieceSet;
-    const icons = sorted.map((type) => `<img src="assets/pieces/${set}/${color}${type.toUpperCase()}.svg" alt="" class="cap-${type}">`).join("");
+    const icons = sorted.map((type) => `<img src="${pieceImg(`${color}${type.toUpperCase()}`, set)}" alt="" class="cap-${type}">`).join("");
     return `${icons}${advantage > 0 ? `<span class="material-adv">+${advantage}</span>` : ""}`;
   }
 
@@ -264,7 +274,7 @@
   function sanHtml(san, color) {
     const text = String(san || "");
     const set = ui().pieceSet;
-    const icon = (letter) => `<img class="san-piece" src="assets/pieces/${set}/${color}${letter}.svg" alt="${letter}">`;
+    const icon = (letter) => `<img class="san-piece" src="${pieceImg(`${color}${letter}`, set)}" alt="${letter}">`;
     return text
       .replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]))
       .replace(/^([KQRBN])/, (m, p) => icon(p))
@@ -607,7 +617,7 @@
   }
 
   function botPieceUrl(bot, color = "b") {
-    return `assets/pieces/${ui().pieceSet}/${color}${GRADE_PIECE[botGrade(bot).key]}.svg`;
+    return pieceImg(`${color}${GRADE_PIECE[botGrade(bot).key]}`);
   }
 
   /*
@@ -661,7 +671,7 @@
 
     const legend = document.getElementById("botLegend");
     if (legend) {
-      legend.innerHTML = Object.entries(GRADE_PIECE).map(([key, piece]) => `<span><img src="assets/pieces/${ui().pieceSet}/b${piece}.svg" alt="">${key}</span>`).join("") + `<span class="legend-note">dal basso verso l'alto: piu' forte</span>`;
+      legend.innerHTML = Object.entries(GRADE_PIECE).map(([key, piece]) => `<span><img src="${pieceImg(`b${piece}`)}" alt="">${key}</span>`).join("") + `<span class="legend-note">dal basso verso l'alto: piu' forte</span>`;
     }
 
     const portrait = document.getElementById("botPortrait");
@@ -951,13 +961,15 @@
       </button>`).join("");
     document.getElementById("pieceSetOptions").innerHTML = Object.entries(Kit.PIECE_SETS).map(([key, set]) => `
       <button type="button" class="piece-set${settings.pieceSet === key ? " active" : ""}" data-piece-set="${key}" aria-pressed="${settings.pieceSet === key}">
-        <img src="assets/pieces/${key}/wN.svg" alt=""><img src="assets/pieces/${key}/bQ.svg" alt="">${set.label}
+        <img src="${pieceImg("wN", key)}" alt=""><img src="${pieceImg("bQ", key)}" alt="">${set.label}
       </button>`).join("");
     document.getElementById("soundToggle").checked = settings.sound !== false;
     document.getElementById("coordsToggle").checked = settings.coords !== false;
     document.getElementById("evalBarToggle").checked = Boolean(settings.evalBarInGame);
     const set = Kit.PIECE_SETS[settings.pieceSet];
-    document.getElementById("pieceCredits").textContent = `Pezzi "${set.label}" di ${set.author} (${set.license}), dal progetto lichess.org.`;
+    document.getElementById("pieceCredits").textContent = settings.pieceSet === "elite"
+      ? `Pezzi "Elite": set originale di Progetto A in stile Classroom of the Elite (porcellana e lacca, collare cremisi).`
+      : `Pezzi "${set.label}" di ${set.author} (${set.license}), dal progetto lichess.org.`;
   }
 
   function updateSettings(patch) {
@@ -1043,7 +1055,7 @@
     // Preload dei pezzi del set scelto (evita lo sfarfallio alla prima mossa).
     ["K", "Q", "R", "B", "N", "P"].forEach((p) => ["w", "b"].forEach((c) => {
       const img = new Image();
-      img.src = `assets/pieces/${ui().pieceSet}/${c}${p}.svg`;
+      img.src = pieceImg(`${c}${p}`);
     }));
   }
 

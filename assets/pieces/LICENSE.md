@@ -1,6 +1,9 @@
 # Pezzi degli scacchi
 
-I set di pezzi provengono dal progetto [lila (lichess.org)](https://github.com/lichess-org/lila/tree/master/public/piece).
+`elite/` e' un set originale di Progetto A (modellato e renderizzato con
+`tools/pieces3d`), in stile Classroom of the Elite.
+
+Gli altri set provengono dal progetto [lila (lichess.org)](https://github.com/lichess-org/lila/tree/master/public/piece).
 
 | Cartella | Autore | Licenza |
 |---|---|---|

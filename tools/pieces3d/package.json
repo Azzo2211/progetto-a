@@ -1,0 +1,11 @@
+{
+  "name": "progetto-a-pieces3d",
+  "private": true,
+  "description": "Genera il set di pezzi Elite (assets/pieces/elite) con three.js in Chromium headless.",
+  "dependencies": {
+    "poly2tri": "1.5.0",
+    "three": "0.169.0",
+    "three-bvh-csg": "0.0.16",
+    "three-mesh-bvh": "0.8.3"
+  }
+}

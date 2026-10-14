@@ -2,9 +2,11 @@
  * Progetto A - Scacchi: scacchiera interattiva riutilizzabile.
  *
  * Una sola scacchiera per partita, revisione, lezioni ed esercizi:
- *  - pezzi SVG (set di lichess, vedi assets/pieces/LICENSE.md)
- *  - mosse animate: i pezzi scivolano dalla casa di partenza a quella di arrivo
- *    (anche andando avanti e indietro nella revisione)
+ *  - set "Elite" (pezzi 3D originali in stile Classroom of the Elite, generati
+ *    con tools/pieces3d) e set SVG di lichess (vedi assets/pieces/LICENSE.md)
+ *  - mosse animate: il pezzo si alza, scivola e si appoggia con la sua ombra;
+ *    il cavallo salta, il pezzo catturato cade di lato, il re trema allo
+ *    scacco e cade allo scacco matto (anche nella revisione, avanti e indietro)
  *  - clic-clic oppure trascinamento, con case legali evidenziate
  *  - frecce (mossa migliore, errore, suggerimento) e icona di classificazione
  *  - temi di colore e suoni generati con Web Audio (nessun file audio)
@@ -22,12 +24,16 @@
 
   const FILES = "abcdefgh";
 
+  // ext: formato delle immagini; ratio: altezza/larghezza dell'immagine (i pezzi
+  // 3D sono piu' alti della casa e sporgono verso l'alto); depth: ha volume.
   const PIECE_SETS = {
-    staunty: { label: "Staunty", author: "sadsnake1", license: "CC BY-NC-SA 4.0" },
-    maestro: { label: "Maestro", author: "sadsnake1", license: "CC BY-NC-SA 4.0" },
-    california: { label: "California", author: "Jerry S.", license: "CC BY-NC-SA 4.0" },
-    cburnett: { label: "Classico", author: "Colin M.L. Burnett", license: "GPLv2+" }
+    elite: { label: "Elite", author: "Progetto A", license: "originale", ext: "webp", ratio: 1.25, depth: true },
+    staunty: { label: "Staunty", author: "sadsnake1", license: "CC BY-NC-SA 4.0", ext: "svg", ratio: 1 },
+    maestro: { label: "Maestro", author: "sadsnake1", license: "CC BY-NC-SA 4.0", ext: "svg", ratio: 1 },
+    california: { label: "California", author: "Jerry S.", license: "CC BY-NC-SA 4.0", ext: "svg", ratio: 1 },
+    cburnett: { label: "Classico", author: "Colin M.L. Burnett", license: "GPLv2+", ext: "svg", ratio: 1 }
   };
+  const DEFAULT_SET = "elite";
 
   // Colori case chiare/scure. "accademia" e' pensato per il tema scuro della pagina.
   const BOARD_THEMES = {
@@ -94,7 +100,18 @@
   }
 
   function pieceCode(piece) {
+    if (piece.length === 2) return piece;
     return `${isWhitePiece(piece) ? "w" : "b"}${piece.toUpperCase()}`;
+  }
+
+  function pieceSetKey(key) {
+    return PIECE_SETS[key] ? key : DEFAULT_SET;
+  }
+
+  // Percorso dell'immagine di un pezzo ("K", "p" oppure "wK", "bp").
+  function pieceSrc(setKey, piece, base = "assets/pieces") {
+    const key = pieceSetKey(setKey);
+    return `${base}/${key}/${pieceCode(piece)}.${PIECE_SETS[key].ext}`;
   }
 
   /* ---------------------------------------------------------------- suoni */
@@ -195,7 +212,7 @@
     constructor(container, options = {}) {
       this.container = container;
       this.options = {
-        pieceSet: "staunty",
+        pieceSet: DEFAULT_SET,
         theme: "accademia",
         orientation: "white",
         coordinates: true,
@@ -231,17 +248,23 @@
       arrows.setAttribute("class", "bv-arrows");
       arrows.setAttribute("viewBox", "0 0 800 800");
       arrows.setAttribute("aria-hidden", "true");
+      const fx = document.createElement("div");
+      fx.className = "bv-fx";
       const pieces = document.createElement("div");
       pieces.className = "bv-pieces";
+      const fxTop = document.createElement("div");
+      fxTop.className = "bv-fx-top";
       const overlay = document.createElement("div");
       overlay.className = "bv-overlay";
-      root.append(squares, arrows, pieces, overlay);
+      root.append(squares, fx, arrows, pieces, fxTop, overlay);
       this.container.innerHTML = "";
       this.container.appendChild(root);
       this.root = root;
       this.squaresEl = squares;
       this.arrowsEl = arrows;
       this.piecesEl = pieces;
+      this.fxEl = fx;
+      this.fxTopEl = fxTop;
       this.overlayEl = overlay;
       this.layoutSquares();
       root.addEventListener("pointerdown", (event) => this.handlePointerDown(event));
@@ -282,7 +305,7 @@
       }
       if (before.pieceSet !== this.options.pieceSet) {
         this.pieceEls.forEach((entry) => {
-          entry.el.style.backgroundImage = this.pieceUrl(entry.piece);
+          entry.img.style.backgroundImage = this.pieceUrl(entry.piece);
         });
       }
       this.applyTheme();
@@ -297,7 +320,10 @@
       style.setProperty("--bv-coord-light", theme.coordLight);
       style.setProperty("--bv-coord-dark", theme.coordDark);
       style.setProperty("--bv-anim", `${this.reducedMotion() ? 0 : this.options.animationMs}ms`);
+      const set = PIECE_SETS[pieceSetKey(this.options.pieceSet)];
+      style.setProperty("--bv-ratio", String(set.ratio || 1));
       this.root.dataset.theme = this.options.theme;
+      this.root.dataset.depth = set.depth ? "3d" : "flat";
     }
 
     reducedMotion() {
@@ -305,7 +331,7 @@
     }
 
     pieceUrl(piece) {
-      return `url("${this.options.piecePath}/${this.options.pieceSet}/${pieceCode(piece)}.svg")`;
+      return `url("${pieceSrc(this.options.pieceSet, piece, this.options.piecePath)}")`;
     }
 
     squareOffset(square) {
@@ -315,38 +341,142 @@
       return { x, y };
     }
 
-    placeEl(el, square, animate) {
-      const { x, y } = this.squareOffset(square);
-      el.dataset.square = square;
-      if (!animate) {
-        el.classList.add("bv-no-anim");
-        el.style.transform = `translate(${x * 100}%, ${y * 100}%)`;
-        // forza il reflow prima di riattivare la transizione
-        void el.offsetWidth;
-        el.classList.remove("bv-no-anim");
-      } else {
-        el.style.transform = `translate(${x * 100}%, ${y * 100}%)`;
-      }
+    canAnimate(el) {
+      return Boolean(el && el.animate) && !this.reducedMotion();
     }
 
-    createPieceEl(piece, square, fadeIn) {
+    // Posiziona un pezzo sulla sua casa. Con animate scivola dalla posizione
+    // attuale (anche se era a meta' di un'altra animazione o trascinato).
+    placeEl(el, square, animate, opts = {}) {
+      const { x, y } = this.squareOffset(square);
+      const to = `translate(${x * 100}%, ${y * 100}%)`;
+      el.dataset.square = square;
+      el.style.zIndex = String(10 + y);
+      let from = el.style.transform || to;
+      const running = el.getAnimations ? el.getAnimations() : [];
+      if (running.length) {
+        const current = getComputedStyle(el).transform;
+        if (current && current !== "none") from = current;
+        running.forEach((anim) => anim.cancel());
+      }
+      el.style.transform = to;
+      el.classList.remove("bv-moving");
+      if (!animate || from === to || !this.canAnimate(el)) return null;
+      const anim = el.animate([{ transform: from }, { transform: to }], {
+        duration: opts.duration || this.options.animationMs,
+        delay: opts.delay || 0,
+        easing: opts.easing || "cubic-bezier(0.32, 0.72, 0.2, 1)",
+        fill: "backwards"
+      });
+      el.classList.add("bv-moving");
+      el._moveAnim = anim;
+      const done = () => {
+        if (el._moveAnim === anim) el.classList.remove("bv-moving");
+      };
+      anim.onfinish = done;
+      anim.oncancel = done;
+      return anim;
+    }
+
+    createPieceEl(piece, square, appear) {
       const el = document.createElement("div");
       el.className = `bv-piece ${isWhitePiece(piece) ? "white" : "black"}`;
-      el.style.backgroundImage = this.pieceUrl(piece);
       el.dataset.piece = piece;
+      const shadow = document.createElement("div");
+      shadow.className = "bv-shadow";
+      const img = document.createElement("div");
+      img.className = "bv-img";
+      img.style.backgroundImage = this.pieceUrl(piece);
+      el.append(shadow, img);
       this.placeEl(el, square, false);
-      if (fadeIn) {
-        el.classList.add("bv-fade");
-        requestAnimationFrame(() => el.classList.remove("bv-fade"));
-      }
       this.piecesEl.appendChild(el);
-      return el;
+      if (appear && this.canAnimate(img)) {
+        img.animate(
+          [
+            { opacity: 0, transform: "translateY(-16%) scale(1.12)" },
+            { opacity: 1, transform: "translateY(0) scale(0.97)", offset: 0.75 },
+            { opacity: 1, transform: "none" }
+          ],
+          { duration: 300, easing: "cubic-bezier(0.25, 0.8, 0.3, 1)" }
+        );
+        shadow.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300 });
+      }
+      return { piece, el, img, shadow };
+    }
+
+    // Il pezzo si alza, scivola e si appoggia (il cavallo salta piu' in alto).
+    animateMove(entry, to, { duration, delay = 0, hop = false, dropped = false } = {}) {
+      const anim = this.placeEl(entry.el, to, true, { duration, delay });
+      if (!anim) return null;
+      const timing = { duration: duration + 50, delay, easing: "linear" };
+      if (dropped) {
+        entry.img.animate(
+          [
+            { transform: "translateY(-9%) scale(1.1)" },
+            { transform: "translateY(0) scale(1.03, 0.95)", offset: 0.7 },
+            { transform: "none" }
+          ],
+          { ...timing, easing: "ease-out" }
+        );
+        return anim;
+      }
+      const lift = hop ? 30 : 11;
+      entry.img.animate(
+        [
+          { transform: "none", easing: "cubic-bezier(0.25, 0.6, 0.4, 1)" },
+          { transform: `translateY(-${lift}%) scale(${hop ? 1.08 : 1.05})`, offset: 0.42, easing: "cubic-bezier(0.55, 0, 0.75, 0.4)" },
+          { transform: "translateY(0) scale(1)", offset: 0.84 },
+          { transform: "translateY(0) scale(1.035, 0.95)", offset: 0.92 },
+          { transform: "none" }
+        ],
+        timing
+      );
+      entry.shadow.animate(
+        [
+          { opacity: 1, transform: "scale(1)" },
+          { opacity: 0.35, transform: `scale(${hop ? 0.6 : 0.75})`, offset: 0.42 },
+          { opacity: 1, transform: "scale(1)", offset: 0.84 },
+          { opacity: 1, transform: "scale(1)" }
+        ],
+        timing
+      );
+      return anim;
+    }
+
+    // Il pezzo catturato viene colpito e cade di lato, lontano da chi lo prende.
+    topple(entry, { delay = 0, dir = 1 } = {}) {
+      const el = entry.el;
+      el.classList.add("bv-victim");
+      entry.img.animate(
+        [
+          { transform: "none", opacity: 1 },
+          { transform: `translateX(${dir * 3}%) rotate(${dir * 14}deg)`, opacity: 1, offset: 0.22 },
+          { transform: `translateX(${dir * 22}%) translateY(6%) rotate(${dir * 86}deg)`, opacity: 0 }
+        ],
+        { duration: 560, delay, easing: "cubic-bezier(0.5, 0, 0.8, 0.45)", fill: "forwards" }
+      );
+      entry.shadow.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 380, delay: delay + 140, fill: "forwards" });
+      setTimeout(() => el.remove(), delay + 600);
+    }
+
+    // Effetti sulla casa: "ring" sotto il pezzo, "slash" sopra.
+    effect(kind, square, { cls = "", delay = 0, life = 700 } = {}) {
+      if (this.reducedMotion()) return;
+      const { x, y } = this.squareOffset(square);
+      const el = document.createElement("span");
+      el.className = `bv-${kind}${cls ? ` ${cls}` : ""}`;
+      el.style.left = `${x * 12.5}%`;
+      el.style.top = `${y * 12.5}%`;
+      el.style.animationDelay = `${delay}ms`;
+      (kind === "slash" ? this.fxTopEl : this.fxEl).appendChild(el);
+      setTimeout(() => el.remove(), delay + life);
     }
 
     /*
      * Aggiorna i pezzi confrontando la posizione vecchia con la nuova:
-     * i pezzi spariti da una casa e comparsi in un'altra (stesso tipo) scivolano,
-     * quelli catturati svaniscono, quelli nuovi (promozione) compaiono.
+     * i pezzi spariti da una casa e comparsi in un'altra (stesso tipo) si
+     * spostano, il pedone che promuove arriva e si trasforma, i pezzi catturati
+     * cadono, quelli che ricompaiono (indietro nella revisione) si posano.
      */
     setPosition(position, { animate = true } = {}) {
       const next = normalizePosition(position);
@@ -366,6 +496,8 @@
         const q = squareToXY(b);
         return Math.hypot(p.file - q.file, p.rank - q.rank);
       };
+      const moves = [];
+      const unmatched = [];
       added.forEach(({ square, piece }) => {
         let bestIndex = -1;
         let bestDistance = Infinity;
@@ -380,25 +512,100 @@
         if (bestIndex >= 0) {
           const item = removed[bestIndex];
           item.used = true;
-          this.placeEl(item.entry.el, square, doAnimate);
-          if (doAnimate) {
-            item.entry.el.classList.add("bv-moving");
-            setTimeout(() => item.entry.el.classList.remove("bv-moving"), this.options.animationMs + 40);
-          }
+          moves.push({ entry: item.entry, from: item.square, to: square });
           this.pieceEls.set(square, item.entry);
         } else {
-          this.pieceEls.set(square, { piece, el: this.createPieceEl(piece, square, doAnimate) });
+          unmatched.push({ square, piece });
         }
       });
-      removed.forEach((item) => {
-        if (item.used) return;
-        const el = item.entry.el;
-        if (doAnimate) {
-          el.classList.add("bv-captured");
-          setTimeout(() => el.remove(), this.options.animationMs + 60);
+      // promozione: il pedone arriva sull'ultima traversa e diventa il nuovo pezzo
+      unmatched.forEach(({ square, piece }) => {
+        const pawn = isWhitePiece(piece) ? "P" : "p";
+        const lastRank = square[1] === "8" || square[1] === "1";
+        const promo = doAnimate && lastRank && piece.toUpperCase() !== "P"
+          ? removed.find((item) => !item.used && item.entry.piece === pawn && Math.abs(squareToXY(item.square).rank - squareToXY(square).rank) === 1 && Math.abs(squareToXY(item.square).file - squareToXY(square).file) <= 1)
+          : null;
+        if (promo) {
+          promo.used = true;
+          moves.push({ entry: promo.entry, from: promo.square, to: square, promoteTo: piece });
+          promo.entry.piece = piece;
+          promo.entry.el.dataset.piece = piece;
+          this.pieceEls.set(square, promo.entry);
         } else {
-          el.remove();
+          this.pieceEls.set(square, this.createPieceEl(piece, square, doAnimate));
         }
+      });
+      const victims = removed.filter((item) => !item.used);
+      // pochi pezzi in movimento = una mossa vera: effetti completi.
+      // Tanti pezzi (salto nella revisione) = solo spostamenti, niente effetti.
+      const single = moves.length <= 2 && victims.length <= 1;
+      const castle = moves.some((m) => m.entry.piece.toUpperCase() === "K" && Math.abs(squareToXY(m.from).file - squareToXY(m.to).file) === 2);
+      const dropped = this.justDropped;
+      const timings = new Map();
+      moves.forEach((m) => {
+        const type = m.entry.piece.toUpperCase();
+        const wasPawn = Boolean(m.promoteTo);
+        const hop = type === "N" && !wasPawn;
+        const isDropped = m.entry.el === dropped;
+        const delay = castle && type === "R" ? 120 : 0;
+        const d = distance(m.from, m.to);
+        const duration = isDropped ? 130 : hop ? 330 : Math.min(380, this.options.animationMs + 20 + d * 26);
+        timings.set(m.to, { from: m.from, duration, delay });
+        if (!doAnimate) {
+          this.placeEl(m.entry.el, m.to, false);
+        } else {
+          this.animateMove(m.entry, m.to, { duration, delay, hop: hop && single, dropped: isDropped });
+          if (single && !isDropped) this.effect("ring", m.to, { delay: delay + duration * 0.86, cls: m.promoteTo ? "promo" : "" });
+        }
+        if (m.promoteTo) {
+          const swap = () => {
+            m.entry.img.style.backgroundImage = this.pieceUrl(m.promoteTo);
+            m.entry.el.classList.toggle("white", isWhitePiece(m.promoteTo));
+            m.entry.el.classList.toggle("black", !isWhitePiece(m.promoteTo));
+            if (this.canAnimate(m.entry.img)) {
+              m.entry.img.animate(
+                [
+                  { transform: "scale(0.7)", filter: "brightness(2.2)" },
+                  { transform: "scale(1.14)", filter: "brightness(1.3)", offset: 0.55 },
+                  { transform: "none", filter: "none" }
+                ],
+                { duration: 380, easing: "cubic-bezier(0.25, 0.8, 0.3, 1)" }
+              );
+            }
+          };
+          if (doAnimate) setTimeout(swap, delay + duration);
+          else swap();
+        }
+      });
+      victims.forEach((item) => {
+        const el = item.entry.el;
+        if (!doAnimate) {
+          el.remove();
+          return;
+        }
+        // chi cattura: la mossa che arriva sulla casa del pezzo (o accanto, en passant)
+        let hit = timings.get(item.square);
+        if (!hit) {
+          const v = squareToXY(item.square);
+          const near = [...timings.entries()].find(([to]) => {
+            const t = squareToXY(to);
+            return t.file === v.file && Math.abs(t.rank - v.rank) === 1;
+          });
+          hit = near ? near[1] : null;
+        }
+        if (!hit || !single) {
+          item.entry.img.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: "forwards" });
+          setTimeout(() => el.remove(), 240);
+          return;
+        }
+        const v = squareToXY(item.square);
+        const { x: ax } = this.squareOffset(hit.from);
+        const { x: vx } = this.squareOffset(item.square);
+        let dir = vx > ax ? 1 : vx < ax ? -1 : 0;
+        if (!dir) dir = v.file >= 4 ? -1 : 1;
+        const impact = hit.delay + hit.duration * 0.62;
+        this.topple(item.entry, { delay: impact, dir });
+        this.effect("slash", item.square, { delay: impact - 40, life: 520 });
       });
       this.position = next;
     }
@@ -413,22 +620,59 @@
     render(vm = {}) {
       this.vm = vm;
       this.root.classList.toggle("is-interactive", Boolean(vm.interactive));
-      if (vm.position !== undefined) this.setPosition(vm.position, { animate: vm.animate !== false });
+      const animate = vm.animate !== false;
+      if (vm.position !== undefined) this.setPosition(vm.position, { animate });
       this.renderMarks();
       this.renderArrows();
       this.renderBadge();
+      this.renderKingState(animate);
+    }
+
+    // Re sotto scacco: trema una volta. Re scaccomattato: cade e resta a terra.
+    renderKingState(animate) {
+      const vm = this.vm || {};
+      const mated = vm.mated || null;
+      this.pieceEls.forEach((entry, square) => {
+        const fallen = square === mated;
+        if (fallen && !entry.el.classList.contains("bv-fallen")) {
+          const { x } = this.squareOffset(square);
+          entry.el.style.setProperty("--bv-fall-dir", x >= 4 ? "-1" : "1");
+          entry.el.classList.toggle("bv-fall-now", Boolean(animate) && !this.reducedMotion());
+        }
+        entry.el.classList.toggle("bv-fallen", fallen);
+      });
+      const check = vm.check && !mated ? vm.check : null;
+      if (check && check !== this.lastCheck && animate) {
+        const entry = this.pieceEls.get(check);
+        if (entry && this.canAnimate(entry.img)) {
+          entry.img.animate(
+            [
+              { transform: "none" },
+              { transform: "rotate(-6deg)" },
+              { transform: "rotate(5deg)" },
+              { transform: "rotate(-3.5deg)" },
+              { transform: "rotate(2deg)" },
+              { transform: "none" }
+            ],
+            { duration: 460, delay: 260, easing: "ease-in-out" }
+          );
+        }
+      }
+      this.lastCheck = check;
     }
 
     renderMarks() {
       const vm = this.vm || {};
       const targets = new Map((vm.targets || []).map((t) => [t.square, t]));
       const marks = vm.marks || {};
+      this.pieceEls.forEach((entry, square) => entry.el.classList.toggle("bv-lifted", vm.selected === square));
       this.squareEls.forEach((el, square) => {
         el.classList.toggle("last-move", Boolean(vm.lastMove && (vm.lastMove.from === square || vm.lastMove.to === square)));
         el.classList.toggle("selected", vm.selected === square);
         el.classList.toggle("target", targets.has(square) && !targets.get(square).capture);
         el.classList.toggle("target-capture", targets.has(square) && Boolean(targets.get(square).capture));
         el.classList.toggle("in-check", vm.check === square);
+        el.classList.toggle("mated", vm.mated === square);
         ["mark-good", "mark-bad", "mark-hint"].forEach((cls) => el.classList.toggle(cls, marks[square] === cls.slice(5)));
       });
     }
@@ -555,12 +799,15 @@
       if (!drag || !drag.el) return;
       const distance = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
       if (!drag.active && distance < 5) return;
+      if (!drag.active) {
+        (drag.el.getAnimations ? drag.el.getAnimations() : []).forEach((anim) => anim.cancel());
+        drag.el.classList.add("bv-dragging");
+      }
       drag.active = true;
       const rect = this.root.getBoundingClientRect();
       const size = rect.width / 8;
       const x = event.clientX - rect.left - size / 2;
-      const y = event.clientY - rect.top - size / 2;
-      drag.el.classList.add("bv-dragging", "bv-no-anim");
+      const y = event.clientY - rect.top - size * 0.62;
       drag.el.style.transform = `translate(${x}px, ${y}px)`;
       const over = this.squareFromPoint(event.clientX, event.clientY);
       this.squareEls.forEach((el, sq) => el.classList.toggle("drag-over", sq === over));
@@ -572,17 +819,20 @@
       if (!drag) return;
       this.squareEls.forEach((el) => el.classList.remove("drag-over"));
       const target = this.squareFromPoint(event.clientX, event.clientY);
-      if (drag.el) {
-        drag.el.classList.remove("bv-dragging");
-        drag.el.classList.remove("bv-no-anim");
-      }
+      if (drag.el) drag.el.classList.remove("bv-dragging");
       if (drag.active) {
         if (target && target !== drag.square && typeof this.options.onDrop === "function") {
-          // il pezzo parte gia' dalla posizione del puntatore: niente doppia animazione
-          this.options.onDrop(drag.square, target);
+          // il pezzo parte gia' dalla posizione del puntatore: si posa sulla casa
+          this.justDropped = drag.el;
+          try {
+            this.options.onDrop(drag.square, target);
+          } finally {
+            this.justDropped = null;
+          }
         }
-        // riporta il pezzo trascinato sulla sua casa (quella vecchia o quella nuova)
-        if (drag.el && drag.el.isConnected) this.placeEl(drag.el, drag.el.dataset.square, true);
+        // mossa non fatta (illegale o in attesa della promozione): torna a casa
+        const el = drag.el;
+        if (el && el.isConnected && !el.classList.contains("bv-moving")) this.placeEl(el, el.dataset.square, true, { duration: 170 });
         return;
       }
       if (target && typeof this.options.onSquareTap === "function") {
@@ -641,6 +891,8 @@
     BoardView,
     Sound,
     PIECE_SETS,
+    DEFAULT_SET,
+    pieceSrc,
     BOARD_THEMES,
     ARROW_COLORS,
     FILES,
