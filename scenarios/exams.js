@@ -2,6 +2,7 @@
  * Progetto A - Scenari: esami speciali (stile Classroom of the Elite).
  * Ogni esame: fascicolo, 3 round da 4 mosse (best/good/weak/bad con effetti
  * sulle 6 categorie), la frase da scrivere e il debrief con la verita' nascosta.
+ * Un'opzione puo' avere un suo "escalation": il testo che apre il round dopo.
  * Schema controllato da tests/scenarios.test.js.
  */
 window.ScenarioExams = [
@@ -50,7 +51,8 @@ window.ScenarioExams = [
               "assertivita": -1
             },
             "outcome": "La signora si calma subito. Dieci minuti dopo scopri che in magazzino non ci sono 22 mq dello stesso lotto del campione: hai promesso una cosa che non puoi mantenere.",
-            "why": "Promettere per spegnere l'imbarazzo davanti agli altri clienti è il modo più rapido per trasformare un reclamo in una promessa mancata."
+            "why": "Promettere per spegnere l'imbarazzo davanti agli altri clienti è il modo più rapido per trasformare un reclamo in una promessa mancata.",
+            "escalation": "La promessa di prima ti pesa addosso: adesso devi dirle che non puoi mantenerla."
           },
           {
             "text": "Guardi la piastrella accanto al campione: \"Ha ragione, si vede. Venga di là, controlliamo subito il lotto.\"",
@@ -77,7 +79,7 @@ window.ScenarioExams = [
         ]
       },
       {
-        "text": "In ufficio la signora si siede, il respiro ancora corto. Confronti le etichette: il campione è del lotto 214, le scatole consegnate sono tutte del 231, e del 214 in magazzino restano solo 14 mq. Lei: \"Il posatore viene lunedì alle 8. Se salta, il prossimo buco ce l'ha tra cinque settimane. E mio marito mi aveva detto di andare dall'altro negozio.\"",
+        "text": "Confronti le etichette: il campione è del lotto 214, le scatole consegnate sono tutte del 231, e del 214 in magazzino restano solo 14 mq. La signora, il respiro ancora corto: \"Il posatore viene lunedì alle 8. Se salta, il prossimo buco ce l'ha tra cinque settimane. E mio marito mi aveva detto di andare dall'altro negozio.\"",
         "escalation": "Ormai la signora non si fida più di quello che le dici.",
         "prompt": "Ora conosci il vero vincolo. Cosa fai?",
         "options": [
@@ -214,7 +216,9 @@ window.ScenarioExams = [
         {
           "label": "Scuse e gesto concreto",
           "terms": [
-            "scus",
+            "scusa",
+            "scusi",
+            "scuse",
             "dispiace",
             "disguido",
             "a carico nostro",
@@ -267,7 +271,7 @@ window.ScenarioExams = [
               "autocontrollo": 2,
               "strategia": 1
             },
-            "outcome": "Sandro sbuffa: \"Intanto il tempo passa.\" Esci a telefonare, e per dieci minuti in sala resta solo la sua versione.",
+            "outcome": "Sandro sbuffa: \"Intanto il tempo passa.\" Ivan non risponde, è sul ponteggio: rientri a mani vuote, e per dieci minuti in sala è rimasta solo la versione di Sandro.",
             "why": "Prendere tempo per avere i fatti è sano, ma uscendo lasci a Sandro la scena e alla cliente una sola campana."
           },
           {
@@ -292,7 +296,8 @@ window.ScenarioExams = [
               "strategia": -1
             },
             "outcome": "L'ingegner Ferrandi annota il sabato. Sandro sorride appena: il ritardo, adesso, è ufficialmente tuo.",
-            "why": "Scusarti e pagare il recupero prima di sapere cosa è successo significa firmare una colpa che forse non è tua."
+            "why": "Scusarti e pagare il recupero prima di sapere cosa è successo significa firmare una colpa che forse non è tua.",
+            "escalation": "Il sabato di recupero è già a verbale, e con lui il ritardo delle tue squadre."
           },
           {
             "text": "\"Quali giorni, esattamente? E in quei giorni il massetto del secondo piano era pronto per la posa?\"",
@@ -333,7 +338,8 @@ window.ScenarioExams = [
               "autocontrollo": -1
             },
             "outcome": "Sandro diventa rosso e attacca sulla qualità dei battiscopa. Hai vinto il punto e ti sei fatto un nemico per otto mesi.",
-            "why": "Hai i fatti dalla tua parte, ma umiliare qualcuno davanti al suo capo trasforma una prova in una vendetta. E chi è umiliato non collabora più."
+            "why": "Hai i fatti dalla tua parte, ma umiliare qualcuno davanti al suo capo trasforma una prova in una vendetta. E chi è umiliato non collabora più.",
+            "escalation": "La riunione si è chiusa tra battute acide: Sandro ha negato tutto, e a verbale sono finite due versioni opposte."
           },
           {
             "text": "\"Ivan mi ha mandato la misura: massetto al 3,8%, limite 2%. Si sono fermati per evitare distacchi. Rifacciamo la misura insieme domattina?\"",
@@ -363,7 +369,7 @@ window.ScenarioExams = [
       },
       {
         "text": "A fine riunione l'ingegner Ferrandi ti accompagna alla macchina. Si assicura che nessuno senta, poi chiede: \"Mi dica la verità: Sandro vi ha chiesto di posare sul bagnato?\" Lunedì inizia il terzo piano, ancora con lui.",
-        "escalation": "La riunione si è chiusa male, e il verbale non ti dà ragione.",
+        "escalation": "Il verbale, per ora, dice che il ritardo è colpa delle tue squadre.",
         "prompt": "Ti fa la domanda diretta. Cosa rispondi?",
         "options": [
           {
@@ -423,6 +429,7 @@ window.ScenarioExams = [
           "label": "Dato tecnico preciso",
           "terms": [
             "3,8",
+            "3,8%",
             "umidit",
             "massetto",
             "misura",
@@ -506,7 +513,7 @@ window.ScenarioExams = [
             "why": "Abbassi la temperatura e prendi in mano il problema, ma lasci Chiara esposta: per lei quei minuti durano un'ora."
           },
           {
-            "text": "\"Architetto, signora, buongiorno. Da qui seguo io. Chiara, mi porti la pratica in ufficio, per favore.\"",
+            "text": "\"Architetto, signora, buongiorno. Da qui seguo io. Chiara, portami la pratica in ufficio, per favore.\"",
             "quality": "best",
             "effects": {
               "autocontrollo": 2,
@@ -544,7 +551,7 @@ window.ScenarioExams = [
         ]
       },
       {
-        "text": "In ufficio apri la pratica. Il 3 settembre Galimberti aveva scritto \"rovere spazzolato\"; la conferma d'ordine preparata da Chiara dice \"liscio verniciato\", e porta la firma di Galimberti del 5 settembre. Lui non se n'è ancora accorto: \"Allora? Lo cambiate a vostre spese, e in fretta.\" Il cambio vale circa 9.000 euro, e lo spazzolato in magazzino c'è.",
+        "text": "Apri la pratica. Il 3 settembre Galimberti aveva scritto \"rovere spazzolato\"; la conferma d'ordine preparata da Chiara dice \"liscio verniciato\", e porta la firma di Galimberti del 5 settembre. Lui non se n'è ancora accorto: \"Allora? Lo cambiate a vostre spese, e in fretta.\" Il cambio vale circa 9.000 euro, e lo spazzolato in magazzino c'è.",
         "escalation": "La scena al bancone ha lasciato il segno, e la signora Arrighi comincia a spazientirsi.",
         "prompt": "Hai le due carte davanti. Come ti muovi?",
         "options": [
@@ -557,7 +564,8 @@ window.ScenarioExams = [
               "strategia": -2
             },
             "outcome": "Galimberti impallidisce, poi esplode davanti alla sua cliente: \"Firmo cinquanta carte al giorno! Qui non metto più piede.\"",
-            "why": "Hai ragione solo a metà e lo dici come una sentenza davanti alla sua cliente. Vinci la discussione e perdi 120.000 euro l'anno."
+            "why": "Hai ragione solo a metà e lo dici come una sentenza davanti alla sua cliente. Vinci la discussione e perdi 120.000 euro l'anno.",
+            "escalation": "Galimberti è uscito sbattendo la porta, ma la sera è lui a richiamare: la posa della sua cliente è lunedì, e lo spazzolato ce l'hai solo tu."
           },
           {
             "text": "\"Va bene, architetto, non perdiamo tempo. Cambiamo tutto a spese nostre e consegniamo venerdì, così la posa resta lunedì.\"",
@@ -597,7 +605,7 @@ window.ScenarioExams = [
         ]
       },
       {
-        "text": "La sera chiami Galimberti per chiudere la questione dei costi. Lui taglia corto: \"Sui soldi ci mettiamo d'accordo. Ma quella ragazza sui miei progetti non la voglio più: mi mandi qualcun altro.\" Chiara, intanto, ti ha chiesto di parlarti domattina.",
+        "text": "La sera senti Galimberti al telefono. Dei costi parla appena, poi taglia corto: \"Quella ragazza sui miei progetti non la voglio più: mi mandi qualcun altro.\" Chiara, intanto, ti ha chiesto di parlarti domattina.",
         "escalation": "Galimberti ha in testa una sola cosa: chiudere la faccenda a modo suo.",
         "prompt": "Il cliente da 120.000 euro chiede di togliere Chiara. Cosa rispondi?",
         "options": [
@@ -682,10 +690,11 @@ window.ScenarioExams = [
         {
           "label": "Richiesta di rispetto",
           "terms": [
-            "rispetto",
+            "rispett",
             "toni",
             "tono",
             "cortesia",
+            "educazione",
             "collaborazione",
             "lavorare bene",
             "fiducia"
@@ -696,7 +705,7 @@ window.ScenarioExams = [
     "debrief": {
       "truth": "Galimberti firma le conferme senza leggerle, e lo sa: attaccare Chiara davanti alla signora Arrighi serviva a non far vedere che l'errore era passato anche da lui. Chiara, invece, si era accorta della discrepanza la settimana prima ma non te l'aveva detto: l'ultima volta che aveva sbagliato un ordine era stata ripresa davanti ai colleghi, e da allora gli errori preferisce nasconderli.",
       "principle": "Difendi le persone in pubblico e correggi gli errori in privato: dove c'è paura, gli errori si nascondono finché esplodono.",
-      "tip": "Quando un cliente attacca un tuo collaboratore, togli il bersaglio dandogli un compito: \"Da qui seguo io. Mi porti la pratica in ufficio, per favore.\" Poi affronti tutto, errori compresi, a porte chiuse."
+      "tip": "Quando un cliente attacca un tuo collaboratore, togli il bersaglio dandogli un compito: \"Da qui seguo io. Portami la pratica in ufficio, per favore.\" Poi affronti tutto, errori compresi, a porte chiuse."
     }
   },
   {
@@ -740,7 +749,8 @@ window.ScenarioExams = [
               "strategia": -1
             },
             "outcome": "Stefano ringrazia e chiude in fretta. Hai accettato l'aumento senza nemmeno chiedere se esistano eccezioni.",
-            "why": "\"Vale per tutti\" è una frase che chiude le domande, non una legge. Accettarla subito ti fa rinunciare a sapere come funziona davvero."
+            "why": "\"Vale per tutti\" è una frase che chiude le domande, non una legge. Accettarla subito ti fa rinunciare a sapere come funziona davvero.",
+            "escalation": "Due giorni dopo ti accorgi di quanto ti costa quel \"va bene\" e richiami Stefano per parlargli dei 1.200 mq già quotati."
           },
           {
             "text": "\"Grazie del preavviso. Ho 1.200 mq quotati ai prezzi vecchi: per i lavori già chiusi come vi regolate?\"",
@@ -762,7 +772,8 @@ window.ScenarioExams = [
               "strategia": 1
             },
             "outcome": "Stefano promette la mail. Domani avrai il documento, ma dovrai riaprire tu il discorso, e lui avrà già sentito altri dieci clienti.",
-            "why": "Prendere tempo evita una reazione d'istinto, ma perdi il momento in cui lui era al telefono e disponibile a parlare."
+            "why": "Prendere tempo evita una reazione d'istinto, ma perdi il momento in cui lui era al telefono e disponibile a parlare.",
+            "escalation": "Il giorno dopo, circolare alla mano, richiami Stefano e gli parli dei 1.200 mq già quotati."
           }
         ]
       },
@@ -779,7 +790,8 @@ window.ScenarioExams = [
               "empatia": 1
             },
             "outcome": "Stefano è contento. Hai salvato il prezzo, ma per due mesi avrai 36.000 euro fermi in magazzino e venti bancali tra i piedi.",
-            "why": "Accordo accettabile: salvi il margine, ma paghi in liquidità e spazio un vincolo che forse non era necessario."
+            "why": "Accordo accettabile: salvi il margine, ma paghi in liquidità e spazio un vincolo che forse non era necessario.",
+            "escalation": "Quella sera rifai i conti del magazzino e chiedi a Stefano se la consegna può slittare a gennaio: lui promette di sentire il direttore."
           },
           {
             "text": "\"Confermo entro il 31, consegna a gennaio. A te conta l'ordine nel trimestre o la merce fuori dal magazzino?\"",
@@ -801,7 +813,8 @@ window.ScenarioExams = [
               "lettura": -1
             },
             "outcome": "Stefano sospira: \"Il 3% non posso. Il prezzo vecchio entro il 31 sì, con consegna a novembre.\" Sei tornato al punto di partenza, con lui un po' più seccato.",
-            "why": "Chiedere di più appena l'altro ti ha concesso qualcosa sembra avidità, non abilità. E sposta l'attenzione dal problema vero, la data di consegna."
+            "why": "Chiedere di più appena l'altro ti ha concesso qualcosa sembra avidità, non abilità. E sposta l'attenzione dal problema vero, la data di consegna.",
+            "escalation": "Rinunci al 3% e chiedi almeno la consegna a gennaio. Stefano, seccato, dice che deve sentire il direttore."
           },
           {
             "text": "\"Un concorrente mi ha già offerto lo stesso rovere al 5% in meno. Pensaci bene prima di dirmi di no.\"",
@@ -812,7 +825,8 @@ window.ScenarioExams = [
               "lettura": -1
             },
             "outcome": "Stefano tace un secondo: \"Quel rovere in zona lo distribuiamo solo noi.\" Da oggi prenderà con le pinze tutto quello che dici.",
-            "why": "Il bluff sembra furbo, ma un fornitore conosce il suo mercato meglio di te. Una bugia scoperta costa credibilità per anni."
+            "why": "Il bluff sembra furbo, ma un fornitore conosce il suo mercato meglio di te. Una bugia scoperta costa credibilità per anni.",
+            "escalation": "Dopo il bluff ripieghi sulla consegna a gennaio. Stefano risponde solo \"Sento il direttore\", senza nessun calore."
           }
         ]
       },
@@ -854,7 +868,7 @@ window.ScenarioExams = [
             "why": "Contrattare 100 euro di profili mentre ne stai salvando quasi 3.000 rischia l'accordo per un guadagno minimo. Conta il totale, non ogni riga."
           },
           {
-            "text": "\"Ok, battiscopa e profili insieme. Mandami oggi la conferma scritta: prezzo vecchio, consegna a gennaio, 60 giorni.\"",
+            "text": "\"Ok, battiscopa e profili insieme. Mandami oggi la conferma scritta: prezzo vecchio, consegna a gennaio, pagamento a 60 giorni.\"",
             "quality": "best",
             "effects": {
               "strategia": 3,
@@ -875,12 +889,11 @@ window.ScenarioExams = [
         {
           "label": "Prezzo bloccato",
           "terms": [
-            "prezzo",
+            "prezz",
             "listino attuale",
             "listino vecchio",
             "senza aumento",
             "8%",
-            "prezzi attuali",
             "invariat"
           ]
         },
@@ -899,12 +912,15 @@ window.ScenarioExams = [
           "label": "Richiesta di conferma scritta",
           "terms": [
             "conferma scritta",
-            "per iscritto",
+            "iscritto",
+            "scritt",
             "nero su bianco",
             "conferma d'ordine",
+            "email",
             "mail",
             "ti chiedo",
-            "mandami"
+            "mandami",
+            "confermami"
           ]
         }
       ]
@@ -947,8 +963,8 @@ window.ScenarioExams = [
               "empatia": -2,
               "strategia": -1
             },
-            "outcome": "Fabio si offende: \"Dopo dieci anni mi tratti così?\" Chiude la telefonata e per giovedì chiama un altro fornitore, mentre i tuoi 38.600 euro restano dove sono.",
-            "why": "Il blocco totale è legittimo, ma usato come prima mossa chiude la trattativa e ti toglie l'unica leva che avevi: il materiale che gli serve."
+            "outcome": "Fabio si offende: \"Dopo dieci anni mi tratti così?\" e chiude la telefonata. Un'ora dopo ti richiama, gelido: \"Passa domani in ufficio. Ma per giovedì sto sentendo anche altri.\"",
+            "why": "Il blocco totale è legittimo, ma usato come prima mossa chiude la trattativa e mette a rischio l'unica leva che avevi: il materiale che gli serve."
           },
           {
             "text": "\"Va bene, giovedì te lo mando, figurati. Per le fatture ne parliamo con calma quando arriva il SAL.\"",
@@ -958,8 +974,9 @@ window.ScenarioExams = [
               "assertivita": -2,
               "strategia": -3
             },
-            "outcome": "Fabio ringrazia di cuore. Giovedì il materiale parte e la tua esposizione sale a 47.600 euro, senza una data in mano.",
-            "why": "Ogni consegna senza condizioni a un cliente in ritardo è un prestito senza garanzie. E gli insegna che con te si può aspettare."
+            "outcome": "Fabio ringrazia di cuore. Se giovedì il materiale parte così, la tua esposizione sale a 47.600 euro, senza una data in mano.",
+            "why": "Ogni consegna senza condizioni a un cliente in ritardo è un prestito senza garanzie. E gli insegna che con te si può aspettare.",
+            "escalation": "In amministrazione ti fermano: prima di far partire altro materiale vogliono un piano di rientro. Devi tornare da Fabio a ridiscutere, e lui non la prende bene."
           },
           {
             "text": "\"Il SAL quando arriva, esattamente? Mi servono una data e un importo.\"",
@@ -969,7 +986,7 @@ window.ScenarioExams = [
               "assertivita": 1,
               "strategia": 1
             },
-            "outcome": "Fabio resta sul vago: \"Fine mese, più o meno. Sai come sono i committenti.\" Hai fatto la domanda giusta, ma la consegna di giovedì è rimasta fuori dal discorso.",
+            "outcome": "Fabio resta sul vago: \"Fine mese, più o meno. Sai come sono i committenti. Passa domani, ne parliamo.\" Hai fatto la domanda giusta, ma la consegna di giovedì è rimasta fuori dal discorso.",
             "why": "Chiedere date precise è fondamentale, ma tenendo separati il nuovo ordine e il vecchio debito perdi la tua leva più forte."
           },
           {
@@ -999,7 +1016,8 @@ window.ScenarioExams = [
               "assertivita": -2
             },
             "outcome": "Fabio ti stringe la mano, soddisfatto. Esci con 10.000 euro e, con il nuovo materiale, un'esposizione ancora di 37.600 euro, senza una sola data scritta.",
-            "why": "Un acconto dà sollievo, ma se la nuova consegna lo riassorbe sei di nuovo al punto di partenza. \"Fine mese\" non è una data."
+            "why": "Un acconto dà sollievo, ma se la nuova consegna lo riassorbe sei di nuovo al punto di partenza. \"Fine mese\" non è una data.",
+            "escalation": "In macchina rifai i conti: con la consegna di giovedì quei 10.000 euro spariscono subito. Risali nel suo ufficio."
           },
           {
             "text": "\"L'assegno lo prendo. Il materiale di giovedì lo paghi alla consegna, e i 28.600 restanti in due date: 15 e 30 novembre.\"",
@@ -1024,7 +1042,7 @@ window.ScenarioExams = [
             "why": "Hai letto bene l'indizio, ma usarlo come accusa umilia Fabio davanti al suo geometra. Una buona lettura va usata, non sbattuta in faccia."
           },
           {
-            "text": "\"Facciamo 20.000 adesso e il resto entro fine mese. Poi giovedì il materiale parte.\"",
+            "text": "\"Facciamo 20.000 adesso e il resto entro fine mese, senza slittamenti questa volta. Poi giovedì il materiale parte, come sempre.\"",
             "quality": "good",
             "effects": {
               "assertivita": 2,
@@ -1036,7 +1054,7 @@ window.ScenarioExams = [
         ]
       },
       {
-        "text": "Fabio si appoggia allo schienale e cambia tono: \"Senti, dopo dieci anni mi tratti come uno sconosciuto? Le condizioni si fanno a chi non si conosce. Mi offendi, sai.\" Lorenzo, sulla porta, finge di leggere un foglio.",
+        "text": "Alla fine metti le tue condizioni nero su bianco: materiale di giovedì pagato alla consegna, saldo in due date, 15 e 30 novembre. Fabio legge, si appoggia allo schienale e cambia tono: \"Senti, dopo dieci anni mi tratti come uno sconosciuto? Le condizioni si fanno a chi non si conosce. Mi offendi, sai.\" Lorenzo, sulla porta, finge di leggere un foglio.",
         "escalation": "Il clima è teso, e Fabio decide di giocarsi la carta più pesante.",
         "prompt": "Fabio gioca la carta dell'amicizia. Cosa fai?",
         "options": [
@@ -1089,7 +1107,7 @@ window.ScenarioExams = [
       }
     ],
     "phrase": {
-      "round": 1,
+      "round": 2,
       "prompt": "Scrivi l'email di riepilogo dell'accordo che mandi a Fabio dopo l'incontro.",
       "model": "Ciao Fabio, grazie per l'incontro. Come d'accordo: assegno di 10.000 euro oggi, materiale di giovedì pagato alla consegna e i 28.600 euro restanti in due rate, entro il 15 e il 30 novembre. Rispettate queste date, torniamo ai soliti 60 giorni, come in questi dieci anni.",
       "keys": [
@@ -1112,6 +1130,7 @@ window.ScenarioExams = [
             "contrassegno",
             "giovedì",
             "pagato",
+            "pagament",
             "anticipat",
             "prima della consegna"
           ]
@@ -1140,13 +1159,13 @@ window.ScenarioExams = [
     "id": "negoziazione-developer-giacarta",
     "category": "negoziazione",
     "difficulty": 5,
-    "title": "Il developer di Giacarta chiede il 22%",
-    "setting": "Giacarta, sala riunioni al trentesimo piano. La tua società di distribuzione tratta con un grande developer la fornitura di 16.000 mq di gres italiano per una torre residenziale: circa 460.000 euro, il contratto più importante dell'anno. Al tavolo ci sono Ibu Ratna, responsabile acquisti, e Pak Budi, responsabile del progetto; accanto a te siede Dimas, il tuo responsabile commerciale locale. Il tuo margine lordo è del 28%.",
+    "title": "Il gruppo immobiliare di Giacarta chiede il 22%",
+    "setting": "Giacarta, sala riunioni al trentesimo piano. La tua società di distribuzione tratta con un grande gruppo immobiliare la fornitura di 16.000 mq di gres italiano per una torre residenziale: circa 460.000 euro, il contratto più importante dell'anno. Al tavolo ci sono Ibu Ratna, responsabile acquisti, e Pak Budi, responsabile del progetto; accanto a te siede Dimas, il tuo responsabile commerciale locale. Il tuo margine lordo è del 28%.",
     "cast": [
       {
         "name": "Ibu Ratna",
-        "role": "responsabile acquisti del developer",
-        "note": "cortese, sorride spesso, precisissima sui numeri"
+        "role": "responsabile acquisti del gruppo immobiliare",
+        "note": "cortese e diretta, conosce a memoria ogni cifra del fascicolo"
       },
       {
         "name": "Pak Budi",
@@ -1174,8 +1193,9 @@ window.ScenarioExams = [
               "lettura": -2,
               "strategia": -1
             },
-            "outcome": "Ratna continua a sorridere, ma il sorriso si irrigidisce: \"Certo, Pak. Ne terremo conto.\" Le hai appena detto, davanti a un collega, che non sa valutare un'offerta.",
-            "why": "Svalutare il suo giudizio davanti a un collega le fa perdere la faccia. Nessun argomento sul prodotto recupera quel danno."
+            "outcome": "Ratna resta cortese, ma il tono si fa asciutto: \"Certo, Pak. Ne terremo conto.\" Le hai appena detto, davanti a un collega, che non sa valutare un'offerta.",
+            "why": "Svalutare il suo giudizio davanti a un collega le fa perdere la faccia. Nessun argomento sul prodotto recupera quel danno.",
+            "escalation": "Dimas interviene con garbo e chiede come è costruito il budget: Ratna risponde a lui, più che a te."
           },
           {
             "text": "\"Grazie per la franchezza, Ibu. Il 22% non posso farlo senza togliere qualcosa al progetto. Mi aiuta a capire com'è costruito il vostro budget?\"",
@@ -1199,7 +1219,8 @@ window.ScenarioExams = [
               "strategia": -1
             },
             "outcome": "Ratna annuisce soddisfatta. Le hai appena comunicato che il prezzo è trattabile e che il 22% è un punto di partenza credibile.",
-            "why": "Rimandare a un'autorità esterna sembra prudente, ma segnala che il prezzo è morbido. Venerdì dovrai partire da un'aspettativa altissima."
+            "why": "Rimandare a un'autorità esterna sembra prudente, ma segnala che il prezzo è morbido. Venerdì dovrai partire da un'aspettativa altissima.",
+            "escalation": "Venerdì torni con la risposta della fabbrica: Ratna riparte dal 22%, e solo dopo un'ora accetta di spiegare da dove nasce il budget."
           },
           {
             "text": "\"Possiamo vedere insieme il capitolato del concorrente? Vorrei essere sicuro che stiamo confrontando lo stesso prodotto, con gli stessi spessori e la stessa scelta.\"",
@@ -1209,18 +1230,18 @@ window.ScenarioExams = [
               "strategia": 2,
               "empatia": -1
             },
-            "outcome": "Ratna sorride: \"Le offerte degli altri fornitori sono riservate, Pak.\" La domanda era legittima, ma l'ha costretta a dirti di no davanti a Budi.",
+            "outcome": "Ratna scuote appena la testa: \"Le offerte degli altri fornitori sono riservate, Pak.\" La domanda era legittima, ma l'ha costretta a dirti di no davanti a Budi.",
             "why": "Verificare che il confronto sia corretto è giusto, ma chiedere carte riservate la mette in difficoltà. Meglio chiedere dei criteri che dei documenti."
           }
         ]
       },
       {
-        "text": "Ratna ti spiega il vincolo con calma: \"Il budget è stato fissato al 12% sotto la vostra prima offerta. Io devo rispettarlo.\" Budi, per la prima volta, parla: \"L'atrio e gli appartamenti campione devono restare con la vostra collezione. Pak Hendra ci tiene.\" Pak Hendra è il fondatore del gruppo.",
+        "text": "Ratna spiega il vincolo con calma: \"Il budget è stato fissato al 12% sotto la vostra prima offerta. Io devo rispettarlo.\" Budi, per la prima volta, parla: \"L'atrio e gli appartamenti campione devono restare con la vostra collezione. Pak Hendra ci tiene.\" Pak Hendra è il fondatore del gruppo.",
         "escalation": "Il clima al tavolo si è raffreddato: Ratna resta cortese, ma ora pesa ogni parola.",
         "prompt": "Ora sai che l'obiettivo vero è il 12%. Che proposta fai?",
         "options": [
           {
-            "text": "\"Per arrivare al 12% dovreste affidarci anche la seconda torre. Si può scrivere nel contratto?\"",
+            "text": "\"Per arrivare al 12% dovreste affidarci anche la seconda torre, alle stesse condizioni. Si può scrivere nel contratto, magari come opzione?\"",
             "quality": "weak",
             "effects": {
               "strategia": 1,
@@ -1228,8 +1249,9 @@ window.ScenarioExams = [
               "lettura": -1,
               "empatia": -1
             },
-            "outcome": "Ratna sorride, imbarazzata: \"La seconda torre non è ancora approvata, Pak.\" Le hai chiesto un impegno che non può prendere, e lo sapevi.",
-            "why": "Legare lo sconto al volume è logico, ma chiederlo a chi non ha il potere di deciderlo la mette all'angolo. Una proposta deve stare dentro il suo margine di manovra."
+            "outcome": "Ratna, imbarazzata: \"La seconda torre non è ancora approvata, Pak.\" Le hai chiesto un impegno che non può prendere, e lo sapevi.",
+            "why": "Legare lo sconto al volume è logico, ma chiederlo a chi non ha il potere di deciderlo la mette all'angolo. Una proposta deve stare dentro il suo margine di manovra.",
+            "escalation": "Ritiri la richiesta sulla seconda torre e ripieghi su uno sconto del 7% con consegne a scaglioni. Ratna prende nota, cortese ma distante."
           },
           {
             "text": "\"Visto che la collezione l'ha scelta Pak Hendra, forse è meglio che ne parli direttamente con lui. Così decidiamo prima.\"",
@@ -1240,8 +1262,9 @@ window.ScenarioExams = [
               "lettura": -1,
               "assertivita": 1
             },
-            "outcome": "Ratna chiude il fascicolo con un sorriso perfetto: \"Certo, Pak. Organizzeremo.\" Dimas, sottovoce: \"Adesso ce l'hai contro per tutto il progetto.\"",
-            "why": "Scavalcare chi tratta con te, davanti a un suo collega, le fa perdere la faccia. Anche se il fondatore ti desse ragione, sarà lei a gestire ordini e pagamenti."
+            "outcome": "Ratna chiude il fascicolo, impeccabile: \"Certo, Pak. Organizzeremo.\" Dimas, sottovoce: \"Adesso ce l'hai contro per tutto il progetto.\"",
+            "why": "Scavalcare chi tratta con te, davanti a un suo collega, la umilia. Anche se il fondatore ti desse ragione, sarà lei a gestire ordini e pagamenti.",
+            "escalation": "Dimas ripara come può e rimette sul tavolo una composizione mista: Ratna la ascolta, ma senza più guardarti."
           },
           {
             "text": "\"Proposta: atrio, appartamenti campione e piani alti con la vostra collezione; bagni di servizio e corridoi con una serie italiana più semplice. Totale: meno 12%.\"",
@@ -1268,7 +1291,7 @@ window.ScenarioExams = [
         ]
       },
       {
-        "text": "Ratna sorride: \"Iya, Pak, interessante. Kami pelajari dulu: la studiamo.\" Poi, quasi di passaggio: \"Nel contratto c'è la nostra penale standard: 1% al giorno di ritardo, senza tetto.\" La tua merce viaggia sei settimane via nave e deve passare dogana e certificazione obbligatoria SNI. Dimas ti sussurra: \"Quel 'la studiamo' non è ancora un sì.\"",
+        "text": "Ratna posa la penna: \"Iya, Pak. Kami pelajari dulu: la studiamo.\" Poi, quasi di passaggio: \"Nel contratto c'è la nostra penale standard: 1% al giorno di ritardo, senza tetto.\" La tua merce viaggia sei settimane via nave e deve passare dogana e certificazione obbligatoria SNI. Dimas ti sussurra: \"Quel 'la studiamo' non è ancora un sì.\"",
         "escalation": "Ratna ormai è cortese ma distante, e Budi ha smesso di prendere appunti.",
         "prompt": "Cosa fai?",
         "options": [
@@ -1303,8 +1326,8 @@ window.ScenarioExams = [
               "strategia": -3,
               "assertivita": 1
             },
-            "outcome": "Ratna sorride: \"Iya, Pak.\" Il contratto resta tre settimane senza risposta, e quando torna ha ancora la penale senza tetto, più due nuove richieste.",
-            "why": "Hai scambiato la cortesia per un sì e accettato un rischio illimitato pur di chiudere. Incalzare dopo un \"la studiamo\" mette pressione e fa perdere la faccia."
+            "outcome": "Ratna risponde solo: \"Iya, Pak.\" Il contratto resta tre settimane senza risposta, e quando torna ha ancora la penale senza tetto, più due nuove richieste.",
+            "why": "Hai scambiato la cortesia per un sì e accettato un rischio illimitato pur di chiudere. Incalzare dopo un \"la studiamo\" la mette in difficoltà davanti al collega."
           },
           {
             "text": "\"Penale sì, con tetto al 5% ed esclusi i ritardi documentati di dogana e SNI. In cambio, teniamo una scorta qui a Giacarta.\"",
@@ -1315,7 +1338,7 @@ window.ScenarioExams = [
               "assertivita": 1
             },
             "outcome": "Ratna guarda Budi, che annuisce, poi dice: \"La scorta qui è una buona idea, Pak. La mettiamo nella bozza.\" Dimas ti fa un mezzo sorriso: questa volta è un sì vero.",
-            "why": "Accetti il principio, limiti il rischio che non controlli e rispondi alla loro paura vera, i cantieri fermi, con una garanzia concreta. Nessuno perde la faccia."
+            "why": "Accetti il principio, limiti il rischio che non controlli e rispondi alla loro paura vera, i cantieri fermi, con una garanzia concreta. E nessuno esce sconfitto dal tavolo."
           }
         ]
       }
@@ -1355,7 +1378,7 @@ window.ScenarioExams = [
           "terms": [
             "grazie",
             "ibu",
-            "vostro",
+            "vostr",
             "insieme",
             "rispett",
             "come ci ha",
@@ -1365,7 +1388,7 @@ window.ScenarioExams = [
       ]
     },
     "debrief": {
-      "truth": "Pak Budi, il più silenzioso al tavolo, è il nipote del fondatore e gli riferisce ogni riunione: la collezione italiana per atrio e appartamenti campione era già decisa, perché le brochure con scritto \"design italiano\" erano in stampa. Ibu Ratna non rischiava di perdere il fornitore, rischiava la faccia sul budget: il suo premio annuale dipende dal risparmio percentuale. Se l'avessi scavalcata o messa in difficoltà, avresti firmato lo stesso, ma poi avresti aspettato i pagamenti per mesi.",
+      "truth": "Pak Budi, il più silenzioso al tavolo, riferisce ogni riunione direttamente al fondatore: la collezione italiana per atrio e appartamenti campione era già decisa, perché le brochure con scritto \"design italiano\" erano in stampa. Ibu Ratna non rischiava di perdere il fornitore, rischiava la faccia sul budget: il suo premio annuale dipende dal risparmio percentuale. Se l'avessi scavalcata o messa in difficoltà, avresti firmato lo stesso, ma poi avresti aspettato i pagamenti per mesi.",
       "principle": "Chi decide e chi può rallentarti sono spesso persone diverse: trattale entrambe con rispetto.",
       "tip": "Quando il prezzo non si muove, cambia cosa c'è dentro: \"Teniamo il prodotto scelto dove si vede e semplifichiamo dove non si vede.\" L'altro raggiunge il suo obiettivo e tu non regali margine."
     }
@@ -1536,7 +1559,7 @@ window.ScenarioExams = [
               "etica": 1,
               "autocontrollo": 1
             },
-            "outcome": "Paolo prova a minimizzare, poi incassa: \"Ok, mi ero dimenticato di caricarlo.\" Il lunedì dopo la regola è in bacheca, e vale per tutti.",
+            "outcome": "Paolo prova a minimizzare, poi incassa: \"Ok, mi ero dimenticato di caricarlo. Con Matteo ci parlo io.\" Il lunedì dopo la regola è in bacheca, e vale per tutti.",
             "why": "Fatti precisi, in privato, e una regola che corregge il processo: Paolo non perde la faccia e nessuno può più far ricadere la colpa sul più giovane."
           },
           {
@@ -1575,12 +1598,15 @@ window.ScenarioExams = [
           "label": "Tono che non cerca il colpevole",
           "terms": [
             "non cerco",
-            "colpevol",
+            "colpe",
+            "non è colpa",
             "tra noi",
             "capita",
             "succede",
             "senza accus",
-            "nessuna accusa"
+            "nessuna accusa",
+            "non accuso",
+            "insieme"
           ]
         },
         {
@@ -1637,7 +1663,8 @@ window.ScenarioExams = [
               "lettura": 1
             },
             "outcome": "Elena annuisce, poco convinta, ed esce. Nel pomeriggio senti Gianni al telefono: ha una versione completamente diversa, e adesso tocca a te riportarla a lei.",
-            "why": "Non schierarti è giusto, ma sentendoli separati diventi il postino tra due versioni, e ognuno penserà che tu stia dalla parte dell'altro."
+            "why": "Non schierarti è giusto, ma sentendoli separati diventi il postino tra due versioni, e ognuno penserà che tu stia dalla parte dell'altro.",
+            "escalation": "Dopo due telefonate e due versioni opposte, decidi di convocarli insieme."
           },
           {
             "text": "\"Hai ragione, così non si va avanti. Adesso chiamo Gianni e gli dico chiaro che il programma lo fai tu e lui lo rispetta.\"",
@@ -1679,7 +1706,7 @@ window.ScenarioExams = [
       },
       {
         "text": "Riunione a tre, la mattina dopo. Gianni parla per primo, a braccia conserte: \"La ditta ha gettato il massetto con due giorni di ritardo. Se seguivo il programma mettevamo il parquet sull'umido, e tra sei mesi il cliente ci chiamava per le doghe imbarcate.\" Elena: \"E dirmelo? Ho un telefono anch'io.\"",
-        "escalation": "Nella notte la tensione è salita: Elena e Gianni non si salutano nemmeno.",
+        "escalation": "Nella notte la tensione è salita: Elena e Gianni non si salutano nemmeno, e sei costretto a convocarli insieme.",
         "prompt": "Come guidi la riunione?",
         "options": [
           {
@@ -1692,7 +1719,8 @@ window.ScenarioExams = [
               "strategia": -1
             },
             "outcome": "Si stringono la mano senza guardarsi. La riunione dura dieci minuti, e nessuno ha detto perché il programma si rompe al primo ritardo.",
-            "why": "Dare ragione a tutti chiude la discussione ma non il problema: è una pace di facciata."
+            "why": "Dare ragione a tutti chiude la discussione ma non il problema: è una pace di facciata.",
+            "escalation": "Prima che vi alziate, Elena trattiene tutti: c'è una cosa che non ha ancora detto."
           },
           {
             "text": "\"Prima di parlare di chi doveva avvisare chi: perché il programma non aveva nemmeno un giorno di margine sul massetto?\"",
@@ -1715,7 +1743,8 @@ window.ScenarioExams = [
               "etica": -1
             },
             "outcome": "Gianni annuisce soddisfatto. Elena raccoglie i fogli e non apre più bocca. Il giorno dopo ti chiede un colloquio \"per parlare del suo futuro\".",
-            "why": "Avere ragione su un punto tecnico non significa avere ragione su tutto. Ribaltare i ruoli davanti a lei umilia chi pianifica e premia chi non comunica."
+            "why": "Avere ragione su un punto tecnico non significa avere ragione su tutto. Ribaltare i ruoli davanti a lei umilia chi pianifica e premia chi non comunica.",
+            "escalation": "Il giorno dopo, al colloquio, Elena chiede che ci sia anche Gianni: ha una cosa da dire a tutti e due."
           },
           {
             "text": "\"Gianni, sul massetto hai protetto il lavoro. Ma Elena l'ha scoperto dai posatori alle 7:30. Come facciamo perché non succeda più?\"",
@@ -1796,24 +1825,30 @@ window.ScenarioExams = [
           "label": "Riconoscere la tua parte",
           "terms": [
             "errore è mio",
+            "errore mio",
+            "mio errore",
             "colpa mia",
-            "mia responsabilità",
+            "responsabilit",
             "ho promesso",
             "l'ho promessa",
             "ho sbagliato",
-            "mi assumo"
+            "mi assumo",
+            "è stato mio"
           ]
         },
         {
           "label": "Agire sulla causa",
           "terms": [
             "chiamo il cliente",
+            "chiedo al cliente",
+            "sento il cliente",
             "giorni in più",
+            "sposta",
             "sposto",
-            "spostare",
             "rinegozi",
             "nuova data",
-            "rinvio"
+            "rinvi",
+            "proroga"
           ]
         },
         {
@@ -1825,7 +1860,8 @@ window.ScenarioExams = [
             "via libera",
             "ogni cambio",
             "prima che",
-            "regola"
+            "regola",
+            "insieme"
           ]
         }
       ]
@@ -1870,7 +1906,8 @@ window.ScenarioExams = [
               "strategia": -1
             },
             "outcome": "Marco sorride: \"Certo, capo.\" Esce in due minuti. Chiara, che ha visto la scena attraverso il vetro, capisce che il suo prospetto non è servito a niente.",
-            "why": "Accettare la giustificazione per non incrinare il rapporto con il venditore migliore trasforma la regola in un suggerimento."
+            "why": "Accettare la giustificazione per non incrinare il rapporto con il venditore migliore trasforma la regola in un suggerimento.",
+            "escalation": "Dopo il tuo via libera di settimana scorsa, Marco si muove con ancora più disinvoltura."
           },
           {
             "text": "\"Preferivo che rispettassi le regole. La differenza di sconto te la scalo dalle provvigioni di ottobre.\"",
@@ -2100,7 +2137,8 @@ window.ScenarioExams = [
               "lettura": -1
             },
             "outcome": "Federico ci va a nozze: \"Sentitelo, si lamenta pure!\" Altra risata. Ti sei messo a giustificarti e la battuta è diventata un argomento di conversazione.",
-            "why": "Giustificarsi davanti a una battuta le dà peso: il gruppo capisce che ha colpito nel segno."
+            "why": "Giustificarsi davanti a una battuta le dà peso: il gruppo capisce che ha colpito nel segno.",
+            "escalation": "Federico ha capito che con te la battuta funziona, e non molla."
           },
           {
             "text": "Ridi con loro: \"Il dolce lo offro io. Il vino lo paga Federico, che l'ha scelto.\"",
@@ -2140,7 +2178,7 @@ window.ScenarioExams = [
         ]
       },
       {
-        "text": "Al secondo giro di vino la serata è allegra. Copri il bicchiere con la mano: guidi tu, e domattina alle 8 hai una videochiamata con un fornitore. Federico: \"Ah, adesso non beve più con i poveri! Dai, un goccio, non fare il prete.\" Ti versa comunque mezzo bicchiere e un paio di amici battono le mani sul tavolo.",
+        "text": "Al secondo giro di vino copri il bicchiere con la mano: guidi tu, e domattina alle 8 hai una videochiamata con un fornitore. Federico: \"Ah, adesso non beve più con i poveri! Dai, un goccio, non fare il prete.\" Ti versa comunque mezzo bicchiere e un paio di amici battono le mani sul tavolo.",
         "escalation": "Federico non ha digerito la tua risposta di prima e stavolta coinvolge tutto il tavolo.",
         "prompt": "Il tavolo aspetta la tua mossa. Cosa fai?",
         "options": [
@@ -2154,7 +2192,8 @@ window.ScenarioExams = [
               "empatia": 1
             },
             "outcome": "Applausi. Dieci minuti dopo Federico ti riempie di nuovo il bicchiere: ormai la regola è chiara, basta insistere.",
-            "why": "Cedere per far finire la pressione insegna al gruppo una cosa sola: che la pressione funziona."
+            "why": "Cedere per far finire la pressione insegna al gruppo una cosa sola: che la pressione funziona.",
+            "escalation": "Hai bevuto più di quanto volevi, e ormai per Federico sei la spalla perfetta delle sue battute."
           },
           {
             "text": "\"Fede, ho detto di no. Basta, non sono un ragazzino.\"",
@@ -2194,8 +2233,8 @@ window.ScenarioExams = [
         ]
       },
       {
-        "text": "Al dolce si parla di vacanze e l'atmosfera è rilassata. Paolo, distratto, chiede: \"Per Courmayeur prendiamo due macchine?\" Così scopri che fra tre settimane c'è un weekend sulla neve e un gruppo WhatsApp in cui tu non ci sei. Federico, senza guardarti: \"Non ti abbiamo messo perché tanto non vieni mai.\"",
-        "escalation": "Al dolce l'atmosfera è tesa e Federico non ti rivolge più la parola.",
+        "text": "Al dolce si parla di vacanze. Paolo, distratto, chiede: \"Per Courmayeur prendiamo due macchine?\" Così scopri che fra tre settimane c'è un fine settimana sulla neve e un gruppo WhatsApp in cui tu non ci sei. Federico, senza guardarti: \"Non ti abbiamo messo perché tanto non vieni mai.\"",
+        "escalation": "Da quel momento l'atmosfera è tesa, e Federico non ti rivolge più la parola.",
         "prompt": "Ti hanno lasciato fuori. Come rispondi?",
         "options": [
           {
@@ -2211,7 +2250,7 @@ window.ScenarioExams = [
             "why": "Il silenzio offeso e il gesto plateale puniscono tutti invece di chiarire: fanno sentire in colpa, non vicini."
           },
           {
-            "text": "\"Ma figurati, avete fatto benissimo. Tanto quel weekend avevo già un impegno di lavoro, non sarei venuto comunque.\"",
+            "text": "\"Ma figurati, avete fatto benissimo. Tanto quel fine settimana avevo già un impegno di lavoro, non sarei venuto comunque.\"",
             "quality": "weak",
             "effects": {
               "autocontrollo": 2,
@@ -2293,7 +2332,7 @@ window.ScenarioExams = [
       ]
     },
     "debrief": {
-      "truth": "Federico ci era rimasto male da un mese: avevi saltato la sua festa per i quarant'anni e gli avevi mandato solo un vocale, due giorni dopo. Le battute sui soldi e su Giacarta erano il suo modo di dirti che si sentiva messo da parte. Il gruppo del weekend l'aveva creato lui, ma sperava che fossi tu a chiedere di entrare.",
+      "truth": "Federico ci era rimasto male da un mese: avevi saltato la sua festa per i quarant'anni e gli avevi mandato solo un vocale, due giorni dopo. Le battute sui soldi e su Giacarta erano il suo modo di dirti che si sentiva messo da parte. Il gruppo del fine settimana l'aveva creato lui, ma sperava che fossi tu a chiedere di entrare.",
       "principle": "Dietro una battuta ripetuta c'è spesso un messaggio che l'altro non sa dire: alla battuta rispondi con leggerezza, al messaggio con un gesto.",
       "tip": "Se una presa in giro contiene un pezzo di verità, riconoscilo e rilancia: \"Hai ragione, ci sono stato poco. La prossima cena la organizzo io.\""
     }
@@ -2332,7 +2371,8 @@ window.ScenarioExams = [
               "strategia": -2
             },
             "outcome": "Gianni alza le mani: \"Ricevuto, capo.\" Gli altri smettono di ridere e per il resto della riunione nessuno fa più una domanda.",
-            "why": "Far valere i gradi difende la tua posizione ma conferma la sua tesi: il piano è calato dall'alto. Ottieni silenzio, non adesione."
+            "why": "Far valere i gradi difende la tua posizione ma conferma la sua tesi: il piano è calato dall'alto. Ottieni silenzio, non adesione.",
+            "escalation": "Gianni ha incassato il \"decido io\" e aspetta solo il momento per restituirlo."
           },
           {
             "text": "Fai finta di non aver sentito e passi al punto successivo, con lo stesso tono di prima.",
@@ -2343,7 +2383,7 @@ window.ScenarioExams = [
               "strategia": -1
             },
             "outcome": "La riunione va avanti, ma Gianni commenta ogni punto e le risatine aumentano.",
-            "why": "Ignorare una sfida pubblica del leader informale della stanza viene letto come paura, non come superiorità."
+            "why": "Ignorare una sfida pubblica di chi la stanza ascolta di più viene letto come paura, non come superiorità."
           },
           {
             "text": "\"In fotografia no, ma i cantieri li vedo meno di te, è vero. Proprio per questo serve il gestionale: la tua esperienza deve restare anche all'azienda.\"",
@@ -2376,7 +2416,7 @@ window.ScenarioExams = [
         "prompt": "Ti sta facendo l'esame davanti alla squadra. Cosa fai?",
         "options": [
           {
-            "text": "\"Una C2 deformabile, direi, e il massetto dev'essere ben asciutto prima di posare. Poi dipende sempre dal cantiere.\"",
+            "text": "\"Una C2 deformabile, direi, e il massetto dev'essere ben asciutto prima di posare. Poi dipende sempre dal cantiere e dal produttore.\"",
             "quality": "weak",
             "effects": {
               "assertivita": 1,
@@ -2426,7 +2466,7 @@ window.ScenarioExams = [
       },
       {
         "text": "La riunione sta per chiudersi. Gianni si alza per primo e dice ad alta voce: \"Ragazzi, facciamo come sempre: annuiamo, e i numeri li vediamo a dicembre.\" Qualcuno ride. Chiara ti guarda, come per capire se il piano vale davvero.",
-        "escalation": "La riunione si chiude in un clima pesante, con Gianni che ormai detta il tono.",
+        "escalation": "Da lì in poi è Gianni a dettare il tono della riunione.",
         "prompt": "L'ultima parola è tua. Cosa fai?",
         "options": [
           {
@@ -2568,7 +2608,8 @@ window.ScenarioExams = [
               "strategia": -1
             },
             "outcome": "Tommaso annuisce, soddisfatto: \"Appunto. E lo paghiamo noi.\" Hai confermato la sua cornice: siete cari.",
-            "why": "Ridere di sé può sciogliere la tensione, ma qui hai dato ragione alla sua tesi. Scherzare va bene, confermare no."
+            "why": "Ridere di sé può sciogliere la tensione, ma qui hai dato ragione alla sua tesi. Scherzare va bene, confermare no.",
+            "escalation": "Tommaso ha capito che sul prezzo sei già sulla difensiva, e ci torna sopra."
           },
           {
             "text": "\"Lo showroom lavora per voi: i vostri clienti scelgono da noi, vedono i materiali posati e voi vendete gli appartamenti prima.\"",
@@ -2609,8 +2650,8 @@ window.ScenarioExams = [
         ]
       },
       {
-        "text": "Ai secondi l'atmosfera è più distesa. Tommaso appoggia il telefono sul tavolo e avvia il cronometro: \"Facciamo un gioco. Il vostro concorrente ci ha offerto il 14% in meno. Hai trenta secondi per convincermi a non firmare con lui domani.\" Ottavio si appoggia allo schienale e incrocia le mani.",
-        "escalation": "Ai secondi l'atmosfera si è irrigidita e Tommaso ha smesso di sorridere.",
+        "text": "Arrivano i secondi. Tommaso appoggia il telefono sul tavolo e avvia il cronometro: \"Facciamo un gioco. Il vostro concorrente ci ha offerto il 14% in meno. Hai trenta secondi per convincermi a non firmare con lui domani.\" Ottavio si appoggia allo schienale e incrocia le mani.",
+        "escalation": "Dopo quella risposta l'atmosfera si è irrigidita, e Tommaso ha smesso di sorridere.",
         "prompt": "Il cronometro corre. Cosa fai?",
         "options": [
           {
@@ -2664,7 +2705,7 @@ window.ScenarioExams = [
       },
       {
         "text": "Al dolce Tommaso posa la forchetta e cambia tono. \"E poi, diciamolo: a Seregno ci avete consegnato con tre settimane di ritardo e le penali all'impresa le abbiamo pagate noi. Ottavio, te lo ricordi?\" È vero: la fabbrica aveva fermato un forno e tu li avevi avvisati tardi. Ottavio ti guarda, senza espressione.",
-        "escalation": "Al dolce Tommaso, ormai convinto di averti in pugno, cala l'ultima carta.",
+        "escalation": "Tommaso ormai è convinto di averti in pugno, e ha tenuto il colpo migliore per ultimo.",
         "prompt": "Il colpo è vero. Come rispondi?",
         "options": [
           {
@@ -2680,7 +2721,7 @@ window.ScenarioExams = [
             "why": "La spiegazione è vera, ma al cliente non interessa di chi è la colpa: interessa sapere se succederà di nuovo."
           },
           {
-            "text": "\"È vero, e la colpa è mia: vi ho avvisati tardi. Da allora le date di consegna le mettiamo per iscritto, con una penale a nostro carico. Anche per il residence.\"",
+            "text": "\"È vero, vi ho avvisati tardi ed è colpa mia. Da allora le date le scriviamo nel contratto, con una penale a nostro carico. Anche per il residence.\"",
             "quality": "best",
             "effects": {
               "etica": 2,
@@ -2772,7 +2813,7 @@ window.ScenarioExams = [
     "category": "confini",
     "difficulty": 2,
     "title": "L'amico che chiede di nuovo un prestito",
-    "setting": "Luca, amico da dieci anni, ti chiede 800 euro \"solo fino a fine mese\". Sei mesi fa gliene avevi prestati 300: li ha restituiti a metà, dopo tre solleciti. Ti scrive su WhatsApp e poi ti chiama mentre sei al lavoro.",
+    "setting": "Luca, amico da dieci anni, ti chiede 800 euro \"solo fino a fine mese\". Sei mesi fa gliene avevi prestati 300: li ha restituiti tutti, ma in tre mesi e dopo tre solleciti. Ti scrive su WhatsApp e poi ti chiama mentre sei al lavoro.",
     "cast": [
       {
         "name": "Luca",
@@ -2787,7 +2828,7 @@ window.ScenarioExams = [
         "prompt": "Come rispondi adesso?",
         "options": [
           {
-            "text": "\"Dimmi solo una cosa: per cosa ti servono?\"",
+            "text": "\"Prima dimmi una cosa, Luca: per cosa ti servono, esattamente?\"",
             "quality": "good",
             "effects": {
               "lettura": 2,
@@ -2798,7 +2839,7 @@ window.ScenarioExams = [
             "why": "Capire il motivo è utile, ma farlo di corsa al telefono ti lascia comunque decidere sotto pressione."
           },
           {
-            "text": "\"Sì, sì, va bene, ci penso io. Stai tranquillo.\"",
+            "text": "\"Sì, sì, va bene, ci penso io. Stai tranquillo, fratello.\"",
             "quality": "bad",
             "effects": {
               "assertivita": -2,
@@ -2808,10 +2849,10 @@ window.ScenarioExams = [
             },
             "outcome": "Luca ti ringrazia mille volte, convinto che sia fatta. Dopo la riunione ti accorgi di avergli fatto capire un sì senza aver deciso niente: né cifra né tempi.",
             "why": "Dire sì per chiudere il disagio della telefonata non è generosità: è evitare il conflitto, lo stesso schema dell'ultima volta.",
-            "escalation": "Luca ti richiama convinto che il sì sia già arrivato, e si irrigidisce appena capisce che vuoi riparlarne."
+            "escalation": "Dopo la riunione gli scrivi che prima vuoi parlarne bene. Luca, che dava il sì per fatto, la prende male."
           },
           {
-            "text": "\"Luca, ho una riunione e non decido di corsa. Ti richiamo stasera alle 20 e ne parliamo bene.\"",
+            "text": "\"Ho una riunione, Luca, e non decido di corsa. Ti richiamo stasera alle 20.\"",
             "quality": "best",
             "effects": {
               "autocontrollo": 2,
@@ -2822,12 +2863,12 @@ window.ScenarioExams = [
             "why": "La fretta è la leva più comune nelle richieste di denaro. Spostare la decisione a un momento scelto da te è già un confine."
           },
           {
-            "text": "\"Ancora? L'ultima volta ci hai messo una vita a ridarmeli.\"",
+            "text": "\"Ancora? L'ultima volta, per riavere 300 euro, ti ho dovuto chiamare tre volte.\"",
             "quality": "weak",
             "effects": {
               "autocontrollo": -1,
               "assertivita": 1,
-              "empatia": -2
+              "empatia": -1
             },
             "outcome": "Silenzio. Poi Luca, offeso: \"Ok, scusa se ho chiesto.\" La telefonata si chiude male e il problema resta aperto.",
             "why": "Il fatto è vero, ma usarlo come rimprovero a caldo sposta il discorso sull'orgoglio invece che sulla richiesta."
@@ -2840,7 +2881,7 @@ window.ScenarioExams = [
         "prompt": "Luca usa il debito di riconoscenza. Cosa fai?",
         "options": [
           {
-            "text": "\"Il trasloco non c'entra niente, non confondere le cose.\"",
+            "text": "\"Il trasloco non c'entra niente, Luca. Non confondere le cose: un favore tra amici non si ripaga con un prestito.\"",
             "quality": "bad",
             "effects": {
               "empatia": -2,
@@ -2853,7 +2894,7 @@ window.ScenarioExams = [
             "escalation": "Dopo lo scambio secco Luca è sulla difensiva e taglia corto."
           },
           {
-            "text": "\"È vero, e ti sono grato. Proprio perché ci tengo, sui soldi voglio essere chiaro: tra noi non devono diventare un problema.\"",
+            "text": "\"È vero, e ti sono grato. Proprio perché ci tengo, non voglio che i soldi diventino un problema tra noi.\"",
             "quality": "best",
             "effects": {
               "empatia": 2,
@@ -2864,10 +2905,10 @@ window.ScenarioExams = [
             "why": "Riconosci il legame senza accettare lo scambio \"mi hai aiutato, quindi mi devi dei soldi\". Separi gratitudine e decisione."
           },
           {
-            "text": "\"Ok, ok, hai ragione, scusa. Vediamo cosa posso fare, dai.\"",
+            "text": "\"Ok, ok, hai ragione, scusa. Non volevo sembrare ingrato. Vediamo cosa posso fare, dai.\"",
             "quality": "weak",
             "effects": {
-              "assertivita": -2,
+              "assertivita": -1,
               "autocontrollo": 1,
               "strategia": -1
             },
@@ -2893,12 +2934,11 @@ window.ScenarioExams = [
         "prompt": "Prendi la decisione finale.",
         "options": [
           {
-            "text": "\"Ti do 800, ma è l'ultima volta.\"",
+            "text": "\"Va bene, ti do 800, ma è l'ultima volta. Poi basta prestiti.\"",
             "quality": "weak",
             "effects": {
               "assertivita": 1,
-              "strategia": -2,
-              "autocontrollo": -1
+              "strategia": -2
             },
             "outcome": "Luca accetta subito. A fine mese ti scrive che gli servono ancora \"un paio di settimane\".",
             "why": "\"L'ultima volta\" senza tempi, modi e conseguenze non è un accordo: è una speranza."
@@ -2980,7 +3020,7 @@ window.ScenarioExams = [
       ]
     },
     "debrief": {
-      "truth": "Luca non è un approfittatore: è disordinato con i soldi e conta sul fatto che per affetto tu dica sì. La multa è vera, ma nella cifra c'erano anche spese che poteva rimandare.",
+      "truth": "La multa era vera, ma valeva 320 euro: il resto serviva a coprire due rate arretrate del finanziamento di una moto comprata in primavera, di cui Luca non aveva parlato con nessuno. Prima di te aveva chiesto a suo fratello, che gli aveva detto di no: per questo la sera si è presentato con il discorso del trasloco già pronto.",
       "principle": "Presta solo ciò che potresti perdere senza rancore, e metti per iscritto tempi e modi.",
       "tip": "Quando ti chiedono soldi con urgenza, prendi tempo: \"Ti rispondo stasera alle 20.\" Decidere a freddo cambia tutto."
     }
@@ -3037,7 +3077,8 @@ window.ScenarioExams = [
               "strategia": -1
             },
             "outcome": "Valentina si scusa, un po' gelata: \"Ah, scusa, non volevo disturbare.\" La mattina dopo il clima è freddo, e intanto le hai risposto comunque a mezzanotte.",
-            "why": "Un confine detto a caldo, di notte e per iscritto, suona come un rimprovero. E rispondendo alle 23:30 contraddici quello che stai dicendo."
+            "why": "Un confine detto a caldo, di notte e per iscritto, suona come un rimprovero. E rispondendo alle 23:30 contraddici quello che stai dicendo.",
+            "escalation": "Dopo il messaggio di mercoledì notte Valentina è stata più fredda, ma nel fine settimana è tornata alle vecchie abitudini."
           },
           {
             "text": "Rispondi solo: \"Ricevuto, domattina alle 8:30 lo trovi in mail.\" Poi metti il telefono in carica in cucina.",
@@ -3054,7 +3095,7 @@ window.ScenarioExams = [
       },
       {
         "text": "Lunedì Valentina passa in showroom per scegliere i materiali di una villa. Ridendo: \"Ieri ti ho cercato tre volte, eh! Ormai sei il mio pronto soccorso.\" Domenica ti aveva scritto alle 8:10 per il parquet e poi chiamato due volte. Siete soli al tavolo dei campioni.",
-        "escalation": "Lunedì Valentina passa in showroom, ormai abituata alle tue risposte a qualsiasi ora.",
+        "escalation": "Nei giorni successivi i vocali notturni si moltiplicano: ormai Valentina dà per scontato che tu risponda a qualsiasi ora.",
         "prompt": "È il momento di parlarne. Come lo dici?",
         "options": [
           {
@@ -3079,7 +3120,8 @@ window.ScenarioExams = [
               "strategia": -2
             },
             "outcome": "Valentina impallidisce: \"Non pensavo di darti così fastidio. Scusa.\" Per il resto dell'incontro è cortese e distante, e sceglie i materiali della villa in fretta.",
-            "why": "Due anni di sì accumulati escono tutti insieme, come un'accusa. Ma quell'abitudine l'avete costruita in due, e lei non sapeva che ti pesasse."
+            "why": "Due anni di sì accumulati escono tutti insieme, come un'accusa. Ma quell'abitudine l'avete costruita in due, e lei non sapeva che ti pesasse.",
+            "escalation": "Da quel lunedì Valentina ti scrive poco e con un tono formale, e due preventivi li ha chiesti a un altro showroom."
           },
           {
             "text": "\"Mi fa piacere essere il tuo riferimento, e voglio continuare a esserlo bene. Quindi facciamo così: scrivimi quando vuoi, io rispondo dalle 8:30 alle 19. Per un'urgenza vera di cantiere, chiamami.\"",
@@ -3108,7 +3150,7 @@ window.ScenarioExams = [
       },
       {
         "text": "Tre settimane dopo, giovedì alle 22:40, arriva un messaggio di Valentina. \"Scusa l'ora, non ti chiamo per non disturbare. Domattina alle 7 il posatore inizia la villa, ma l'impresa dice che il massetto forse non è asciutto. Posa o non posa?\" Sono 140 metri quadri di gres già consegnato.",
-        "escalation": "Tre settimane dopo i vocali notturni non sono diminuiti, e giovedì alle 22:40 arriva l'ennesimo messaggio di Valentina.",
+        "escalation": "Nel frattempo i vocali serali non sono diminuiti, e ogni volta ti chiedi se rispondere.",
         "prompt": "Il tuo orario è finito da un pezzo. Cosa fai?",
         "options": [
           {
@@ -3262,7 +3304,8 @@ window.ScenarioExams = [
               "etica": -1
             },
             "outcome": "Elena sorride, sollevata: \"Grazie, sapevo di poter contare su di te.\" Per lei è un sì. Per te era un modo per chiudere il discorso.",
-            "why": "Un \"vediamo\" detto per evitare la scena viene sentito come una promessa. Tra un mese il no costerà il doppio."
+            "why": "Un \"vediamo\" detto per evitare la scena viene sentito come una promessa. Tra un mese il no costerà il doppio.",
+            "escalation": "La mamma, contenta, dice: \"Allora è deciso!\" Tu precisi che non hai deciso niente, e il sorriso di Elena si spegne."
           },
           {
             "text": "Ti rivolgi a lui: \"Matteo, prima vorrei sentirlo da te. È un lavoro che vuoi davvero?\"",
@@ -3326,7 +3369,8 @@ window.ScenarioExams = [
               "strategia": -1
             },
             "outcome": "La mamma sorride, Elena respira. Matteo non sorride affatto. Hai appena preso un impegno da 1.800 euro al mese per chiudere una discussione.",
-            "why": "Cedere al senso di colpa riporta la pace per un pomeriggio, ma fa del lavoro di Matteo un risarcimento: per lui il ruolo peggiore possibile."
+            "why": "Cedere al senso di colpa riporta la pace per un pomeriggio, ma fa del lavoro di Matteo un risarcimento: per lui il ruolo peggiore possibile.",
+            "escalation": "Il sì che hai dato a tavola ti pesa già: hai visto la faccia di Matteo. Sul balcone, Elena ti spiega perché ci teneva tanto."
           },
           {
             "text": "\"Quei mesi li hai retti tu, e non ti ho mai ringraziata davvero. Grazie. Ma assumere Matteo non può servire a pareggiare i conti.\"",
@@ -3344,7 +3388,7 @@ window.ScenarioExams = [
       },
       {
         "text": "Dopo il caffè Elena ti raggiunge sul balcone, da sola. A bassa voce: \"Io e Stefano ci stiamo separando. La mamma non lo sa ancora. Ho paura per Matteo, voglio che abbia almeno uno stipendio sicuro.\" Dalla finestra vedi Matteo che scrive veloce al telefono.",
-        "escalation": "Dopo il caffè Elena, ancora rossa in viso per la discussione, ti raggiunge sul balcone.",
+        "escalation": "Il resto del pranzo passa in un silenzio pesante, che la mamma non riesce a riempire.",
         "prompt": "Ora sai cosa c'è sotto. Qual è la tua proposta?",
         "options": [
           {
@@ -3483,7 +3527,8 @@ window.ScenarioExams = [
               "strategia": -1
             },
             "outcome": "La riunione scorre liscia. Ferri chiede a Marco di seguire il progetto, e tu esci dalla sala con il tuo lavoro intestato a un altro.",
-            "why": "Evitare la scena è saggio, ma in quel momento il silenzio diventa una versione dei fatti: quella di Marco."
+            "why": "Evitare la scena è saggio, ma in quel momento il silenzio diventa una versione dei fatti: quella di Marco.",
+            "escalation": "Uscendo dalla sala incroci lo sguardo di Marco: ha capito che sai, e non aspetta che sia tu a cercarlo."
           },
           {
             "text": "\"Scusa, Marco: quel piano l'ho scritto io giovedì. Ce l'hai ancora nella posta, se vuoi controllare.\"",
@@ -3524,7 +3569,7 @@ window.ScenarioExams = [
       },
       {
         "text": "Dopo la riunione Marco ti raggiunge alla macchinetta del caffè: \"Dai, non farne un caso. Le idee erano anche mie, ne avevamo parlato a pranzo due settimane fa. Siamo la stessa squadra, no?\"",
-        "escalation": "Marco ha già raccontato in ufficio che il piano \"l'avete fatto insieme\", e alla macchinetta ti affronta sulla difensiva.",
+        "escalation": "Prima ancora che tu esca dalla sala, Marco ha già detto a due colleghi che il piano \"l'avete fatto insieme\".",
         "prompt": "Come rispondi?",
         "options": [
           {
@@ -3571,8 +3616,9 @@ window.ScenarioExams = [
               "assertivita": -2,
               "strategia": -1
             },
-            "outcome": "Marco sorride, sollevato. La settimana dopo presenta a Ferri anche la tua analisi sui listini, senza citarti.",
-            "why": "Lasciar correre insegna all'altro che il tuo lavoro è a disposizione. Il merito non conta per vanità: conta per le decisioni future su di te."
+            "outcome": "Marco sorride, sollevato: \"Sapevo che avresti capito.\" Poi ti chiede anche la tua analisi sui listini, \"per darle un'occhiata\".",
+            "why": "Lasciar correre insegna all'altro che il tuo lavoro è a disposizione. Il merito non conta per vanità: conta per le decisioni future su di te.",
+            "escalation": "Hai lasciato correre, e per Ferri il piano resta di Marco."
           }
         ]
       },
@@ -3692,7 +3738,7 @@ window.ScenarioExams = [
     "cast": [
       {
         "name": "Gianni Ruggeri",
-        "role": "posatore, partner storico dello showroom",
+        "role": "posatore, lavora con lo showroom da quindici anni",
         "note": "bravo, orgoglioso, parla chiaro anche quando sbaglia"
       },
       {
@@ -3715,7 +3761,7 @@ window.ScenarioExams = [
               "empatia": 1,
               "strategia": 1
             },
-            "outcome": "Gianni risponde secco, ma risponde. Intanto nel gruppo, senza una tua parola, i messaggi salgono a nove.",
+            "outcome": "Gianni non risponde, poi ti scrive solo: \"Domattina.\" Intanto nel gruppo, senza una tua parola, i messaggi salgono a nove.",
             "why": "Parlare con la fonte è giusto, ma un gruppo che non sente la tua voce per una notte si scrive la storia da solo."
           },
           {
@@ -3740,7 +3786,8 @@ window.ScenarioExams = [
               "strategia": -1
             },
             "outcome": "Alle 22:15 il geometra ti chiama, furioso: \"Hai messo in piazza un mio cliente?\" Nel gruppo qualcuno commenta: \"Bello, adesso sappiamo anche quanto spendono i tuoi clienti.\"",
-            "why": "Hai la prova e la usi male: esponi un terzo che non c'entra e trasformi il gruppo in un tribunale dove si vota chi ha ragione."
+            "why": "Hai la prova e la usi male: esponi un terzo che non c'entra e trasformi il gruppo in un tribunale dove si vota chi ha ragione.",
+            "escalation": "L'amministratore ha cancellato il tuo post dopo pochi minuti per i dati del cliente: la frase intera l'hanno vista in pochi, e il gruppo è più infuocato di prima."
           },
           {
             "text": "Non rispondi: a quest'ora qualsiasi cosa peggiora. Domattina, a mente fredda, decidi cosa fare.",
@@ -3781,7 +3828,8 @@ window.ScenarioExams = [
               "lettura": -1
             },
             "outcome": "Gianni si ammorbidisce, ma nel gruppo scrive: \"Almeno l'ha ammesso.\" La frase tagliata è diventata la tua confessione.",
-            "why": "Scusarsi è nobile quando hai sbagliato. Scusarti per un senso che non hai mai dato conferma la versione falsa."
+            "why": "Scusarsi è nobile quando hai sbagliato. Scusarti per un senso che non hai mai dato conferma la versione falsa.",
+            "escalation": "Nel gruppo la tua scusa gira come una confessione: adesso devi chiarire una frase che hai appena ammesso."
           },
           {
             "text": "\"Ti leggo la frase intera, poi giudichi tu. E se sei d'accordo, scrivilo tu nel gruppo che era tagliata.\"",
@@ -3809,7 +3857,7 @@ window.ScenarioExams = [
         ]
       },
       {
-        "text": "Nel gruppo aspettano il tuo messaggio: il post di Gianni l'hanno già letto in trenta. Dalla descrizione, chi gli ha girato lo screenshot è quasi certamente Ivano Bassi, agente di un distributore concorrente che da mesi visita i tuoi posatori.",
+        "text": "Nel gruppo aspettano il tuo messaggio: il post di Gianni l'hanno già letto in trenta. Sara, intanto, ha saputo da un posatore chi ha girato lo screenshot a Gianni: quasi certamente Ivano Bassi, agente di un distributore concorrente che da mesi visita i tuoi posatori.",
         "escalation": "Gianni ha chiuso male la telefonata e nel gruppo il tono è ormai \"noi contro lo showroom\".",
         "prompt": "Che messaggio scrivi nel gruppo?",
         "options": [
@@ -3950,7 +3998,8 @@ window.ScenarioExams = [
               "etica": -1
             },
             "outcome": "Elena sembra delusa: \"Ah, ok.\" Hai salvato la facciata, ma non sai perché Stefano l'abbia detto, né che cosa pensi lei.",
-            "why": "Minimizzare protegge l'immagine per una sera e ti lascia cieco. La cliente ti ha dato un segnale: liquidarlo significa sprecarlo."
+            "why": "Minimizzare protegge l'immagine per una sera e ti lascia cieco. La cliente ti ha dato un segnale: liquidarlo significa sprecarlo.",
+            "escalation": "La frase di Elena però non ti dà pace, e il giorno dopo decidi di parlarne con Stefano."
           },
           {
             "text": "\"Grazie, Elena. Detto tra noi, Stefano ultimamente è molto sotto stress, non è lucido. Da ora i tuoi cantieri li seguo io, personalmente.\"",
@@ -4155,10 +4204,10 @@ window.ScenarioExams = [
     "category": "manipolazione",
     "difficulty": 3,
     "title": "Il lotto a prezzo stracciato, solo fino alle 18",
-    "setting": "Martedì, ore 15:20. Fabio Rinaldi, agente di zona di una ceramica emiliana con cui lavori da anni, ti offre un lotto di 2.400 metri quadri di gres 120x120 effetto marmo a 14 euro al metro, contro i 22 di listino: circa 33.600 euro in tutto. Il magazzino è pieno per metà, ma quel formato lo vendi bene.",
+    "setting": "Martedì, ore 15:20. Fabio Montanari, agente di zona di una ceramica emiliana con cui lavori da anni, ti offre un lotto di 2.400 metri quadri di gres 120x120 effetto marmo a 14 euro al metro, contro i 22 di listino: circa 33.600 euro in tutto. Il magazzino è pieno per metà, ma quel formato lo vendi bene.",
     "cast": [
       {
-        "name": "Fabio Rinaldi",
+        "name": "Fabio Montanari",
         "role": "agente di zona di una ceramica",
         "note": "simpatico, informato su tutto il mercato, ti chiama sempre \"capo\""
       }
@@ -4191,7 +4240,8 @@ window.ScenarioExams = [
               "assertivita": 1
             },
             "outcome": "Fabio è velocissimo: la conferma arriva in cinque minuti, con il tuo nome già sopra. Del lotto hai visto solo il prezzo.",
-            "why": "La scadenza ravvicinata serve esattamente a questo: farti decidere sul prezzo prima di guardare la merce."
+            "why": "La scadenza ravvicinata serve esattamente a questo: farti decidere sul prezzo prima di guardare la merce.",
+            "escalation": "Prima di firmare la conferma ti accorgi che manca il numero di partita, e scrivi a Fabio che vuoi vedere i dati. Lui non perde un minuto."
           },
           {
             "text": "\"Mandami subito scheda, foto e numero di partita. Se torna tutto ti rispondo entro le 18; se no, dallo pure a Brescia.\"",
@@ -4219,8 +4269,8 @@ window.ScenarioExams = [
         ]
       },
       {
-        "text": "Alle 16:30 Fabio richiama: \"Senti, per tenertelo bloccato mi basta una mail di interesse, niente di impegnativo. Così a Brescia dico che è in trattativa.\" Le foto sono belle, ma la scheda dice \"prima scelta\" senza numero di partita.",
-        "escalation": "Fabio ha sentito la tua esitazione e insiste: \"Guarda che Brescia ha già chiesto i dati per il bonifico.\"",
+        "text": "Alle 16:30 Fabio richiama: \"Senti, per tenertelo bloccato mi basta una mail di interesse, niente di impegnativo. Così a Brescia dico che è in trattativa.\" Nel frattempo ti ha mandato foto e scheda: le foto sono belle, ma la scheda dice \"prima scelta\" senza numero di partita.",
+        "escalation": "Fabio non molla e alza la pressione: \"Guarda che Brescia ha già chiesto i dati per il bonifico.\"",
         "prompt": "Cosa fai?",
         "options": [
           {
@@ -4435,7 +4485,8 @@ window.ScenarioExams = [
               "lettura": -1
             },
             "outcome": "Ottavio ti dà una pacca sulla spalla: \"Vedi che ci capiamo?\" Hai appena accettato di pagare 1.500 euro per un dubbio che ti ha messo in testa lui.",
-            "why": "Il dubbio su te stesso è esattamente l'effetto cercato. Il compromesso a metà sembra saggio, ma premia chi ha riscritto la storia."
+            "why": "Il dubbio su te stesso è esattamente l'effetto cercato. Il compromesso a metà sembra saggio, ma premia chi ha riscritto la storia.",
+            "escalation": "Mentre Ottavio già sorride, Matteo ti mostra sul telefono l'offerta firmata: non hai ancora stretto nessuna mano, e ci ripensi."
           },
           {
             "text": "\"Mi stai dando del bugiardo, Ottavio? L'abbiamo detto chiaro, davanti a tutti! E il telefono lascialo stare.\"",
@@ -4452,7 +4503,7 @@ window.ScenarioExams = [
         ]
       },
       {
-        "text": "Ottavio cambia terreno: \"Sì, l'offerta dice così. Ma il tuo tecnico mi ha detto che la rasatura la facevate voi. Chiedi a lui.\" Matteo, a due metri, diventa rosso e guarda il pavimento. Gli operai smettono di lavorare per ascoltare.",
+        "text": "Con l'offerta firmata sotto gli occhi, Ottavio cambia terreno: \"Sì, l'offerta dice così. Ma il tuo tecnico mi ha detto che la rasatura la facevate voi. Chiedi a lui.\" Matteo, a due metri, diventa rosso e guarda il pavimento. Gli operai smettono di lavorare per ascoltare.",
         "escalation": "Ottavio ha capito che sei in difficoltà e alza la voce perché lo sentano tutti: \"Anche il tuo tecnico è d'accordo con me!\"",
         "prompt": "Ottavio ha messo in mezzo Matteo. Cosa fai?",
         "options": [
@@ -4478,7 +4529,8 @@ window.ScenarioExams = [
               "etica": -1
             },
             "outcome": "Ottavio incassa, ma Matteo ti guarda come se l'avessi appena venduto. Da domani in cantiere parlerà il meno possibile.",
-            "why": "Logicamente corretto, umanamente freddo: per vincere il punto scarichi in pubblico il tuo uomo, e Ottavio ha comunque diviso la squadra."
+            "why": "Logicamente corretto, umanamente freddo: per vincere il punto scarichi in pubblico il tuo uomo, e Ottavio ha comunque diviso la squadra.",
+            "escalation": "Ottavio ha incassato, ma ha visto la crepa nella tua squadra, e ci conta."
           },
           {
             "text": "\"Con Matteo parlo io. Gli accordi sono nell'offerta, e la firma è mia.\"",
@@ -4508,7 +4560,7 @@ window.ScenarioExams = [
       },
       {
         "text": "Fuori dal cantiere Matteo ti conferma che aveva detto solo: \"Se c'è un pezzo da sistemare, ci mettiamo d'accordo.\" Ottavio vi raggiunge e passa alla pressione: \"Al committente dovrò dire che il ritardo è colpa vostra. E la fase due, i 1.200 metri dell'altro lotto, la sto ancora assegnando.\"",
-        "escalation": "Ottavio, sentendosi in vantaggio, ha già chiamato il committente per dirgli che il cantiere è fermo per colpa vostra.",
+        "escalation": "Ottavio si sente in vantaggio e non lo nasconde: davanti agli operai ti tratta come uno che ha già perso.",
         "prompt": "Ultima mossa. Cosa proponi?",
         "options": [
           {
@@ -4628,7 +4680,7 @@ window.ScenarioExams = [
       {
         "name": "Dewi Lestari",
         "role": "tua responsabile operativa a Giacarta",
-        "note": "precisa, riservata, molto rispettosa delle gerarchie"
+        "note": "precisa e riservata, ha costruito lei la rete di posatori dell'azienda a Giacarta"
       }
     ],
     "objective": "Capire se l'affare è vero e proteggere l'esclusiva, senza bruciare una relazione che potrebbe servirti.",
@@ -4647,7 +4699,8 @@ window.ScenarioExams = [
               "autocontrollo": -1
             },
             "outcome": "Riccardo ti abbraccia. Il giorno dopo arriva la bozza di statuto: 27 pagine in inglese e indonesiano, da firmare entro quattro giorni.",
-            "why": "I complimenti hanno fatto il loro lavoro: ti senti speciale e abbassi la guardia. È esattamente la funzione delle cene e delle presentazioni."
+            "why": "I complimenti hanno fatto il loro lavoro: ti senti speciale e abbassi la guardia. È esattamente la funzione delle cene e delle presentazioni.",
+            "escalation": "Riccardo ti tratta già da socio: ti ha mandato la bozza e chiama per stringere i tempi."
           },
           {
             "text": "\"51 a te? Facciamo 50 e 50, e l'esclusiva la mettiamo dentro solo per questo progetto.\"",
@@ -4659,7 +4712,8 @@ window.ScenarioExams = [
               "autocontrollo": -1
             },
             "outcome": "Riccardo finge di pensarci: \"Per te, 50 e 50.\" Accetta troppo in fretta. Stai già trattando le quote di una società che non hai ancora capito.",
-            "why": "Trattare sembra furbo, ma accetti la cornice di Riccardo: l'esclusiva dentro una società. Il punto non erano le percentuali."
+            "why": "Trattare sembra furbo, ma accetti la cornice di Riccardo: l'esclusiva dentro una società. Il punto non erano le percentuali.",
+            "escalation": "Riccardo ha accettato il 50 e 50 e adesso vuole chiudere in fretta, prima che tu ci ripensi."
           },
           {
             "text": "\"Ti dico subito una cosa: l'esclusiva resta fuori da qualsiasi società, non è in discussione. Il progetto però mi interessa: parliamo di fornitura.\"",
@@ -4689,7 +4743,7 @@ window.ScenarioExams = [
       },
       {
         "text": "Il giorno dopo Riccardo ti telefona in ufficio: \"Ho sentito Bellini, il direttore export della ceramica: è entusiasta della struttura, anzi la preferisce. Non farmi fare brutta figura con lui.\" Quando riattacchi, Dewi si affaccia e dice piano: \"Pak, forse sarebbe bene studiare ancora un po' i documenti. Ho sentito che Pak Riccardo ha lavorato anche con altri italiani.\"",
-        "escalation": "Riccardo ha percepito la tua freddezza e ti chiama già offeso: \"Ti ho presentato a mezza Giacarta e tu mi tratti come un estraneo?\"",
+        "escalation": "Riccardo ha fretta, e non fa niente per nasconderlo.",
         "prompt": "Cosa fai?",
         "options": [
           {
@@ -4713,7 +4767,7 @@ window.ScenarioExams = [
               "strategia": -2
             },
             "outcome": "Dewi abbassa lo sguardo: \"Certo, Pak. Mi scusi.\" Non ne parlerà più, e tu hai appena chiuso l'unica fonte che sapeva qualcosa.",
-            "why": "In molti contesti, e spesso a Giacarta, una cosa scomoda su una persona di riguardo si dice con un \"forse\". Liquidarla come pettegolezzo vuol dire perdere l'avvertimento e la fiducia di chi te l'ha dato."
+            "why": "Dewi ha scelto le parole con cura per segnalarti una cosa scomoda su una persona a cui tieni. Liquidarla come pettegolezzo vuol dire perdere l'avvertimento e la fiducia di chi te l'ha dato."
           },
           {
             "text": "Chiudi la porta e chiedi a Dewi: \"Grazie di avermelo detto. Mi interessa la tua opinione: cosa hai sentito?\"",
@@ -4724,7 +4778,7 @@ window.ScenarioExams = [
               "strategia": 1
             },
             "outcome": "Dewi, rassicurata, racconta: due anni fa un distributore italiano di illuminazione aveva fatto una società con Riccardo. Dopo un aumento di capitale si era ritrovato con il 12% e senza marchio.",
-            "why": "Hai colto il segnale indiretto e hai creato lo spazio sicuro per parlare: porta chiusa, ringraziamento, domanda aperta. Chi rispetta la gerarchia parla davvero solo se invitato."
+            "why": "Hai colto il segnale indiretto e hai creato lo spazio sicuro per parlare: porta chiusa, ringraziamento, domanda aperta. Chi segnala una cosa delicata al proprio capo vuole prima sapere che è davvero benvenuta."
           },
           {
             "text": "Richiami Riccardo e vai dritto al punto: \"Ho sentito che con altri soci italiani è finita male. Com'è andata, esattamente?\"",
@@ -4741,7 +4795,7 @@ window.ScenarioExams = [
         ]
       },
       {
-        "text": "Venerdì Riccardo arriva in ufficio con lo statuto e una lettera del costruttore, che parla di \"fornitori qualificati\" senza marchi né quantità. Bellini ti ha risposto per email: \"Abbiamo solo detto che valuteremo.\" Riccardo ti guarda serio: \"Dopo tutto quello che ho fatto per te... Se non firmi oggi il costruttore va con gli spagnoli, e io con te ho chiuso.\"",
+        "text": "Venerdì Riccardo arriva in ufficio con lo statuto e una lettera del costruttore, che parla di \"fornitori qualificati\" senza marchi né quantità. Bellini, a cui hai scritto mercoledì, ti ha risposto: \"Abbiamo solo detto che valuteremo.\" Riccardo ti guarda serio: \"Dopo tutto quello che ho fatto per te... Se non firmi oggi il costruttore va con gli spagnoli, e io con te ho chiuso.\"",
         "escalation": "Riccardo ha già detto al costruttore che oggi firmerai e si presenta con il fatto compiuto.",
         "prompt": "Ultimo round. Cosa dici?",
         "options": [
@@ -4874,7 +4928,7 @@ window.ScenarioExams = [
               "strategia": -1,
               "empatia": -1
             },
-            "outcome": "Passi un fine settimana pessimo. Serena anche: ha riletto il file più volte, e lunedì la segretaria ti dice che è \"in riunione tutto il giorno\".",
+            "outcome": "Passi una notte pessima. Sabato alle 9 è Serena a chiamarti: ha riletto il file più volte, e il tuo silenzio le è sembrato una risposta.",
             "why": "Non decidere a caldo è spesso saggio, ma qui l'altra persona ha già letto: il silenzio non è prudenza, è lasciarle scrivere la storia da sola."
           },
           {
@@ -4887,7 +4941,8 @@ window.ScenarioExams = [
               "autocontrollo": 1
             },
             "outcome": "Serena risponde dopo dieci minuti, una riga sola: \"Nelle proprietà del file l'autore sei tu.\" Adesso l'errore è diventato una bugia.",
-            "why": "Scaricare la colpa su un collega sembra un'uscita elegante, ma le bugie si scoprono e trasformano un incidente in una questione di onestà."
+            "why": "Scaricare la colpa su un collega sembra un'uscita elegante, ma le bugie si scoprono e trasformano un incidente in una questione di onestà.",
+            "escalation": "Dopo la bugia sul collega Serena smette di rispondere ai messaggi. Accetta la tua chiamata solo a tarda sera, e non l'ha dimenticata."
           },
           {
             "text": "Le scrivi subito: \"Ti ho mandato per errore un file interno, scusami. In allegato il preventivo corretto. Lunedì ti chiamo per parlarne.\"",
@@ -4953,7 +5008,8 @@ window.ScenarioExams = [
               "assertivita": -1
             },
             "outcome": "Serena tace un momento: \"Quindi era vero.\" Accetta lo sconto, freddamente. Hai perso quasi 8.000 euro e confermato il suo sospetto peggiore.",
-            "why": "Lo sconto riparatore sembra generoso, ma suona come un'ammissione: se togli l'8% subito, vuol dire che c'era davvero."
+            "why": "Lo sconto riparatore sembra generoso, ma suona come un'ammissione: se togli l'8% subito, vuol dire che c'era davvero.",
+            "escalation": "Lo sconto dell'8% l'hai promesso al telefono, ma all'incontro Serena lo mette da parte: \"Non voglio un risarcimento.\""
           },
           {
             "text": "\"Hai tutto il diritto di essere arrabbiata. È stata una mancanza di rispetto e non ho scuse. Capisco se adesso ti serve tempo.\"",
@@ -4965,12 +5021,13 @@ window.ScenarioExams = [
               "strategia": -1
             },
             "outcome": "Serena risponde secca: \"Sì, mi serve tempo.\" La chiamata finisce con calma, ma la sua domanda sui prezzi è rimasta senza risposta.",
-            "why": "Le scuse sono sincere e pulite, ma la sua domanda era precisa: lasciarla cadere fa crescere il dubbio."
+            "why": "Le scuse sono sincere e pulite, ma la sua domanda era precisa: lasciarla cadere fa crescere il dubbio.",
+            "escalation": "Domenica sera Serena ti scrive: \"Lunedì alle 10 da me. Porta i numeri.\""
           }
         ]
       },
       {
-        "text": "Lunedì alle 10, nel suo studio, Serena scorre i dati dei suoi ordini: dopo le trattative ha sempre pagato in linea con la media degli altri studi. Poi incrocia le braccia: \"Va bene. Ma per l'hotel basta teatro: voglio il tuo prezzo vero, adesso, e non ci torniamo più sopra.\" Il listino partiva da 44 euro al metro; il tuo minimo sostenibile è 39.",
+        "text": "Lunedì alle 10, nel suo studio, le mostri i dati dei suoi ordini: dopo le trattative ha sempre pagato in linea con la media degli altri studi. Poi incrocia le braccia: \"Va bene. Ma per l'hotel basta teatro: voglio il tuo prezzo vero, adesso, e non ci torniamo più sopra.\" Il listino partiva da 44 euro al metro; il tuo minimo sostenibile è 39.",
         "escalation": "Serena ti ha concesso l'incontro controvoglia e ti dice subito che ha già chiesto un preventivo a un altro distributore.",
         "prompt": "Che prezzo le dai?",
         "options": [
@@ -5135,7 +5192,8 @@ window.ScenarioExams = [
               "autocontrollo": -1
             },
             "outcome": "Il clima si calma un po'. Nel pomeriggio l'assicurazione ti richiama: la tua frase è nel video, e tre condòmini chiedono già i danni per crepe che c'erano da anni.",
-            "why": "Il gesto è generoso, ma promettere risarcimenti davanti a una telecamera, prima di conoscere i fatti, crea impegni che non controlli più."
+            "why": "Il gesto è generoso, ma promettere risarcimenti davanti a una telecamera, prima di conoscere i fatti, crea impegni che non controlli più.",
+            "escalation": "Il video con la tua promessa gira nel quartiere, e le richieste di danni cominciano ad arrivare."
           },
           {
             "text": "\"Il cantiere è mio e ne rispondo io. Lavori in quota fermi da adesso. Ora mi informo sulla signora: alle 18 sono qui e vi spiego tutto.\"",
@@ -5235,7 +5293,7 @@ window.ScenarioExams = [
             "why": "Proteggere tutti con una mezza verità sembra equilibrato, ma una relazione reticente è la prima cosa che crolla quando qualcuno fa domande."
           },
           {
-            "text": "Relazione con i fatti veri, ordine di Sergio compreso. Florin resta. Con Rinaldi sposti la scadenza di venerdì e con Sergio rifai il piano del lato cortile.",
+            "text": "Relazione con i fatti veri, ordine di Sergio compreso, e un richiamo scritto a lui. Florin resta. Con Rinaldi sposti la scadenza, con Sergio rifai il piano del cortile.",
             "quality": "best",
             "effects": {
               "etica": 2,
@@ -5243,8 +5301,8 @@ window.ScenarioExams = [
               "assertivita": 1,
               "empatia": 1
             },
-            "outcome": "Rinaldi protesta per il ritardo, poi cede: dopo quel video nessuno vuole fretta. Sergio, a sorpresa, ti ringrazia: \"Venerdì non ci stavamo, lo sapevo.\"",
-            "why": "Dici la verità, proteggi chi non ha colpa e togli la causa, cioè la fretta. Una crisi si chiude davvero solo quando cambi ciò che l'ha prodotta."
+            "outcome": "Rinaldi protesta per il ritardo, poi cede: dopo quel video nessuno vuole fretta. Sergio firma il richiamo senza discutere: \"Venerdì non ci stavamo, lo sapevo.\"",
+            "why": "Dici la verità, proteggi chi non ha colpa, chiedi conto a chi ha sbagliato nella misura giusta e togli la causa, cioè la fretta. Una crisi si chiude solo quando cambi ciò che l'ha prodotta."
           },
           {
             "text": "Accetti la proposta del titolare: Florin passa a un altro cantiere e nella relazione scrivi \"errore individuale di un operatore\". Sergio resta al suo posto e si riparte.",
@@ -5285,7 +5343,9 @@ window.ScenarioExams = [
             "verific",
             "tecnico",
             "domattina",
-            "ferm",
+            "fermi",
+            "fermat",
+            "fermo",
             "sicurezza",
             "prima di ripartire"
           ]
@@ -5318,9 +5378,9 @@ window.ScenarioExams = [
     "setting": "Giacarta, mercoledì mattina. Il container con 1.800 metri quadri di gres italiano per la lobby di un hotel a Kemang è fermo in dogana da nove giorni per un documento di certificazione mancante; la posa doveva iniziare lunedì. Alla riunione di coordinamento, nella sala del committente, ci sono la direttrice del progetto, l'impresa generale e il tuo responsabile locale. Tu hai saputo del blocco solo ieri sera.",
     "cast": [
       {
-        "name": "Ibu Ratna",
+        "name": "Ibu Wulan",
         "role": "direttrice di progetto del committente",
-        "note": "calma, cortese, parla poco e sorride spesso"
+        "note": "calma, ingegnere di formazione, fa poche domande e tutte precise"
       },
       {
         "name": "Pak Agus",
@@ -5328,7 +5388,7 @@ window.ScenarioExams = [
         "note": "esuberante, voce alta, conosce tutti in cantiere"
       },
       {
-        "name": "Budi",
+        "name": "Arief",
         "role": "il tuo responsabile operativo a Giacarta",
         "note": "affidabile e discreto, in azienda da tre anni"
       }
@@ -5336,7 +5396,7 @@ window.ScenarioExams = [
     "objective": "Uscire dalla crisi con il committente senza far perdere la faccia a nessuno, te compreso.",
     "rounds": [
       {
-        "text": "La riunione è appena iniziata. Pak Agus si rivolge a tutto il tavolo: \"Il problema sono le piastrelle italiane. Ho quindici operai fermi da lunedì e qualcuno dovrà pagarli.\" Ibu Ratna sorride, non dice niente e ti guarda. Budi fissa il tavolo.",
+        "text": "La riunione è appena iniziata. Pak Agus si rivolge a tutto il tavolo: \"Il problema sono le piastrelle italiane. Ho quindici operai fermi da lunedì e qualcuno dovrà pagarli.\" Ibu Wulan non dice niente e ti guarda. Arief fissa il tavolo.",
         "prompt": "Come rispondi, davanti a tutti?",
         "options": [
           {
@@ -5348,8 +5408,8 @@ window.ScenarioExams = [
               "empatia": -2,
               "strategia": -2
             },
-            "outcome": "Pak Agus diventa rosso e alza la voce. Ibu Ratna continua a sorridere, ma chiude la riunione dieci minuti prima con un \"ne riparleremo\" molto cortese.",
-            "why": "Sfidare in pubblico chi ti attacca può funzionare in certe sale riunioni, ma qui fa perdere la faccia a tutti, padrona di casa compresa. E il tuo ritardo resta lì."
+            "outcome": "Pak Agus diventa rosso e alza la voce. Ibu Wulan non commenta, ma chiude la riunione dieci minuti prima con un \"ne riparleremo\" molto cortese.",
+            "why": "Sfidare in pubblico chi ti attacca, quando il ritardo è tuo, mette in imbarazzo tutto il tavolo, padrona di casa compresa. E il tuo ritardo resta lì."
           },
           {
             "text": "\"Mi scuso con tutti per il ritardo del container. Entro venerdì vi mando per iscritto una data certa di consegna, garantita.\"",
@@ -5360,11 +5420,11 @@ window.ScenarioExams = [
               "assertivita": 1,
               "strategia": -1
             },
-            "outcome": "Il tono si abbassa. Ma \"data certa\" è una promessa che dipende dalla dogana, e Ibu Ratna se la annota.",
+            "outcome": "Il tono si abbassa. Ma \"data certa\" è una promessa che dipende dalla dogana, e Ibu Wulan se la annota.",
             "why": "Riconoscere il ritardo con calma è giusto. Promettere una data certa su qualcosa che non controlli ti espone a un secondo errore."
           },
           {
-            "text": "\"Il ritardo del container è nostro, me ne scuso. Ibu Ratna, se mi concede mezz'ora oggi pomeriggio, le porto date e alternative.\"",
+            "text": "\"Il ritardo del container è nostro, me ne scuso. Ibu Wulan, se mi concede mezz'ora oggi pomeriggio, le porto date e alternative.\"",
             "quality": "best",
             "effects": {
               "etica": 2,
@@ -5372,8 +5432,8 @@ window.ScenarioExams = [
               "autocontrollo": 1,
               "strategia": 1
             },
-            "outcome": "Ibu Ratna annuisce appena: \"Alle quattro.\" Pak Agus borbotta, ma la discussione sui soldi si chiude lì, senza vincitori né perdenti.",
-            "why": "Riconosci il problema senza discutere colpe e cifre in pubblico, e porti la trattativa vera in privato, con chi decide. Dove la faccia conta, è rispetto per tutti."
+            "outcome": "Ibu Wulan annuisce appena: \"Alle quattro.\" Pak Agus borbotta, ma la discussione sui soldi si chiude lì, senza vincitori né perdenti.",
+            "why": "Riconosci il problema senza discutere colpe e cifre in pubblico, e porti la trattativa vera in privato, con chi decide. Ed è un segno di rispetto per tutti."
           },
           {
             "text": "\"Avete ragione, è interamente colpa nostra. Copriremo noi i costi della squadra ferma, nessun problema.\"",
@@ -5384,15 +5444,16 @@ window.ScenarioExams = [
               "strategia": -3,
               "assertivita": -1
             },
-            "outcome": "Pak Agus si illumina e chiede di metterlo a verbale. Ibu Ratna ti guarda con un'espressione che non riesci a decifrare.",
-            "why": "Generoso e rapido, ma ti sei impegnato a pagare costi che nessuno ha verificato. E in pubblico è difficile tornare indietro."
+            "outcome": "Pak Agus si illumina e chiede di metterlo a verbale. Ibu Wulan ti guarda con un'espressione che non riesci a decifrare.",
+            "why": "Generoso e rapido, ma ti sei impegnato a pagare costi che nessuno ha verificato. E in pubblico è difficile tornare indietro.",
+            "escalation": "Pak Agus esce soddisfatto, con il tuo impegno a verbale; Ibu Wulan ti saluta senza aggiungere altro."
           }
         ]
       },
       {
-        "text": "In macchina, dopo la riunione, Budi parla a bassa voce: \"Pak, la dogana mi aveva segnalato il problema dieci giorni fa. Le avevo scritto di 'una piccola difficoltà', pensavo di risolverla da solo con lo spedizioniere. E il massetto della lobby è ancora bagnato: Pak Agus non avrebbe potuto posare comunque.\" Ritrovi il suo messaggio di dieci giorni fa: gli avevi risposto con un pollice alzato.",
-        "escalation": "Uscendo, Ibu Ratna ti ha salutato con un sorriso cortese e nessuna parola in più, e Pak Agus non ti ha nemmeno guardato.",
-        "prompt": "Cosa dici a Budi?",
+        "text": "In macchina, dopo la riunione, Arief parla a bassa voce: \"Pak, la dogana mi aveva segnalato il problema dieci giorni fa. Le avevo scritto di 'una piccola difficoltà', pensavo di risolverla da solo con lo spedizioniere. E il massetto della lobby è ancora bagnato: Pak Agus non avrebbe potuto posare comunque.\" Ritrovi il suo messaggio di dieci giorni fa: gli avevi risposto con un pollice alzato.",
+        "escalation": "Uscendo, Ibu Wulan ti ha salutato con cortesia e nessuna parola in più, e Pak Agus non ti ha nemmeno guardato.",
+        "prompt": "Cosa dici ad Arief?",
         "options": [
           {
             "text": "\"D'ora in poi ogni problema con la dogana me lo dici con una telefonata, non con un messaggio, anche se pensi di poterlo risolvere da solo.\"",
@@ -5402,11 +5463,11 @@ window.ScenarioExams = [
               "strategia": 1,
               "autocontrollo": 1
             },
-            "outcome": "Budi annuisce: \"Sì, Pak.\" La regola è chiara, ma lui resta rigido per tutto il viaggio e risponde solo a quello che gli chiedi.",
+            "outcome": "Arief annuisce: \"Sì, Pak.\" La regola è chiara, ma lui resta rigido per tutto il viaggio e risponde solo a quello che gli chiedi.",
             "why": "Una regola chiara serve. Ma senza riconoscere la tua parte suona come un rimprovero, e chi si sente rimproverato smette di portare informazioni."
           },
           {
-            "text": "\"Dieci giorni, Budi? Hai idea di quanto ci costa? Se succede ancora, ne trarrò le conseguenze.\"",
+            "text": "\"Dieci giorni, Arief? Hai idea di quanto ci costa? Se succede ancora, ne trarrò le conseguenze.\"",
             "quality": "bad",
             "effects": {
               "assertivita": 1,
@@ -5414,8 +5475,9 @@ window.ScenarioExams = [
               "empatia": -2,
               "lettura": -1
             },
-            "outcome": "Budi si scusa due volte, poi tace. Quello che sa su spedizioniere e scorte resta nella sua testa: tu non chiedi, lui non offre.",
-            "why": "La rabbia è comprensibile, ma insegna a chi lavora con te che portare cattive notizie è pericoloso: la prossima volta te le nasconderà meglio."
+            "outcome": "Arief si scusa due volte, poi tace. Quello che sa su spedizioniere e scorte resta nella sua testa: tu non chiedi, lui non offre.",
+            "why": "La rabbia è comprensibile, ma insegna a chi lavora con te che portare cattive notizie è pericoloso: la prossima volta te le nasconderà meglio.",
+            "escalation": "Spedizioniere e scorte li ricostruisci da solo, al telefono, fino all'ultimo minuto: arrivi all'incontro teso e con un piano a metà."
           },
           {
             "text": "\"Quel messaggio l'ho letto anch'io e ho messo un pollice: abbiamo sbagliato in due. Adesso dimmi tutto quello che sai, poi decidiamo come avvisarci.\"",
@@ -5426,11 +5488,11 @@ window.ScenarioExams = [
               "etica": 1,
               "strategia": 1
             },
-            "outcome": "Budi si rilassa e tira fuori tutto: lo spedizioniere stima sei-otto giorni, e nel magazzino di Surabaya ci sono 400 metri quadri dello stesso gres. Adesso hai un piano.",
+            "outcome": "Arief si rilassa e tira fuori tutto: lo spedizioniere stima sei-otto giorni, e nel magazzino di Surabaya ci sono 400 metri quadri dello stesso gres. Adesso hai un piano.",
             "why": "Riconoscere la tua parte rende sicuro portarti le brutte notizie. E in quel momento, più di una regola, ti servono informazioni."
           },
           {
-            "text": "\"Lascia stare, ormai è andata. Adesso pensiamo solo a come recuperare con Ibu Ratna.\"",
+            "text": "\"Lascia stare, ormai è andata. Adesso pensiamo solo a come recuperare con Ibu Wulan.\"",
             "quality": "weak",
             "effects": {
               "empatia": 1,
@@ -5438,14 +5500,15 @@ window.ScenarioExams = [
               "lettura": -1,
               "strategia": -1
             },
-            "outcome": "Budi è sollevato e ti passa il numero dello spedizioniere. Della scorta nel magazzino di Surabaya non parla: nessuno gliel'ha chiesto.",
-            "why": "Evitare il discorso spegne la tensione, ma perdi due cose: la lezione per il futuro e le informazioni che Budi ti darebbe se si sentisse al sicuro."
+            "outcome": "Arief è sollevato e ti passa il numero dello spedizioniere. Della scorta nel magazzino di Surabaya non parla: nessuno gliel'ha chiesto.",
+            "why": "Evitare il discorso spegne la tensione, ma perdi due cose: la lezione per il futuro e le informazioni che Arief ti darebbe se si sentisse al sicuro.",
+            "escalation": "Della scorta di Surabaya ti accorgi solo nel primo pomeriggio, controllando tu il gestionale: arrivi all'incontro di corsa."
           }
         ]
       },
       {
-        "text": "Alle 16 sei nell'ufficio di Ibu Ratna. Sai che lo sdoganamento richiederà sei-otto giorni e che nel magazzino di Surabaya ci sono 400 metri quadri dello stesso gres, spedibili in tre giorni. Ibu Ratna versa il tè e dice con calma: \"Pak Agus vuole addebitarvi gli operai fermi. Lei cosa mi propone?\"",
-        "escalation": "Ibu Ratna ti concede l'incontro con una cortesia impeccabile e venti minuti esatti.",
+        "text": "Nel pomeriggio Ibu Wulan ti riceve nel suo ufficio. Sai che lo sdoganamento richiederà sei-otto giorni e che nel magazzino di Surabaya ci sono 400 metri quadri dello stesso gres, spedibili in tre giorni. Ibu Wulan versa il tè e dice con calma: \"Pak Agus vuole addebitarvi gli operai fermi. Lei cosa mi propone?\"",
+        "escalation": "Ibu Wulan ti concede l'incontro con una cortesia impeccabile e venti minuti esatti.",
         "prompt": "Cosa proponi?",
         "options": [
           {
@@ -5457,8 +5520,8 @@ window.ScenarioExams = [
               "strategia": -2,
               "autocontrollo": -1
             },
-            "outcome": "Ibu Ratna posa la tazza: \"Capisco.\" Il resto dell'incontro è cortese e brevissimo. Una settimana dopo scopri che ha chiesto un preventivo a un altro distributore per i prossimi progetti.",
-            "why": "È vero, ed è proprio per questo che è tentante. Ma usare la verità come un'arma per scaricarti la costringe a scegliere tra te e un partner storico, e in quella scelta perdi tu."
+            "outcome": "Ibu Wulan posa la tazza: \"Capisco.\" Il resto dell'incontro è cortese e brevissimo. Una settimana dopo scopri che ha chiesto un preventivo a un altro distributore per i prossimi progetti.",
+            "why": "È vero, ed è proprio per questo che è tentante. Ma usare la verità come un'arma per scaricarti la costringe a scegliere tra te e un'impresa di cui si fida da anni, e in quella scelta perdi tu."
           },
           {
             "text": "\"Le propongo 400 metri dal magazzino di Surabaya entro lunedì per partire dalla reception, e il resto appena sdoganato. Le mando ogni giorno un aggiornamento sulla dogana.\"",
@@ -5468,7 +5531,7 @@ window.ScenarioExams = [
               "etica": 1,
               "assertivita": 1
             },
-            "outcome": "Ibu Ratna annuisce: \"Bene.\" Il piano è solido, ma la questione degli operai fermi resta sul tavolo, e la settimana dopo Pak Agus manda il conto.",
+            "outcome": "Ibu Wulan annuisce: \"Bene.\" Il piano è solido, ma la questione degli operai fermi resta sul tavolo, e la settimana dopo Pak Agus manda il conto.",
             "why": "Una soluzione concreta è ciò che serve. Ma lasciare cadere la domanda sui costi tiene aperto il conflitto con Agus, che ora può scaricarlo su di te."
           },
           {
@@ -5480,7 +5543,7 @@ window.ScenarioExams = [
               "strategia": -2,
               "assertivita": -1
             },
-            "outcome": "Ibu Ratna ringrazia con un cenno e Pak Agus incassa senza commentare. Hai pagato una parte di un ritardo che non era tuo, e nessuno te ne darà atto.",
+            "outcome": "Ibu Wulan ringrazia con un cenno e Pak Agus incassa senza commentare. Hai pagato una parte di un ritardo che non era tuo, e nessuno te ne darà atto.",
             "why": "Il gesto è elegante e compra tranquillità, ma paghi senza sapere cosa stai pagando: è una scorciatoia che rischia di diventare un'abitudine."
           },
           {
@@ -5492,16 +5555,16 @@ window.ScenarioExams = [
               "etica": 1,
               "empatia": 1
             },
-            "outcome": "Ibu Ratna ti osserva un momento, poi sorride, stavolta davvero: \"Domani alle nove.\" Al sopralluogo il massetto bagnato lo vede lei, e la richiesta di Pak Agus non torna più fuori.",
-            "why": "Il massetto entra nel piano come un dato, non come un'accusa, e il sopralluogo lascia emergere i fatti senza che nessuno perda la faccia. Risolvi e proteggi insieme."
+            "outcome": "Ibu Wulan ti osserva un momento, poi apre l'agenda: \"Domani alle nove.\" Al sopralluogo il massetto bagnato lo vede lei, e la richiesta di Pak Agus non torna più fuori.",
+            "why": "Il massetto entra nel piano come un dato, non come un'accusa, e il sopralluogo lascia parlare i fatti senza umiliare nessuno. Risolvi e proteggi insieme."
           }
         ]
       }
     ],
     "phrase": {
       "round": 2,
-      "prompt": "Scrivi l'email di riepilogo per Ibu Ratna dopo l'incontro, con Pak Agus in copia.",
-      "model": "Gentile Ibu Ratna, grazie per il tempo di oggi. Come concordato, lunedì consegniamo 400 metri quadri dal magazzino di Surabaya per partire dalla reception appena il massetto sarà asciutto, e domani alle 9 facciamo il sopralluogo con Pak Agus per fissare insieme il nuovo calendario. Il ritardo del container resta una nostra responsabilità: vi aggiornerò ogni giorno sulla dogana.",
+      "prompt": "Scrivi l'email di riepilogo per Ibu Wulan dopo l'incontro, con Pak Agus in copia.",
+      "model": "Gentile Ibu Wulan, grazie per il tempo di oggi. Come concordato, lunedì consegniamo 400 metri quadri dal magazzino di Surabaya per partire dalla reception appena il massetto sarà asciutto, e domani alle 9 facciamo il sopralluogo con Pak Agus per fissare insieme il nuovo calendario. Il ritardo del container resta una nostra responsabilità: vi aggiornerò ogni giorno sulla dogana.",
       "keys": [
         {
           "label": "Riconoscere la tua parte",
@@ -5543,7 +5606,7 @@ window.ScenarioExams = [
       ]
     },
     "debrief": {
-      "truth": "Ibu Ratna sapeva già del massetto bagnato: il suo ingegnere gliel'aveva segnalato martedì. In riunione ti stava osservando per capire se, per salvarti, avresti umiliato Pak Agus davanti a tutti: lavora con la famiglia del committente da quindici anni, e lei sta scegliendo il fornitore per altri tre hotel. Il sopralluogo congiunto le dava il modo di far emergere il ritardo di Agus senza che nessuno perdesse la faccia.",
+      "truth": "Ibu Wulan sapeva già del massetto bagnato: il suo ingegnere gliel'aveva segnalato martedì. In riunione ti stava osservando per capire se, per salvarti, avresti umiliato Pak Agus davanti a tutti: lavora con la famiglia del committente da quindici anni, e lei sta scegliendo il fornitore per altri tre hotel. Il sopralluogo congiunto le dava il modo di far emergere il ritardo di Agus senza che nessuno perdesse la faccia.",
       "principle": "Quando hai una verità che può umiliare qualcuno, il modo in cui la fai emergere vale quanto la verità stessa.",
       "tip": "Invece di accusare, proponi una verifica comune: \"Domani facciamo un sopralluogo insieme e fissiamo date che reggano per tutti.\""
     }
