@@ -5,8 +5,9 @@
  *   Il punteggio viene dalle scelte (qualita' di ogni mossa) e dalla frase.
  * - Frase: chiavi specifiche dello scenario + segnali di comunicazione
  *   (accuse, attenuazioni, minacce, richiesta concreta, frasi in prima persona).
- * - Profilo a 6 categorie: cambia dopo ogni esame in base alle mosse scelte,
- *   pesato per difficolta'; le ripetizioni contano poco.
+ * - Profilo a 6 categorie: cambia dopo ogni esame in base alle mosse scelte
+ *   (rispetto alla media delle mosse possibili), pesato per difficolta';
+ *   le ripetizioni contano poco.
  * - Classe stile Classroom of the Elite (D, C, B, A) e punti privati.
  */
 (function (root, factory) {
@@ -207,9 +208,10 @@
     const add = (k, v) => {
       if (v) effects[k] = (effects[k] || 0) + v;
     };
-    add("assertivita", score >= 70 ? 1 : score < 40 ? -1 : 0);
-    if (s.request || s.numbers) add("strategia", 1);
-    if (s.empathy) add("empatia", 1);
+    // i bonus solo se la frase risponde davvero alla scena (punteggio buono)
+    add("assertivita", score >= 75 ? 1 : score < 40 ? -1 : 0);
+    if ((s.request || s.numbers) && score >= 60) add("strategia", 1);
+    if (s.empathy && score >= 60) add("empatia", 1);
     if (s.hedge >= 2) add("assertivita", -1);
     if (s.accuse) {
       add("empatia", -1);
@@ -238,10 +240,17 @@
     const roundsAvg = roundPoints.length ? roundPoints.reduce((a, b) => a + b, 0) / roundPoints.length : 0;
     const phraseScore = phrase && !phrase.empty ? phrase.score : 0;
     const score = Math.round(roundsAvg * 0.8 + phraseScore * 0.2);
+    // Ogni mossa conta rispetto alla media delle 4 mosse del round: chi sceglie
+    // a caso resta in pari, la mossa migliore fa salire, l'errore fa scendere.
     const effects = {};
     choices.forEach((c) => {
-      Object.entries(c.effects || {}).forEach(([k, v]) => {
-        if (DIM_KEYS.includes(k)) effects[k] = (effects[k] || 0) + v;
+      const round = scenario.rounds[c.round];
+      const options = round ? round.options : [];
+      DIM_KEYS.forEach((k) => {
+        const mine = (c.effects || {})[k] || 0;
+        const mean = options.length ? options.reduce((sum, o) => sum + ((o.effects || {})[k] || 0), 0) / options.length : 0;
+        const delta = mine - mean;
+        if (Math.abs(delta) > 1e-9) effects[k] = (effects[k] || 0) + delta;
       });
     });
     if (phrase && !phrase.empty) {
@@ -291,8 +300,8 @@
 
   // Applica gli effetti grezzi: piu' difficile = guadagni di piu' e perdi meno.
   function scaleEffects(effects, { difficulty = 2, weight = 1 } = {}) {
-    const kPos = 0.8 + 0.1 * difficulty;
-    const kNeg = 1.2 - 0.1 * difficulty;
+    const kPos = 0.86 + 0.06 * difficulty;
+    const kNeg = 1.14 - 0.06 * difficulty;
     const out = {};
     DIM_KEYS.forEach((k) => {
       const raw = effects[k] || 0;
