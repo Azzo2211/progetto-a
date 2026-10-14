@@ -45,7 +45,12 @@ const defaultState = {
     draws: 0,
     lastAccuracy: 0,
     levelStats: {},
-    levelScheme: 2
+    levelScheme: 2,
+    mode: "rated",
+    ui: { theme: "accademia", pieceSet: "staunty", sound: true, coords: true, evalBarInGame: false, orientation: "white" },
+    rating: {},
+    lessons: {},
+    mistakeBank: []
   },
   planScores: [],
   defenseLevel: 1,
@@ -1000,9 +1005,11 @@ function bindControls() {
   });
   document.getElementById("resetBoardBtn").addEventListener("click", resetChess);
   document.getElementById("undoMoveBtn").addEventListener("click", undoMovePair);
-  document.getElementById("botLevelSelect").addEventListener("change", handleBotLevelChange);
-  document.getElementById("applyBotLevelBtn").addEventListener("click", () => applyBotLevel(document.getElementById("botLevelSelect").value));
-  document.getElementById("reviewGameBtn").addEventListener("click", () => renderMoveReview(false));
+  document.getElementById("reviewGameBtn").addEventListener("click", () => {
+    if (currentGame.rated && !chessGameOver) return;
+    if (window.setChessTab) setChessTab("review");
+    renderMoveReview(false);
+  });
   document.getElementById("exitReviewBtn").addEventListener("click", exitReviewMode);
   document.getElementById("reviewStartBtn").addEventListener("click", () => selectReviewMove(-1));
   document.getElementById("reviewPrevBtn").addEventListener("click", () => stepReviewMove(-1));
@@ -1013,14 +1020,14 @@ function bindControls() {
   document.getElementById("reviewShowBestBtn").addEventListener("click", showReviewBestMove);
   document.getElementById("reviewShowLineBtn").addEventListener("click", showReviewBestLine);
   document.getElementById("moveReviewList").addEventListener("click", handleReviewClick);
-  document.getElementById("evalSparkline").addEventListener("click", handleEvalSparklineClick);
   document.getElementById("reviewEvalSparkline").addEventListener("click", handleEvalSparklineClick);
-  document.getElementById("startReviewFromReportBtn").addEventListener("click", () => renderMoveReview(false));
-  document.getElementById("chessCheckDrillBtn").addEventListener("click", checkChessDrillAnswer);
-  document.getElementById("chessHintDrillBtn").addEventListener("click", showChessDrillHint);
-  document.getElementById("chessSolutionDrillBtn").addEventListener("click", showChessDrillSolution);
-  document.getElementById("chessNextDrillBtn").addEventListener("click", nextChessDrill);
-  document.getElementById("chessRetryDrillBtn").addEventListener("click", retryChessDrill);
+  document.getElementById("startReviewFromReportBtn").addEventListener("click", () => {
+    if (currentGame.rated && !chessGameOver) {
+      if (window.coachSay) coachSay("L'analisi con Stockfish si apre a fine partita: in una partita valutata non ci sono aiuti.");
+      return;
+    }
+    renderMoveReview(false);
+  });
   document.getElementById("newScenarioBtn").addEventListener("click", loadRandomScenario);
   document.getElementById("analyzeScenarioBtn").addEventListener("click", analyzeScenarioAnswer);
   document.getElementById("showScenarioModelBtn").addEventListener("click", showScenarioModel);
@@ -1337,6 +1344,10 @@ function getModuleSkills(moduleKey) {
 }
 
 function getModuleScore(moduleKey) {
+  // Scacchi: il punteggio segue il grado certificato e l'Elo stimato (dati reali).
+  if (moduleKey === "chess" && window.ChessRating && window.chessCertifiedGrade && window.chessEstimatedElo) {
+    return ChessRating.moduleScore(chessCertifiedGrade(), chessEstimatedElo().elo);
+  }
   const skills = getModuleSkills(moduleKey);
   return Math.round(averageArray(skills.map((skill) => skill.value)));
 }
@@ -1354,7 +1365,11 @@ function renderSkillBars(skills) {
 function dashboardTrend(moduleKey, average) {
   const patternTotal = Object.values(state.modulePatterns[moduleKey] || {}).reduce((sum, value) => sum + value, 0);
   const trends = {
-    chess: state.chess.games ? `${state.chess.games} partite · accuratezza ${state.chess.lastAccuracy || 0}%` : "Base iniziale · migliora giocando partite",
+    chess: window.chessCertifiedGrade ? (() => {
+      const est = chessEstimatedElo();
+      const profile = chessRatingProfile();
+      return `Grado ${chessCertifiedGrade().key} · ${profile.game.count ? `${profile.game.count} partite valutate` : "nessuna partita valutata"}${est.elo ? ` · Elo stimato ${est.elo}` : ""}`;
+    })() : state.chess.games ? `${state.chess.games} partite · accuratezza ${state.chess.lastAccuracy || 0}%` : "Base iniziale · migliora giocando partite",
     scenarios: patternTotal ? `${patternTotal} pattern rilevati · media ${average}` : "Base iniziale · rispondi agli scenari",
     culture: `${state.studied.length} argomenti · ${state.cultureReviews.length} ripassi programmati`,
     planning: state.planScores.length ? `${state.planScores.length} piani · media ${Math.round(averageArray(state.planScores))}` : "Base iniziale · scrivi un piano",
@@ -1502,7 +1517,9 @@ function createNewGame() {
     result: "in corso",
     status: "in corso",
     finalState: "in corso",
-    playerColor: "Bianco"
+    playerColor: "Bianco",
+    rated: state && state.chess ? state.chess.mode !== "training" : true,
+    assisted: false
   };
   game.moveList = game.moves;
   return game;
@@ -1764,8 +1781,14 @@ function resetChess() {
   lastMoveSquares = null;
   reviewMoveSquares = null;
   resetChessGameData();
-  document.getElementById("coachMessage").textContent = "Nuova partita. Prima domanda: quale casa centrale controlla la tua mossa?";
-  document.getElementById("chessDrill").textContent = "Gioca 5 mosse lente: prima di ogni mossa trova una minaccia per entrambi i lati.";
+  currentGame.rated = state.chess.mode !== "training";
+  if (window.resetChessHelpers) resetChessHelpers();
+  if (window.hideGameResult) hideGameResult();
+  const opening = currentGame.rated
+    ? `Nuova partita valutata contro il bot da ${currentGame.botElo} Elo. Niente aiuti: il risultato conta per il tuo rating.`
+    : `Nuova partita di allenamento contro il bot da ${currentGame.botElo} Elo. Ti avviso se lasci qualcosa in presa.`;
+  if (window.coachSay) coachSay(opening);
+  else document.getElementById("coachMessage").textContent = opening;
   document.getElementById("gameAnalysis").textContent = "Finisci una partita o premi Rivedi partita per analizzare le mosse gia' giocate.";
   document.getElementById("moveReviewList").innerHTML = "";
   document.getElementById("reviewAccuracy").textContent = "--";
@@ -1781,6 +1804,11 @@ function resetChess() {
 
 function undoMovePair() {
   if (reviewBoard) return;
+  if (currentGame.rated) {
+    if (window.coachSay) coachSay("In una partita valutata non si annullano le mosse. Passa ad Allenamento per avere gli aiuti.");
+    return;
+  }
+  if (window.chessCoachBlocking && window.chessCoachBlocking()) return;
   if (chessGameOver) {
     document.getElementById("coachMessage").textContent = "La partita e' finita: premi Reset per giocarne un'altra.";
     return;
@@ -1826,69 +1854,52 @@ function undoMovePair() {
   renderBoard();
 }
 
-function renderBoard() {
+function renderBoard(options = {}) {
+  if (!document.getElementById("chessBoard")) return;
+  if (typeof getBoardView !== "function") return;
   const displayBoard = reviewBoard || board;
-  const boardElement = document.getElementById("chessBoard");
-  boardElement.innerHTML = "";
-  const legalTargets = selectedSquare && !reviewBoard ? getLegalMoves(board, selectedSquare.row, selectedSquare.col) : [];
-  const activeLastMove = reviewBoard ? reviewMoveSquares : lastMoveSquares;
-  const activeReviewMove = reviewBoard && currentGame.reviewIndex >= 0 ? currentGame.moves[currentGame.reviewIndex] || null : null;
-  const activeQualityClass = activeReviewMove ? ` move-${reviewQualityClass(activeReviewMove.quality)}` : "";
-  const checkedKing = getCheckedKingSquare(displayBoard);
-
-  for (let row = 0; row < 8; row += 1) {
-    for (let col = 0; col < 8; col += 1) {
-      const piece = displayBoard[row][col];
-      const square = document.createElement("button");
-      const isLight = (row + col) % 2 === 0;
-      const isSelected = selectedSquare && selectedSquare.row === row && selectedSquare.col === col;
-      const legalMove = legalTargets.find((move) => move.toRow === row && move.toCol === col);
-      const isLastFrom = activeLastMove && activeLastMove.fromRow === row && activeLastMove.fromCol === col;
-      const isLastTo = activeLastMove && activeLastMove.toRow === row && activeLastMove.toCol === col;
-      const isCheck = checkedKing && checkedKing.row === row && checkedKing.col === col;
-      square.className = `square ${isLight ? "light" : "dark"}${isSelected ? " selected" : ""}${legalMove ? " legal" : ""}${legalMove && piece ? " capture" : ""}${isLastFrom ? ` last-from${activeQualityClass}` : ""}${isLastTo ? ` last-to${activeQualityClass}` : ""}${isCheck ? " in-check" : ""}`;
-      square.type = "button";
-      square.disabled = Boolean(reviewBoard) || chessGameOver;
-      square.setAttribute("aria-label", squareLabel(displayBoard, row, col));
-      if (col === 0) {
-        const rank = document.createElement("span");
-        rank.className = "coord-label rank-label";
-        rank.textContent = String(8 - row);
-        square.appendChild(rank);
-      }
-      if (row === 7) {
-        const file = document.createElement("span");
-        file.className = "coord-label file-label";
-        file.textContent = String.fromCharCode(97 + col);
-        square.appendChild(file);
-      }
-      if (piece) {
-        const img = document.createElement("img");
-        img.className = "piece-img";
-        img.src = pieceImage(piece);
-        img.alt = pieceNames[piece];
-        square.appendChild(img);
-      }
-      if (activeReviewMove && isLastTo) {
-        const symbol = document.createElement("span");
-        const meta = getMoveQualityMeta(activeReviewMove.quality);
-        symbol.className = `board-move-symbol ${reviewQualityClass(activeReviewMove.quality)}`;
-        symbol.textContent = meta.icon;
-        square.appendChild(symbol);
-      }
-      square.addEventListener("click", () => handleSquareClick(row, col));
-      boardElement.appendChild(square);
-    }
+  if (window.chessTrainerOwnsBoard && window.chessTrainerOwnsBoard()) {
+    if (window.renderChessChrome) renderChessChrome(displayBoard);
+    return;
   }
+  const view = getBoardView();
+  const interactive = window.chessGameInteractive ? window.chessGameInteractive() : !reviewBoard && !chessGameOver && !isBotTurn();
+  const selected = selectedSquare && !reviewBoard ? coord(selectedSquare.row, selectedSquare.col) : null;
+  const legal = selectedSquare && !reviewBoard ? getLegalMoves(board, selectedSquare.row, selectedSquare.col) : [];
+  const targets = legal.map((move) => ({ square: coord(move.toRow, move.toCol), capture: Boolean(board[move.toRow][move.toCol] || move.enPassant) }));
+  const activeLastMove = reviewBoard ? reviewMoveSquares : lastMoveSquares;
+  const lastMove = activeLastMove ? { from: coord(activeLastMove.fromRow, activeLastMove.fromCol), to: coord(activeLastMove.toRow, activeLastMove.toCol) } : null;
+  const checkedKing = getCheckedKingSquare(displayBoard);
+  const reviewMove = reviewBoard && currentGame.reviewIndex >= 0 ? currentGame.moves[currentGame.reviewIndex] || null : null;
+  const decorations = window.chessBoardDecorations ? window.chessBoardDecorations(reviewMove) : { arrows: [], marks: {} };
+  let badge = null;
+  if (reviewMove && lastMove && reviewMove.engineAnalysis && reviewMove.engineAnalysis.ok) {
+    const meta = getMoveQualityMeta(reviewMove.quality);
+    badge = { square: lastMove.to, cls: reviewQualityClass(reviewMove.quality), icon: meta.icon, label: meta.label };
+  }
+  view.render({
+    position: displayBoard,
+    lastMove,
+    check: checkedKing ? coord(checkedKing.row, checkedKing.col) : null,
+    selected: interactive ? selected : null,
+    targets: interactive ? targets : [],
+    arrows: decorations.arrows,
+    marks: decorations.marks,
+    badge,
+    interactive,
+    movable: "w",
+    animate: options.animate !== false
+  });
 
   renderEvalStatus(displayBoard);
-  if (reviewBoard) {
-    document.getElementById("turnStatus").textContent = "Revisione";
-  } else if (chessGameOver) {
-    document.getElementById("turnStatus").textContent = "Partita conclusa";
-  } else {
-    document.getElementById("turnStatus").textContent = isKingInCheck(board, "w") ? "Sei sotto scacco" : "Tocca a te";
+  const turn = document.getElementById("turnStatus");
+  if (turn) {
+    if (reviewBoard) turn.textContent = currentGame.reviewIndex >= 0 ? `Mossa ${currentGame.reviewIndex + 1}/${currentGame.moves.length}` : "Posizione iniziale";
+    else if (chessGameOver) turn.textContent = "Partita conclusa";
+    else if (isBotTurn()) turn.textContent = "Il bot pensa";
+    else turn.textContent = isKingInCheck(board, "w") ? "Sei sotto scacco" : "Tocca a te";
   }
+  if (window.renderChessChrome) renderChessChrome(displayBoard);
 }
 
 function getCheckedKingSquare(currentBoard) {
@@ -1969,9 +1980,18 @@ function makePlayerMove(move) {
   const savedRecord = saveMoveData(record);
   lastMoveSquares = moveSquaresFromRecord(savedRecord);
   queueBackgroundAnalysis(savedRecord.fenAfter);
-  document.getElementById("coachMessage").textContent = `Mossa ${savedRecord.san} registrata (${seconds}s). Stockfish la valutera' nella revisione.`;
+  if (window.playMoveSound) playMoveSound(savedRecord);
+  if (finishIfGameOver("b")) {
+    renderBoard();
+    return;
+  }
+  // In allenamento il coach puo' fermare il bot per farti correggere un errore grave.
+  const coachStops = window.coachAfterPlayerMove ? coachAfterPlayerMove(savedRecord) : false;
+  if (!coachStops && currentGame.rated && window.coachSay) {
+    coachSay(`Hai giocato ${ChessAnalysis.figurine(savedRecord.san)}. Il bot sta pensando.`);
+  }
   renderBoard();
-  if (finishIfGameOver("b")) return;
+  if (coachStops) return;
   clearBotTimer();
   botMoveTimer = window.setTimeout(makeBotMove, 200);
 }
@@ -2034,7 +2054,7 @@ async function makeBotMove() {
   const fenBefore = boardToFen(board, "b", beforeGameState);
   const positionChanged = () => currentGame.id !== gameId || chessGameOver || currentGame.moves.length !== plyBefore || boardToFen(board, "b", gameState) !== fenBefore;
   const coach = document.getElementById("coachMessage");
-  coach.textContent = `Il bot (livello ${level}, ${profile.elo} Elo) sta pensando...`;
+  if (currentGame.rated) coach.textContent = `Il bot (${profile.elo} Elo) sta pensando...`;
   const ready = await ensureStockfishReadyForChess();
   if (positionChanged()) return;
   if (!ready) {
@@ -2078,7 +2098,9 @@ async function makeBotMove() {
   lastMoveSquares = moveSquaresFromRecord(savedBotRecord);
   queueBackgroundAnalysis(savedBotRecord.fenAfter);
   thinkStartedAt = Date.now();
-  coach.textContent = `Il bot risponde ${savedBotRecord.san}. Prima di muovere: cosa minaccia questa mossa?`;
+  if (window.playMoveSound) playMoveSound(savedBotRecord);
+  if (currentGame.rated) coach.textContent = `Il bot risponde ${ChessAnalysis.figurine(savedBotRecord.san)}. Prima di muovere: cosa minaccia questa mossa?`;
+  else if (window.coachAfterBotMove) coachAfterBotMove(savedBotRecord);
   renderBoard();
   finishIfGameOver("w");
 }
@@ -2134,7 +2156,7 @@ function readableMove(piece, move, currentBoard) {
 function moveToUci(currentBoard, move) {
   const piece = currentBoard[move.fromRow][move.fromCol];
   const promotionRow = piece && piece.toLowerCase() === "p" ? (isWhite(piece) ? 0 : 7) : null;
-  const promotion = promotionRow !== null && move.toRow === promotionRow ? "q" : "";
+  const promotion = promotionRow !== null && move.toRow === promotionRow ? (move.promotion || "q").toLowerCase() : "";
   return `${coord(move.fromRow, move.fromCol)}${coord(move.toRow, move.toCol)}${promotion}`;
 }
 
@@ -2146,7 +2168,7 @@ function moveToSan(beforeBoard, afterBoard, move, piece, color) {
   const capture = Boolean(target);
   const destination = coord(move.toRow, move.toCol);
   const promotionRow = lower === "p" ? (color === "w" ? 0 : 7) : null;
-  const promotion = promotionRow !== null && move.toRow === promotionRow ? "=Q" : "";
+  const promotion = promotionRow !== null && move.toRow === promotionRow ? `=${(move.promotion || "q").toUpperCase()}` : "";
   if (lower === "p") {
     const pawnPrefix = capture ? String.fromCharCode(97 + move.fromCol) : "";
     return addSanCheckSuffix(afterBoard, color, `${pawnPrefix}${capture ? "x" : ""}${destination}${promotion}`);
@@ -2252,8 +2274,11 @@ function detectDrawByRules() {
 }
 
 function finishGame(result, reason = null) {
+  if (chessGameOver) return;
   chessGameOver = true;
+  if (window.resetChessHelpers) resetChessHelpers();
   setChessGameFinalState(result, reason);
+  const ratingInfo = window.recordRatedGame ? recordRatedGame(result) : null;
   const playedLevel = getActiveBotLevel(currentGame.botLevel || state.chess.botLevel || 1);
   const analysis = buildGameAnalysis(result, reason);
   const levelStats = getLevelStats(playedLevel);
@@ -2280,6 +2305,7 @@ function finishGame(result, reason = null) {
   renderMoveReview(true, analysis);
   renderDashboard();
   renderBoard();
+  if (window.showGameResult) showGameResult(result, reason, ratingInfo);
 }
 
 function buildGameAnalysis(result = "partial", reason = currentGame.endReason || null) {
@@ -2700,7 +2726,9 @@ function updateChessProfileFromReview(analysis, moves) {
     botAccuracy: analysis.botAccuracy,
     gameRating: analysis.gameRating,
     opening: analysis.opening,
-    moves: playerMoves.length
+    moves: playerMoves.length,
+    rated: Boolean(currentGame.rated),
+    assisted: Boolean(currentGame.assisted)
   }]).slice(-30);
 
   playerMoves.forEach((move) => {
@@ -2709,6 +2737,11 @@ function updateChessProfileFromReview(analysis, moves) {
       addModulePattern("chess", category);
     });
   });
+  // Partita valutata: la precisione entra nei requisiti del grado.
+  if (currentGame.rated && currentGame.ratingRecorded && window.ChessRating) {
+    state.chess.rating = ChessRating.attachAccuracy(state.chess.rating, currentGame.id, analysis.accuracy);
+  }
+  if (window.addMistakesToBank) addMistakesToBank(moves, currentGame.id);
 
   if (playerMoves.length >= 5) {
     const gameSkills = computeChessGameSkills(analysis, playerMoves);
@@ -2725,6 +2758,8 @@ function updateChessProfileFromReview(analysis, moves) {
   saveState();
   renderDashboard();
   renderBotLevel();
+  if (window.renderChessGradeChip) renderChessGradeChip();
+  if (window.renderChessMentor) renderChessMentor();
 }
 
 // Valori dell'esagono scacchi per una singola partita (0-100).
@@ -2796,6 +2831,12 @@ function queueBackgroundAnalysis(fen) {
 }
 
 function renderMoveReview(fromFinish = false, analysis = null) {
+  // In una partita valutata ancora in corso Stockfish non deve aiutare.
+  if (currentGame.rated && !chessGameOver) {
+    if (window.coachSay) coachSay("L'analisi con Stockfish si apre a fine partita: in una partita valutata non ci sono aiuti.");
+    return;
+  }
+  if (window.chessCoachBlocking && window.chessCoachBlocking()) return;
   const gameAnalysis = analysis || buildGameAnalysis("partial");
   renderGameReport(gameAnalysis);
   const statusMessage = getReviewStatusMessage(gameAnalysis.reviewStatus || currentGame.reviewStatus);
@@ -2857,42 +2898,15 @@ function buildMoveReviewButton(move, index) {
   const meta = getMoveQualityMeta(move.quality);
   button.type = "button";
   button.dataset.reviewIndex = String(index);
-  button.className = `move-review-item ${qualityClass}`;
-
-  const top = document.createElement("div");
-  top.className = "move-review-top";
-
-  const icon = document.createElement("span");
-  icon.className = `move-quality-icon ${qualityClass}`;
-  icon.textContent = meta.icon;
-
-  const notation = document.createElement("span");
-  notation.className = "move-review-notation";
-  notation.textContent = `${move.moveNumber}. ${move.side} ${ChessAnalysis.figurine(move.san || move.move)}`;
-
-  const classification = document.createElement("span");
-  classification.className = "move-review-classification";
-  classification.textContent = move.classification || meta.label;
-
-  top.append(icon, notation, classification);
-
-  const bottom = document.createElement("div");
-  bottom.className = "move-review-bottom";
-  const evalText = document.createElement("span");
-  evalText.textContent = `Eval ${formatEngineEval(move.evalBefore)} -> ${formatEngineEval(move.evalAfter)}`;
-  const bestText = document.createElement("span");
-  bestText.textContent = `Migliore: ${move.bestMoveText || "-"}`;
-  const diffText = document.createElement("span");
-  diffText.textContent = `Diff: ${formatBestMoveDiff(move)}`;
-  const patternText = document.createElement("span");
-  patternText.textContent = `Pattern: ${move.pattern ? mistakeLabels[move.pattern] : "-"}`;
-  bottom.append(evalText, bestText, diffText, patternText);
-
-  const note = document.createElement("div");
-  note.className = "move-review-note";
-  note.textContent = buildShortReviewComment(move);
-
-  button.append(top, bottom, note);
+  button.className = `move-review-item ${qualityClass} side-${move.side === "Bianco" ? "w" : "b"}`;
+  const number = move.side === "Bianco" ? `${move.moveNumber}.` : `${move.moveNumber}...`;
+  const evalText = move.engineAnalysis && move.engineAnalysis.ok ? formatEngineEval(move.evalAfter) : "";
+  button.innerHTML = `
+    <span class="move-quality-icon ${qualityClass}" aria-hidden="true">${meta.icon}</span>
+    <span class="move-review-notation"><span class="mr-no">${number}</span> ${window.chessSanHtml ? chessSanHtml(move.san || move.move, move.side === "Bianco" ? "w" : "b") : ChessAnalysis.figurine(move.san || move.move)}</span>
+    <span class="move-review-classification">${move.classification || meta.label}</span>
+    <span class="move-review-eval">${evalText}</span>`;
+  button.title = buildShortReviewComment(move);
   return button;
 }
 
@@ -2900,25 +2914,49 @@ function renderGameReport(gameAnalysis) {
   const result = document.getElementById("chessReportResult");
   if (!result) return;
   const statusMessage = getReviewStatusMessage(gameAnalysis.reviewStatus || currentGame.reviewStatus);
-  result.textContent = gameAnalysis.resultLabel;
-  document.getElementById("playerAccuracy").textContent = gameAnalysis.engineBased && typeof gameAnalysis.accuracy === "number" ? `${gameAnalysis.accuracy}%` : "--";
-  document.getElementById("botAccuracy").textContent = gameAnalysis.engineBased && typeof gameAnalysis.botAccuracy === "number" ? `${gameAnalysis.botAccuracy}%` : "--";
-  document.getElementById("reportBotLevel").textContent = `Livello ${gameAnalysis.botLevel}`;
-  document.getElementById("reportBotElo").textContent = `${gameAnalysis.botEloLabel || gameAnalysis.botElo} Elo`;
-  document.getElementById("reportGameRating").textContent = gameAnalysis.engineBased && gameAnalysis.gameRating ? `${gameAnalysis.gameRating}` : "--";
-  document.getElementById("reportPhase").textContent = gameAnalysis.phase || "--";
-  document.getElementById("reportMoveCount").textContent = String(gameAnalysis.moveCount);
-  document.getElementById("evalSparkline").innerHTML = buildEvalSparkline(gameAnalysis.evalSeries || [0], null, getSafeChessMoves());
-  const displayCounts = gameAnalysis.engineBased ? gameAnalysis.counts : {};
-  document.getElementById("moveClassificationCounts").innerHTML = getReportClassificationRows(displayCounts).map((row) => `
-    <div class="classification-count ${row.className}">
-      <span>${row.label}</span>
-      <strong>${row.count}</strong>
-    </div>
-  `).join("");
-  document.getElementById("accuracyBreakdown").textContent = gameAnalysis.engineBased ? gameAnalysis.accuracyBreakdown : statusMessage || "Analisi Stockfish in attesa: nessun numero euristico mostrato.";
-  document.getElementById("reportMainPattern").textContent = gameAnalysis.engineBased && gameAnalysis.mainPattern ? `Pattern principale: ${gameAnalysis.mainPattern.label} (${gameAnalysis.mainPattern.count})` : gameAnalysis.engineBased ? "Pattern principale: nessun pattern critico nella partita." : "Pattern principale: in attesa di Stockfish.";
-  document.getElementById("chessReportMessage").textContent = gameAnalysis.engineBased ? gameAnalysis.message : statusMessage || "Attendi Stockfish: il report finale non usa piu' valutazioni euristiche.";
+  const setText = (id, text) => {
+    const node = document.getElementById(id);
+    if (node) node.textContent = text;
+  };
+  setText("playerAccuracy", gameAnalysis.engineBased && typeof gameAnalysis.accuracy === "number" ? `${gameAnalysis.accuracy}%` : "--");
+  setText("botAccuracy", gameAnalysis.engineBased && typeof gameAnalysis.botAccuracy === "number" ? `${gameAnalysis.botAccuracy}%` : "--");
+  setText("reportBotLevel", getBotLevelConfig(gameAnalysis.botLevel).name);
+  setText("reportBotElo", `${gameAnalysis.botEloLabel || gameAnalysis.botElo} Elo`);
+  setText("reportGameRating", gameAnalysis.engineBased && gameAnalysis.gameRating ? `${gameAnalysis.gameRating}` : "--");
+  setText("reportPhase", gameAnalysis.phase || "--");
+  setText("reportMoveCount", String(gameAnalysis.moveCount));
+  setText("reviewResultText", gameAnalysis.resultLabel || "--");
+  setText("reviewBotName", `Bot ${gameAnalysis.botElo}`);
+  const counts = gameAnalysis.engineBased ? gameAnalysis.counts || {} : {};
+  const botCounts = gameAnalysis.engineBased ? gameAnalysis.botCounts || countMoveQualities(getSafeChessMoves().filter((move) => move.side === "Nero")) : {};
+  const table = document.getElementById("moveClassificationCounts");
+  if (table) {
+    const rows = [
+      ["brilliant", "Brillante", ["brilliant"]],
+      ["great", "Grande", ["great"]],
+      ["best", "Migliore", ["best", "forced"]],
+      ["excellent", "Ottima", ["excellent"]],
+      ["good", "Buona", ["good"]],
+      ["book", "Libro", ["book"]],
+      ["inexact", "Imprecisione", ["inexact", "inaccuracy"]],
+      ["mistake", "Errore", ["mistake"]],
+      ["missed", "Mancata", ["missed"]],
+      ["blunder", "Blunder", ["blunder"]]
+    ];
+    const sum = (source, keys) => keys.reduce((total, key) => total + (Number(source[key]) || 0), 0);
+    table.innerHTML = gameAnalysis.engineBased
+      ? rows.map(([cls, label, keys]) => `<div class="class-row ${cls}"><b>${sum(counts, keys)}</b><span><i class="q-dot ${cls}">${getMoveQualityMeta(keys[0]).icon}</i>${label}</span><b>${sum(botCounts, keys)}</b></div>`).join("")
+      : `<p class="class-empty">${statusMessage || "Le classificazioni arrivano con l'analisi di Stockfish."}</p>`;
+  }
+  setText("accuracyBreakdown", gameAnalysis.engineBased ? gameAnalysis.accuracyBreakdown : statusMessage || "Analisi Stockfish in attesa.");
+  setText("reportMainPattern", gameAnalysis.engineBased && gameAnalysis.mainPattern ? `Pattern principale: ${gameAnalysis.mainPattern.label} (${gameAnalysis.mainPattern.count})` : gameAnalysis.engineBased ? "Pattern principale: nessun pattern critico nella partita." : "Pattern principale: in attesa di Stockfish.");
+  setText("chessReportMessage", gameAnalysis.engineBased ? gameAnalysis.message : statusMessage || "Il report finale arriva con l'analisi di Stockfish.");
+  const startBtn = document.getElementById("startReviewFromReportBtn");
+  if (startBtn) startBtn.hidden = Boolean(gameAnalysis.engineBased) || !getSafeChessMoves().length;
+  const reviewPanel = document.getElementById("panel-review");
+  if (reviewPanel) reviewPanel.classList.toggle("is-empty", !gameAnalysis.engineBased);
+  const sparkline = document.getElementById("reviewEvalSparkline");
+  if (sparkline && !gameAnalysis.engineBased) sparkline.innerHTML = buildEvalSparkline([0], null, []);
 }
 
 function buildEvalSparkline(values, activeIndex = null, moves = []) {
@@ -3072,6 +3110,7 @@ function selectReviewMove(index) {
     reviewBoard = createInitialBoard();
     reviewMoveSquares = null;
     updateReviewEvalBar(0);
+    setReviewQualityIcon(null);
     document.getElementById("reviewPlyText").textContent = "Inizio";
     document.getElementById("reviewMoveTitle").textContent = "Posizione iniziale";
     document.getElementById("reviewCoachPanel").textContent = "Partenza della partita. Usa Avanti o clicca una mossa per rivedere la posizione.";
@@ -3102,11 +3141,24 @@ function selectReviewMove(index) {
   document.getElementById("reviewPattern").textContent = move.pattern ? mistakeLabels[move.pattern] : "-";
   document.getElementById("reviewDrill").textContent = move.drill || "-";
   document.getElementById("reviewMeta").textContent = formatReviewMeta(move);
-  document.getElementById("coachMessage").textContent = `${move.moveNumber}. ${move.side}: ${move.comment || move.note}`;
+  setReviewQualityIcon(move);
   updateReviewEvalBar(move.evalAfter || 0);
   updateReviewActiveItem();
   updateReviewSparklineActive(currentGame.reviewIndex + 1);
   renderBoard();
+}
+
+function setReviewQualityIcon(move) {
+  const icon = document.getElementById("reviewQualityIcon");
+  if (!icon) return;
+  if (!move || !move.engineAnalysis || !move.engineAnalysis.ok) {
+    icon.className = "review-quality-icon";
+    icon.textContent = move ? "\u2026" : "\u25b6";
+    return;
+  }
+  const cls = reviewQualityClass(move.quality);
+  icon.className = `review-quality-icon ${cls}`;
+  icon.textContent = getMoveQualityMeta(move.quality).icon;
 }
 
 function updateReviewSparklineActive(activeIndex = null) {
@@ -3276,7 +3328,6 @@ function renderChessExercises(gameAnalysis = null) {
 }
 
 function renderChessCoachSummary(gameAnalysis) {
-  const coach = gameAnalysis && gameAnalysis.coachSummary;
   const box = document.getElementById("coachMessage");
   if (!box) return;
   const status = gameAnalysis?.reviewStatus || currentGame.reviewStatus || "idle";
@@ -3285,11 +3336,27 @@ function renderChessCoachSummary(gameAnalysis) {
     box.textContent = statusMessage;
     return;
   }
-  if (!coach) {
-    box.textContent = "Analisi in corso o non disponibile.";
-    return;
+  if (!gameAnalysis || !gameAnalysis.engineBased) return;
+  const moves = getSafeChessMoves().filter((move) => move.side === "Bianco" && move.engineAnalysis && move.engineAnalysis.ok);
+  const good = moves.filter((move) => ["brilliant", "great", "best"].includes(move.quality));
+  const worst = moves.filter((move) => isErrorQuality(move.quality)).sort((a, b) => (b.loss || 0) - (a.loss || 0))[0];
+  const parts = [`${gameAnalysis.resultLabel}. Precisione ${gameAnalysis.accuracy}%${gameAnalysis.gameRating ? `, hai giocato come un ${gameAnalysis.gameRating}` : ""}.`];
+  if (good.length) parts.push(`${good.length} mosse da Migliore o meglio: bene.`);
+  let actions = [];
+  if (worst) {
+    parts.push(`Il momento chiave e' la mossa ${worst.moveNumber} (${ChessAnalysis.figurine(worst.san)}): ${buildShortReviewComment(worst).toLowerCase()}`);
+    const lessonId = worst.pattern && window.ChessLessons ? ChessLessons.PATTERN_LESSONS[worst.pattern] : null;
+    const lesson = lessonId ? ChessLessons.byId(lessonId) : null;
+    if (lesson) {
+      parts.push(`Ti consiglio la lezione "${lesson.title}".`);
+      actions.push({ label: "Apri la lezione", primary: true, onClick: () => { setChessTab("learn"); ChessLearn.openLesson(lesson.id); } });
+    }
+    actions.push({ label: "Vedi la mossa", onClick: () => { setChessTab("review"); selectReviewMove(currentGame.moves.indexOf(worst)); } });
+  } else {
+    parts.push("Nessun errore grave: continua cosi' e prova un bot piu' forte.");
   }
-  box.textContent = `${coach.summary} Punti forti: ${coach.strengths.join(" | ")}. Punti deboli: ${coach.weaknesses.join(" | ")}. Focus prossimo: ${coach.nextFocus}.`;
+  if (window.coachSay) coachSay(parts.join(" "), actions);
+  else box.textContent = parts.join(" ");
 }
 
 function renderActiveChessExercise(exercise, emptyMessage = "Nessun drill caricato.") {
@@ -3489,20 +3556,7 @@ function renderBotLevel() {
     state.chess.botLevel = level;
     saveState();
   }
-  const config = getBotLevelConfig(level);
-  const errors = ChessBot.errorProfile(config);
-  const stats = getLevelStats(level);
-  const accuracyGames = stats.accuracyGames || 0;
-  const averageAccuracy = accuracyGames ? Math.round(stats.accuracySum / accuracyGames) : null;
-  const engineNotice = isStockfishEngineEnabled() || isStockfishEngineInitializing() ? "" : `<br><strong>${STOCKFISH_REQUIRED_NOTICE}</strong>`;
-  const style = config.temperature
-    ? `Errori tipici ogni 100 mosse: circa ${errors.blunder} blunder, ${errors.mistake} errori e ${errors.inaccuracy} imprecisioni.`
-    : "Gioca sempre la mossa migliore di Stockfish, senza errori.";
-  document.getElementById("botLevelText").innerHTML = `<strong>Livello ${level} - ${config.elo} Elo stimato - ${config.name}.</strong><br>${config.description}<br>${style}<br>Precisione tipica a questo livello: circa ${config.targetAccuracy}%.<br>Motore: ${getEngineStatusText()}.<br>Tuo record contro questo livello: ${stats.wins} vittorie, ${stats.losses} sconfitte, ${stats.draws} patte${averageAccuracy !== null ? `, precisione media ${averageAccuracy}%` : ""}.${engineNotice}`;
-  renderBotLevelOptions(level);
-  ensureReportBotLevelSelect(level);
-  const badge = document.getElementById("activeBotLevelBadge");
-  if (badge) badge.textContent = `Bot L${level} · ${config.elo}`;
+  if (window.renderBotPicker) renderBotPicker();
 }
 
 // Selettore del livello anche dentro il report partita.
@@ -3662,11 +3716,9 @@ function moveFromUci(uci, legalMoves) {
   const fromRow = 8 - Number(chessMove.from[1]);
   const toCol = chessMove.to.charCodeAt(0) - 97;
   const toRow = 8 - Number(chessMove.to[1]);
-  return legalMoves.find((move) => {
-    if (move.fromRow !== fromRow || move.fromCol !== fromCol || move.toRow !== toRow || move.toCol !== toCol) return false;
-    if (chessMove.promotion && move.promotion && move.promotion.toLowerCase() !== chessMove.promotion) return false;
-    return true;
-  }) || null;
+  const found = legalMoves.find((move) => move.fromRow === fromRow && move.fromCol === fromCol && move.toRow === toRow && move.toCol === toCol) || null;
+  if (found && chessMove.promotion) return { ...found, promotion: chessMove.promotion };
+  return found;
 }
 
 function getAllLegalMoves(currentBoard, color) {
@@ -3804,7 +3856,8 @@ function applyMove(currentBoard, move) {
   next[move.fromRow][move.fromCol] = null;
   if (move.enPassant) next[move.fromRow][move.toCol] = null;
   const promotionRow = isWhite(piece) ? 0 : 7;
-  next[move.toRow][move.toCol] = piece.toLowerCase() === "p" && move.toRow === promotionRow ? (isWhite(piece) ? "Q" : "q") : piece;
+  const promoted = (move.promotion || "q").toLowerCase();
+  next[move.toRow][move.toCol] = piece.toLowerCase() === "p" && move.toRow === promotionRow ? (isWhite(piece) ? promoted.toUpperCase() : promoted) : piece;
   if (move.castle) {
     if (move.toCol === 6) {
       next[move.toRow][5] = next[move.toRow][7];

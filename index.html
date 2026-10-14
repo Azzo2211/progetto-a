@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Metodo Integrale</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f7a6d'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-size='28' font-weight='700' text-anchor='middle' fill='%23ffffff'%3EMI%3C/text%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="styles.css?v=20261014-2" />
+    <link rel="stylesheet" href="styles.css?v=20261014-4" />
+    <link rel="stylesheet" href="chess/board-view.css?v=20261014-4" />
+    <link rel="stylesheet" href="chess/chess-ui.css?v=20261014-4" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
@@ -19,6 +21,20 @@
       <symbol id="i-memory" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l8.5 4.5-8.5 4.5L3.5 8z"/><path d="M3.5 12.2l8.5 4.5 8.5-4.5"/><path d="M3.5 16.2l8.5 4.5 8.5-4.5"/></symbol>
       <symbol id="i-influence" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2"/><path d="M8 8a5.7 5.7 0 0 0 0 8M16 8a5.7 5.7 0 0 1 0 8M5.2 5.2a9.6 9.6 0 0 0 0 13.6M18.8 5.2a9.6 9.6 0 0 1 0 13.6"/></symbol>
       <symbol id="i-aesthetic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3.5l1.9 5.3 5.3 1.9-5.3 1.9L11 17.9l-1.9-5.3-5.3-1.9 5.3-1.9z"/><path d="M18.5 15.5v5M16 18h5"/></symbol>
+      <symbol id="i-chip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="14" height="11" rx="3"/><path d="M12 3.5V7M9 12h.01M15 12h.01M9.5 15h5"/><path d="M3 11.5v3M21 11.5v3"/></symbol>
+      <symbol id="i-first" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 6l-8 6 8 6z"/></symbol>
+      <symbol id="i-prev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-7 6 7 6"/></symbol>
+      <symbol id="i-next" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l7 6-7 6"/></symbol>
+      <symbol id="i-last" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 5v14M6 6l8 6-8 6z"/></symbol>
+      <symbol id="i-flip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v13M3.5 13.5L7 17l3.5-3.5M17 20V7M13.5 10.5L17 7l3.5 3.5"/></symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+      <symbol id="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h12"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12M6 12h12"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+      <symbol id="i-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></symbol>
+      <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".6"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.5v13l10-6.5z"/></symbol>
     </svg>
     <div class="app-shell">
       <aside class="sidebar" aria-label="Navigazione principale">
@@ -155,170 +171,251 @@
         </section>
 
         <section id="chess" class="page">
-          <div class="page-heading">
+          <div class="page-heading chess-heading">
             <div>
               <p class="eyebrow">Scacchi</p>
-              <h1>Partita, coach e revisione assistita.</h1>
-              <p class="page-subtitle">Allena lucidita', calcolo, concentrazione, pianificazione e gestione degli errori.</p>
+              <h1>Gioca, rivedi e impara con il tuo coach.</h1>
+              <p class="page-subtitle">Partite contro bot calibrati per Elo, revisione con Stockfish, lezioni ed esercizi. Il grado si conquista con dati reali.</p>
             </div>
-            <div class="button-row">
-              <a class="ghost-link" href="#dashboard">Quadro</a>
-              <span class="bot-active-badge" id="activeBotLevelBadge">Bot L2</span>
-              <button class="ghost-action" id="undoMoveBtn" type="button">Indietro</button>
-              <button class="ghost-action" id="resetBoardBtn" type="button">Reset</button>
-              <button class="primary-action" id="reviewGameBtn" type="button">Rivedi partita</button>
-            </div>
+            <button class="chess-grade-chip" id="chessGradeChip" type="button" data-open-tab="grade" aria-label="Apri il tuo grado">
+              <span class="grade-chip-letter" id="gradeChipLetter">E</span>
+              <span class="grade-chip-copy"><strong id="gradeChipName">Grado E</strong><span id="gradeChipElo">Elo stimato --</span></span>
+            </button>
           </div>
 
-          <div class="chess-layout">
-            <div class="board-wrap">
-              <div class="board-status">
-                <span id="turnStatus">Tocca a te</span>
-                <span id="evalStatus">Valutazione 0.0</span>
+          <div class="chess-arena">
+            <div class="board-wrap" id="boardWrap">
+              <div class="player-bar" id="topPlayerBar">
+                <span class="player-avatar bot-avatar" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-chip"/></svg></span>
+                <div class="player-meta">
+                  <strong id="topPlayerName">Bot</strong>
+                  <span id="topPlayerSub">--</span>
+                </div>
+                <div class="player-captured" id="topCaptured" aria-label="Pezzi catturati dal Nero"></div>
+                <span class="player-status" id="topPlayerStatus"></span>
               </div>
-              <div class="chess-board" id="chessBoard" aria-label="Scacchiera interattiva"></div>
-              <button class="ghost-action wide-action" id="exitReviewBtn" type="button">Torna alla posizione attuale</button>
+              <div class="board-row">
+                <div class="eval-bar-v" id="evalBarV" aria-label="Valutazione">
+                  <div class="eval-bar-fill" id="evalBarFill"></div>
+                  <span class="eval-bar-text" id="evalBarText">0.0</span>
+                </div>
+                <div class="board-holder">
+                  <div class="chess-board" id="chessBoard"></div>
+                  <div class="game-result" id="gameResult" hidden></div>
+                </div>
+              </div>
+              <div class="player-bar is-you" id="bottomPlayerBar">
+                <span class="player-avatar you-avatar" id="youAvatar" aria-hidden="true">Tu</span>
+                <div class="player-meta">
+                  <strong id="bottomPlayerName">Tu</strong>
+                  <span id="bottomPlayerSub">--</span>
+                </div>
+                <div class="player-captured" id="bottomCaptured" aria-label="Pezzi catturati da te"></div>
+                <span class="player-status" id="bottomPlayerStatus"></span>
+              </div>
+              <div class="board-toolbar">
+                <div class="board-nav" role="group" aria-label="Scorri le mosse">
+                  <button class="icon-button" id="navStartBtn" type="button" aria-label="Inizio"><svg viewBox="0 0 24 24"><use href="#i-first"/></svg></button>
+                  <button class="icon-button" id="navPrevBtn" type="button" aria-label="Mossa precedente"><svg viewBox="0 0 24 24"><use href="#i-prev"/></svg></button>
+                  <button class="icon-button" id="navNextBtn" type="button" aria-label="Mossa successiva"><svg viewBox="0 0 24 24"><use href="#i-next"/></svg></button>
+                  <button class="icon-button" id="navEndBtn" type="button" aria-label="Ultima mossa"><svg viewBox="0 0 24 24"><use href="#i-last"/></svg></button>
+                </div>
+                <span class="board-turn" id="turnStatus">Tocca a te</span>
+                <span class="board-eval-text" id="evalStatus">Materiale pari</span>
+                <div class="board-tools">
+                  <button class="icon-button" id="flipBoardBtn" type="button" aria-label="Gira la scacchiera"><svg viewBox="0 0 24 24"><use href="#i-flip"/></svg></button>
+                  <button class="icon-button" id="boardSettingsBtn" type="button" aria-label="Aspetto della scacchiera" aria-expanded="false" aria-controls="boardSettings"><svg viewBox="0 0 24 24"><use href="#i-settings"/></svg></button>
+                </div>
+              </div>
+              <div class="board-settings" id="boardSettings" hidden>
+                <div class="settings-group">
+                  <span class="settings-label">Colori scacchiera</span>
+                  <div class="theme-swatches" id="themeSwatches"></div>
+                </div>
+                <div class="settings-group">
+                  <span class="settings-label">Pezzi</span>
+                  <div class="piece-set-options" id="pieceSetOptions"></div>
+                </div>
+                <div class="settings-group settings-toggles">
+                  <label class="switch"><input type="checkbox" id="soundToggle" checked><span>Suoni</span></label>
+                  <label class="switch"><input type="checkbox" id="coordsToggle" checked><span>Coordinate</span></label>
+                  <label class="switch"><input type="checkbox" id="evalBarToggle"><span>Barra valutazione in partita</span></label>
+                </div>
+                <p class="settings-credits" id="pieceCredits"></p>
+              </div>
             </div>
 
-            <div class="coach-column">
-              <article class="tool-card">
-                <h2>Coach</h2>
-                <p id="coachMessage">Sviluppa i pezzi, controlla il centro e prima di muovere chiediti cosa minaccia l'avversario.</p>
-              </article>
+            <div class="chess-panel">
+              <div class="chess-tabs" role="tablist" aria-label="Sezioni scacchi">
+                <button class="chess-tab" role="tab" id="tab-play" aria-controls="panel-play" aria-selected="true" data-chess-tab="play" type="button">Gioca</button>
+                <button class="chess-tab" role="tab" id="tab-review" aria-controls="panel-review" aria-selected="false" data-chess-tab="review" type="button">Analisi</button>
+                <button class="chess-tab" role="tab" id="tab-learn" aria-controls="panel-learn" aria-selected="false" data-chess-tab="learn" type="button">Lezioni</button>
+                <button class="chess-tab" role="tab" id="tab-grade" aria-controls="panel-grade" aria-selected="false" data-chess-tab="grade" type="button">Grado</button>
+              </div>
 
-              <article class="tool-card chess-report-card">
-                <div class="panel-title-row">
-                  <h2>Report partita</h2>
-                  <span class="rank-badge" id="chessReportResult">In corso</span>
-                </div>
-                <div class="report-score-grid">
-                  <div class="report-score">
-                    <span>Precisione giocatore</span>
-                    <strong id="playerAccuracy">--</strong>
+              <!-- GIOCA -->
+              <div class="chess-tab-panel" id="panel-play" role="tabpanel" aria-labelledby="tab-play" data-chess-panel="play">
+                <section class="mentor-card" id="mentorCard">
+                  <div class="mentor-portrait">
+                    <img id="mentorImage" alt="" width="112" height="112">
+                    <span class="mentor-class" id="mentorClass">Classe D</span>
                   </div>
-                  <div class="report-score">
-                    <span>Precisione bot</span>
-                    <strong id="botAccuracy">--</strong>
+                  <div class="mentor-copy">
+                    <div class="mentor-name-row">
+                      <strong class="mentor-name" id="mentorName">Coach</strong>
+                      <span class="mentor-role" id="mentorRole">Il tuo coach</span>
+                    </div>
+                    <p class="mentor-speech" id="coachMessage" aria-live="polite">Sviluppa i pezzi, controlla il centro e prima di muovere chiediti cosa minaccia l'avversario.</p>
+                    <div class="mentor-actions" id="coachActions"></div>
                   </div>
-                </div>
-                <div class="report-meta-grid">
-                  <div class="report-meta-item">
-                    <span>Bot</span>
-                    <strong id="reportBotLevel">Livello --</strong>
-                  </div>
-                  <div class="report-meta-item">
-                    <span>Elo stimato</span>
-                    <strong id="reportBotElo">--</strong>
-                  </div>
-                  <div class="report-meta-item">
-                    <span>Game rating</span>
-                    <strong id="reportGameRating">--</strong>
-                  </div>
-                  <div class="report-meta-item">
-                    <span>Fase</span>
-                    <strong id="reportPhase">--</strong>
-                  </div>
-                  <div class="report-meta-item">
-                    <span>Mosse</span>
-                    <strong id="reportMoveCount">0</strong>
-                  </div>
-                </div>
-                <svg id="evalSparkline" class="eval-sparkline" viewBox="0 0 360 120" role="img" aria-label="Grafico andamento valutazione"></svg>
-                <div id="moveClassificationCounts" class="classification-counts"></div>
-                <div id="accuracyBreakdown" class="report-note">Precisione calcolata da: nessuna mossa ancora giocata.</div>
-                <div id="reportMainPattern" class="report-note">Pattern principale: nessun dato.</div>
-                <div id="chessReportMessage" class="analysis-box">Gioca o rivedi una partita per ottenere un report sintetico.</div>
-                <button class="primary-action wide-action" id="startReviewFromReportBtn" type="button">Inizia revisione</button>
-              </article>
+                </section>
 
-              <article class="tool-card review-card">
-                <div class="panel-title-row">
-                  <h2>Revisione mossa per mossa</h2>
-                  <span class="rank-badge" id="reviewAccuracy">--</span>
+                <div class="play-mode" role="radiogroup" aria-label="Tipo di partita">
+                  <button class="mode-option" type="button" role="radio" data-play-mode="rated" aria-checked="true">
+                    <strong>Partita valutata</strong>
+                    <span>Conta per il grado. Niente aiuti.</span>
+                  </button>
+                  <button class="mode-option" type="button" role="radio" data-play-mode="training" aria-checked="false">
+                    <strong>Allenamento</strong>
+                    <span>Il coach avvisa, suggerisce e puoi annullare.</span>
+                  </button>
                 </div>
-                <svg id="reviewEvalSparkline" class="eval-sparkline review-eval-sparkline" viewBox="0 0 360 120" role="img" aria-label="Grafico andamento valutazione in revisione"></svg>
-                <div class="eval-review-bar" aria-label="Barra valutazione">
-                  <div id="reviewEvalFill" class="eval-review-fill"></div>
-                </div>
-                <div class="review-controls">
-                  <button class="ghost-action" id="reviewStartBtn" type="button">Inizio</button>
-                  <button class="ghost-action" id="reviewPrevBtn" type="button">Indietro</button>
-                  <span id="reviewPlyText" class="review-ply-text">--</span>
-                  <button class="ghost-action" id="reviewNextBtn" type="button">Avanti</button>
-                  <button class="ghost-action" id="reviewEndBtn" type="button">Fine</button>
-                  <button class="ghost-action review-key-toggle" id="reviewKeyMomentsBtn" type="button">Mostra solo momenti chiave</button>
-                  <button class="ghost-action" id="reviewNextErrorBtn" type="button">Prossimo errore</button>
-                  <button class="ghost-action" id="reviewShowBestBtn" type="button">Mostra mossa migliore</button>
-                  <button class="ghost-action" id="reviewShowLineBtn" type="button">Mostra linea consigliata</button>
-                </div>
-                <div class="review-detail-grid">
-                  <div class="analysis-box review-coach-box">
-                    <div class="coach-avatar" aria-hidden="true">C</div>
+
+                <section class="bot-picker" id="botPicker" aria-label="Scegli l'avversario">
+                  <div class="bot-picker-head">
                     <div>
-                      <strong id="reviewMoveTitle">Nessuna mossa selezionata</strong>
-                      <p id="reviewCoachPanel" class="review-coach-text">Avvia la revisione per vedere commento, pattern e drill della mossa.</p>
+                      <span class="section-kicker">Avversario</span>
+                      <strong class="bot-picker-name" id="botPickName">Bot</strong>
+                      <span class="bot-picker-desc" id="botPickDesc"></span>
+                    </div>
+                    <div class="bot-picker-elo">
+                      <button class="icon-button" id="botPrevBtn" type="button" aria-label="Bot piu' debole"><svg viewBox="0 0 24 24"><use href="#i-minus"/></svg></button>
+                      <span><strong id="botPickElo">400</strong><small>Elo</small></span>
+                      <button class="icon-button" id="botNextBtn" type="button" aria-label="Bot piu' forte"><svg viewBox="0 0 24 24"><use href="#i-plus"/></svg></button>
                     </div>
                   </div>
-                  <div class="analysis-box">
-                    <p><strong>Mossa migliore:</strong> <span id="reviewBestMove">-</span></p>
-                    <p><strong>Differenza dalla migliore:</strong> <span id="reviewBestDiff">-</span></p>
-                    <p><strong>Variante:</strong> <span id="reviewVariation">-</span></p>
-                    <p><strong>Pattern:</strong> <span id="reviewPattern">-</span></p>
-                    <p><strong>Drill:</strong> <span id="reviewDrill">-</span></p>
-                    <p><strong>Meta review:</strong> <span id="reviewMeta">-</span></p>
-                  </div>
-                </div>
-                <div id="gameAnalysis" class="analysis-box">Finisci una partita o premi Rivedi partita per analizzare le mosse gia' giocate.</div>
-                <div id="moveReviewList" class="move-review-list"></div>
-              </article>
+                  <div class="bot-ladder" id="botLadder"></div>
+                  <p class="bot-picker-stats" id="botLevelText"></p>
+                  <button class="primary-action wide-action" id="applyBotLevelBtn" type="button">Nuova partita</button>
+                </section>
 
-              <article class="tool-card">
-                <h2>Livello bot</h2>
-                <p id="botLevelText">Scegli manualmente il livello del bot: la partita successiva usera' questa difficolta'.</p>
-                <label class="bot-level-control" for="botLevelSelect">
-                  <span>Scegli livello</span>
-                  <select id="botLevelSelect" aria-label="Scegli livello bot"></select>
-                </label>
-                <button class="primary-action wide-action" id="applyBotLevelBtn" type="button">Applica livello e nuova partita</button>
-              </article>
-              <article class="tool-card">
-                <h2>Pattern errori</h2>
-                <div id="mistakeTags" class="tag-list"></div>
-              </article>
-              <article class="tool-card">
-                <h2>Drill consigliato</h2>
-                <p id="chessDrill">Gioca 5 mosse lente: prima di ogni mossa trova una minaccia per entrambi i lati.</p>
-                <div class="chess-drill-panel">
-                  <h3>Drill consigliati</h3>
-                  <div id="chessExerciseList" class="chess-exercise-list">Completa una review Stockfish per generare esercizi dagli errori.</div>
-                  <div id="chessDrillBoard" class="mini-chess-board" aria-label="Posizione del drill"></div>
-                  <label class="free-answer-label" for="chessDrillAnswer">
-                    Trova la mossa migliore
-                    <input id="chessDrillAnswer" type="text" placeholder="Esempio: e2e4">
-                  </label>
-                  <div class="button-row left-actions">
-                    <button class="primary-action" id="chessCheckDrillBtn" type="button">Controlla</button>
-                    <button class="ghost-action" id="chessHintDrillBtn" type="button">Mostra indizio</button>
-                    <button class="ghost-action" id="chessSolutionDrillBtn" type="button">Mostra soluzione</button>
-                    <button class="ghost-action" id="chessNextDrillBtn" type="button">Prossimo drill</button>
-                    <button class="ghost-action" id="chessRetryDrillBtn" type="button">Riprova</button>
+                <section class="game-moves-card">
+                  <div class="panel-title-row">
+                    <h2>Mosse</h2>
+                    <span class="rank-badge" id="chessReportResult">In corso</span>
                   </div>
-                  <div id="chessDrillFeedback" class="analysis-box">Nessun drill caricato.</div>
-                  <div id="chessWeakThemes" class="analysis-box">Temi tattici piu' deboli: in attesa di analisi.</div>
-                </div>
-              </article>
+                  <ol class="game-move-list" id="gameMoveList"></ol>
+                  <div class="game-actions">
+                    <button class="ghost-action" id="hintBtn" type="button">Suggerimento</button>
+                    <button class="ghost-action" id="undoMoveBtn" type="button">Annulla mossa</button>
+                    <button class="ghost-action" id="resignBtn" type="button">Abbandona</button>
+                    <button class="primary-action" id="reviewGameBtn" type="button">Rivedi partita</button>
+                  </div>
+                  <button class="ghost-action wide-action" id="resetBoardBtn" type="button" hidden>Nuova partita</button>
+                </section>
+              </div>
+
+              <!-- ANALISI -->
+              <div class="chess-tab-panel" id="panel-review" role="tabpanel" aria-labelledby="tab-review" data-chess-panel="review" hidden>
+                <section class="review-summary">
+                  <div class="review-players">
+                    <div class="review-player">
+                      <span>Tu</span>
+                      <strong id="playerAccuracy">--</strong>
+                      <small>precisione</small>
+                    </div>
+                    <div class="review-vs">
+                      <span id="reviewResultText">--</span>
+                      <small id="reportGameRatingLabel">Game rating <b id="reportGameRating">--</b></small>
+                    </div>
+                    <div class="review-player">
+                      <span id="reviewBotName">Bot</span>
+                      <strong id="botAccuracy">--</strong>
+                      <small>precisione</small>
+                    </div>
+                  </div>
+                  <svg id="reviewEvalSparkline" class="eval-sparkline review-eval-sparkline" viewBox="0 0 360 120" role="img" aria-label="Grafico andamento valutazione: clicca per andare alla mossa"></svg>
+                  <div class="review-meta-row">
+                    <span>Bot <b id="reportBotLevel">--</b></span>
+                    <span><b id="reportBotElo">--</b></span>
+                    <span>Fase <b id="reportPhase">--</b></span>
+                    <span>Mosse <b id="reportMoveCount">0</b></span>
+                  </div>
+                  <div id="moveClassificationCounts" class="classification-table"></div>
+                  <button class="primary-action wide-action" id="startReviewFromReportBtn" type="button">Analizza con Stockfish</button>
+                  <p class="review-progress" id="reviewProgress" hidden></p>
+                </section>
+
+                <section class="review-move-card">
+                  <div class="review-coach">
+                    <span class="review-quality-icon" id="reviewQualityIcon" aria-hidden="true">?</span>
+                    <div>
+                      <strong id="reviewMoveTitle">Nessuna mossa selezionata</strong>
+                      <p id="reviewCoachPanel" class="review-coach-text">Avvia l'analisi per vedere il commento di ogni mossa.</p>
+                    </div>
+                  </div>
+                  <dl class="review-facts">
+                    <div><dt>Migliore</dt><dd id="reviewBestMove">-</dd></div>
+                    <div><dt>Perdita</dt><dd id="reviewBestDiff">-</dd></div>
+                    <div class="span-2"><dt>Linea consigliata</dt><dd id="reviewVariation">-</dd></div>
+                    <div><dt>Pattern</dt><dd id="reviewPattern">-</dd></div>
+                    <div><dt>Esercizio</dt><dd id="reviewDrill">-</dd></div>
+                    <div class="span-2 review-meta"><dt>Motore</dt><dd id="reviewMeta">-</dd></div>
+                  </dl>
+                  <div class="review-controls">
+                    <button class="ghost-action" id="reviewShowBestBtn" type="button" aria-pressed="false">Mostra migliore</button>
+                    <button class="ghost-action" id="reviewShowLineBtn" type="button">Mostra linea</button>
+                    <button class="ghost-action" id="reviewRetryBtn" type="button">Riprova la posizione</button>
+                    <button class="ghost-action" id="reviewNextErrorBtn" type="button">Prossimo errore</button>
+                    <button class="ghost-action review-key-toggle" id="reviewKeyMomentsBtn" type="button">Solo momenti chiave</button>
+                  </div>
+                  <div class="review-nav-hidden" hidden>
+                    <button id="reviewStartBtn" type="button">Inizio</button>
+                    <button id="reviewPrevBtn" type="button">Indietro</button>
+                    <span id="reviewPlyText">--</span>
+                    <button id="reviewNextBtn" type="button">Avanti</button>
+                    <button id="reviewEndBtn" type="button">Fine</button>
+                    <button id="exitReviewBtn" type="button">Torna alla partita</button>
+                  </div>
+                </section>
+
+                <section class="review-list-card">
+                  <div class="panel-title-row">
+                    <h2>Mosse della partita</h2>
+                    <span class="rank-badge" id="reviewAccuracy">--</span>
+                  </div>
+                  <div id="moveReviewList" class="move-review-list"></div>
+                </section>
+
+                <section class="review-insights">
+                  <h2>Cosa dice il coach</h2>
+                  <div id="gameAnalysis" class="analysis-box">Finisci una partita o premi Rivedi partita per analizzare le mosse gia' giocate.</div>
+                  <div id="accuracyBreakdown" class="report-note">Precisione calcolata da: nessuna mossa ancora giocata.</div>
+                  <div id="reportMainPattern" class="report-note">Pattern principale: nessun dato.</div>
+                  <div id="chessReportMessage" class="report-note">Gioca o rivedi una partita per ottenere un report sintetico.</div>
+                  <div id="mistakeTags" class="tag-list"></div>
+                </section>
+              </div>
+
+              <!-- LEZIONI -->
+              <div class="chess-tab-panel" id="panel-learn" role="tabpanel" aria-labelledby="tab-learn" data-chess-panel="learn" hidden>
+                <div id="learnRoot" class="learn-root"></div>
+              </div>
+
+              <!-- GRADO -->
+              <div class="chess-tab-panel" id="panel-grade" role="tabpanel" aria-labelledby="tab-grade" data-chess-panel="grade" hidden>
+                <div id="gradeRoot" class="grade-root"></div>
+                <article class="tool-card module-status chess-profile-panel">
+                  <h2>Profilo di gioco</h2>
+                  <svg id="chessModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar scacchi"></svg>
+                  <div id="chessModuleMetrics" class="metric-list"></div>
+                  <div id="chessPatternBox" class="analysis-box">Pattern: in attesa di mosse.</div>
+                  <div id="chessTrainingBox" class="analysis-box">Allenamento: completa una partita lenta.</div>
+                </article>
+              </div>
             </div>
           </div>
-
-          <article class="tool-card full-card module-status chess-profile-panel">
-            <h2>Profilo scacchi</h2>
-            <svg id="chessModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar scacchi"></svg>
-            <div id="chessModuleMetrics" class="metric-list"></div>
-            <div id="chessPatternBox" class="analysis-box">Pattern: in attesa di mosse.</div>
-            <div id="chessTrainingBox" class="analysis-box">Allenamento: completa una partita lenta.</div>
-          </article>
         </section>
-
         <section id="scenarios" class="page">
           <div class="page-heading">
             <div>
@@ -650,8 +747,16 @@
     <script src="chess/engine.js?v=20261014"></script>
     <script src="chess/bot.js?v=20261014"></script>
     <script src="chess/review.js?v=20261014"></script>
-    <script src="app.js?v=20261014-2"></script>
-    <script src="cote-theme.js?v=20261014-2"></script>
+    <script src="chess/board-view.js?v=20261014-4"></script>
+    <script src="chess/rating.js?v=20261014-4"></script>
+    <script src="chess/lessons.js?v=20261014-4"></script>
+    <script src="chess/coach.js?v=20261014-4"></script>
+    <script src="chess/trainer.js?v=20261014-4"></script>
+    <script src="app.js?v=20261014-4"></script>
+    <script src="chess/chess-ui.js?v=20261014-4"></script>
+    <script src="chess/learn-ui.js?v=20261014-4"></script>
+    <script src="chess/grade-ui.js?v=20261014-4"></script>
+    <script src="cote-theme.js?v=20261014-4"></script>
     <script src="scenario-theme.js?v=20261014"></script>
   </body>
 </html>
