@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles.css?v=20261014-8" />
     <link rel="stylesheet" href="chess/board-view.css?v=20261014-8" />
     <link rel="stylesheet" href="chess/chess-ui.css?v=20261014-8" />
+    <link rel="stylesheet" href="scenarios/scenarios.css?v=20261014-9" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
@@ -422,46 +423,23 @@
             </div>
           </div>
         </section>
-        <section id="scenarios" class="page">
-          <div class="page-heading">
+        <section id="scenarios" class="page scen-page">
+          <div class="page-heading scen-heading">
             <div>
               <p class="eyebrow">Scenari sociali</p>
-              <h1>Risposta libera, situazione complessa, valutazione profonda.</h1>
-              <p class="page-subtitle">Allena lettura contesto, controllo emotivo, tempismo, rischio e piano B.</p>
+              <h1>Esami speciali: leggi la situazione, scegli la mossa, scopri cosa c'era sotto.</h1>
+              <p class="page-subtitle">Situazioni reali in tre momenti. Ogni scelta cambia le reazioni degli altri; alla fine il mentore ti mostra il gioco nascosto.</p>
             </div>
-            <div class="button-row">
-              <a class="ghost-link" href="#dashboard">Quadro</a>
-              <button class="primary-action" id="newScenarioBtn" type="button">Nuovo scenario</button>
-            </div>
+            <div class="scen-class-chip" id="scenClassChip" aria-live="polite"></div>
           </div>
-
-          <div class="two-column">
-            <article class="tool-card">
-              <span class="scenario-type" id="scenarioType">Osservazione</span>
-              <h2 id="scenarioTitle">Caricamento scenario</h2>
-              <p id="scenarioText"></p>
-              <label class="free-answer-label" for="scenarioFreeAnswer">
-                La tua risposta
-                <textarea id="scenarioFreeAnswer" rows="9" placeholder="Scrivi cosa faresti, cosa diresti, cosa osservi, quale rischio prevedi e qual e' il tuo piano B."></textarea>
-              </label>
-              <div class="button-row left-actions">
-                <button class="primary-action" id="analyzeScenarioBtn" type="button">Analizza risposta</button>
-                <button class="ghost-action" id="showScenarioModelBtn" type="button">Mostra modello</button>
-              </div>
-            </article>
-            <article class="tool-card">
-              <h2>Analisi</h2>
-              <div id="scenarioFeedback" class="analysis-box">Scrivi una risposta libera: il coach valutera' lucidita', rischio, tempismo, etica, assertivita' e piano B.</div>
-              <div class="social-bars" id="scenarioBars"></div>
-            </article>
-            <article class="tool-card module-status profile-wide">
-              <h2>Profilo scenari</h2>
-              <svg id="scenariosModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar scenari"></svg>
-              <div id="scenariosModuleMetrics" class="metric-list"></div>
-              <div id="scenariosPatternBox" class="analysis-box">Pattern: rispondi a uno scenario per iniziare.</div>
-              <div id="scenariosTrainingBox" class="analysis-box">Allenamento: includi sempre contesto, rischio e piano B.</div>
-            </article>
+          <div class="scen-tabs" role="tablist" aria-label="Sezioni scenari">
+            <button class="scen-tab active" type="button" role="tab" data-scen-tab="exams" aria-selected="true" aria-controls="scenPanel-exams">Esami</button>
+            <button class="scen-tab" type="button" role="tab" data-scen-tab="free" aria-selected="false" aria-controls="scenPanel-free">Risposta libera</button>
+            <button class="scen-tab" type="button" role="tab" data-scen-tab="profile" aria-selected="false" aria-controls="scenPanel-profile">Profilo</button>
           </div>
+          <div class="scen-panel" id="scenPanel-exams" role="tabpanel"></div>
+          <div class="scen-panel" id="scenPanel-free" role="tabpanel" hidden></div>
+          <div class="scen-panel" id="scenPanel-profile" role="tabpanel" hidden></div>
         </section>
 
         <section id="culture" class="page">
@@ -759,11 +737,14 @@
     <script src="chess/lessons.js?v=20261014-8"></script>
     <script src="chess/coach.js?v=20261014-8"></script>
     <script src="chess/trainer.js?v=20261014-8"></script>
+    <script src="scenarios/engine.js?v=20261014-9"></script>
+    <script src="scenarios/exams.js?v=20261014-9"></script>
+    <script src="scenarios/free.js?v=20261014-9"></script>
     <script src="app.js?v=20261014-8"></script>
     <script src="chess/chess-ui.js?v=20261014-8"></script>
     <script src="chess/learn-ui.js?v=20261014-8"></script>
     <script src="chess/grade-ui.js?v=20261014-8"></script>
     <script src="cote-theme.js?v=20261014-8"></script>
-    <script src="scenario-theme.js?v=20261014"></script>
+    <script src="scenarios/ui.js?v=20261014-9"></script>
   </body>
 </html>

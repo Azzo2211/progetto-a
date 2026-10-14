@@ -220,40 +220,7 @@ const dailyPlans = [
   ]
 ];
 
-const scenarios = [
-  {
-    type: "Pressione sociale",
-    title: "Il gruppo ride mentre una persona ti sminuisce",
-    text: "Durante una conversazione, una persona fa battute ripetute su di te e gli altri ridono. La situazione non e' apertamente violenta, ma sta creando una gerarchia sociale contro di te. Scrivi cosa osservi, cosa dici, cosa fai se continua e come eviti di sembrare impulsivo.",
-    model: "Osservo chi ride per abitudine e chi sta guidando la pressione. Rispondo breve e fermo: 'La battuta e' chiara, ora basta. Se vuoi parlare di me, fallo seriamente.' Se continua, smetto di nutrire la scena e parlo con una persona chiave a parte.",
-    ideal: ["osservo", "chi", "fermo", "basta", "continua", "a parte", "serio", "pubblico"],
-    traps: ["insulto", "urlo", "vendetta", "minaccia"]
-  },
-  {
-    type: "Negoziazione",
-    title: "Devi convincere un gruppo senza sembrare autoritario",
-    text: "Un gruppo deve lavorare, ma tutti rimandano. Tu vuoi guidare senza essere percepito come quello che comanda. Scrivi un intervento che crei direzione, ruoli, tempi e responsabilita'.",
-    model: "Propongo una divisione semplice: 'Abbiamo 40 minuti. Io prendo struttura e consegna, tu fonti, tu esempi. Alle 18:20 uniamo tutto e vediamo cosa manca.' Chiedo conferma, non ordino a freddo.",
-    ideal: ["ruoli", "tempo", "conferma", "divisione", "manca", "consegna", "propongo"],
-    traps: ["comando", "minaccio", "zitti", "obbligo"]
-  },
-  {
-    type: "Conflitto ambiguo",
-    title: "Qualcuno ti ignora apposta o forse no",
-    text: "Una persona risponde in modo freddo e tu sospetti che voglia escluderti. Non hai prove solide. Scrivi come verifichi la realta' senza accusare subito e senza farti trattare da invisibile.",
-    model: "Prima raccolgo due segnali concreti. Poi chiedo in privato: 'Ho notato che nelle ultime due volte hai tagliato corto. C'e' qualcosa da chiarire o sto leggendo male?' Se evita, riduco investimento e mantengo educazione.",
-    ideal: ["prove", "segnali", "privato", "notato", "chiarire", "leggendo male", "riduci"],
-    traps: ["accuso", "spio", "punisco", "umilio"]
-  },
-  {
-    type: "Autocontrollo",
-    title: "Provocazione davanti a un adulto o superiore",
-    text: "Qualcuno ti provoca davanti a una figura importante. Reagire male ti danneggia, ma subire in silenzio ti fa perdere posizione. Scrivi una risposta con controllo, confine e reputazione.",
-    model: "Resto calmo e porto il focus sul comportamento: 'Preferisco restare sul tema. La battuta personale non aiuta.' Se insiste, dico: 'Ne parliamo dopo in modo serio.' Non regalo una scenata.",
-    ideal: ["calmo", "tema", "comportamento", "personale", "dopo", "serio", "scenata"],
-    traps: ["stupido", "ridicolo", "odio", "urlo"]
-  }
-];
+// Gli scenari sociali sono in scenarios/ (esami speciali e risposta libera).
 
 const topics = [
   {
@@ -620,12 +587,12 @@ const moduleSkillDefinitions = {
     { key: "impulseControl", label: "Controllo impulso", general: "emotionalControl" }
   ],
   scenarios: [
-    { key: "contextReading", label: "Lettura contesto", general: "clarity" },
-    { key: "emotionalControl", label: "Controllo emotivo", general: "emotionalControl" },
-    { key: "assertiveness", label: "Assertività", general: "presence" },
-    { key: "riskManagement", label: "Gestione rischio", general: "strategicMind" },
-    { key: "timing", label: "Tempismo", general: "clarity" },
-    { key: "planB", label: "Piano B", general: "strategicMind" }
+    { key: "lettura", label: "Lettura", general: "clarity" },
+    { key: "autocontrollo", label: "Autocontrollo", general: "emotionalControl" },
+    { key: "assertivita", label: "Assertività", general: "presence" },
+    { key: "empatia", label: "Empatia", general: "presence" },
+    { key: "strategia", label: "Strategia", general: "strategicMind" },
+    { key: "etica", label: "Etica", general: "emotionalControl" }
   ],
   culture: [
     { key: "understanding", label: "Comprensione", general: "culture" },
@@ -700,7 +667,6 @@ let reviewBoard = null;
 let lastMoveSquares = null;
 let reviewMoveSquares = null;
 let currentGame = createNewGame();
-let currentScenario = null;
 let currentTopic = null;
 let currentRiddle = null;
 let currentMemory = null;
@@ -725,7 +691,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderGameReport(buildGameAnalysis("partial"));
   renderStudiedList();
   renderReviewList();
-  loadRandomScenario();
   loadRandomTopic();
   loadRandomGoal();
   loadDefenseDrill();
@@ -1028,9 +993,6 @@ function bindControls() {
     }
     renderMoveReview(false);
   });
-  document.getElementById("newScenarioBtn").addEventListener("click", loadRandomScenario);
-  document.getElementById("analyzeScenarioBtn").addEventListener("click", analyzeScenarioAnswer);
-  document.getElementById("showScenarioModelBtn").addEventListener("click", showScenarioModel);
   document.getElementById("newTopicBtn").addEventListener("click", loadRandomTopic);
   document.getElementById("markTopicBtn").addEventListener("click", markTopicStudied);
   document.getElementById("newGoalBtn").addEventListener("click", loadRandomGoal);
@@ -1196,6 +1158,10 @@ function renderModuleStatus(moduleKey) {
     renderChessProfile();
     return;
   }
+  if (moduleKey === "scenarios" && window.renderScenarioProfile) {
+    renderScenarioProfile();
+    return;
+  }
   const skills = getModuleSkills(moduleKey);
   const score = getModuleScore(moduleKey);
   const radar = document.getElementById(`${moduleKey}ModuleRadar`);
@@ -1256,19 +1222,15 @@ function getModuleSkills(moduleKey) {
   const memoryAccuracy = state.memory.attempts ? (state.memory.correct / state.memory.attempts) * 100 : metric("efficacia");
   const reflexScore = state.reflexBest ? clamp(105 - state.reflexBest / 7, 10, 99) : metric("tempo");
   const aestheticScore = state.aesthetic.score || metric("efficacia");
-  const social = state.socialScores;
 
   const profiles = {
     // Scacchi: categorie aggiornate dagli eventi di ogni partita (chess/skills.js).
     chess: window.ChessSkills ? ChessSkills.CATEGORIES.map((category) => [category.label, ChessSkills.ensureSkills(state.chess.skills)[category.key]]) : [],
-    scenarios: [
-      ["Lettura contesto", social.context],
-      ["Controllo emotivo", metric("controllo")],
-      ["Assertività", social.assertiveness],
-      ["Gestione rischio", social.risk],
-      ["Tempismo", social.timing],
-      ["Piano B", social.contingency]
-    ],
+    // Scenari: categorie aggiornate dalle mosse degli esami speciali (scenarios/engine.js).
+    scenarios: window.ScenarioEngine ? (() => {
+      const lab = ScenarioEngine.ensureProfile(state.scenarioLab);
+      return ScenarioEngine.DIMENSIONS.map((d) => [d.label, lab[d.key]]);
+    })() : [],
     culture: [
       ["Comprensione", metric("ragionamento") + studied * 2],
       ["Memoria concetti", metric("sostenibilita") + studied * 1.5],
@@ -1358,7 +1320,11 @@ function dashboardTrend(moduleKey, average) {
       const profile = chessRatingProfile();
       return `Grado ${chessCertifiedGrade().key} · ${profile.game.count ? `${profile.game.count} partite valutate` : "nessuna partita valutata"}${est.elo ? ` · Elo stimato ${est.elo}` : ""}`;
     })() : state.chess.games ? `${state.chess.games} partite · accuratezza ${state.chess.lastAccuracy || 0}%` : "Base iniziale · migliora giocando partite",
-    scenarios: patternTotal ? `${patternTotal} pattern rilevati · media ${average}` : "Base iniziale · rispondi agli scenari",
+    scenarios: window.ScenarioEngine ? (() => {
+      const lab = ScenarioEngine.ensureProfile(state.scenarioLab);
+      const info = ScenarioEngine.classFor(lab, window.ScenarioExams || []);
+      return info.done || lab.freeCount ? `${info.current.name} · ${info.done} esami · ${lab.pp} punti privati` : "Classe D · fai il primo esame speciale";
+    })() : "Base iniziale · rispondi agli scenari",
     culture: `${state.studied.length} argomenti · ${state.cultureReviews.length} ripassi programmati`,
     planning: state.planScores.length ? `${state.planScores.length} piani · media ${Math.round(averageArray(state.planScores))}` : "Base iniziale · scrivi un piano",
     defense: state.reflexBest ? `Livello ${state.defenseLevel} · miglior riflesso ${state.reflexBest} ms` : `Livello ${state.defenseLevel} · riflessi non misurati`,
@@ -1437,7 +1403,7 @@ function patternReadable(key) {
 function trainingForPattern(moduleKey, key) {
   if (moduleKey === "chess") return mistakeDrills[key] || "Drill: rivedi 5 mosse e scrivi piano, minaccia, rischio.";
   if (moduleKey === "memory") return "Allenamento: usa chunking da 3 elementi, poi richiamo attivo dopo 20 secondi.";
-  if (moduleKey === "scenarios") return "Allenamento: struttura risposta in contesto, frase, conseguenza, piano B.";
+  if (moduleKey === "scenarios") return "Allenamento: prima i fatti, poi una frase breve senza accuse, poi il piano B.";
   if (moduleKey === "defense") return "Allenamento: 3 round lenti su guardia, footwork e reazione a stimolo.";
   if (moduleKey === "influence") return "Allenamento: riscrivi la leva rendendo chiari costi, confini e possibilita' di dire no.";
   if (moduleKey === "culture") return "Allenamento: ripasso programmato e spiegazione in parole tue.";
@@ -3955,79 +3921,6 @@ function clearBotTimer() {
     window.clearTimeout(botMoveTimer);
     botMoveTimer = null;
   }
-}
-
-function loadRandomScenario() {
-  currentScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
-  document.getElementById("scenarioType").textContent = currentScenario.type;
-  document.getElementById("scenarioTitle").textContent = currentScenario.title;
-  document.getElementById("scenarioText").textContent = currentScenario.text;
-  document.getElementById("scenarioFreeAnswer").value = "";
-  document.getElementById("scenarioFeedback").textContent = "Scrivi una risposta libera: il coach valutera' lucidita', rischio, tempismo, etica, assertivita' e piano B.";
-  renderScenarioBars();
-}
-
-function analyzeScenarioAnswer() {
-  const answer = document.getElementById("scenarioFreeAnswer").value.trim();
-  if (!answer) {
-    document.getElementById("scenarioFeedback").textContent = "Scrivi prima una risposta: servono azione, frase concreta, rischio e piano B.";
-    return;
-  }
-  const lower = normalize(answer);
-  const wordCount = answer.split(/\s+/).filter(Boolean).length;
-  const idealHits = currentScenario.ideal.filter((word) => lower.includes(word)).length;
-  const riskyWords = countMatches(lower, currentScenario.traps.concat(["ricatto", "bugia", "paura", "rovinare", "manipolo"]));
-  const scores = {
-    clarity: clamp(35 + Math.min(wordCount, 100) * 0.45 + countMatches(lower, ["fatto", "preciso", "specifico", "dico", "frase"]) * 8, 0, 100),
-    context: clamp(30 + countMatches(lower, ["pubblico", "contesto", "chi", "tono", "reazione", "segnali", "prima osservo"]) * 10, 0, 100),
-    ethics: clamp(58 + countMatches(lower, ["rispetto", "senza", "confine", "serio", "chiaro"]) * 7 - riskyWords * 16, 0, 100),
-    empathy: clamp(35 + countMatches(lower, ["capisco", "privato", "chiedo", "ascolto", "chiarire"]) * 9, 0, 100),
-    assertiveness: clamp(35 + countMatches(lower, ["fermo", "basta", "non accetto", "confine", "smettila"]) * 12 - countMatches(lower, ["forse", "scusa", "niente"]) * 4, 0, 100),
-    leverage: clamp(30 + idealHits * 9 + countMatches(lower, ["opzione", "conseguenza", "ruolo", "tempo", "scelta"]) * 7 - riskyWords * 8, 0, 100),
-    risk: clamp(30 + countMatches(lower, ["rischio", "se continua", "evito", "non regalo", "non urlo", "prova"]) * 9 - riskyWords * 12, 0, 100),
-    timing: clamp(30 + countMatches(lower, ["prima", "poi", "dopo", "subito", "a parte", "entro"]) * 7, 0, 100),
-    contingency: clamp(25 + countMatches(lower, ["piano b", "se continua", "alternativa", "altrimenti", "passo successivo"]) * 13, 0, 100)
-  };
-  const shortTerm = clamp((scores.assertiveness + scores.timing + scores.clarity) / 3, 0, 100);
-  const longTerm = clamp((scores.ethics + scores.risk + scores.contingency + scores.empathy) / 4, 0, 100);
-  Object.entries(scores).forEach(([key, value]) => {
-    state.socialScores[key] = clamp(state.socialScores[key] + Math.round((value - 50) / 8), 0, 100);
-  });
-  if (scores.clarity < 55) addModulePattern("scenarios", "vague");
-  if (scores.contingency < 55) addModulePattern("scenarios", "noPlanB");
-  if (scores.risk < 55 || riskyWords > 0) addModulePattern("scenarios", "highRisk");
-  updateModuleMetrics("scenarios", {
-    lucidita: Math.round((scores.clarity - 50) / 10),
-    efficacia: Math.round((shortTerm - 50) / 10),
-    rischio: Math.round((scores.risk - 50) / 10),
-    controllo: Math.round((scores.assertiveness + scores.ethics - 100) / 18),
-    adattamento: Math.round((scores.context - 50) / 10),
-    flessibilita: Math.round((scores.contingency - 50) / 10),
-    ragionamento: Math.round((scores.leverage - 50) / 10),
-    sostenibilita: Math.round((longTerm - 50) / 10),
-    tempo: Math.round((scores.timing - 50) / 10)
-  });
-  saveState();
-  const total = Math.round(averageObject(scores));
-  const advice = [];
-  if (scores.context < 55) advice.push("Aggiungi osservazione: chi guida la pressione, chi segue, che tono c'e'.");
-  if (scores.assertiveness < 55) advice.push("Serve una frase piu' ferma e breve.");
-  if (scores.contingency < 55) advice.push("Manca piano B: scrivi cosa fai se continua.");
-  if (scores.risk < 55) advice.push("Valuta il rischio di escalation e come non regalare una scenata.");
-  if (scores.ethics < 60) advice.push("Togli leve sporche: niente umiliazione, bugie o ricatti.");
-  if (!advice.length) advice.push("Buona risposta: ora rendila piu' corta e naturale.");
-  document.getElementById("scenarioFeedback").innerHTML = `<strong>Punteggio risposta: ${total}/100</strong><br>${Object.entries(scores).map(([key, value]) => `${metricLabel(key)} ${Math.round(value)}`).join(", ")}.<br>Breve periodo: ${Math.round(shortTerm)}. Lungo periodo: ${Math.round(longTerm)}.<ul class="plan-steps">${advice.map((item) => `<li>${item}</li>`).join("")}</ul>`;
-  renderScenarioBars();
-  renderDashboard();
-}
-
-function showScenarioModel() {
-  if (!currentScenario) return;
-  document.getElementById("scenarioFeedback").textContent = `Modello forte: ${currentScenario.model}`;
-}
-
-function renderScenarioBars() {
-  renderMetrics(document.getElementById("scenarioBars"), state.socialScores);
 }
 
 function loadRandomTopic() {
