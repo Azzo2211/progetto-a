@@ -1982,44 +1982,6 @@ input:focus {
   font-variant-numeric: tabular-nums;
 }
 
-.reflex-arena {
-  position: relative;
-  min-height: 260px;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  background:
-    linear-gradient(90deg, rgba(23, 32, 39, 0.05) 1px, transparent 1px),
-    linear-gradient(rgba(23, 32, 39, 0.05) 1px, transparent 1px),
-    #ffffff;
-  background-size: 28px 28px;
-  overflow: hidden;
-  margin: 12px 0;
-}
-
-.reflex-target,
-.reflex-decoy {
-  position: absolute;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 4px solid #ffffff;
-  box-shadow: 0 8px 22px rgba(23, 32, 39, 0.22);
-  display: none;
-}
-
-.reflex-target {
-  background: var(--red);
-}
-
-.reflex-decoy {
-  background: var(--blue);
-}
-
-.reflex-target.visible,
-.reflex-decoy.visible {
-  display: block;
-}
-
 .small-note {
   color: var(--muted);
   font-weight: 760;

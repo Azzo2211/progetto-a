@@ -1,0 +1,24 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Anteprima figure difesa</title>
+<!-- Strumento di sviluppo: mostra ogni fotogramma di ogni tecnica. Filtra con #regex (es. #polso). -->
+<link rel="stylesheet" href="../../defense/defense.css" />
+<style>
+body{background:#12161b;margin:0;padding:12px;font:12px sans-serif;color:#ccc}
+.grid{display:grid;grid-template-columns:repeat(4,320px);gap:8px}
+.cell{background:#1a2027;border-radius:8px}
+.cell p{margin:4px 8px}
+.cell > div{width:320px;height:250px}
+</style></head><body><div class="grid" id="g"></div>
+<script src="../../defense/figure.js"></script><script src="../../defense/scenes.js"></script>
+<script>
+const g=document.getElementById('g');
+const only=location.hash.slice(1);
+Object.entries(DefenseScenes).forEach(([id,sc])=>{
+  if(only && !new RegExp(decodeURIComponent(only)).test(id)) return;
+  sc.frames.forEach((f,i)=>{
+    const c=document.createElement('div');c.className='cell';
+    const box=document.createElement('div');c.appendChild(box);
+    const p=document.createElement('p');p.textContent=id+' #'+i;c.appendChild(p);g.appendChild(c);
+    DefenseFigure.mount(box,{frames:[f]},{autoplay:false});
+  });
+});
+</script></body></html>

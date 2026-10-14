@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Metodo Integrale</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f7a6d'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-size='28' font-weight='700' text-anchor='middle' fill='%23ffffff'%3EMI%3C/text%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="styles.css?v=20261014-10" />
-    <link rel="stylesheet" href="chess/board-view.css?v=20261014-10" />
-    <link rel="stylesheet" href="chess/chess-ui.css?v=20261014-10" />
-    <link rel="stylesheet" href="scenarios/scenarios.css?v=20261014-10" />
-    <link rel="stylesheet" href="culture/culture.css?v=20261014-10" />
+    <link rel="stylesheet" href="styles.css?v=20261014-11" />
+    <link rel="stylesheet" href="chess/board-view.css?v=20261014-11" />
+    <link rel="stylesheet" href="chess/chess-ui.css?v=20261014-11" />
+    <link rel="stylesheet" href="scenarios/scenarios.css?v=20261014-11" />
+    <link rel="stylesheet" href="culture/culture.css?v=20261014-11" />
+    <link rel="stylesheet" href="defense/defense.css?v=20261014-11" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
@@ -146,7 +147,7 @@
             </a>
             <a class="mode-card" href="#defense">
               <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-defense"/></svg><strong>Difesa personale</strong></span>
-              <p>Mosse semplici, progressione tecnica e riflessi.</p>
+              <p>Programma in 4 fasi con figura animata, riflessi misurati e decisioni a tempo.</p>
               <div class="mini-indicators" id="defenseCardIndicators"></div>
             </a>
             <a class="mode-card" href="#logic">
@@ -504,54 +505,26 @@
           </div>
         </section>
 
-        <section id="defense" class="page">
-          <div class="page-heading">
+        <section id="defense" class="page def-page">
+          <div class="page-heading def-heading">
             <div>
               <p class="eyebrow">Difesa personale</p>
-              <h1>Mosse, esercizi progressivi e riflessi.</h1>
-              <p class="page-subtitle">Allena guardia, distanza, footwork, difesa responsabile e reazione a stimoli.</p>
+              <h1>Il più forte è chi non ha bisogno di combattere.</h1>
+              <p class="page-subtitle">Accorgersi prima, calmare, uscire. E quando serve, proteggersi bene: tecnica lenta e pulita, riflessi misurati, decisioni a tempo.</p>
             </div>
-            <div class="button-row">
-              <a class="ghost-link" href="#dashboard">Quadro</a>
-              <button class="primary-action" id="newDefenseBtn" type="button">Drill random</button>
-            </div>
+            <button class="def-chip" id="defChip" type="button" title="Apri il profilo difesa"></button>
           </div>
-
-          <div class="two-column">
-            <article class="tool-card">
-              <div class="panel-title-row">
-                <h2 id="defenseTitle">Guardia base</h2>
-                <span class="rank-badge" id="defenseLevelText">Livello 1</span>
-              </div>
-              <p id="defenseText">Allenamento progressivo e controllato.</p>
-              <ol id="defenseSteps" class="plan-steps"></ol>
-              <div class="button-row left-actions">
-                <button class="ghost-action" id="startTimerBtn" type="button">Timer 30s</button>
-                <button class="ghost-action" id="levelUpDefenseBtn" type="button">Aumenta livello</button>
-              </div>
-              <div class="timer-display" id="timerDisplay">00:30</div>
-            </article>
-
-            <article class="tool-card">
-              <h2>Gioco riflessi</h2>
-              <p id="reflexInstruction">Premi start: completa 5 bersagli. Ai livelli alti compaiono distrattori.</p>
-              <div class="reflex-arena" id="reflexArena">
-                <button class="reflex-target" id="reflexTarget" type="button" aria-label="Bersaglio riflessi"></button>
-                <button class="reflex-decoy" id="reflexDecoy" type="button" aria-label="Distrattore riflessi"></button>
-              </div>
-              <div class="button-row left-actions">
-                <button class="primary-action" id="startReflexBtn" type="button">Start riflessi</button>
-              </div>
-              <p class="small-note" id="reflexResult">Miglior tempo: nessuno.</p>
-            </article>
-            <article class="tool-card module-status">
-              <h2>Profilo difesa</h2>
-              <svg id="defenseModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar difesa"></svg>
-              <div id="defenseModuleMetrics" class="metric-list"></div>
-              <div id="defensePatternBox" class="analysis-box">Pattern: completa drill e riflessi per vedere punti deboli.</div>
-              <div id="defenseTrainingBox" class="analysis-box">Allenamento: guardia, distanza, footwork, difesa responsabile.</div>
-            </article>
+          <div class="def-tabs" role="tablist" aria-label="Sezioni della difesa">
+            <button type="button" role="tab" id="defTab-program" data-def-tab="program" aria-controls="defPanel-program" aria-selected="true">Programma</button>
+            <button type="button" role="tab" id="defTab-reflex" data-def-tab="reflex" aria-controls="defPanel-reflex" aria-selected="false" tabindex="-1">Riflessi</button>
+            <button type="button" role="tab" id="defTab-situ" data-def-tab="situ" aria-controls="defPanel-situ" aria-selected="false" tabindex="-1">Situazioni</button>
+            <button type="button" role="tab" id="defTab-profile" data-def-tab="profile" aria-controls="defPanel-profile" aria-selected="false" tabindex="-1">Profilo</button>
           </div>
+          <div class="def-panel" id="defPanel-program" role="tabpanel" aria-labelledby="defTab-program"></div>
+          <div class="def-panel" id="defPanel-reflex" role="tabpanel" aria-labelledby="defTab-reflex" hidden></div>
+          <div class="def-panel" id="defPanel-situ" role="tabpanel" aria-labelledby="defTab-situ" hidden></div>
+          <div class="def-panel" id="defPanel-profile" role="tabpanel" aria-labelledby="defTab-profile" hidden></div>
+          <div class="def-sr" id="defLive" aria-live="polite"></div>
         </section>
 
         <section id="logic" class="page">
@@ -710,23 +683,29 @@
     <script src="chess/engine.js?v=20261014"></script>
     <script src="chess/bot.js?v=20261014"></script>
     <script src="chess/review.js?v=20261014"></script>
-    <script src="chess/board-view.js?v=20261014-10"></script>
-    <script src="chess/rating.js?v=20261014-10"></script>
-    <script src="chess/skills.js?v=20261014-10"></script>
-    <script src="chess/lessons.js?v=20261014-10"></script>
-    <script src="chess/coach.js?v=20261014-10"></script>
-    <script src="chess/trainer.js?v=20261014-10"></script>
-    <script src="scenarios/engine.js?v=20261014-10"></script>
-    <script src="scenarios/exams.js?v=20261014-10"></script>
-    <script src="scenarios/free.js?v=20261014-10"></script>
-    <script src="culture/engine.js?v=20261014-10"></script>
-    <script src="culture/cards.js?v=20261014-10"></script>
-    <script src="app.js?v=20261014-10"></script>
-    <script src="chess/chess-ui.js?v=20261014-10"></script>
-    <script src="chess/learn-ui.js?v=20261014-10"></script>
-    <script src="chess/grade-ui.js?v=20261014-10"></script>
-    <script src="cote-theme.js?v=20261014-10"></script>
-    <script src="scenarios/ui.js?v=20261014-10"></script>
-    <script src="culture/ui.js?v=20261014-10"></script>
+    <script src="chess/board-view.js?v=20261014-11"></script>
+    <script src="chess/rating.js?v=20261014-11"></script>
+    <script src="chess/skills.js?v=20261014-11"></script>
+    <script src="chess/lessons.js?v=20261014-11"></script>
+    <script src="chess/coach.js?v=20261014-11"></script>
+    <script src="chess/trainer.js?v=20261014-11"></script>
+    <script src="scenarios/engine.js?v=20261014-11"></script>
+    <script src="scenarios/exams.js?v=20261014-11"></script>
+    <script src="scenarios/free.js?v=20261014-11"></script>
+    <script src="culture/engine.js?v=20261014-11"></script>
+    <script src="culture/cards.js?v=20261014-11"></script>
+    <script src="defense/engine.js?v=20261014-11"></script>
+    <script src="defense/program.js?v=20261014-11"></script>
+    <script src="defense/situations.js?v=20261014-11"></script>
+    <script src="defense/figure.js?v=20261014-11"></script>
+    <script src="defense/scenes.js?v=20261014-11"></script>
+    <script src="app.js?v=20261014-11"></script>
+    <script src="chess/chess-ui.js?v=20261014-11"></script>
+    <script src="chess/learn-ui.js?v=20261014-11"></script>
+    <script src="chess/grade-ui.js?v=20261014-11"></script>
+    <script src="cote-theme.js?v=20261014-11"></script>
+    <script src="scenarios/ui.js?v=20261014-11"></script>
+    <script src="culture/ui.js?v=20261014-11"></script>
+    <script src="defense/ui.js?v=20261014-11"></script>
   </body>
 </html>

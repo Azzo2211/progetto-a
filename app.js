@@ -53,8 +53,6 @@ const defaultState = {
     mistakeBank: []
   },
   planScores: [],
-  defenseLevel: 1,
-  reflexBest: null,
   logicSolved: 0,
   logicAttempts: 0,
   memory: {
@@ -208,7 +206,7 @@ const dailyPlans = [
   ],
   [
     "Scenari: una risposta libera con piano B.",
-    "Difesa: un drill tecnico piu' 5 bersagli riflessi.",
+    "Difesa: una sessione del programma, oppure una prova di riflessi e un turno di situazioni.",
     "Logica: un indovinello e spiegazione a voce.",
     "Piani: scrivi un piano tuo e fallo valutare."
   ],
@@ -232,137 +230,7 @@ const planningGoals = [
   "Hai un conflitto con qualcuno che fraintende spesso le tue intenzioni. Crea un piano per chiarire e ridurre attrito."
 ];
 
-const defenseDrills = [
-  {
-    level: 1,
-    title: "Guardia base e mento basso",
-    text: "Esercizio tecnico di base: crea una struttura stabile che protegge viso e centro.",
-    steps: [
-      "Piedi alla larghezza spalle, piede dominante leggermente dietro.",
-      "Mento basso, spalle rilassate, mani alte vicino a zigomi e tempie.",
-      "Gomiti stretti verso le costole: non aprire il centro.",
-      "Muoviti avanti e indietro a piccoli passi senza incrociare i piedi."
-    ]
-  },
-  {
-    level: 1,
-    title: "Parata esterna semplice",
-    text: "Serve a deviare una linea dritta senza abbassare l'altra mano.",
-    steps: [
-      "Parti in guardia.",
-      "Immagina un colpo dritto verso il viso.",
-      "Con la mano anteriore devia verso l'esterno usando avambraccio e rotazione minima.",
-      "La mano posteriore resta alta: non difendere con entrambe la stessa zona.",
-      "Ritorna subito in guardia."
-    ]
-  },
-  {
-    level: 2,
-    title: "Copertura a conchiglia",
-    text: "Esercizio per proteggere testa e mascella quando non hai tempo di leggere bene il colpo.",
-    steps: [
-      "Avambracci vicini alle tempie.",
-      "Mento chiuso, gomiti davanti al busto.",
-      "Fai tre passi corti laterali mantenendo visuale.",
-      "Dopo ogni passo riapri leggermente la guardia e respira."
-    ]
-  },
-  {
-    level: 2,
-    title: "Liberazione dal polso",
-    text: "Movimento lento e controllato per uscire da una presa al polso senza strappi.",
-    steps: [
-      "Individua il punto debole della presa: tra pollice e dita.",
-      "Ruota il tuo pollice verso quell'apertura.",
-      "Tira il gomito verso il tuo corpo mentre fai un passo indietro.",
-      "Ritorna in guardia e controlla equilibrio."
-    ]
-  },
-  {
-    level: 3,
-    title: "Parata piu' passo laterale",
-    text: "Unisce difesa e cambio angolo, cosi' non resti fermo sulla linea.",
-    steps: [
-      "Parti in guardia.",
-      "Esegui parata esterna.",
-      "Contemporaneamente fai mezzo passo laterale.",
-      "Rimetti entrambe le mani alte.",
-      "Ripeti lentamente: precisione prima della velocita'."
-    ]
-  },
-  {
-    level: 4,
-    title: "Sequenza difensiva completa",
-    text: "Combinazione controllata per coordinare guardia, parata, copertura e ritorno stabile.",
-    steps: [
-      "Guardia base per 3 secondi.",
-      "Parata esterna.",
-      "Copertura a conchiglia.",
-      "Passo laterale.",
-      "Ritorno in guardia con respiro controllato."
-    ]
-  },
-  {
-    level: 2,
-    title: "Footwork a triangolo",
-    text: "Allena entrata e uscita dalla linea mantenendo equilibrio e mani alte.",
-    steps: [
-      "Disegna mentalmente un triangolo sul pavimento.",
-      "Parti dal vertice basso in guardia.",
-      "Passa al vertice destro con piede destro, poi richiama il sinistro.",
-      "Torna al centro e ripeti a sinistra.",
-      "Non saltare: passi corti, busto stabile, mani alte."
-    ]
-  },
-  {
-    level: 3,
-    title: "Schivata laterale semplice",
-    text: "Movimento difensivo per togliere la testa dalla linea senza perdere postura.",
-    steps: [
-      "Parti in guardia davanti a uno specchio o muro libero.",
-      "Sposta leggermente testa e spalla fuori linea.",
-      "Piega poco le ginocchia, non inclinarti troppo.",
-      "Ritorna al centro con mani alte.",
-      "Ripeti lento: destra, centro, sinistra, centro."
-    ]
-  },
-  {
-    level: 3,
-    title: "Low kick tecnico a vuoto",
-    text: "Esercizio a vuoto e controllato: lavora equilibrio, anche e ritorno in guardia, senza colpire persone.",
-    steps: [
-      "Parti in guardia con peso bilanciato.",
-      "Ruota leggermente il piede di appoggio.",
-      "Simula il calcio basso a mezz'aria con tibia allineata.",
-      "Rientra subito in guardia senza restare scoperto.",
-      "Fai 5 ripetizioni lente per lato."
-    ]
-  },
-  {
-    level: 4,
-    title: "Counter semplice dopo parata",
-    text: "Sequenza responsabile e controllata: difendi, riprendi equilibrio, simula un contrattacco a vuoto e torna in guardia.",
-    steps: [
-      "Parata esterna controllata.",
-      "Passo laterale corto.",
-      "Simula un colpo dritto a vuoto senza iperestendere il gomito.",
-      "Mano opposta resta alta.",
-      "Ritorna in guardia e respira."
-    ]
-  },
-  {
-    level: 5,
-    title: "Gestione distanza con bersaglio immaginario",
-    text: "Allena la distanza di sicurezza e la capacita' di rientrare in guardia dopo ogni movimento.",
-    steps: [
-      "Scegli un punto sul muro come bersaglio.",
-      "Avanza finche' potresti toccarlo con il braccio esteso.",
-      "Esci di mezzo passo mantenendo guardia.",
-      "Rientra e riesci senza incrociare i piedi.",
-      "Valuta: se perdi equilibrio, riduci velocita'."
-    ]
-  }
-];
+// Le tecniche, il programma e le situazioni della difesa sono in defense/.
 
 const logicRiddles = [
   {
@@ -553,12 +421,12 @@ const moduleSkillDefinitions = {
     { key: "planB", label: "Piano B", general: "strategicMind" }
   ],
   defense: [
-    { key: "distance", label: "Distanza", general: "presence" },
-    { key: "reflexes", label: "Riflessi", general: "clarity" },
-    { key: "control", label: "Controllo", general: "emotionalControl" },
-    { key: "prevention", label: "Prevenzione", general: "strategicMind" },
-    { key: "movement", label: "Movimento", general: "presence" },
-    { key: "reaction", label: "Reazione", general: "clarity" }
+    { key: "prevenzione", label: "Prevenzione", general: "strategicMind" },
+    { key: "decisione", label: "Decisione", general: "clarity" },
+    { key: "riflessi", label: "Riflessi", general: "clarity" },
+    { key: "controllo", label: "Controllo", general: "emotionalControl" },
+    { key: "tecnica", label: "Tecnica", general: "presence" },
+    { key: "costanza", label: "Costanza", general: "emotionalControl" }
   ],
   logic: [
     { key: "deduction", label: "Deduzione", general: "strategicMind" },
@@ -613,11 +481,6 @@ let currentRiddle = null;
 let currentMemory = null;
 let memoryTimer = null;
 let currentInfluence = null;
-let timerId = null;
-let timerLeft = 30;
-let reflexTimer = null;
-let reflexShownAt = 0;
-let reflexSession = { active: false, round: 0, times: [], mistakes: 0 };
 
 document.addEventListener("DOMContentLoaded", () => {
   maybeRedirectFileChessToLocalServer();
@@ -631,7 +494,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initEngine();
   renderGameReport(buildGameAnalysis("partial"));
   loadRandomGoal();
-  loadDefenseDrill();
   loadRandomRiddle();
   loadMemoryExercise();
   loadInfluenceTactic();
@@ -934,17 +796,6 @@ function bindControls() {
   document.getElementById("newGoalBtn").addEventListener("click", loadRandomGoal);
   document.getElementById("clearGoalBtn").addEventListener("click", clearGoal);
   document.getElementById("analyzePlanBtn").addEventListener("click", analyzePlan);
-  document.getElementById("newDefenseBtn").addEventListener("click", loadDefenseDrill);
-  document.getElementById("startTimerBtn").addEventListener("click", startDefenseTimer);
-  document.getElementById("startReflexBtn").addEventListener("click", startReflexGame);
-  document.getElementById("reflexTarget").addEventListener("click", hitReflexTarget);
-  document.getElementById("reflexDecoy").addEventListener("click", hitReflexDecoy);
-  document.getElementById("levelUpDefenseBtn").addEventListener("click", () => {
-    state.defenseLevel = clamp(state.defenseLevel + 1, 1, 8);
-    saveState();
-    renderDashboard();
-    loadDefenseDrill();
-  });
   document.getElementById("newRiddleBtn").addEventListener("click", loadRandomRiddle);
   document.getElementById("newMemoryBtn").addEventListener("click", loadMemoryExercise);
   document.getElementById("hideMemoryBtn").addEventListener("click", hideMemoryStimulus);
@@ -1102,6 +953,10 @@ function renderModuleStatus(moduleKey) {
     renderCultureProfile();
     return;
   }
+  if (moduleKey === "defense" && window.renderDefenseProfile) {
+    renderDefenseProfile();
+    return;
+  }
   const skills = getModuleSkills(moduleKey);
   const score = getModuleScore(moduleKey);
   const radar = document.getElementById(`${moduleKey}ModuleRadar`);
@@ -1160,7 +1015,6 @@ function getModuleSkills(moduleKey) {
   const planAverage = state.planScores.length ? averageArray(state.planScores) : metric("ragionamento");
   const logicAccuracy = state.logicAttempts ? (state.logicSolved / state.logicAttempts) * 100 : metric("efficacia");
   const memoryAccuracy = state.memory.attempts ? (state.memory.correct / state.memory.attempts) * 100 : metric("efficacia");
-  const reflexScore = state.reflexBest ? clamp(105 - state.reflexBest / 7, 10, 99) : metric("tempo");
   const aestheticScore = state.aesthetic.score || metric("efficacia");
 
   const profiles = {
@@ -1181,14 +1035,8 @@ function getModuleSkills(moduleKey) {
       ["Sostenibilità", metric("sostenibilita")],
       ["Piano B", metric("adattamento") + (state.planScores.length ? 4 : 0)]
     ],
-    defense: [
-      ["Distanza", metric("adattamento") + state.defenseLevel * 2],
-      ["Riflessi", reflexScore],
-      ["Controllo", metric("controllo")],
-      ["Prevenzione", metric("rischio")],
-      ["Movimento", metric("adattamento") + state.defenseLevel * 2],
-      ["Reazione", (metric("tempo") + reflexScore) / 2]
-    ],
+    // Difesa: categorie calcolate da sessioni, prove di riflessi e situazioni (defense/engine.js).
+    defense: window.DefenseEngine && window.defenseProfileSkills ? window.defenseProfileSkills().map((k) => [k.label, k.value]) : [],
     logic: [
       ["Deduzione", metric("ragionamento") + state.logicSolved * 3],
       ["Precisione", logicAccuracy],
@@ -1267,7 +1115,7 @@ function dashboardTrend(moduleKey, average) {
       return studied ? `${studied}/${cards.length} schede studiate · ${due ? `${due} da ripassare oggi` : "nessun ripasso oggi"}` : "Biblioteca nuova · leggi la prima scheda";
     })() : "Biblioteca nuova · leggi la prima scheda",
     planning: state.planScores.length ? `${state.planScores.length} piani · media ${Math.round(averageArray(state.planScores))}` : "Base iniziale · scrivi un piano",
-    defense: state.reflexBest ? `Livello ${state.defenseLevel} · miglior riflesso ${state.reflexBest} ms` : `Livello ${state.defenseLevel} · riflessi non misurati`,
+    defense: window.defenseTrend ? window.defenseTrend() : "Fase 1 · inizia la prima sessione",
     logic: state.logicAttempts ? `${state.logicSolved}/${state.logicAttempts} corretti · media ${average}` : "Base iniziale · risolvi un indovinello",
     memory: state.memory.attempts ? `Livello ${state.memory.level} · ${state.memory.correct}/${state.memory.attempts} prove forti` : `Livello ${state.memory.level} · base iniziale`,
     influence: state.influence.attempts ? `${state.influence.attempts} analisi · media ${state.influence.average}` : "Base iniziale · prova una tattica",
@@ -1344,7 +1192,7 @@ function trainingForPattern(moduleKey, key) {
   if (moduleKey === "chess") return mistakeDrills[key] || "Drill: rivedi 5 mosse e scrivi piano, minaccia, rischio.";
   if (moduleKey === "memory") return "Allenamento: usa chunking da 3 elementi, poi richiamo attivo dopo 20 secondi.";
   if (moduleKey === "scenarios") return "Allenamento: prima i fatti, poi una frase breve senza accuse, poi il piano B.";
-  if (moduleKey === "defense") return "Allenamento: 3 round lenti su guardia, footwork e reazione a stimolo.";
+  if (moduleKey === "defense") return "Allenamento: la prossima sessione del programma, poi una prova di riflessi e un turno di situazioni.";
   if (moduleKey === "influence") return "Allenamento: riscrivi la leva rendendo chiari costi, confini e possibilita' di dire no.";
   if (moduleKey === "culture") return "Allenamento: fai i ripassi del giorno e spiega ogni scheda con parole tue.";
   if (moduleKey === "planning") return "Allenamento: aggiungi metrica, soglia di rischio e revisione a 72 ore.";
@@ -3953,132 +3801,6 @@ function planRank(score) {
   if (score >= 70) return "buona base";
   if (score >= 55) return "da rendere piu' concreto";
   return "troppo fragile o rischioso";
-}
-
-function loadDefenseDrill() {
-  const available = defenseDrills.filter((drill) => drill.level <= state.defenseLevel);
-  const drill = available[Math.floor(Math.random() * available.length)];
-  document.getElementById("defenseTitle").textContent = drill.title;
-  document.getElementById("defenseText").textContent = drill.text;
-  const steps = document.getElementById("defenseSteps");
-  steps.innerHTML = "";
-  drill.steps.forEach((step) => {
-    const item = document.createElement("li");
-    item.textContent = step;
-    steps.appendChild(item);
-  });
-  updateModuleMetrics("defense", { lucidita: 1, controllo: 1, adattamento: 1, sostenibilita: 1 });
-  resetTimer();
-  renderDefenseStatus();
-}
-
-function renderDefenseStatus() {
-  document.getElementById("defenseLevelText").textContent = `Livello ${state.defenseLevel}`;
-  document.getElementById("reflexResult").textContent = state.reflexBest ? `Miglior media: ${state.reflexBest} ms.` : "Miglior media: nessuna.";
-}
-
-function startDefenseTimer() {
-  resetTimer();
-  timerId = window.setInterval(() => {
-    timerLeft -= 1;
-    renderTimer();
-    if (timerLeft <= 0) {
-      window.clearInterval(timerId);
-      timerId = null;
-      document.getElementById("timerDisplay").textContent = "Fatto";
-    }
-  }, 1000);
-}
-
-function resetTimer() {
-  if (timerId) window.clearInterval(timerId);
-  timerId = null;
-  timerLeft = 30;
-  renderTimer();
-}
-
-function renderTimer() {
-  document.getElementById("timerDisplay").textContent = `00:${String(timerLeft).padStart(2, "0")}`;
-}
-
-function startReflexGame() {
-  hideReflexTargets();
-  reflexSession = { active: true, round: 0, times: [], mistakes: 0 };
-  document.getElementById("reflexInstruction").textContent = "Preparati al primo bersaglio...";
-  scheduleReflexTarget();
-}
-
-function scheduleReflexTarget() {
-  hideReflexTargets();
-  if (!reflexSession.active) return;
-  const delay = Math.max(350, 1400 - state.defenseLevel * 90) + Math.random() * 700;
-  reflexTimer = window.setTimeout(() => {
-    const arena = document.getElementById("reflexArena");
-    placeArenaButton(document.getElementById("reflexTarget"), arena);
-    document.getElementById("reflexTarget").classList.add("visible");
-    if (state.defenseLevel >= 3) {
-      placeArenaButton(document.getElementById("reflexDecoy"), arena);
-      document.getElementById("reflexDecoy").classList.add("visible");
-    }
-    reflexShownAt = performance.now();
-    document.getElementById("reflexInstruction").textContent = `Bersaglio ${reflexSession.round + 1}/5: rosso!`;
-  }, delay);
-}
-
-function hitReflexTarget() {
-  if (!document.getElementById("reflexTarget").classList.contains("visible")) return;
-  const reaction = Math.round(performance.now() - reflexShownAt);
-  reflexSession.times.push(reaction);
-  reflexSession.round += 1;
-  hideReflexTargets();
-  if (reflexSession.round >= 5) {
-    finishReflexGame();
-  } else {
-    document.getElementById("reflexInstruction").textContent = `Tempo: ${reaction} ms. Preparati...`;
-    scheduleReflexTarget();
-  }
-}
-
-function hitReflexDecoy() {
-  if (!document.getElementById("reflexDecoy").classList.contains("visible")) return;
-  reflexSession.mistakes += 1;
-  document.getElementById("reflexInstruction").textContent = "Distrattore colpito: resta sul rosso.";
-  hideReflexTargets();
-  scheduleReflexTarget();
-}
-
-function finishReflexGame() {
-  reflexSession.active = false;
-  const average = Math.round(averageArray(reflexSession.times) + reflexSession.mistakes * 80);
-  if (!state.reflexBest || average < state.reflexBest) state.reflexBest = average;
-  if (average < 430 && state.defenseLevel < 8) state.defenseLevel += 1;
-  if (average > 650) addModulePattern("defense", "slowReflex");
-  if (reflexSession.mistakes) addModulePattern("defense", "decoy");
-  updateModuleMetrics("defense", {
-    lucidita: average < 520 ? 2 : -1,
-    efficacia: average < 520 ? 3 : -2,
-    rischio: reflexSession.mistakes ? -2 : 1,
-    controllo: reflexSession.mistakes ? -3 : 2,
-    adattamento: state.defenseLevel >= 3 && !reflexSession.mistakes ? 2 : 0,
-    tempo: average < 520 ? 3 : -2
-  });
-  saveState();
-  document.getElementById("reflexInstruction").textContent = `Media: ${average} ms. Errori distrattore: ${reflexSession.mistakes}.`;
-  renderDefenseStatus();
-  renderDashboard();
-}
-
-function hideReflexTargets() {
-  if (reflexTimer) window.clearTimeout(reflexTimer);
-  document.getElementById("reflexTarget").classList.remove("visible");
-  document.getElementById("reflexDecoy").classList.remove("visible");
-}
-
-function placeArenaButton(button, arena) {
-  const maxX = Math.max(0, arena.clientWidth - 58);
-  const maxY = Math.max(0, arena.clientHeight - 58);
-  button.style.left = `${Math.random() * maxX}px`;
-  button.style.top = `${Math.random() * maxY}px`;
 }
 
 function loadRandomRiddle() {
