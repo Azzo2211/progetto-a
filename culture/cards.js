@@ -355,7 +355,7 @@ window.CultureCards = [
       },
       {
         "h": "Le interpretazioni",
-        "text": "La frase 'fatta l'Italia, bisogna fare gli italiani', di solito attribuita a Massimo d'Azeglio, riassume il problema: lo Stato esisteva, la nazione andava costruita. Per la tradizione risorgimentale l'Unità fu il riscatto di un popolo diviso da secoli. Altre letture insistono sui limiti: Antonio Gramsci parlò di 'rivoluzione passiva', guidata dalle élite senza un vero coinvolgimento delle masse contadine; altri storici hanno sottolineato il carattere di annessione al Piemonte, il voto palese nei plebisciti e il costo della repressione nel Sud. Le letture neoborboniche, che descrivono il Regno delle Due Sicilie come un paese prospero impoverito dall'Unità, hanno avuto successo divulgativo ma sono contestate dalla maggior parte degli storici di professione. Il dibattito sulle origini del divario tra Nord e Sud e sul centralismo dello Stato parte ancora da qui."
+        "text": "La frase 'fatta l'Italia, bisogna fare gli italiani', che rielabora un pensiero di Massimo d'Azeglio, riassume il problema: lo Stato esisteva, la nazione andava costruita. Per la tradizione risorgimentale l'Unità fu il riscatto di un popolo diviso da secoli. Altre letture insistono sui limiti: Antonio Gramsci parlò di 'rivoluzione passiva', guidata dalle élite senza un vero coinvolgimento delle masse contadine; altri storici hanno sottolineato il carattere di annessione al Piemonte, il voto palese nei plebisciti e il costo della repressione nel Sud. Le letture neoborboniche, che descrivono il Regno delle Due Sicilie come un paese prospero impoverito dall'Unità, hanno avuto successo divulgativo ma sono contestate dalla maggior parte degli storici di professione. Il dibattito sulle origini del divario tra Nord e Sud e sul centralismo dello Stato parte ancora da qui."
       }
     ],
     "facts": [
@@ -363,7 +363,7 @@ window.CultureCards = [
       "1859: seconda guerra d'indipendenza con la Francia; la Lombardia passa al Piemonte.",
       "1860: spedizione dei Mille, da Quarto a Marsala.",
       "1866: Veneto; 20 settembre 1870: Roma, capitale dal 1871.",
-      "Alle elezioni del 1861 votava circa il 2% della popolazione."
+      "Alle elezioni del 1861 aveva diritto di voto circa il 2% della popolazione."
     ],
     "links": [
       "diritto-costituzione-italiana",
@@ -565,7 +565,7 @@ window.CultureCards = [
       },
       {
         "h": "Perché un collo di bottiglia amplifica ogni problema",
-        "text": "Un collo di bottiglia, in inglese chokepoint, è un passaggio stretto da cui transita una quota sproporzionata del traffico. Il danno non viene solo dal blocco totale. Se le navi devono girare intorno all'Africa, ogni viaggio dura di più: la stessa flotta compie meno rotazioni l'anno e la capacità disponibile si riduce, anche se nessuna nave è sparita. Con meno offerta di stive e la stessa domanda, i noli salgono. Si aggiungono premi assicurativi per rischio di guerra, carburante extra e porti congestionati, dove le navi arrivano a ondate. Gli altri grandi colli di bottiglia funzionano allo stesso modo: lo Stretto di Hormuz, tra Iran e Oman, da cui passa circa un quinto del petrolio consumato nel mondo; Bab el-Mandeb, all'ingresso meridionale del Mar Rosso; Malacca, in Asia; il Canale di Panama, che però ha le chiuse e dipende dall'acqua dolce di un lago artificiale, tanto che la siccità del 2023 ha costretto a ridurre i transiti."
+        "text": "Un collo di bottiglia, in inglese chokepoint, è un passaggio stretto da cui transita una quota sproporzionata del traffico. Il danno non viene solo dal blocco totale. Se le navi devono girare intorno all'Africa, ogni viaggio dura di più: la stessa flotta compie meno rotazioni l'anno e la capacità disponibile si riduce, anche se nessuna nave è sparita. Con meno offerta di stive e la stessa domanda, i noli salgono. Si aggiungono premi assicurativi per rischio di guerra, carburante extra e porti congestionati, dove le navi arrivano a ondate. Gli altri grandi colli di bottiglia funzionano allo stesso modo: lo Stretto di Hormuz, tra Iran e Oman, da cui nel 2024 passava circa un quinto del petrolio consumato nel mondo; Bab el-Mandeb, all'ingresso meridionale del Mar Rosso; Malacca, in Asia; il Canale di Panama, che però ha le chiuse e dipende dall'acqua dolce di un lago artificiale, tanto che la siccità del 2023 ha costretto a ridurre i transiti."
       },
       {
         "h": "Quattro crisi in settant'anni",
@@ -616,7 +616,7 @@ window.CultureCards = [
       },
       {
         "type": "comprensione",
-        "q": "Durante la crisi del Mar Rosso molte navi passano dal Capo di Buona Speranza. Perché i noli salgono anche se il numero di navi nel mondo non cambia?",
+        "q": "Quando molte navi passano dal Capo di Buona Speranza, come nella crisi del Mar Rosso del 2024, perché i noli salgono anche se il numero di navi nel mondo non cambia?",
         "options": [
           "Perché ogni viaggio dura di più e la stessa flotta offre meno capacità nell'anno",
           "Perché l'Egitto alza i pedaggi per compensare il calo dei transiti",
@@ -667,11 +667,11 @@ window.CultureCards = [
     "title": "Lo Stretto di Malacca e l'Indonesia",
     "level": 2,
     "minutes": 5,
-    "hook": "Nel punto più stretto, vicino a Singapore, il canale navigabile è largo meno di 3 chilometri: eppure da qui passa gran parte del petrolio diretto in Cina, Giappone e Corea del Sud.",
+    "hook": "Nel punto più stretto, vicino a Singapore, il canale navigabile è largo meno di 3 chilometri: eppure di solito da qui passa gran parte del petrolio diretto in Cina, Giappone e Corea del Sud.",
     "sections": [
       {
         "h": "Il corridoio tra Oceano Indiano e Pacifico",
-        "text": "Lo Stretto di Malacca separa la penisola malese dall'isola indonesiana di Sumatra ed è lungo circa 800 chilometri. All'estremità meridionale si restringe nello Stretto di Singapore, dove il canale navigabile di Phillips è largo meno di 3 chilometri. È la via più breve tra l'Oceano Indiano e il Mar Cinese Meridionale, quindi tra Medio Oriente, Europa e Africa da una parte e Asia orientale dall'altra. Secondo le stime recenti lo attraversano oltre 80.000 navi l'anno, e per petrolio trasportato rivaleggia con Hormuz: l'EIA americana stimava oltre 20 milioni di barili al giorno nel 2023. Per questo Singapore, sulla punta dello stretto, è diventata il secondo porto container del mondo dopo Shanghai."
+        "text": "Lo Stretto di Malacca separa la penisola malese dall'isola indonesiana di Sumatra ed è lungo circa 800 chilometri. All'estremità meridionale si restringe nello Stretto di Singapore, dove il canale navigabile di Phillips è largo meno di 3 chilometri. È la via più breve tra l'Oceano Indiano e il Mar Cinese Meridionale, quindi tra Medio Oriente, Europa e Africa da una parte e Asia orientale dall'altra. Secondo i dati delle autorità malesi, nel 2024 lo hanno attraversato oltre 90.000 navi. Per petrolio trasportato rivaleggia con Hormuz: l'EIA americana stimava oltre 20 milioni di barili al giorno nel 2023. Per questo Singapore, sulla punta dello stretto, è diventata uno dei maggiori porti container del mondo: nel 2025 era secondo solo a Shanghai."
       },
       {
         "h": "Acque nazionali, passaggio garantito",
@@ -902,7 +902,7 @@ window.CultureCards = [
       },
       {
         "h": "Che cosa significa per le imprese",
-        "text": "La carenza di chip del 2020-2022, causata da pandemia e boom della domanda di elettronica e non da una guerra, ha già mostrato il meccanismo: le case automobilistiche hanno perso milioni di veicoli di produzione per la mancanza di componenti che costano pochi euro, mentre un'auto moderna ne contiene centinaia. Un blocco navale di Taiwan, anche senza combattimenti, avrebbe effetti molto più ampi, dagli smartphone ai macchinari industriali. Per un'impresa la lezione è la stessa dei colli di bottiglia marittimi: quando una sola fonte produce gran parte di un componente critico, il rischio resta invisibile finché non si materializza. Le contromisure classiche sono chiedere ai fornitori da dove arrivano i componenti chiave, tenere scorte di sicurezza dei pezzi insostituibili e qualificare fonti alternative."
+        "text": "La carenza di chip del 2020-2022, causata da pandemia e boom della domanda di elettronica e non da una guerra, ha già mostrato il meccanismo: le case automobilistiche hanno perso milioni di veicoli di produzione per la mancanza di componenti che costano pochi euro, mentre un'auto moderna ne contiene centinaia, spesso oltre mille. Un blocco navale di Taiwan, anche senza combattimenti, avrebbe effetti molto più ampi, dagli smartphone ai macchinari industriali. Per un'impresa la lezione è la stessa dei colli di bottiglia marittimi: quando una sola fonte produce gran parte di un componente critico, il rischio resta invisibile finché non si materializza. Le contromisure classiche sono chiedere ai fornitori da dove arrivano i componenti chiave, tenere scorte di sicurezza dei pezzi insostituibili e qualificare fonti alternative."
       }
     ],
     "facts": [
@@ -1004,7 +1004,7 @@ window.CultureCards = [
       },
       {
         "h": "Il Nilo: diritti storici contro diritto allo sviluppo",
-        "text": "Circa l'85% dell'acqua del Nilo che arriva in Egitto nasce sugli altopiani etiopici, soprattutto con il Nilo Azzurro. L'accordo del 1959 tra Egitto e Sudan assegnava 55,5 miliardi di metri cubi l'anno all'Egitto e 18,5 al Sudan, senza l'Etiopia. Nel 2011 Addis Abeba ha avviato sul Nilo Azzurro la Grande diga della rinascita etiopica (GERD): oltre 5.000 megawatt di potenza, un bacino di circa 74 miliardi di metri cubi, riempimento a partire dal 2020, elettricità dal 2022. Per l'Etiopia, oltre 120 milioni di abitanti e quasi metà della popolazione senza elettricità all'inizio degli anni Venti, la diga è sviluppo e sovranità, e l'acqua, sostiene Addis Abeba, continua a scorrere a valle. Per l'Egitto, senza un accordo vincolante su riempimento e rilasci in caso di siccità, è una minaccia esistenziale. Il Sudan oscilla tra vantaggi, come piene regolate ed energia a basso costo, e timori per una gestione non coordinata. La dichiarazione di principi firmata dai tre Paesi nel 2015 non è mai diventata un accordo vincolante."
+        "text": "Circa l'85% dell'acqua del Nilo che arriva in Egitto nasce sugli altopiani etiopici, soprattutto con il Nilo Azzurro. L'accordo del 1959 tra Egitto e Sudan assegnava 55,5 miliardi di metri cubi l'anno all'Egitto e 18,5 al Sudan, senza l'Etiopia. Nel 2011 Addis Abeba ha avviato sul Nilo Azzurro la Grande diga della rinascita etiopica (GERD): oltre 5.000 megawatt di potenza, un bacino di circa 74 miliardi di metri cubi, riempimento a partire dal 2020, elettricità dal 2022. Per l'Etiopia, oltre 120 milioni di abitanti e quasi metà della popolazione senza elettricità all'inizio degli anni Venti, la diga è sviluppo e sovranità, e l'acqua, sostiene Addis Abeba, continua a scorrere a valle. Per l'Egitto, senza un accordo vincolante su riempimento e rilasci in caso di siccità, è una minaccia esistenziale. Il Sudan oscilla tra vantaggi, come piene regolate ed energia a basso costo, e timori per una gestione non coordinata. Dopo la dichiarazione di principi firmata dai tre Paesi nel 2015, i negoziati per un accordo vincolante si sono arenati più volte."
       },
       {
         "h": "Il Mekong: dighe a monte, riso e pesce a valle",
@@ -1109,7 +1109,7 @@ window.CultureCards = [
     "sections": [
       {
         "h": "Dal referendum del 1946 a una Costituzione rigida",
-        "text": "Il 2 giugno 1946 gli italiani scelsero la Repubblica e, nello stesso giorno, elessero un'Assemblea costituente di 556 membri. La Costituzione fu approvata il 22 dicembre 1947 ed entrò in vigore il 1° gennaio 1948. Si apre con i principi fondamentali, prosegue con i diritti e i doveri dei cittadini e si chiude con l'ordinamento della Repubblica. È rigida: per modificarla serve la procedura dell'articolo 138, con due votazioni in ciascuna Camera a distanza di almeno tre mesi e, se nella seconda non si raggiunge la maggioranza dei due terzi, la possibilità di un referendum. La forma repubblicana non può essere oggetto di revisione. La rigidità ha uno scopo preciso: impedire a una maggioranza di passaggio di cambiare le regole del gioco a proprio favore."
+        "text": "Il 2 giugno 1946 gli italiani scelsero la Repubblica e, nello stesso giorno, elessero un'Assemblea costituente di 556 membri. La Costituzione fu approvata il 22 dicembre 1947 ed entrò in vigore il 1° gennaio 1948. Si apre con i principi fondamentali, prosegue con i diritti e i doveri dei cittadini e poi con l'ordinamento della Repubblica. È rigida: per modificarla serve la procedura dell'articolo 138, con due votazioni in ciascuna Camera a distanza di almeno tre mesi e, se nella seconda non si raggiunge la maggioranza dei due terzi, la possibilità di un referendum. La forma repubblicana non può essere oggetto di revisione. La rigidità ha uno scopo preciso: impedire a una maggioranza di passaggio di cambiare le regole del gioco a proprio favore."
       },
       {
         "h": "Tre poteri che si controllano a vicenda",
@@ -1230,7 +1230,7 @@ window.CultureCards = [
       },
       {
         "h": "Quando l'altro non adempie",
-        "text": "Se una parte non esegue la sua prestazione, l'altra può scegliere tra chiedere l'adempimento e chiedere la risoluzione del contratto, con il risarcimento del danno in entrambi i casi (articolo 1453), purché l'inadempimento non sia di scarsa importanza. Per evitare una causa si può inviare una diffida ad adempiere, di regola con almeno 15 giorni di tempo, scaduti i quali il contratto si risolve di diritto; oppure prevedere una clausola risolutiva espressa. La clausola penale fissa in anticipo quanto si paga in caso di inadempimento o ritardo, e il giudice può ridurla se è manifestamente eccessiva. La caparra confirmatoria fa da garanzia: se è inadempiente chi l'ha versata, l'altro può recedere e trattenerla; se lo è chi l'ha ricevuta, deve restituirne il doppio. Con l'estero conta anche la legge applicabile: in Indonesia una legge del 2009 impone l'indonesiano nei contratti con parti indonesiane, e nel 2013 un tribunale di Giacarta ha dichiarato nullo un contratto di finanziamento redatto solo in inglese."
+        "text": "Se una parte non esegue la sua prestazione, l'altra può scegliere tra chiedere l'adempimento e chiedere la risoluzione del contratto, con il risarcimento del danno in entrambi i casi (articolo 1453); la risoluzione però non è ammessa se l'inadempimento è di scarsa importanza (articolo 1455). Per evitare una causa si può inviare una diffida ad adempiere, di regola con almeno 15 giorni di tempo, scaduti i quali il contratto si risolve di diritto; oppure prevedere una clausola risolutiva espressa. La clausola penale fissa in anticipo quanto si paga in caso di inadempimento o ritardo, e il giudice può ridurla se è manifestamente eccessiva. La caparra confirmatoria fa da garanzia: se è inadempiente chi l'ha versata, l'altro può recedere e trattenerla; se lo è chi l'ha ricevuta, deve restituirne il doppio. Con l'estero conta anche la legge applicabile: in Indonesia una legge del 2009 impone l'indonesiano nei contratti con parti indonesiane, e nel 2013 un tribunale di Giacarta ha dichiarato nullo un contratto di finanziamento redatto solo in inglese, decisione poi confermata in appello e dalla Corte suprema."
       }
     ],
     "facts": [
@@ -1557,7 +1557,7 @@ window.CultureCards = [
       },
       {
         "h": "Errori tipici e il prezzo dell'esclusiva",
-        "text": "Registrare un dominio internet o iscrivere una ragione sociale non equivale a registrare un marchio, e non protegge da chi ha un marchio anteriore simile. Usare il simbolo ® senza registrazione è vietato. Copiare le foto di prodotto dal sito di un concorrente o di un fornitore senza permesso viola la legge sul diritto d'autore, che tutela anche le fotografie semplici. Anche i grandi inciampano: nel 2018 la Corte di giustizia dell'UE ha confermato che, per tenere come marchio europeo la forma a quattro barrette del KitKat, Nestlé avrebbe dovuto dimostrarne il carattere distintivo in tutta l'Unione, non solo in una parte dei Paesi. L'esclusiva ha poi un prezzo per la collettività: un farmaco brevettato costa di più finché il brevetto non scade e arrivano i generici. È il compromesso su cui si regge il sistema: premiare chi innova senza bloccare per sempre la concorrenza."
+        "text": "Registrare un dominio internet o iscrivere una ragione sociale non equivale a registrare un marchio, e non protegge da chi ha un marchio anteriore simile. Usare il simbolo ® senza registrazione è vietato e punito con una sanzione amministrativa (articolo 127 del Codice della proprietà industriale). Copiare le foto di prodotto dal sito di un concorrente o di un fornitore senza permesso viola la legge sul diritto d'autore, che tutela anche le fotografie semplici. Anche i grandi inciampano: nel 2018 la Corte di giustizia dell'UE ha confermato che, per tenere come marchio europeo la forma a quattro barrette del KitKat, Nestlé avrebbe dovuto dimostrarne il carattere distintivo in tutta l'Unione, non solo in una parte dei Paesi. L'esclusiva ha poi un prezzo per la collettività: un farmaco brevettato costa di più finché il brevetto non scade e arrivano i generici. È il compromesso su cui si regge il sistema: premiare chi innova senza bloccare per sempre la concorrenza."
       }
     ],
     "facts": [
@@ -1872,7 +1872,7 @@ window.CultureCards = [
     "title": "Inflazione e tassi d'interesse: cosa fa la BCE",
     "level": 2,
     "minutes": 5,
-    "hook": "Per far scendere i prezzi al supermercato, la Banca centrale europea rende più cari mutui e prestiti. Sembra un controsenso, ma è esattamente il meccanismo.",
+    "hook": "Per frenare la corsa dei prezzi al supermercato, la Banca centrale europea rende più cari mutui e prestiti. Sembra un controsenso, ma è esattamente il meccanismo.",
     "sections": [
       {
         "h": "L'inflazione: soldi che valgono meno",
@@ -1888,7 +1888,7 @@ window.CultureCards = [
       },
       {
         "h": "2022-2023: la stretta più rapida della storia dell'euro",
-        "text": "Dopo le riaperture post-pandemia e l'invasione russa dell'Ucraina, nel febbraio 2022, i prezzi dell'energia esplosero e l'inflazione dell'area euro superò il 10%, con un picco del 10,6% a ottobre 2022. I tassi non producono gas, ma la BCE temeva che i rincari si trasmettessero a salari e aspettative, alimentandosi da soli. Tra luglio 2022 e settembre 2023 alzò i tassi dieci volte di fila, portando il tasso sui depositi da −0,5% al 4%, e l'Euribor passò da valori negativi a circa il 4%. Su un mutuo variabile da 150.000 euro a 25 anni, passare da un tasso complessivo dell'1% al 5% porta la rata da circa 565 a circa 880 euro al mese. Con l'inflazione in calo verso il 2%, da giugno 2024 la BCE iniziò a ridurre i tassi. Quanto del calo dei prezzi si debba alla stretta e quanto al ribasso dell'energia è ancora discusso tra gli economisti."
+        "text": "Dopo le riaperture post-pandemia e l'invasione russa dell'Ucraina, nel febbraio 2022, i prezzi dell'energia esplosero e l'inflazione dell'area euro superò il 10%, con un picco del 10,6% a ottobre 2022. I tassi non producono gas, ma la BCE temeva che i rincari si trasmettessero a salari e aspettative, alimentandosi da soli. Tra luglio 2022 e settembre 2023 alzò i tassi dieci volte di fila, portando il tasso sui depositi da −0,5% al 4%, e l'Euribor passò da valori negativi a circa il 4%. Su un mutuo variabile da 150.000 euro a 25 anni, passare da un tasso complessivo dell'1% al 5% porta la rata da circa 565 a circa 880 euro al mese. Con l'inflazione in calo verso il 2%, da giugno 2024 la BCE iniziò a ridurre i tassi. Quanto del calo dell'inflazione si debba alla stretta e quanto al ribasso dell'energia è ancora discusso tra gli economisti."
       },
       {
         "h": "Tassi reali e punti base: leggere le notizie",
@@ -2228,7 +2228,7 @@ window.CultureCards = [
       },
       {
         "h": "La parte fisica: luce sul fondo del mare",
-        "text": "Sotto i protocolli c'è una realtà molto materiale. I dati viaggiano come impulsi di luce nelle fibre ottiche, a circa 200.000 chilometri al secondo, due terzi della velocità della luce nel vuoto. Tra i continenti la quasi totalità del traffico passa da alcune centinaia di cavi sottomarini: in mare aperto sono spessi più o meno come un tubo da giardino e, ogni 50-100 chilometri circa, hanno ripetitori che rinforzano il segnale. La maggior parte dei guasti è causata da ancore e reti da pesca, e navi specializzate li riparano. La fisica pone un limite che nessuna tecnologia aggira: tra Milano e New York, oltre 6.000 chilometri in linea d'aria, un segnale impiega almeno 30 millisecondi solo per l'andata."
+        "text": "Sotto i protocolli c'è una realtà molto materiale. I dati viaggiano come impulsi di luce nelle fibre ottiche, a circa 200.000 chilometri al secondo, due terzi della velocità della luce nel vuoto. Tra i continenti la quasi totalità del traffico passa da alcune centinaia di cavi sottomarini: in mare aperto sono spessi più o meno come un tubo da giardino e, ogni 50-100 chilometri circa, hanno ripetitori che rinforzano il segnale. La maggior parte dei guasti è causata da ancore e reti da pesca, e navi specializzate li riparano. La fisica pone comunque un limite: tra Milano e New York, oltre 6.000 chilometri in linea d'aria, un segnale in fibra impiega almeno 30 millisecondi solo per l'andata."
       },
       {
         "h": "Colli di bottiglia e perché contano",
@@ -2569,7 +2569,7 @@ window.CultureCards = [
         "text": "Il diritto di aggiungere il blocco successivo si guadagna con una gara di calcolo. I miner provano un numero enorme di combinazioni finché trovano un hash del blocco inferiore a una certa soglia, cioè che inizi con una lunga fila di zeri. Il primo che ci riesce incassa bitcoin nuovi più le commissioni delle transazioni e propone il blocco alla rete, che lo verifica in un istante. La difficoltà si ricalcola ogni 2.016 blocchi, circa due settimane, per mantenere il ritmo di dieci minuti. Riscrivere la storia richiederebbe rifare quel lavoro più in fretta del resto della rete, cioè controllare la maggioranza della potenza di calcolo: è il cosiddetto attacco del 51%. Il prezzo di questa sicurezza è un consumo di elettricità che le stime dell'Università di Cambridge paragonano a quello di un Paese di medie dimensioni. Nel settembre 2022 Ethereum, la principale rete dopo bitcoin, è passata alla proof of stake, che sostituisce il calcolo con capitale messo in garanzia e consuma oltre il 99% di energia in meno."
       },
       {
-        "h": "Offerta fissa e dimezzamenti",
+        "h": "Offerta limitata e dimezzamenti",
         "text": "Il protocollo stabilisce che non esisteranno mai più di 21 milioni di bitcoin. La ricompensa per ogni blocco si dimezza ogni 210.000 blocchi, circa ogni quattro anni: era di 50 bitcoin nel 2009 ed è scesa a 3,125 con il dimezzamento dell'aprile 2024. Nessuna autorità può aumentarne la quantità, ed è per questo che i sostenitori lo paragonano all'oro. Il prezzo, però, dipende solo da quanto qualcuno è disposto a pagare, e nella sua storia ha subìto più volte cali superiori al 70%. Le due pizze del 2010 costavano qualche decina di dollari: nei picchi successivi al 2020, quelle 10.000 monete sono arrivate a valere oltre un miliardo di dollari."
       },
       {
@@ -2643,7 +2643,7 @@ window.CultureCards = [
         "type": "collegamento",
         "q": "Chi sostiene bitcoin lo paragona all'oro e lo contrappone all'euro. Su quale differenza si basa il paragone?",
         "options": [
-          "L'offerta di bitcoin è fissa, quella di euro dipende dalla BCE",
+          "L'offerta di bitcoin ha un tetto fisso, quella di euro dipende dalla BCE",
           "Bitcoin è garantito da riserve d'oro custodite dai miner, l'euro no",
           "Il valore di bitcoin resta più stabile nel tempo di quello dell'euro",
           "Anche l'euro ha un tetto massimo di emissione, ma molto più alto"
@@ -2794,7 +2794,7 @@ window.CultureCards = [
       },
       {
         "h": "La memoria e i vaccini",
-        "text": "Finita l'infezione, gran parte dei linfociti moltiplicati muore, ma una parte resta come cellule della memoria, a volte per decenni. Al secondo incontro la risposta è più rapida e più forte, spesso tanto da fermare il patogeno prima dei sintomi: per questo il morbillo di solito si prende una volta sola. I vaccini sfruttano questo meccanismo. Presentano al corpo il patogeno inattivato, un suo frammento o, nei vaccini a mRNA, le istruzioni per produrre una sua proteina, senza causare la malattia. Il primo vaccino documentato con metodo fu sperimentato nel 1796 dal medico inglese Edward Jenner, che usò il vaiolo bovino per proteggere da quello umano; dopo una lunga campagna di vaccinazione, nel 1980 l'OMS ha dichiarato il vaiolo eradicato. Il vaccino antinfluenzale invece va ripetuto ogni anno: il virus dell'influenza accumula mutazioni di continuo e la memoria lo riconosce sempre peggio, mentre quello del morbillo cambia molto poco."
+        "text": "Finita l'infezione, gran parte dei linfociti moltiplicati muore, ma una parte resta come cellule della memoria, a volte per decenni. Al secondo incontro la risposta è più rapida e più forte, spesso tanto da fermare il patogeno prima dei sintomi: per questo il morbillo di solito si prende una volta sola. I vaccini sfruttano questo meccanismo. Presentano al corpo il patogeno inattivato, un suo frammento o, nei vaccini a mRNA, le istruzioni per produrre una sua proteina, senza causare la malattia. Il primo vaccino documentato con metodo fu sperimentato nel 1796 dal medico inglese Edward Jenner, che usò il vaiolo bovino per proteggere da quello umano. Già nel 1774 l'allevatore Benjamin Jesty aveva provato la stessa idea sulla propria famiglia, ma senza studiarla né pubblicarla. Dopo una lunga campagna di vaccinazione, nel 1980 l'OMS ha dichiarato il vaiolo eradicato. Il vaccino antinfluenzale invece va ripetuto ogni anno: il virus dell'influenza accumula mutazioni di continuo e la memoria lo riconosce sempre peggio, mentre quello del morbillo cambia molto poco."
       },
       {
         "h": "Quando la difesa sbaglia bersaglio",
@@ -3124,7 +3124,7 @@ window.CultureCards = [
       },
       {
         "h": "Come sappiamo che siamo noi",
-        "text": "Il meccanismo è noto da tempo: a partire dal 1859 il fisico irlandese John Tyndall misurò in laboratorio l'assorbimento dell'infrarosso da parte di CO₂ e vapore acqueo, e nel 1896 il chimico svedese Svante Arrhenius calcolò che un raddoppio della CO₂ avrebbe scaldato la Terra di alcuni gradi. Dal 1958 l'osservatorio di Mauna Loa, alle Hawaii, misura la concentrazione di CO₂: era intorno a 315 parti per milione, nel 2024 ha superato le 420, contro circa 280 prima della rivoluzione industriale. Il carbonio dei combustibili fossili ha una firma riconoscibile, perché è privo di carbonio-14 e povero di carbonio-13, e quella firma si ritrova nella CO₂ aggiunta all'aria. Un'altra prova è che la stratosfera si raffredda mentre la superficie si scalda, cosa che non accadrebbe se la causa fosse un Sole più attivo. Secondo l'IPCC, nel decennio 2011-2020 la superficie terrestre era circa 1,1 °C più calda della media 1850-1900."
+        "text": "Il meccanismo è noto da tempo: a partire dal 1859 il fisico irlandese John Tyndall misurò in laboratorio l'assorbimento dell'infrarosso da parte di CO₂ e vapore acqueo, e nel 1896 il chimico svedese Svante Arrhenius calcolò che un raddoppio della CO₂ avrebbe scaldato la Terra di alcuni gradi. Dal 1958 l'osservatorio di Mauna Loa, alle Hawaii, misura la concentrazione di CO₂: era intorno a 315 parti per milione, nel 2024 era ormai sopra le 420, contro circa 280 prima della rivoluzione industriale. Il carbonio dei combustibili fossili ha una firma riconoscibile, perché è privo di carbonio-14 e povero di carbonio-13, e quella firma si ritrova nella CO₂ aggiunta all'aria. Un'altra prova è che la stratosfera si raffredda mentre la superficie si scalda, cosa che non accadrebbe se la causa fosse un Sole più attivo. Secondo l'IPCC, nel decennio 2011-2020 la superficie terrestre era circa 1,1 °C più calda della media 1850-1900."
       }
     ],
     "facts": [
@@ -3985,7 +3985,7 @@ window.CultureCards = [
     "sections": [
       {
         "h": "Una vita da romanzo",
-        "text": "Michelangelo Merisi nacque a Milano nel 1571 da una famiglia originaria di Caravaggio, in provincia di Bergamo, il paese da cui prese il nome. Si formò nella bottega del pittore Simone Peterzano e negli anni Novanta del Cinquecento si trasferì a Roma. Dopo anni difficili trovò un protettore nel cardinale Francesco Maria Del Monte e, nel 1599-1600, ottenne la prima grande commissione pubblica: le tele con le storie di san Matteo nella cappella Contarelli, in San Luigi dei Francesi. Fu un successo immediato. La sua vita però era segnata da risse e denunce: nel 1606 uccise Ranuccio Tomassoni in uno scontro e fu condannato a morte. Fuggì tra Napoli, Malta e la Sicilia, continuando a dipingere, e morì nel 1610 a Porto Ercole mentre cercava di tornare a Roma per ottenere la grazia. Le cause della morte sono ancora discusse."
+        "text": "Michelangelo Merisi nacque a Milano nel 1571 da una famiglia originaria di Caravaggio, in provincia di Bergamo, il paese da cui prese il nome. Si formò nella bottega del pittore Simone Peterzano e negli anni Novanta del Cinquecento si trasferì a Roma. Dopo un periodo difficile trovò un protettore nel cardinale Francesco Maria Del Monte e, nel 1599-1600, ottenne la prima grande commissione pubblica: le tele con le storie di san Matteo nella cappella Contarelli, in San Luigi dei Francesi. Fu un successo immediato. La sua vita però era segnata da risse e denunce: nel 1606 uccise Ranuccio Tomassoni in uno scontro e fu condannato a morte. Fuggì tra Napoli, Malta e la Sicilia, continuando a dipingere, e morì nel 1610 a Porto Ercole mentre cercava di tornare a Roma per ottenere la grazia. Le cause della morte sono ancora discusse."
       },
       {
         "h": "Il metodo: dal vero e al buio",
@@ -4203,7 +4203,7 @@ window.CultureCards = [
     "sections": [
       {
         "h": "Fuori dal Salon",
-        "text": "Nella Parigi dell'Ottocento il successo di un pittore passava dal Salon, la grande esposizione ufficiale legata all'Accademia di Belle Arti. La giuria premiava soggetti storici, mitologici e religiosi, con una pittura levigata in cui la pennellata non si vedeva. Molti giovani artisti venivano esclusi: nel 1863 i rifiutati erano così tanti che Napoleone III autorizzò un 'Salon dei rifiutati', dove fece scandalo Le déjeuner sur l'herbe di Édouard Manet. Nel 1874 un gruppo di pittori, tra cui Claude Monet, Pierre-Auguste Renoir, Edgar Degas, Camille Pissarro, Alfred Sisley e Berthe Morisot, decise di fare da sé: fondò una società di artisti e organizzò una mostra indipendente nell'ex studio del fotografo Nadar, a Parigi. Vi partecipò anche l'italiano Giuseppe De Nittis."
+        "text": "Nella Parigi dell'Ottocento il successo di un pittore passava dal Salon, la grande esposizione ufficiale legata all'Accademia di Belle Arti. La giuria premiava soggetti storici, mitologici e religiosi, con una pittura levigata in cui la pennellata non si vedeva. Molti giovani artisti venivano esclusi: nel 1863 i rifiutati erano così tanti che Napoleone III autorizzò un 'Salon dei rifiutati', dove fece scandalo Le déjeuner sur l'herbe di Édouard Manet. Tra il 1873 e il 1874 un gruppo di pittori, tra cui Claude Monet, Pierre-Auguste Renoir, Edgar Degas, Camille Pissarro, Alfred Sisley e Berthe Morisot, decise di fare da sé: fondò una società di artisti e nel 1874 organizzò una mostra indipendente nell'ex studio del fotografo Nadar, a Parigi. Vi partecipò anche l'italiano Giuseppe De Nittis."
       },
       {
         "h": "La tecnica: inseguire la luce che cambia",
