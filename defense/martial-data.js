@@ -1784,6 +1784,1800 @@ window.MartialDisciplines = [
     "short": "Muay Thai"
   },
   {
+    "id": "taekwondo",
+    "name": "Taekwondo",
+    "tagline": "Anche libere, ginocchio alto, calci che tornano a casa.",
+    "intro": "Il taekwondo è l'arte dei calci: equilibrio, anche mobili, gambe veloci. Lo copi alla Johan Seong: guardi il gesto, lo rifai lento, lo rendi tuo. La flessibilità cresce per gradi, senza mai forzare.",
+    "equipment": "Sedia stabile, muro, tappetino; sacco, bende e guantoni dal livello 3; sbarra",
+    "mottos": [
+      "Prima l'anca, poi l'altezza: il calcio alto si guadagna.",
+      "Occhi da Johan, pazienza da principiante.",
+      "Il ginocchio carica, il piede firma."
+    ],
+    "levels": [
+      {
+        "level": 1,
+        "title": "Guardia, equilibrio e caricamento",
+        "focus": "Guardia da combattimento, passi, equilibrio su una gamba e caricamento del ginocchio. Il primo calcio frontale, basso e lento, con la sedia.",
+        "exercises": [
+          {
+            "id": "taekwondo-1-1",
+            "name": "Saltelli e slanci dinamici",
+            "kind": "riscaldamento",
+            "how": "Scaldi caviglie, ginocchia e anche prima di ogni calcio. Gli slanci dinamici preparano i posteriori in movimento: prima si fa la mobilità dinamica, mai lo stretching statico.",
+            "steps": [
+              "1 minuto di saltelli leggeri sulle punte, poi rotazioni di caviglie, ginocchia e anche, 10 per verso.",
+              "Mano al muro: slanci avanti-indietro con la gamba quasi tesa, 10 per gamba, con ampiezza che cresce piano.",
+              "Fronte al muro: slanci laterali davanti al corpo, 10 per gamba, senza strattoni."
+            ],
+            "cues": [
+              "Ampiezza crescente, mai a scatti",
+              "Busto dritto, la gamba va da sola"
+            ],
+            "success": "Riuscito se: completi i due giri senza dolore e l'ultimo slancio è più ampio del primo.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 20
+            },
+            "video": "taekwondo dynamic warm up leg swings"
+          },
+          {
+            "id": "taekwondo-1-2",
+            "name": "Guardia e passi (kyorugi junbi)",
+            "kind": "tecnica",
+            "how": "La guardia da combattimento del taekwondo: corpo di tre quarti, peso sugli avampiedi, mani a protezione. Impari a muoverti avanti, indietro e a cambiare guardia restando leggero.",
+            "steps": [
+              "Piedi a una spalla e mezzo, corpo di tre quarti, ginocchia morbide, talloni appena sollevati.",
+              "Saltella piano sul posto, poi un passo avanti e uno indietro scivolando, senza incrociare i piedi.",
+              "Ogni 10 secondi cambia guardia con un piccolo salto sul posto."
+            ],
+            "cues": [
+              "Sempre sugli avampiedi",
+              "Mani alte, gomiti chiusi"
+            ],
+            "success": "Riuscito se: per 60 secondi ti muovi in guardia allo specchio senza poggiare i talloni e senza incrociare i piedi.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "taekwondo fighting stance footwork beginner"
+          },
+          {
+            "id": "taekwondo-1-3",
+            "name": "Equilibrio e chamber alla sedia",
+            "kind": "preparatorio",
+            "how": "Il caricamento (chamber) è il ginocchio che sale prima del calcio. Qui costruisci l'equilibrio su una gamba e la posizione di partenza giusta per il calcio frontale.",
+            "steps": [
+              "In piedi accanto a una sedia stabile, una mano sullo schienale, ginocchio d'appoggio morbido, busto alto.",
+              "Porta il ginocchio all'altezza dell'anca, dita del piede tirate indietro per colpire con l'avampiede (apchuk).",
+              "Tieni 3 secondi e abbassa piano. Nelle ultime ripetizioni stacca la mano dalla sedia."
+            ],
+            "cues": [
+              "Ginocchio prima, piede dopo",
+              "Il busto non si inclina indietro"
+            ],
+            "success": "Riuscito se: tieni il ginocchio all'altezza dell'anca per 3 secondi, 8 volte per lato, toccando la sedia al massimo con un dito.",
+            "easier": "Ginocchio a metà coscia invece che all'anca, con due mani sullo schienale.",
+            "dose": {
+              "sets": 2,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "taekwondo front kick chamber balance drill",
+            "prepFor": "taekwondo-1-4"
+          },
+          {
+            "id": "taekwondo-1-4",
+            "name": "Calcio frontale basso (ap chagi)",
+            "kind": "tecnica",
+            "how": "Il primo calcio: ginocchio su, gamba che si distende, ginocchio che torna, piede giù. Basso e lento, all'altezza del ginocchio, per imparare il percorso senza forzare i posteriori.",
+            "steps": [
+              "Di fianco alla sedia, una mano sullo schienale, la gamba che calcia leggermente dietro.",
+              "Carica il ginocchio all'anca e distendi la gamba verso un bersaglio immaginario all'altezza del ginocchio, colpendo con l'avampiede.",
+              "Richiama subito il ginocchio in caricamento e appoggia il piede dietro. Quattro tempi: su, fuori, dentro, giù."
+            ],
+            "cues": [
+              "Quattro tempi, sempre",
+              "Dita del piede tirate indietro",
+              "Non bloccare di scatto il ginocchio"
+            ],
+            "success": "Riuscito se: fai 8 calci per lato in 4 tempi puliti allo specchio, senza perdere l'equilibrio né inclinare il busto indietro.",
+            "easier": "Calcia all'altezza della tibia, con entrambe le mani sullo schienale e la sedia davanti a te.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "taekwondo ap chagi front kick beginner tutorial"
+          },
+          {
+            "id": "taekwondo-1-5",
+            "name": "Polpacci e squat",
+            "kind": "condizionamento",
+            "how": "Nel taekwondo stai sempre sugli avampiedi: polpacci e cosce forti rendono i calci stabili. Lavori lento e controllato, a corpo libero.",
+            "steps": [
+              "15 sollevamenti sulle punte, lenti, con 1 secondo di tenuta in alto.",
+              "10 squat a corpo libero: talloni a terra, ginocchia nella direzione delle punte.",
+              "Alterna i due esercizi fino allo scadere del tempo, respirando regolare."
+            ],
+            "cues": [
+              "Talloni giù negli squat",
+              "Discesa lenta"
+            ],
+            "success": "Riuscito se: completi le 3 serie senza fermarti e con le ginocchia che non cedono verso l'interno.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "calf raises bodyweight squat proper form"
+          },
+          {
+            "id": "taekwondo-1-6",
+            "name": "Allungamento statico finale",
+            "kind": "flessibilita",
+            "how": "A fine seduta, a muscoli caldi, allunghi posteriori della coscia, quadricipiti e polpacci. Statico, tenuto, senza molleggiare: è così che la mobilità cresce nelle settimane.",
+            "steps": [
+              "Seduto, una gamba tesa e l'altra piegata: busto dritto, inclinati in avanti dall'anca fino a sentire tensione, 30 secondi.",
+              "In piedi con una mano al muro, prendi il collo del piede e porta il tallone verso il gluteo, 30 secondi.",
+              "Mani al muro, gamba dietro tesa e tallone a terra per il polpaccio, 30 secondi. Poi cambia lato."
+            ],
+            "cues": [
+              "Tensione sì, dolore no",
+              "Respira lento, non molleggiare"
+            ],
+            "success": "Riuscito se: tieni ogni posizione 30 secondi per lato respirando tranquillo, con una tensione da 5 su 10 al massimo.",
+            "easier": "Usa un asciugamano attorno al piede per la gamba tesa e tieni 20 secondi per posizione.",
+            "dose": {
+              "sets": 1,
+              "work": 90,
+              "rest": 0,
+              "perSide": true
+            },
+            "video": "hamstring quad calf stretch beginner routine"
+          }
+        ]
+      },
+      {
+        "level": 2,
+        "title": "Calcio circolare e primi abbinamenti",
+        "focus": "Il calcio circolare (dollyo chagi) con il perno del piede d'appoggio, l'ap chagi dalla guardia e il primo abbinamento dei due calci.",
+        "exercises": [
+          {
+            "id": "taekwondo-2-1",
+            "name": "Riscaldamento e mobilità delle anche",
+            "kind": "riscaldamento",
+            "how": "Prima dei calci circolari le anche devono ruotare libere. Unisci saltelli, slanci e cerchi dell'anca: mobilità dinamica, senza tenute statiche.",
+            "steps": [
+              "1 minuto di saltelli in guardia, cambiando guardia ogni 10 secondi.",
+              "Slanci avanti-indietro e laterali al muro, 10 per gamba ciascuno, con ampiezza crescente.",
+              "Cerchi dell'anca camminando: ginocchio su, aprilo di lato e appoggia (apri il cancello), 8 per gamba; poi al contrario."
+            ],
+            "cues": [
+              "L'anca disegna cerchi ampi",
+              "Nessuno scatto"
+            ],
+            "success": "Riuscito se: chiudi il riscaldamento senza dolore, con gli ultimi cerchi dell'anca più ampi dei primi.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 20
+            },
+            "video": "hip opener closer gate drill martial arts"
+          },
+          {
+            "id": "taekwondo-2-2",
+            "name": "Chamber del circolare e perno",
+            "kind": "preparatorio",
+            "how": "Il circolare nasce da due cose: il ginocchio che sale di lato e il piede d'appoggio che ruota. Le alleni da fermo, con la sedia, prima di calciare.",
+            "steps": [
+              "Una mano sulla sedia. Sali con il ginocchio davanti all'anca, come per l'ap chagi.",
+              "Ruota sull'avampiede d'appoggio finché il tallone punta verso il bersaglio; il ginocchio che calcia gira in orizzontale.",
+              "Tieni 2 secondi con il piede all'altezza del ginocchio, poi torna indietro sullo stesso percorso."
+            ],
+            "cues": [
+              "Il tallone d'appoggio guarda il bersaglio",
+              "Ginocchio, anca e piede sulla stessa linea"
+            ],
+            "success": "Riuscito se: 8 volte per lato tieni il caricamento laterale 2 secondi con il perno completo, senza appoggiarti di peso alla sedia.",
+            "easier": "Ginocchio più basso, a metà coscia, e rotazione del piede d'appoggio di 90 gradi invece che completa.",
+            "dose": {
+              "sets": 2,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "taekwondo roundhouse kick chamber pivot drill",
+            "prepFor": "taekwondo-2-3"
+          },
+          {
+            "id": "taekwondo-2-3",
+            "name": "Calcio circolare (dollyo chagi)",
+            "kind": "tecnica",
+            "how": "Il calcio più usato nel taekwondo: perno, ginocchio di lato, gamba che si distende in orizzontale e colpisce con il collo del piede. Basso, alla coscia, finché il percorso è pulito.",
+            "steps": [
+              "Dalla guardia, gamba dietro: carica il ginocchio e fai il perno sul piede d'appoggio.",
+              "Distendi la gamba in orizzontale e colpisci con il collo del piede (baldeung) un bersaglio immaginario all'altezza della coscia.",
+              "Richiama il ginocchio e torna in guardia. Le prime 4 ripetizioni con la sedia, poi libero."
+            ],
+            "cues": [
+              "Perno prima della distensione",
+              "Mani alte durante il calcio"
+            ],
+            "success": "Riuscito se: 8 circolari per lato all'altezza della coscia, con perno completo e ritorno in guardia, senza perdere l'equilibrio.",
+            "easier": "Calcia all'altezza del ginocchio con una mano sempre sulla sedia, in 4 tempi lenti.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "taekwondo dollyo chagi roundhouse kick tutorial"
+          },
+          {
+            "id": "taekwondo-2-4",
+            "name": "Ap chagi + dollyo chagi",
+            "kind": "combinazione",
+            "how": "Il primo abbinamento: frontale con la gamba dietro, appoggio avanti, circolare con l'altra gamba. Impari a collegare i calci senza fermarti a metà.",
+            "steps": [
+              "Dalla guardia, ap chagi basso con la gamba dietro e appoggia il piede avanti: ora sei in guardia invertita.",
+              "Subito dollyo chagi con la nuova gamba dietro, all'altezza della coscia.",
+              "Torna in guardia, respira e ripeti. Alterna la guardia di partenza a ogni serie."
+            ],
+            "cues": [
+              "Appoggio leggero tra i due calci",
+              "Mani alte per tutta la sequenza"
+            ],
+            "success": "Riuscito se: fai 6 abbinamenti per guardia, fluidi allo specchio, senza pause tra il primo e il secondo calcio.",
+            "dose": {
+              "sets": 4,
+              "reps": 6,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "taekwondo front kick roundhouse kick combination"
+          },
+          {
+            "id": "taekwondo-2-5",
+            "name": "Affondi e ponte glutei",
+            "kind": "condizionamento",
+            "how": "Glutei e cosce reggono la gamba d'appoggio e spingono il calcio. Affondi per la stabilità, ponte per i glutei, che servono anche al calcio laterale.",
+            "steps": [
+              "10 affondi alternati in avanti, ginocchio dietro vicino al pavimento, busto alto.",
+              "15 ponti glutei sul tappetino: spingi con i talloni e stringi i glutei 1 secondo in alto.",
+              "Alterna i due esercizi fino allo scadere del tempo."
+            ],
+            "cues": [
+              "Ginocchio davanti sopra la caviglia",
+              "Nel ponte non inarcare la schiena"
+            ],
+            "success": "Riuscito se: completi le 3 serie con affondi stabili, senza che il ginocchio davanti cada verso l'interno.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "alternating lunges glute bridge form"
+          },
+          {
+            "id": "taekwondo-2-6",
+            "name": "Allungamento statico: anche",
+            "kind": "flessibilita",
+            "how": "Ripeti i posteriori e aggiungi adduttori e flessori dell'anca, i muscoli che frenano il circolare. Tenute statiche, solo a fine seduta.",
+            "steps": [
+              "Posteriori da seduto con una gamba tesa e l'altra piegata, 30 secondi per lato.",
+              "Farfalla: seduto, piante dei piedi unite, schiena dritta, gomiti sulle ginocchia senza spingere, 30 secondi.",
+              "Affondo con il ginocchio dietro sul tappetino: bacino avanti, busto alto, 30 secondi per lato."
+            ],
+            "cues": [
+              "Schiena lunga, non curva",
+              "Tensione massima 5 su 10"
+            ],
+            "success": "Riuscito se: tieni tutte le posizioni per 30 secondi respirando lento e senza mai sentire dolore acuto.",
+            "easier": "Nella farfalla porta i piedi più lontani dal bacino; nell'affondo metti un cuscino sotto il ginocchio.",
+            "dose": {
+              "sets": 1,
+              "work": 150,
+              "rest": 0
+            },
+            "video": "butterfly stretch hip flexor stretch hamstring"
+          }
+        ]
+      },
+      {
+        "level": 3,
+        "title": "Calcio laterale, parate e sacco",
+        "focus": "Il calcio laterale (yop chagi) basso, le parate base con contrattacco e i primi calci al sacco, controllati e puliti.",
+        "exercises": [
+          {
+            "id": "taekwondo-3-1",
+            "name": "Mobilità dinamica e saltelli",
+            "kind": "riscaldamento",
+            "how": "Aumenti la mobilità dinamica: oltre agli slanci aggiungi la camminata a gamba tesa (Frankenstein), che allunga i posteriori in movimento senza forzare.",
+            "steps": [
+              "1 minuto di saltelli in guardia con cambi di guardia.",
+              "Slanci avanti-indietro e laterali al muro, 10 per gamba, poi cerchi dell'anca, 8 per verso.",
+              "Camminata Frankenstein: gamba tesa in avanti verso la mano opposta, 10 per gamba, fin dove arriva da sola."
+            ],
+            "cues": [
+              "La gamba sale da sola, non la tiri",
+              "Schiena dritta nella camminata"
+            ],
+            "success": "Riuscito se: completi i due giri senza dolore, con slanci controllati e la gamba tesa nella camminata.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 20
+            },
+            "video": "frankenstein walk dynamic hamstring stretch"
+          },
+          {
+            "id": "taekwondo-3-2",
+            "name": "Chamber laterale al muro",
+            "kind": "preparatorio",
+            "how": "Il calcio laterale parte da un caricamento diverso: ginocchio davanti al petto, anca che si gira, piede di taglio. Lo impari da fermo, con un appoggio.",
+            "steps": [
+              "Una mano su muro o sedia; il bersaglio immaginario è dal lato opposto all'appoggio.",
+              "Sali con il ginocchio della gamba lontana dall'appoggio davanti al petto, piede flesso con il taglio (balnal) verso il bersaglio.",
+              "Ruota il piede d'appoggio finché il tallone punta verso il bersaglio, guarda oltre la spalla, tieni 3 secondi e scendi piano."
+            ],
+            "cues": [
+              "Tallone d'appoggio verso il bersaglio",
+              "Piede flesso, taglio in fuori"
+            ],
+            "success": "Riuscito se: tieni 8 caricamenti laterali per lato per 3 secondi, con il perno completo e il busto che non crolla sull'appoggio.",
+            "easier": "Ginocchio all'altezza dell'anca invece che del petto, con due mani sull'appoggio.",
+            "dose": {
+              "sets": 2,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "taekwondo side kick chamber drill wall",
+            "prepFor": "taekwondo-3-3"
+          },
+          {
+            "id": "taekwondo-3-3",
+            "name": "Calcio laterale (yop chagi)",
+            "kind": "tecnica",
+            "how": "Il calcio laterale spinge in linea retta con il taglio del piede e il tallone. È lungo e potente, ma richiede mobilità d'anca: per ora resta basso, tra ginocchio e cintura.",
+            "steps": [
+              "Dalla guardia di profilo, carica il ginocchio davanti al petto e fai il perno sul piede d'appoggio.",
+              "Distendi la gamba in linea retta verso il bersaglio, colpendo con taglio e tallone; il busto si inclina appena, sguardo oltre la spalla.",
+              "Richiama in caricamento e torna in guardia. Le prime ripetizioni con una mano sulla sedia."
+            ],
+            "cues": [
+              "Tallone, anca e spalla in linea",
+              "Piede flesso, non a punta"
+            ],
+            "success": "Riuscito se: 8 calci per lato all'altezza della cintura o più bassi, in linea retta, senza perdere l'equilibrio e con ritorno in guardia.",
+            "easier": "Calcia all'altezza del ginocchio con una mano sempre sulla sedia, lentamente.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "taekwondo yop chagi side kick tutorial"
+          },
+          {
+            "id": "taekwondo-3-4",
+            "name": "Parata e contrattacco",
+            "kind": "combinazione",
+            "how": "Le prime difese, poi subito la risposta: parata bassa (arae makki) contro un calcio, parata media (momtong makki) contro un pugno, seguite da pugno o calcio.",
+            "steps": [
+              "Arretra di un passo con arae makki: l'avambraccio scende a proteggere sotto la cintura. Poi dollyo chagi con la gamba dietro.",
+              "Arretra con momtong makki: l'avambraccio protegge il busto dall'esterno verso il centro. Poi pugno al corpo (momtong jireugi) e ap chagi.",
+              "Alterna le due sequenze e la guardia, lento e preciso."
+            ],
+            "cues": [
+              "Prima la parata finisce, poi parte la risposta",
+              "Il passo indietro mantiene la guardia"
+            ],
+            "success": "Riuscito se: fai 6 sequenze per lato allo specchio, con parate ferme nella posizione finale e calcio di risposta in equilibrio.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "taekwondo arae makki momtong makki basic blocks"
+          },
+          {
+            "id": "taekwondo-3-5",
+            "name": "Primi calci al sacco",
+            "kind": "sacco",
+            "how": "Il sacco ti dà il contatto: capisci distanza e superficie d'impatto. Ap chagi a spinta e dollyo chagi bassi, al 50% della forza: prima la precisione, poi la potenza.",
+            "steps": [
+              "Bende e guantoni. Mettiti alla distanza giusta: a gamba distesa il piede tocca il sacco.",
+              "Alterna 5 ap chagi (spingi con avampiede o pianta) e 5 dollyo chagi all'altezza della coscia, poi cambia gamba.",
+              "Senza sacco: stessi calci a vuoto davanti allo specchio, fermandoti sul punto d'impatto."
+            ],
+            "cues": [
+              "Forza al 50%, tecnica al 100%",
+              "Torna in guardia dopo ogni calcio"
+            ],
+            "success": "Riuscito se: completi 3 round colpendo con la superficie giusta, senza spingere col busto e senza dolore a piede o caviglia.",
+            "easier": "Round da 60 secondi con calci all'altezza del ginocchio, oppure tutto a vuoto senza sacco.",
+            "dose": {
+              "sets": 3,
+              "work": 90,
+              "rest": 45
+            },
+            "video": "taekwondo kicks heavy bag beginner"
+          },
+          {
+            "id": "taekwondo-3-6",
+            "name": "Allungamento statico: aperture",
+            "kind": "flessibilita",
+            "how": "Allo statico aggiungi i glutei e la prima apertura a gambe divaricate, utile al calcio laterale. Sempre a fine seduta, senza spinte né rimbalzi.",
+            "steps": [
+              "Sdraiato, caviglia sopra il ginocchio opposto (figura 4): tira piano la coscia verso il petto, 30 secondi per lato.",
+              "Seduto a gambe divaricate quanto ti è comodo: schiena dritta, mani a terra davanti, inclinati appena in avanti, 40 secondi.",
+              "Posteriori da seduto e farfalla come nei livelli precedenti, 30 secondi ciascuno."
+            ],
+            "cues": [
+              "Divarica solo fin dove resti dritto",
+              "Mai rimbalzare in posizione"
+            ],
+            "success": "Riuscito se: tieni tutte le posizioni respirando lento, con tensione al massimo 5 su 10 e senza dolore acuto.",
+            "easier": "Nelle divaricate siediti su un cuscino e tieni le mani dietro di te; riduci le tenute a 20 secondi.",
+            "dose": {
+              "sets": 1,
+              "work": 180,
+              "rest": 0
+            },
+            "video": "figure four stretch seated straddle beginner"
+          }
+        ]
+      },
+      {
+        "level": 4,
+        "title": "Ritmo, combinazioni e calci medi",
+        "focus": "Lo step di combattimento, la flessibilità attiva con calci lenti, il calcio di spinta (mireo chagi), il circolare doppio e combinazioni a ritmo al sacco.",
+        "exercises": [
+          {
+            "id": "taekwondo-4-1",
+            "name": "Riscaldamento dinamico con step",
+            "kind": "riscaldamento",
+            "how": "Il combattimento del taekwondo vive di ritmo: un saltello continuo che ti tiene pronto. Lo unisci alla mobilità dinamica completa dei livelli precedenti.",
+            "steps": [
+              "2 minuti di step in guardia: saltello leggero, avanti-indietro, cambi di guardia.",
+              "Slanci avanti e laterali, poi cerchi dell'anca, 10 per gamba.",
+              "Camminata Frankenstein e affondi laterali lenti, 8 per lato."
+            ],
+            "cues": [
+              "Ritmo leggero e costante",
+              "Ampiezza progressiva"
+            ],
+            "success": "Riuscito se: mantieni lo step per 2 minuti senza fermarti e finisci la mobilità senza dolore.",
+            "dose": {
+              "sets": 2,
+              "work": 180,
+              "rest": 20
+            },
+            "video": "taekwondo sparring step footwork drill"
+          },
+          {
+            "id": "taekwondo-4-2",
+            "name": "Calci lenti tenuti alla sedia",
+            "kind": "flessibilita",
+            "how": "Flessibilità attiva: sollevi e tieni la gamba con i tuoi muscoli. È lei che decide quanto in alto puoi calciare in sicurezza, molto più della flessibilità passiva.",
+            "steps": [
+              "Mano sulla sedia. Ap chagi lentissimo: carica, distendi all'altezza della cintura, tieni 3 secondi, richiama.",
+              "Stesso schema con dollyo chagi e yop chagi: 2 ripetizioni per calcio, 3 secondi in estensione.",
+              "Alza l'altezza solo se a quella attuale tieni 3 secondi senza tremare troppo."
+            ],
+            "cues": [
+              "Lento e controllato, mai slanciato",
+              "L'altezza la decide la tenuta"
+            ],
+            "success": "Riuscito se: tieni 3 secondi in estensione all'altezza della cintura in tutte le 6 ripetizioni per lato.",
+            "easier": "Tieni 1-2 secondi all'altezza del ginocchio, con entrambe le mani sulla sedia.",
+            "dose": {
+              "sets": 2,
+              "reps": 6,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "taekwondo slow kicks balance flexibility drill",
+            "prepFor": "taekwondo-4-4"
+          },
+          {
+            "id": "taekwondo-4-3",
+            "name": "Calcio di spinta (mireo chagi)",
+            "kind": "tecnica",
+            "how": "Calcio con la gamba avanti che spinge con la pianta del piede: ferma chi avanza e apre la distanza. Ginocchio su, spinta dritta col bacino, ritorno in guardia.",
+            "steps": [
+              "Dalla guardia, porta il ginocchio della gamba avanti verso il petto, piede flesso.",
+              "Spingi in avanti con tutta la pianta all'altezza della pancia o più in basso, avanzando il bacino.",
+              "Richiama e torna in guardia. Prova anche con un piccolo passo di avvicinamento prima del calcio."
+            ],
+            "cues": [
+              "Spinta, non frustata",
+              "Busto dritto, mani alte"
+            ],
+            "success": "Riuscito se: 8 calci per lato allo specchio con spinta dritta all'altezza della pancia o più bassa e ritorno in guardia stabile.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "taekwondo push kick mireo chagi tutorial"
+          },
+          {
+            "id": "taekwondo-4-4",
+            "name": "Dollyo chagi doppio",
+            "kind": "tecnica",
+            "how": "Due circolari con la stessa gamba senza appoggiare il piede, basso e poi medio. Allena l'equilibrio su una gamba e il ritmo dei calci.",
+            "steps": [
+              "Dalla guardia, dollyo chagi con la gamba dietro all'altezza della coscia.",
+              "Richiama il ginocchio in caricamento senza appoggiare e calcia di nuovo, all'altezza della cintura.",
+              "Appoggia avanti e torna in guardia. Le prime serie con una mano sulla sedia."
+            ],
+            "cues": [
+              "Il ginocchio resta alto tra i due calci",
+              "Perno vivo sul piede d'appoggio"
+            ],
+            "success": "Riuscito se: fai 6 doppi per lato senza appoggiare il piede tra i due calci e senza perdere l'equilibrio.",
+            "easier": "Appoggia la punta del piede a terra tra i due calci, oppure tieni una mano sulla sedia.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "taekwondo double roundhouse kick same leg"
+          },
+          {
+            "id": "taekwondo-4-5",
+            "name": "Combinazioni a ritmo al sacco",
+            "kind": "sacco",
+            "how": "Combinazioni da 2-3 colpi con lo step continuo: è qui che i calci diventano combattimento. Intensità media, cura della distanza e del ritorno in guardia.",
+            "steps": [
+              "Bende e guantoni. Round da 2 minuti con step continuo.",
+              "Combinazioni: pugno e dollyo chagi; mireo chagi e dollyo chagi; ap chagi, dollyo chagi e yop chagi basso. Ognuna 4-5 volte, poi cambia.",
+              "Senza sacco: stesse combinazioni a vuoto davanti allo specchio, come shadow."
+            ],
+            "cues": [
+              "Step tra una combinazione e l'altra",
+              "Calci alla cintura o più bassi"
+            ],
+            "success": "Riuscito se: completi 3 round da 2 minuti mantenendo lo step e chiudendo ogni combinazione in guardia, senza calci sbilanciati.",
+            "easier": "Round da 90 secondi con combinazioni da 2 colpi, a vuoto se non hai il sacco.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 60
+            },
+            "video": "taekwondo heavy bag combinations drill"
+          },
+          {
+            "id": "taekwondo-4-6",
+            "name": "Allungamento statico: mezza spaccata",
+            "kind": "flessibilita",
+            "how": "Aggiungi la mezza spaccata in ginocchio, la posizione chiave per i posteriori: rende più facile alzare frontale e circolare. Statica e graduale, niente spaccate forzate.",
+            "steps": [
+              "Mezza spaccata: in ginocchio, gamba davanti tesa con il tallone a terra, mani su blocchi o libri, busto lungo in avanti, 30 secondi per lato.",
+              "Affondo con il ginocchio dietro a terra per i flessori dell'anca, 30 secondi per lato.",
+              "Gambe divaricate da seduto, 40 secondi, schiena dritta."
+            ],
+            "cues": [
+              "Bacino dritto, schiena lunga",
+              "Non spingere: respira e lascia andare"
+            ],
+            "success": "Riuscito se: tieni ogni posizione per il tempo previsto con tensione al massimo 5 su 10, senza dolore dietro il ginocchio.",
+            "easier": "Nella mezza spaccata piega un po' il ginocchio davanti e appoggia le mani su una sedia; tenute da 20 secondi.",
+            "dose": {
+              "sets": 1,
+              "work": 160,
+              "rest": 0
+            },
+            "video": "half split stretch beginner hamstring"
+          }
+        ]
+      },
+      {
+        "level": 5,
+        "title": "Calcio all'indietro (dwi chagi)",
+        "focus": "Il calcio all'indietro (dwi chagi) costruito per gradi: forza del caricamento, traiettoria al muro, poi il giro. Shadow a round con tutto il repertorio.",
+        "exercises": [
+          {
+            "id": "taekwondo-5-1",
+            "name": "Riscaldamento dinamico completo",
+            "kind": "riscaldamento",
+            "how": "Prima dei calci all'indietro scaldi bene anche, glutei e schiena. Mobilità dinamica completa e step, con ampiezza che cresce piano.",
+            "steps": [
+              "2 minuti di step in guardia con cambi di guardia.",
+              "Slanci avanti, laterali e all'indietro al muro, 10 per gamba; cerchi dell'anca, 8 per verso.",
+              "Camminata Frankenstein, affondi laterali lenti e rotazioni del busto, 8 per lato."
+            ],
+            "cues": [
+              "Scalda la schiena prima di girare",
+              "Ampiezza crescente"
+            ],
+            "success": "Riuscito se: finisci il riscaldamento sudato, senza dolore e con slanci più ampi alla fine che all'inizio.",
+            "dose": {
+              "sets": 2,
+              "work": 180,
+              "rest": 20
+            },
+            "video": "taekwondo warm up dynamic stretching"
+          },
+          {
+            "id": "taekwondo-5-2",
+            "name": "Ginocchia alla sbarra",
+            "kind": "preparatorio",
+            "how": "Forza specifica del caricamento: addominali e flessori dell'anca portano il ginocchio al petto in fretta. È la stessa azione che apre il dwi chagi e i calci alti.",
+            "steps": [
+              "Appeso alla sbarra a braccia tese, spalle attive, corpo fermo senza dondolare.",
+              "Porta le ginocchia al petto in 1 secondo, scendi in 2 secondi.",
+              "Se inizi a dondolare, fermati, stabilizzati e riparti."
+            ],
+            "cues": [
+              "Niente dondolio",
+              "Su veloce, giù lento"
+            ],
+            "success": "Riuscito se: completi 3 serie da 8 ginocchia al petto senza dondolare e senza slanci.",
+            "easier": "Seduto sul bordo di una sedia, mani ai lati: porta le ginocchia al petto e torna giù lento.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 45
+            },
+            "video": "hanging knee raises proper form",
+            "prepFor": "taekwondo-5-4"
+          },
+          {
+            "id": "taekwondo-5-3",
+            "name": "Dwi chagi al muro",
+            "kind": "preparatorio",
+            "how": "Impari la traiettoria del calcio all'indietro senza girare: fronte al muro, ginocchio al petto e tallone che spinge dritto dietro di te, guardando oltre la spalla.",
+            "steps": [
+              "Fronte al muro, mani appoggiate all'altezza del petto, a un passo di distanza.",
+              "Ginocchio al petto, sguardo oltre la spalla della gamba che calcia, piede flesso con la punta verso il basso.",
+              "Spingi il tallone dritto dietro di te all'altezza della coscia, tieni 1 secondo e richiama."
+            ],
+            "cues": [
+              "Tallone dritto, non di lato",
+              "Prima guardi, poi calci"
+            ],
+            "success": "Riuscito se: 8 spinte per lato con il tallone che va dritto dietro e lo sguardo sul bersaglio, senza aprire l'anca di lato.",
+            "easier": "Tallone all'altezza del ginocchio, senza tenuta in estensione.",
+            "dose": {
+              "sets": 2,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "back kick wall drill taekwondo",
+            "prepFor": "taekwondo-5-4"
+          },
+          {
+            "id": "taekwondo-5-4",
+            "name": "Calcio all'indietro (dwi chagi)",
+            "kind": "tecnica",
+            "how": "Il calcio di tallone più potente: ruoti di spalle, guardi il bersaglio, carichi e spingi dritto. Basso e lento, con l'equilibrio prima della forza.",
+            "steps": [
+              "Dalla guardia, perno sul piede avanti e gira la schiena al bersaglio, guardando oltre la spalla.",
+              "Ginocchio al petto, poi spinta del tallone in linea retta all'altezza della coscia o della cintura.",
+              "Richiama e appoggia avanti in guardia. Le prime 4 ripetizioni partile già di spalle."
+            ],
+            "cues": [
+              "Prima la testa, poi il corpo",
+              "Le ginocchia si sfiorano: traiettoria dritta"
+            ],
+            "success": "Riuscito se: fai 6 dwi chagi per lato in linea retta, con lo sguardo sul bersaglio e il ritorno in guardia senza barcollare.",
+            "easier": "Parti già di spalle al bersaglio, una mano sulla sedia, e calcia all'altezza del ginocchio, senza giro.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "taekwondo dwi chagi back kick tutorial"
+          },
+          {
+            "id": "taekwondo-5-5",
+            "name": "Shadow a round",
+            "kind": "shadow",
+            "how": "Round di shadow con quello che hai copiato: step, pugni, ap, dollyo, yop e mireo chagi. Il dwi chagi entra solo se nell'esercizio precedente è riuscito.",
+            "steps": [
+              "Round da 2 minuti: step continuo, combinazioni da 2-4 colpi, cambi di guardia.",
+              "Ogni round un tema: round 1 gamba avanti, round 2 contrattacchi, round 3 libero.",
+              "Al massimo 3 dwi chagi per round, bassi e controllati."
+            ],
+            "cues": [
+              "Mai fermo: lo step continua",
+              "Calci alti solo quanto li tieni lenti"
+            ],
+            "success": "Riuscito se: completi 3 round da 2 minuti senza fermarti, con ogni combinazione chiusa in guardia.",
+            "easier": "Round da 60-90 secondi con soli calci frontali e circolari bassi.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 60
+            },
+            "video": "taekwondo shadow sparring solo drill"
+          },
+          {
+            "id": "taekwondo-5-6",
+            "name": "Allungamento statico completo",
+            "kind": "flessibilita",
+            "how": "Routine statica completa: posteriori, flessori dell'anca (fondamentali per il dwi chagi), adduttori. Lenta, con il respiro, senza mai cercare il dolore.",
+            "steps": [
+              "Mezza spaccata in ginocchio e affondo basso, 30 secondi per lato ciascuno.",
+              "Farfalla e gambe divaricate da seduto, 30 secondi ciascuno.",
+              "In ogni posizione espira lungo e lascia andare un po' a ogni espirazione, senza spingere."
+            ],
+            "cues": [
+              "Tensione 5 su 10, non di più",
+              "Nessun rimbalzo"
+            ],
+            "success": "Riuscito se: tieni tutte le posizioni per il tempo previsto con tensione al massimo 5 su 10 e respiro calmo.",
+            "easier": "Usa blocchi o libri sotto le mani, un cuscino sotto il ginocchio e tenute da 20 secondi.",
+            "dose": {
+              "sets": 1,
+              "work": 180,
+              "rest": 0
+            },
+            "video": "hip flexor half split stretch routine"
+          }
+        ]
+      },
+      {
+        "level": 6,
+        "title": "Calcio girato e round lunghi",
+        "focus": "Il calcio girato a uncino (dwi huryeo chagi) con preparatori dedicati, calci più alti solo entro la tua mobilità e round lunghi al sacco.",
+        "exercises": [
+          {
+            "id": "taekwondo-6-1",
+            "name": "Riscaldamento dinamico e giri",
+            "kind": "riscaldamento",
+            "how": "Scaldi tutto il corpo e prepari la testa ai giri: mobilità dinamica completa, step e qualche rotazione lenta per abituare l'equilibrio.",
+            "steps": [
+              "2 minuti di step in guardia con cambi di guardia.",
+              "Slanci in tutte le direzioni, cerchi dell'anca e camminata Frankenstein, 10 per gamba.",
+              "4 giri lenti sul posto per verso, sugli avampiedi, fermandoti ogni volta in guardia."
+            ],
+            "cues": [
+              "Fissa un punto quando ti fermi",
+              "Ampiezza crescente"
+            ],
+            "success": "Riuscito se: finisci senza dolore e dopo i giri ti fermi in guardia stabile, senza capogiri.",
+            "dose": {
+              "sets": 2,
+              "work": 180,
+              "rest": 20
+            },
+            "video": "taekwondo spinning kick warm up drills"
+          },
+          {
+            "id": "taekwondo-6-2",
+            "name": "Giro con sguardo, senza calcio",
+            "kind": "preparatorio",
+            "how": "Il segreto dei calci girati è la testa: gira prima del corpo e trova il bersaglio. Alleni il giro completo sull'avampiede, senza calciare, fino a fermarti stabile.",
+            "steps": [
+              "Dalla guardia, gira la testa e guarda il bersaglio oltre la spalla posteriore.",
+              "Ruota sull'avampiede della gamba avanti finché sei di spalle, poi completa il giro e torna in guardia.",
+              "Metà ripetizioni in un verso e metà nell'altro; aumenta la velocità solo se resti stabile."
+            ],
+            "cues": [
+              "Testa prima, corpo dopo",
+              "Ginocchia morbide"
+            ],
+            "success": "Riuscito se: fai 8 giri per verso fermandoti ogni volta in guardia, senza passi di recupero.",
+            "easier": "Gira solo fino a trovarti di spalle (mezzo giro) e torna indietro.",
+            "dose": {
+              "sets": 2,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "spinning kick footwork drill taekwondo",
+            "prepFor": "taekwondo-6-4"
+          },
+          {
+            "id": "taekwondo-6-3",
+            "name": "Aggancio del tallone alla sedia",
+            "kind": "preparatorio",
+            "how": "Il calcio girato colpisce con il tallone in un arco a uncino. Qui isoli il gesto: gamba distesa di lato, poi il tallone che aggancia piegando il ginocchio.",
+            "steps": [
+              "Mano sulla sedia. Porta la gamba distesa di lato e bassa, come nel finale di uno yop chagi.",
+              "Piega il ginocchio e tira il tallone in un arco orizzontale, come a colpire dietro un bersaglio.",
+              "Torna in caricamento e appoggia. Prima all'altezza del ginocchio, poi della coscia se resti stabile."
+            ],
+            "cues": [
+              "L'arco è orizzontale",
+              "Prima la distensione, poi l'aggancio"
+            ],
+            "success": "Riuscito se: 8 agganci per lato con arco orizzontale e tallone che chiude deciso, senza appoggiarti di peso alla sedia.",
+            "dose": {
+              "sets": 2,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "taekwondo hook kick drill balance",
+            "prepFor": "taekwondo-6-4"
+          },
+          {
+            "id": "taekwondo-6-4",
+            "name": "Calcio girato (dwi huryeo chagi)",
+            "kind": "tecnica",
+            "how": "Il calcio più spettacolare: giro, sguardo, gamba che si distende e tallone che aggancia. Basso e lento finché il giro è stabile; l'altezza viene dopo, dalla mobilità.",
+            "steps": [
+              "Dalla guardia, la testa gira e fai perno sull'avampiede della gamba avanti.",
+              "Distendi la gamba posteriore poco a lato del bersaglio, all'altezza della coscia, e aggancia con il tallone.",
+              "Completa il giro e atterra in guardia. Le prime ripetizioni a mezza velocità."
+            ],
+            "cues": [
+              "Testa, perno, distensione, aggancio",
+              "Atterra fermo in guardia, mai a metà giro"
+            ],
+            "success": "Riuscito se: 6 calci girati per lato all'altezza della coscia, atterrando in guardia ogni volta senza passi di recupero.",
+            "easier": "Parti già di spalle con una mano sulla sedia e fai solo l'aggancio all'altezza del ginocchio, senza giro.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "taekwondo spinning hook kick tutorial"
+          },
+          {
+            "id": "taekwondo-6-5",
+            "name": "Round lunghi al sacco",
+            "kind": "sacco",
+            "how": "Round lunghi che mettono insieme tutto: step, pugni, calci di gamba avanti e dietro, contrattacchi. I calci girati restano pochi, bassi e controllati.",
+            "steps": [
+              "Bende e guantoni. 4 round da 2 minuti e mezzo, con 1 minuto di pausa.",
+              "Ogni round: combinazioni da 2-4 colpi e cambi di guardia; al massimo 2-3 calci girati o all'indietro, alla cintura o più bassi.",
+              "Senza sacco: stessi round a vuoto, come shadow davanti allo specchio."
+            ],
+            "cues": [
+              "Respira a ogni colpo",
+              "Tecnica prima della forza"
+            ],
+            "success": "Riuscito se: completi 4 round senza fermarti, chiudendo ogni combinazione in guardia e senza calci sbilanciati.",
+            "easier": "3 round da 2 minuti senza calci girati, oppure tutto a vuoto senza sacco.",
+            "dose": {
+              "sets": 4,
+              "work": 150,
+              "rest": 60
+            },
+            "video": "taekwondo heavy bag workout rounds"
+          },
+          {
+            "id": "taekwondo-6-6",
+            "name": "Allungamento statico con respiro",
+            "kind": "flessibilita",
+            "how": "La routine completa con una novità: il contrai-rilassa leggero sui posteriori. Premi piano il tallone a terra 5 secondi, rilassi e respiri: la nuova posizione non si forza mai.",
+            "steps": [
+              "Mezza spaccata in ginocchio: 20 secondi, poi premi il tallone a terra al 30% per 5 secondi, rilassa e tieni altri 20 secondi. Per lato.",
+              "Affondo basso, 30 secondi per lato; farfalla, 30 secondi.",
+              "Gambe divaricate da seduto, 30 secondi, schiena dritta."
+            ],
+            "cues": [
+              "Contrazione leggera, mai al massimo",
+              "Dopo il rilascio, nessuna spinta"
+            ],
+            "success": "Riuscito se: completi la routine senza dolore acuto, con tensione al massimo 5 su 10 in ogni posizione.",
+            "easier": "Salta il contrai-rilassa e tieni solo le posizioni statiche, da 20 a 30 secondi.",
+            "dose": {
+              "sets": 1,
+              "work": 180,
+              "rest": 0
+            },
+            "video": "contract relax hamstring stretch gentle"
+          }
+        ]
+      }
+    ],
+    "color": "#5aa9ff",
+    "short": "TKD"
+  },
+  {
+    "id": "karate",
+    "name": "Karate",
+    "tagline": "Posizioni solide, colpi netti, un kime alla volta.",
+    "intro": "Karate tradizionale (impostazione Shotokan): posizioni basse, pugni con kime, parate pulite e kata. Copialo alla Johan Seong: osservi il video, scomponi il gesto, ripeti finché diventa tuo. I calci crescono con la mobilità.",
+    "equipment": "Sedia stabile, muro, tappetino; sacco, bende e guantoni dal livello 3",
+    "mottos": [
+      "Una posizione solida vale più di cento pugni veloci.",
+      "Copia il kata come Johan copia uno stile: un dettaglio alla volta.",
+      "Kime: tutto il corpo in un solo istante."
+    ],
+    "levels": [
+      {
+        "level": 1,
+        "title": "Posizioni e primo pugno",
+        "focus": "Le posizioni base (zenkutsu e kiba dachi), il pugno diretto con hikite e la parata bassa. Lento, allo specchio, ogni dettaglio al suo posto.",
+        "exercises": [
+          {
+            "id": "karate-1-1",
+            "name": "Riscaldamento articolare (junbi undo)",
+            "kind": "riscaldamento",
+            "how": "Il riscaldamento tradizionale del dojo: articolazioni dalla testa ai piedi, poi un po' di movimento. Prepara polsi, ginocchia e anche, che nel karate lavorano tanto.",
+            "steps": [
+              "Rotazioni lente di collo, spalle, polsi, anche, ginocchia e caviglie, 8 per verso.",
+              "1 minuto di saltelli leggeri, poi slanci avanti-indietro al muro, 10 per gamba.",
+              "10 squat lenti e 10 rotazioni del busto."
+            ],
+            "cues": [
+              "Lento e ampio",
+              "Nessuno scatto"
+            ],
+            "success": "Riuscito se: completi i due giri senza dolore articolare e con il respiro tranquillo.",
+            "dose": {
+              "sets": 2,
+              "work": 120,
+              "rest": 20
+            },
+            "video": "karate junbi undo warm up"
+          },
+          {
+            "id": "karate-1-2",
+            "name": "Posizioni base (dachi)",
+            "kind": "tecnica",
+            "how": "Nel karate tutto parte dalle gambe. Zenkutsu dachi è la posizione avanzata, kiba dachi quella del cavaliere. Le impari ferme e nei passaggi, controllandoti allo specchio.",
+            "steps": [
+              "Zenkutsu dachi: piedi larghi quanto le anche e lunghi circa due spalle; ginocchio davanti sopra la caviglia, gamba dietro tesa, 60% del peso avanti.",
+              "Kiba dachi: piedi paralleli a circa due spalle di distanza, ginocchia spinte in fuori, busto dritto, peso al centro.",
+              "Passa da zenkutsu a kiba dachi ruotando le anche, 5 volte per lato, poi tieni ogni posizione 20 secondi."
+            ],
+            "cues": [
+              "Ginocchio sopra la caviglia",
+              "Busto verticale, bacino sotto"
+            ],
+            "success": "Riuscito se: allo specchio tieni entrambe le posizioni 20 secondi per lato, con il ginocchio sopra la caviglia e il busto dritto.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "karate zenkutsu dachi kiba dachi stances"
+          },
+          {
+            "id": "karate-1-3",
+            "name": "Pugno diretto (choku zuki)",
+            "kind": "tecnica",
+            "how": "Il pugno base, sul posto. Un braccio esce mentre l'altro torna al fianco (hikite): la forza nasce dalla rotazione di entrambi. Alla fine, un istante di tensione (kime).",
+            "steps": [
+              "In kiba dachi: un pugno avanti all'altezza del plesso solare, l'altro chiuso al fianco con il palmo in su.",
+              "Scambia: il pugno al fianco parte e ruota solo nell'ultimo tratto, l'altro torna al fianco con la stessa velocità.",
+              "Conta ad alta voce, kime breve su ogni pugno, spalle basse. Kiai sull'ultimo della serie."
+            ],
+            "cues": [
+              "L'hikite torna veloce come il pugno",
+              "Spalle basse, polso dritto"
+            ],
+            "success": "Riuscito se: fai 20 pugni allo specchio con polso dritto, spalle ferme e pugno che arriva sulla linea centrale ogni volta.",
+            "dose": {
+              "sets": 3,
+              "reps": 20,
+              "rest": 30
+            },
+            "video": "karate choku zuki straight punch hikite"
+          },
+          {
+            "id": "karate-1-4",
+            "name": "Parata bassa (gedan barai)",
+            "kind": "tecnica",
+            "how": "La parata bassa spazza via un calcio o un pugno basso. È il primo movimento di molti kata: la prepari incrociando le braccia, poi la scarichi con l'hikite.",
+            "steps": [
+              "In zenkutsu dachi: il pugno che para sale vicino all'orecchio opposto, l'altro braccio è teso in basso davanti a te.",
+              "Scendi con l'avambraccio in diagonale fino a circa due pugni sopra il ginocchio avanzato, mentre l'altro braccio torna al fianco.",
+              "Kime alla fine, poi cambia gamba avanti e ripeti."
+            ],
+            "cues": [
+              "Preparazione ampia, finale preciso",
+              "Il pugno si ferma sopra il ginocchio"
+            ],
+            "success": "Riuscito se: fai 8 parate per lato allo specchio con il pugno che finisce sopra il ginocchio e l'hikite chiuso al fianco.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "karate gedan barai low block tutorial"
+          },
+          {
+            "id": "karate-1-5",
+            "name": "Kihon in avanzata (oi zuki)",
+            "kind": "combinazione",
+            "how": "Il kihon è la base del karate: tecniche ripetute camminando in posizione. Avanzi in zenkutsu dachi con il pugno dal lato del passo (oi zuki), poi ti giri con gedan barai.",
+            "steps": [
+              "Parti in zenkutsu dachi sinistro con gedan barai. Il piede dietro passa vicino all'altro e va avanti; il pugno arriva con il passo.",
+              "5 oi zuki avanzando, kiai sull'ultimo. Girati con gedan barai e torna indietro con altri 5.",
+              "Se hai poco spazio, fai 3 passi avanti e 3 indietro, oppure passi più corti."
+            ],
+            "cues": [
+              "Il pugno arriva quando il piede si ferma",
+              "Altezza costante, non saltellare"
+            ],
+            "success": "Riuscito se: completi andata e ritorno senza alzare la testa durante il passo, con pugno e piede che arrivano insieme.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 30
+            },
+            "video": "karate oi zuki kihon stepping punch"
+          },
+          {
+            "id": "karate-1-6",
+            "name": "Tenuta in kiba dachi e piegamenti",
+            "kind": "condizionamento",
+            "how": "Gambe e braccia forti tengono in piedi la tecnica. Tieni il kiba dachi e alterni piegamenti sulle braccia: semplice, duro, efficace.",
+            "steps": [
+              "Kiba dachi basso quanto riesci tenendo il busto dritto: 30 secondi.",
+              "Subito 8-10 piegamenti sulle braccia, a mani aperte o sui pugni su un tappetino morbido.",
+              "Recupera e ripeti. Se le ginocchia fanno male, alza la posizione."
+            ],
+            "cues": [
+              "Ginocchia in fuori, non in dentro",
+              "Corpo dritto nei piegamenti"
+            ],
+            "success": "Riuscito se: completi 3 giri tenendo il kiba dachi 30 secondi con le ginocchia in fuori e 8 piegamenti puliti.",
+            "dose": {
+              "sets": 3,
+              "work": 60,
+              "rest": 45
+            },
+            "video": "karate horse stance hold push ups"
+          }
+        ]
+      },
+      {
+        "level": 2,
+        "title": "Parate e calcio frontale",
+        "focus": "Le parate alta, esterna e interna (age, soto, uchi uke), il calcio frontale (mae geri) basso costruito dal ginocchio e il primo abbinamento parata-pugno.",
+        "exercises": [
+          {
+            "id": "karate-2-1",
+            "name": "Riscaldamento con slanci dinamici",
+            "kind": "riscaldamento",
+            "how": "Mobilità dinamica per le anche prima del primo calcio: rotazioni articolari, slanci e cerchi. Lo stretching statico lo fai dopo, a fine seduta.",
+            "steps": [
+              "Rotazioni articolari dalla testa alle caviglie, 8 per verso, e 1 minuto di saltelli.",
+              "Slanci avanti-indietro e laterali al muro, 10 per gamba, con ampiezza che cresce.",
+              "Cerchi dell'anca in piedi: ginocchio su, aprilo di lato e appoggia, 8 per gamba e per verso."
+            ],
+            "cues": [
+              "Ampiezza crescente",
+              "Busto fermo, si muove l'anca"
+            ],
+            "success": "Riuscito se: finisci il riscaldamento senza dolore, con gli slanci finali più ampi dei primi.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 20
+            },
+            "video": "karate dynamic warm up leg swings hip"
+          },
+          {
+            "id": "karate-2-2",
+            "name": "Parate alta, esterna, interna (uke)",
+            "kind": "tecnica",
+            "how": "Le parate che proteggono testa e busto: age uke sale sopra la fronte, soto uke arriva dall'esterno verso il centro, uchi uke va dal centro verso l'esterno. Sempre con hikite.",
+            "steps": [
+              "Age uke: l'avambraccio sale e si ferma un pugno sopra e davanti alla fronte, con il palmo del pugno rivolto in fuori.",
+              "Soto uke: il braccio parte accanto all'orecchio e gira dall'esterno al centro; pugno all'altezza della spalla.",
+              "Uchi uke: il pugno parte vicino al fianco opposto e va dal centro verso l'esterno, gomito piegato a circa 90 gradi.",
+              "Una serie per parata, sul posto in zenkutsu dachi, alternando le braccia."
+            ],
+            "cues": [
+              "Kime e hikite nello stesso istante",
+              "Parata ferma: il braccio non rimbalza"
+            ],
+            "success": "Riuscito se: in ogni serie fai 8 parate per lato allo specchio, con la posizione finale ferma e l'hikite chiuso al fianco.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "karate age uke soto uke uchi uke blocks"
+          },
+          {
+            "id": "karate-2-3",
+            "name": "Ginocchio caricato alla sedia",
+            "kind": "preparatorio",
+            "how": "Il mae geri parte dal ginocchio alto: se il caricamento è basso, il calcio è debole e sbilanciato. Lo costruisci da fermo, con la sedia, prima di calciare.",
+            "steps": [
+              "Una mano sullo schienale, gamba d'appoggio leggermente piegata, busto alto.",
+              "Porta il ginocchio all'altezza dell'anca o sopra, dita del piede tirate indietro per colpire con l'avampiede (koshi).",
+              "Tieni 3 secondi e scendi piano. Nelle ultime ripetizioni lascia la sedia."
+            ],
+            "cues": [
+              "Ginocchio alto prima di tutto",
+              "Busto dritto, non indietro"
+            ],
+            "success": "Riuscito se: tieni 8 volte per lato il ginocchio all'altezza dell'anca per 3 secondi, quasi senza appoggio.",
+            "easier": "Ginocchio a metà coscia e due mani sulla sedia.",
+            "dose": {
+              "sets": 2,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "karate mae geri chamber knee raise drill",
+            "prepFor": "karate-2-4"
+          },
+          {
+            "id": "karate-2-4",
+            "name": "Calcio frontale (mae geri)",
+            "kind": "tecnica",
+            "how": "Il calcio frontale a frusta (keage): ginocchio su, gamba che scatta in avanti, ritorno immediato. Lo tieni basso, all'altezza della pancia o meno, finché è pulito.",
+            "steps": [
+              "In zenkutsu dachi, mani in guardia o ai fianchi.",
+              "La gamba dietro carica il ginocchio alto, poi scatta in avanti e colpisce con l'avampiede all'altezza della pancia.",
+              "Richiama subito il ginocchio e appoggia il piede: dietro per tornare uguale, oppure avanti per avanzare."
+            ],
+            "cues": [
+              "Ginocchio su, poi scatto",
+              "Richiama più veloce di come calci"
+            ],
+            "success": "Riuscito se: fai 8 mae geri per lato con ginocchio alto, ritorno in caricamento e appoggio controllato, senza inclinare il busto indietro.",
+            "easier": "Calcia all'altezza del ginocchio con una mano sulla sedia, in 4 tempi lenti.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "karate mae geri front kick tutorial"
+          },
+          {
+            "id": "karate-2-5",
+            "name": "Parata e contrattacco (gyaku zuki)",
+            "kind": "combinazione",
+            "how": "Il primo abbinamento classico: pari con il braccio avanti e rispondi con il pugno del lato opposto (gyaku zuki), spingendo con l'anca. Arretri di un passo per avere tempo.",
+            "steps": [
+              "Arretra in zenkutsu dachi con age uke, poi gyaku zuki al busto ruotando l'anca.",
+              "Stessa cosa con soto uke e con gedan barai.",
+              "In ogni serie alterna le tre parate; kime solo sul pugno finale."
+            ],
+            "cues": [
+              "L'anca spinge il gyaku zuki",
+              "Il tallone dietro resta a terra"
+            ],
+            "success": "Riuscito se: fai 8 sequenze per lato allo specchio con il tallone dietro a terra e l'anca che ruota sul gyaku zuki.",
+            "dose": {
+              "sets": 4,
+              "reps": 8,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "karate block gyaku zuki counter drill"
+          },
+          {
+            "id": "karate-2-6",
+            "name": "Allungamento statico finale",
+            "kind": "flessibilita",
+            "how": "A fine seduta allunghi posteriori, quadricipiti e adduttori, i muscoli che limitano i calci. Tenute statiche, respiro lento, nessun rimbalzo.",
+            "steps": [
+              "Seduto, una gamba tesa e una piegata: inclinati in avanti dall'anca con la schiena dritta, 30 secondi per lato.",
+              "In piedi con una mano al muro, tallone verso il gluteo, 30 secondi per lato.",
+              "Farfalla: piante dei piedi unite, schiena dritta, 30 secondi senza premere sulle ginocchia."
+            ],
+            "cues": [
+              "Tensione sì, dolore no",
+              "Non molleggiare"
+            ],
+            "success": "Riuscito se: tieni ogni posizione 30 secondi respirando lento, con tensione al massimo 5 su 10.",
+            "easier": "Asciugamano attorno al piede per la gamba tesa, piedi più lontani nella farfalla, tenute da 20 secondi.",
+            "dose": {
+              "sets": 1,
+              "work": 150,
+              "rest": 0
+            },
+            "video": "hamstring quad butterfly stretch routine"
+          }
+        ]
+      },
+      {
+        "level": 3,
+        "title": "Primo kata e calcio circolare",
+        "focus": "Il kata Taikyoku Shodan, il calcio circolare (mawashi geri) basso con il suo caricamento e i primi colpi al sacco dalla guardia di kumite.",
+        "exercises": [
+          {
+            "id": "karate-3-1",
+            "name": "Riscaldamento e mobilità delle anche",
+            "kind": "riscaldamento",
+            "how": "Per il circolare le anche devono ruotare libere. Rotazioni, slanci e camminata a gamba tesa scaldano posteriori e adduttori in movimento.",
+            "steps": [
+              "Rotazioni articolari e 1 minuto di saltelli in guardia di kumite.",
+              "Slanci avanti e laterali al muro, 10 per gamba; cerchi dell'anca, 8 per verso.",
+              "Camminata a gamba tesa (Frankenstein): gamba avanti verso la mano opposta, 8 per gamba, fin dove arriva da sola."
+            ],
+            "cues": [
+              "La gamba sale da sola, non la tiri",
+              "Ampiezza crescente"
+            ],
+            "success": "Riuscito se: finisci senza dolore, con la gamba che sale più facilmente alla fine che all'inizio.",
+            "dose": {
+              "sets": 2,
+              "work": 150,
+              "rest": 20
+            },
+            "video": "martial arts hip mobility dynamic warm up"
+          },
+          {
+            "id": "karate-3-2",
+            "name": "Caricamento del circolare alla sedia",
+            "kind": "preparatorio",
+            "how": "Il mawashi geri nasce dal ginocchio che sale di lato e dal piede d'appoggio che ruota. Lo fissi da fermo, con la sedia, prima di calciare.",
+            "steps": [
+              "Una mano sulla sedia. Ginocchio su davanti, poi ruotalo di lato finché la coscia è quasi orizzontale.",
+              "Ruota sull'avampiede d'appoggio con il tallone verso il bersaglio; il piede che calcia ha le dita tirate indietro (koshi).",
+              "Tieni 2 secondi e torna sullo stesso percorso."
+            ],
+            "cues": [
+              "Tallone d'appoggio verso il bersaglio",
+              "Ginocchio, anca e piede allineati"
+            ],
+            "success": "Riuscito se: tieni 8 volte per lato il caricamento laterale per 2 secondi con il perno completo, senza appoggiarti di peso alla sedia.",
+            "easier": "Ginocchio a metà coscia e rotazione del piede d'appoggio di soli 90 gradi.",
+            "dose": {
+              "sets": 2,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "karate mawashi geri chamber pivot drill",
+            "prepFor": "karate-3-3"
+          },
+          {
+            "id": "karate-3-3",
+            "name": "Calcio circolare (mawashi geri)",
+            "kind": "tecnica",
+            "how": "Il calcio circolare: perno, ginocchio di lato, gamba che scatta in orizzontale. Nel karate tradizionale colpisci con l'avampiede, al sacco con il collo del piede. Per ora basso.",
+            "steps": [
+              "Dalla guardia di kumite, gamba dietro: carica il ginocchio di lato e fai il perno.",
+              "Distendi in orizzontale verso la coscia di un avversario immaginario (gedan), poi richiama subito.",
+              "Torna in guardia. Le prime 4 ripetizioni con una mano sulla sedia, poi libero."
+            ],
+            "cues": [
+              "Perno prima, poi la gamba",
+              "Mani in guardia durante il calcio"
+            ],
+            "success": "Riuscito se: fai 8 mawashi geri per lato all'altezza della coscia con perno completo e ritorno in guardia, senza barcollare.",
+            "easier": "Calcia all'altezza del ginocchio con una mano sempre sulla sedia, in 4 tempi lenti.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "karate mawashi geri roundhouse kick tutorial"
+          },
+          {
+            "id": "karate-3-4",
+            "name": "Kata Taikyoku Shodan",
+            "kind": "shadow",
+            "how": "Il primo kata: 20 movimenti con solo gedan barai e oi zuki, su uno schema ad H. Insegna a girarsi restando in posizione. Prima lento, poi a ritmo, con due kiai.",
+            "steps": [
+              "Saluto e yoi. Girati a sinistra con gedan barai e avanza con oi zuki; girati di 180 gradi con gedan barai e avanza con oi zuki.",
+              "Girati verso il fronte con gedan barai e fai 3 oi zuki avanzando: kiai sul terzo (movimento 8).",
+              "Seconda metà: stesse coppie girandoti di 270 e 180 gradi, 3 oi zuki con il secondo kiai (movimento 16), ultime due coppie e yoi.",
+              "Guarda il video per gli angoli dei giri. Con poco spazio, accorcia i passi."
+            ],
+            "cues": [
+              "Prima guardi, poi giri",
+              "Posizioni basse anche nei giri"
+            ],
+            "success": "Riuscito se: esegui il kata intero senza fermarti, con i due kiai al posto giusto e tornando vicino al punto di partenza.",
+            "dose": {
+              "sets": 4,
+              "work": 60,
+              "rest": 40
+            },
+            "video": "taikyoku shodan kata shotokan tutorial"
+          },
+          {
+            "id": "karate-3-5",
+            "name": "Kizami e gyaku zuki al sacco",
+            "kind": "sacco",
+            "how": "Il primo contatto: dalla guardia di kumite, pugno avanti veloce (kizami zuki) e pugno dietro con l'anca (gyaku zuki). Precisione e ritorno in guardia, forza media.",
+            "steps": [
+              "Bende e guantoni. Guardia di kumite a una distanza che ti fa toccare il sacco con il gyaku zuki.",
+              "Kizami zuki, gyaku zuki, piccolo passo indietro. Ogni 5 combinazioni aggiungi un mae geri basso prima dei pugni.",
+              "Senza sacco: stessa combinazione a vuoto allo specchio, con kime sul gyaku zuki."
+            ],
+            "cues": [
+              "Polso dritto all'impatto",
+              "L'anca ruota sul gyaku zuki"
+            ],
+            "success": "Riuscito se: completi 3 round da 90 secondi con i polsi dritti, nessun dolore e ritorno in guardia dopo ogni combinazione.",
+            "easier": "Round da 60 secondi a metà forza, oppure tutto a vuoto senza sacco.",
+            "dose": {
+              "sets": 3,
+              "work": 90,
+              "rest": 45
+            },
+            "video": "karate kizami zuki gyaku zuki heavy bag"
+          },
+          {
+            "id": "karate-3-6",
+            "name": "Allungamento statico: anche e glutei",
+            "kind": "flessibilita",
+            "how": "Ai posteriori aggiungi glutei e flessori dell'anca, che liberano il circolare. Tenute statiche a fine seduta, respirando, senza spinte.",
+            "steps": [
+              "Posteriori da seduto, 30 secondi per lato, e farfalla, 30 secondi.",
+              "Figura 4 sdraiato: caviglia sul ginocchio opposto, tira piano la coscia verso il petto, 30 secondi per lato.",
+              "Affondo con il ginocchio dietro sul tappetino, bacino avanti, 30 secondi per lato."
+            ],
+            "cues": [
+              "Tensione massima 5 su 10",
+              "Respiro lungo in ogni posizione"
+            ],
+            "success": "Riuscito se: tieni tutte le posizioni per il tempo indicato, respirando calmo e senza dolore acuto.",
+            "easier": "Cuscino sotto il ginocchio nell'affondo e tenute da 20 secondi.",
+            "dose": {
+              "sets": 1,
+              "work": 180,
+              "rest": 0
+            },
+            "video": "figure four stretch hip flexor stretch"
+          }
+        ]
+      },
+      {
+        "level": 4,
+        "title": "Calcio laterale e Heian Shodan",
+        "focus": "Il calcio laterale (yoko geri) basso, la posizione arretrata (kokutsu dachi) con shuto uke, il kata Heian Shodan e combinazioni più lunghe a ritmo.",
+        "exercises": [
+          {
+            "id": "karate-4-1",
+            "name": "Riscaldamento dinamico completo",
+            "kind": "riscaldamento",
+            "how": "Mobilità completa e un po' di fiato, perché le combinazioni di questo livello sono più lunghe. Saltelli in guardia, slanci in tutte le direzioni, affondi laterali.",
+            "steps": [
+              "2 minuti di saltelli in guardia di kumite, avanti e indietro.",
+              "Slanci avanti e laterali, poi cerchi dell'anca, 10 per gamba.",
+              "Affondi laterali lenti e camminata a gamba tesa, 8 per lato."
+            ],
+            "cues": [
+              "Ampiezza crescente",
+              "Respiro regolare"
+            ],
+            "success": "Riuscito se: finisci il riscaldamento leggermente sudato e senza dolore.",
+            "dose": {
+              "sets": 2,
+              "work": 180,
+              "rest": 20
+            },
+            "video": "karate warm up routine dynamic"
+          },
+          {
+            "id": "karate-4-2",
+            "name": "Caricamento laterale al muro",
+            "kind": "preparatorio",
+            "how": "Lo yoko geri parte con il ginocchio alto davanti al petto e il piede di taglio (sokuto). Fissi la posizione da fermo, con un appoggio, prima di calciare.",
+            "steps": [
+              "Una mano su muro o sedia; il bersaglio immaginario è dal lato opposto all'appoggio.",
+              "Ginocchio della gamba lontana dall'appoggio alto davanti al petto, piede flesso con il taglio (sokuto) verso il bersaglio.",
+              "Ruota il piede d'appoggio con il tallone verso il bersaglio, tieni 3 secondi e scendi."
+            ],
+            "cues": [
+              "Tallone d'appoggio verso il bersaglio",
+              "Piede flesso, taglio in fuori"
+            ],
+            "success": "Riuscito se: tieni 8 caricamenti per lato per 3 secondi, con perno completo e busto che non crolla sull'appoggio.",
+            "easier": "Ginocchio all'altezza dell'anca e due mani sull'appoggio.",
+            "dose": {
+              "sets": 2,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "karate yoko geri chamber drill",
+            "prepFor": "karate-4-3"
+          },
+          {
+            "id": "karate-4-3",
+            "name": "Calcio laterale (yoko geri kekomi)",
+            "kind": "tecnica",
+            "how": "Il calcio laterale a spinta: ginocchio alto, anca che si gira, gamba che spinge in linea retta con il taglio del piede. Basso, tra ginocchio e cintura, partendo da kiba dachi.",
+            "steps": [
+              "Da kiba dachi guarda il bersaglio di lato e carica il ginocchio della gamba più vicina davanti al petto.",
+              "Spingi la gamba in linea retta con il taglio del piede (sokuto), anca dietro al calcio, poi richiama in caricamento.",
+              "Riappoggia in kiba dachi. Le prime ripetizioni con una mano sulla sedia."
+            ],
+            "cues": [
+              "Tallone, anca e spalla in linea",
+              "Richiama prima di appoggiare"
+            ],
+            "success": "Riuscito se: 8 calci per lato in linea retta, alla cintura o più bassi, con caricamento prima e dopo e ritorno in kiba dachi.",
+            "easier": "Calcio all'altezza del ginocchio con una mano sempre sulla sedia.",
+            "dose": {
+              "sets": 3,
+              "reps": 8,
+              "rest": 40,
+              "perSide": true
+            },
+            "video": "karate yoko geri kekomi side kick tutorial"
+          },
+          {
+            "id": "karate-4-4",
+            "name": "Kata Heian Shodan",
+            "kind": "shadow",
+            "how": "Il primo kata Heian: 21 movimenti con gedan barai, oi zuki, age uke e shuto uke in kokutsu dachi. Lo impari a metà: prima i movimenti 1-9, poi il resto.",
+            "steps": [
+              "Prepara lo shuto uke: in kokutsu dachi (circa 70% del peso dietro), mano aperta di taglio, 5 per lato.",
+              "Prima metà (1-9): gedan barai e oi zuki; giro, gedan barai, martello (tettsui uchi) e oi zuki; giro, gedan barai e tre age uke avanzando, kiai sul terzo.",
+              "Seconda metà (10-21): due coppie gedan barai e oi zuki, gedan barai e tre oi zuki con kiai, quattro shuto uke in kokutsu dachi.",
+              "Prima serie a metà velocità; nell'ultima fai il kata intero."
+            ],
+            "cues": [
+              "Ogni giro parte dallo sguardo",
+              "Kokutsu: peso sulla gamba dietro"
+            ],
+            "success": "Riuscito se: esegui il kata intero senza fermarti, con i due kiai giusti (movimenti 9 e 17) e posizioni riconoscibili allo specchio.",
+            "dose": {
+              "sets": 4,
+              "work": 90,
+              "rest": 45
+            },
+            "video": "heian shodan kata shotokan tutorial"
+          },
+          {
+            "id": "karate-4-5",
+            "name": "Combinazioni a ritmo al sacco",
+            "kind": "sacco",
+            "how": "Combinazioni da 2-3 tecniche con il saltello di kumite: qui il kihon diventa movimento vivo. Forza media, precisione e ritorno in guardia dopo ogni serie.",
+            "steps": [
+              "Bende e guantoni. Round da 2 minuti con saltello leggero in guardia di kumite.",
+              "Combinazioni: kizami zuki, gyaku zuki, mae geri; mae geri e gyaku zuki; kizami zuki, gyaku zuki, mawashi geri gedan. 4-5 volte ciascuna.",
+              "Senza sacco: stesse combinazioni a vuoto davanti allo specchio, con kime sull'ultima tecnica."
+            ],
+            "cues": [
+              "Calci alla cintura o più bassi",
+              "Respira su ogni tecnica"
+            ],
+            "success": "Riuscito se: completi 3 round da 2 minuti con il saltello sempre attivo e ogni combinazione chiusa in guardia.",
+            "easier": "Round da 90 secondi con combinazioni di 2 tecniche, oppure a vuoto.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 60
+            },
+            "video": "karate heavy bag combinations kumite"
+          },
+          {
+            "id": "karate-4-6",
+            "name": "Allungamento statico: aperture",
+            "kind": "flessibilita",
+            "how": "Il calcio laterale chiede adduttori e glutei liberi. Aggiungi le gambe divaricate e la mezza spaccata in ginocchio, sempre graduali, mai forzate.",
+            "steps": [
+              "Gambe divaricate da seduto quanto resti dritto, mani a terra davanti, 40 secondi.",
+              "Mezza spaccata in ginocchio: gamba davanti tesa, mani su blocchi o libri, busto lungo, 30 secondi per lato.",
+              "Farfalla, 30 secondi, e figura 4, 30 secondi per lato."
+            ],
+            "cues": [
+              "Divarica solo fin dove resti dritto",
+              "Nessun rimbalzo"
+            ],
+            "success": "Riuscito se: tieni tutte le posizioni per il tempo indicato con tensione al massimo 5 su 10 e respiro calmo.",
+            "easier": "Siediti su un cuscino nelle divaricate e piega un po' il ginocchio nella mezza spaccata; tenute da 20 secondi.",
+            "dose": {
+              "sets": 1,
+              "work": 180,
+              "rest": 0
+            },
+            "video": "seated straddle half split stretch beginner"
+          }
+        ]
+      },
+      {
+        "level": 5,
+        "title": "Calcio all'indietro (ushiro geri)",
+        "focus": "Il calcio all'indietro (ushiro geri) costruito per gradi: glutei attivi, traiettoria al muro, poi il giro. Shadow di kumite a round con tutto il repertorio.",
+        "exercises": [
+          {
+            "id": "karate-5-1",
+            "name": "Mobilità dinamica e kata lento",
+            "kind": "riscaldamento",
+            "how": "Scaldi le anche con la mobilità dinamica, poi esegui Heian Shodan lentissimo: ripassi il kata e porti il corpo in temperatura senza strappi.",
+            "steps": [
+              "Rotazioni articolari e slanci avanti, laterali e all'indietro al muro, 10 per gamba.",
+              "Cerchi dell'anca e camminata a gamba tesa, 8 per gamba.",
+              "Heian Shodan a metà velocità, una volta, curando le posizioni."
+            ],
+            "cues": [
+              "Lento ma preciso",
+              "Ampiezza crescente negli slanci"
+            ],
+            "success": "Riuscito se: finisci senza dolore, con il kata eseguito intero senza dimenticare movimenti.",
+            "dose": {
+              "sets": 2,
+              "work": 180,
+              "rest": 20
+            },
+            "video": "heian shodan slow motion"
+          },
+          {
+            "id": "karate-5-2",
+            "name": "Ponte glutei a una gamba",
+            "kind": "preparatorio",
+            "how": "L'ushiro geri spinge con glutei e posteriori: se sono deboli, la schiena si inarca e il calcio va di lato. Il ponte a una gamba li attiva prima della tecnica.",
+            "steps": [
+              "Sdraiato sul tappetino, un piede a terra vicino al gluteo, l'altra gamba tesa in alto o piegata al petto.",
+              "Spingi con il tallone e sali finché spalle, anca e ginocchio sono in linea; tieni 2 secondi.",
+              "Scendi lento. Il bacino resta orizzontale, non ruota."
+            ],
+            "cues": [
+              "Spingi con il tallone",
+              "Bacino dritto, schiena neutra"
+            ],
+            "success": "Riuscito se: fai 10 ponti per lato con il bacino che resta orizzontale e 2 secondi di tenuta in alto.",
+            "easier": "Ponte a due gambe con 2 secondi di tenuta in alto.",
+            "dose": {
+              "sets": 2,
+              "reps": 10,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "single leg glute bridge proper form",
+            "prepFor": "karate-5-4"
+          },
+          {
+            "id": "karate-5-3",
+            "name": "Ushiro geri al muro",
+            "kind": "preparatorio",
+            "how": "Impari la traiettoria del calcio all'indietro senza girare: fronte al muro, ginocchio al petto, tallone che spinge dritto dietro di te, guardando oltre la spalla.",
+            "steps": [
+              "Fronte al muro, mani appoggiate all'altezza del petto, a un passo di distanza.",
+              "Ginocchio al petto, sguardo oltre la spalla, piede flesso con la punta verso il basso: colpisci con il tallone (kakato).",
+              "Spingi dritto dietro all'altezza della coscia, tieni 1 secondo, richiama il ginocchio e appoggia."
+            ],
+            "cues": [
+              "Tallone dritto, non di lato",
+              "Prima lo sguardo, poi il calcio"
+            ],
+            "success": "Riuscito se: 8 spinte per lato con il tallone che va dritto dietro e la punta del piede rivolta verso il basso.",
+            "easier": "Tallone all'altezza del ginocchio, senza tenuta in estensione.",
+            "dose": {
+              "sets": 2,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "ushiro geri back kick wall drill",
+            "prepFor": "karate-5-4"
+          },
+          {
+            "id": "karate-5-4",
+            "name": "Calcio all'indietro (ushiro geri)",
+            "kind": "tecnica",
+            "how": "Il calcio di tallone all'indietro: ruoti di spalle, guardi il bersaglio, carichi il ginocchio e spingi dritto. Basso e lento; la potenza arriva quando la traiettoria è sicura.",
+            "steps": [
+              "Dalla guardia di kumite, ruota sul piede avanti finché sei di spalle, guardando oltre la spalla.",
+              "Ginocchio al petto, poi spinta del tallone in linea retta all'altezza della coscia o della cintura.",
+              "Richiama e appoggia in guardia. Le prime 4 ripetizioni partile già di spalle."
+            ],
+            "cues": [
+              "La testa gira prima del corpo",
+              "Le ginocchia si sfiorano: traiettoria dritta"
+            ],
+            "success": "Riuscito se: 6 ushiro geri per lato in linea retta, guardando il bersaglio e tornando in guardia senza barcollare.",
+            "easier": "Parti già di spalle con una mano sulla sedia e calcia all'altezza del ginocchio, senza giro.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "karate ushiro geri back kick tutorial"
+          },
+          {
+            "id": "karate-5-5",
+            "name": "Shadow di kumite a round",
+            "kind": "shadow",
+            "how": "Combattimento immaginario con tutto il repertorio: kizami e gyaku zuki, parate, mae, mawashi e yoko geri. L'ushiro geri entra solo se l'esercizio precedente è riuscito.",
+            "steps": [
+              "Round da 2 minuti in guardia di kumite con saltello leggero.",
+              "Ogni round un tema: round 1 attacchi diretti, round 2 parata e contrattacco, round 3 libero.",
+              "Al massimo 3 ushiro geri per round, bassi e sempre chiusi in guardia."
+            ],
+            "cues": [
+              "Kime sull'ultima tecnica di ogni serie",
+              "Calci alti solo quanto li tieni lenti"
+            ],
+            "success": "Riuscito se: completi 3 round da 2 minuti senza fermarti, con ogni combinazione chiusa in guardia.",
+            "easier": "Round da 60-90 secondi con soli pugni, parate e mae geri.",
+            "dose": {
+              "sets": 3,
+              "work": 120,
+              "rest": 60
+            },
+            "video": "karate shadow kumite solo drill"
+          },
+          {
+            "id": "karate-5-6",
+            "name": "Allungamento statico completo",
+            "kind": "flessibilita",
+            "how": "Routine statica completa con attenzione ai flessori dell'anca, che l'ushiro geri allunga a ogni calcio. Posizioni tenute, respiro lento, mai dolore.",
+            "steps": [
+              "Affondo basso con il ginocchio dietro sul tappetino e mezza spaccata, 30 secondi per lato ciascuno.",
+              "Gambe divaricate da seduto, 30 secondi, schiena dritta.",
+              "Farfalla, 30 secondi. Espira lungo e lascia andare senza spingere."
+            ],
+            "cues": [
+              "Tensione 5 su 10, non di più",
+              "Nessun rimbalzo"
+            ],
+            "success": "Riuscito se: tieni tutte le posizioni per il tempo indicato con respiro calmo e senza dolore acuto.",
+            "easier": "Blocchi sotto le mani, cuscino sotto il ginocchio e tenute da 20 secondi.",
+            "dose": {
+              "sets": 1,
+              "work": 180,
+              "rest": 0
+            },
+            "video": "hip flexor half split stretch routine"
+          }
+        ]
+      },
+      {
+        "level": 6,
+        "title": "Calcio girato e round lunghi",
+        "focus": "Il calcio girato (ushiro mawashi geri) con preparatori dedicati, il kata come riscaldamento e round lunghi al sacco con tutto il repertorio.",
+        "exercises": [
+          {
+            "id": "karate-6-1",
+            "name": "Mobilità dinamica e due kata",
+            "kind": "riscaldamento",
+            "how": "Mobilità dinamica completa, poi Taikyoku Shodan e Heian Shodan lenti: posizioni basse e giri controllati preparano equilibrio e gambe ai calci girati.",
+            "steps": [
+              "Rotazioni articolari, slanci in tutte le direzioni e cerchi dell'anca, 10 per gamba.",
+              "Taikyoku Shodan e Heian Shodan a metà velocità, una volta ciascuno.",
+              "4 giri lenti sul posto per verso, fermandoti ogni volta in guardia."
+            ],
+            "cues": [
+              "Lento e preciso",
+              "Fissa un punto dopo ogni giro"
+            ],
+            "success": "Riuscito se: finisci senza dolore, esegui i due kata senza errori di sequenza e ti fermi stabile dopo i giri.",
+            "dose": {
+              "sets": 2,
+              "work": 180,
+              "rest": 20
+            },
+            "video": "taikyoku shodan heian shodan shotokan"
+          },
+          {
+            "id": "karate-6-2",
+            "name": "Giro con sguardo, senza calcio",
+            "kind": "preparatorio",
+            "how": "Nei calci girati la testa gira prima del corpo e trova il bersaglio. Alleni il giro completo sull'avampiede senza calciare, finché ti fermi stabile in guardia.",
+            "steps": [
+              "Dalla guardia di kumite, gira la testa e guarda oltre la spalla posteriore.",
+              "Ruota sull'avampiede del piede avanti fino a essere di spalle, completa il giro e torna in guardia.",
+              "Metà ripetizioni per verso; aumenta la velocità solo se resti stabile."
+            ],
+            "cues": [
+              "Testa prima, corpo dopo",
+              "Ginocchia morbide"
+            ],
+            "success": "Riuscito se: fai 8 giri per verso fermandoti ogni volta in guardia, senza passi di recupero.",
+            "easier": "Gira solo fino a trovarti di spalle (mezzo giro) e torna indietro.",
+            "dose": {
+              "sets": 2,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "spinning back kick footwork drill",
+            "prepFor": "karate-6-4"
+          },
+          {
+            "id": "karate-6-3",
+            "name": "Aggancio del tallone alla sedia",
+            "kind": "preparatorio",
+            "how": "L'ushiro mawashi geri colpisce con il tallone in un arco a uncino. Isoli il gesto: gamba distesa di lato, poi il tallone che aggancia piegando il ginocchio.",
+            "steps": [
+              "Mano sulla sedia, gamba distesa di lato e bassa, come nel finale di uno yoko geri.",
+              "Piega il ginocchio e porta il tallone in un arco orizzontale, come a colpire dietro un bersaglio.",
+              "Richiama e appoggia. Prima all'altezza del ginocchio, poi della coscia se resti stabile."
+            ],
+            "cues": [
+              "Arco orizzontale",
+              "Prima distendi, poi aggancia"
+            ],
+            "success": "Riuscito se: 8 agganci per lato con arco orizzontale e tallone deciso, senza appoggiarti di peso alla sedia.",
+            "dose": {
+              "sets": 2,
+              "reps": 8,
+              "rest": 30,
+              "perSide": true
+            },
+            "video": "hook kick slow drill balance chair",
+            "prepFor": "karate-6-4"
+          },
+          {
+            "id": "karate-6-4",
+            "name": "Calcio girato (ushiro mawashi geri)",
+            "kind": "tecnica",
+            "how": "Il calcio girato a uncino: giro, sguardo, gamba distesa a lato del bersaglio, aggancio di tallone. Basso e lento finché il giro è stabile; l'altezza la decide la tua mobilità.",
+            "steps": [
+              "Dalla guardia di kumite, la testa gira e fai perno sull'avampiede del piede avanti.",
+              "Distendi la gamba posteriore poco a lato del bersaglio, all'altezza della coscia, e aggancia con il tallone.",
+              "Completa il giro e atterra in guardia. Le prime ripetizioni a mezza velocità."
+            ],
+            "cues": [
+              "Testa, perno, distensione, aggancio",
+              "Atterra fermo in guardia, mai a metà giro"
+            ],
+            "success": "Riuscito se: 6 calci girati per lato all'altezza della coscia, atterrando in guardia ogni volta senza passi di recupero.",
+            "easier": "Parti già di spalle con una mano sulla sedia e fai solo l'aggancio all'altezza del ginocchio, senza giro.",
+            "dose": {
+              "sets": 3,
+              "reps": 6,
+              "rest": 45,
+              "perSide": true
+            },
+            "video": "karate ushiro mawashi geri spinning hook kick"
+          },
+          {
+            "id": "karate-6-5",
+            "name": "Round lunghi al sacco",
+            "kind": "sacco",
+            "how": "Round lunghi che uniscono kihon e kumite: pugni, parate e contrattacchi, calci di gamba avanti e dietro. Ushiro e ushiro mawashi geri pochi, bassi e controllati.",
+            "steps": [
+              "Bende e guantoni. 4 round da 2 minuti e mezzo, con 1 minuto di pausa.",
+              "Combinazioni da 2-4 tecniche con saltello; al massimo 2-3 calci all'indietro o girati per round, alla cintura o più bassi.",
+              "Senza sacco: stessi round a vuoto davanti allo specchio, come kumite immaginario."
+            ],
+            "cues": [
+              "Tecnica prima della forza",
+              "Kime breve, poi rilassati"
+            ],
+            "success": "Riuscito se: completi 4 round senza fermarti, chiudendo ogni combinazione in guardia e senza perdere l'equilibrio nei calci.",
+            "easier": "3 round da 2 minuti senza calci girati, oppure tutto a vuoto senza sacco.",
+            "dose": {
+              "sets": 4,
+              "work": 150,
+              "rest": 60
+            },
+            "video": "karate heavy bag workout rounds"
+          },
+          {
+            "id": "karate-6-6",
+            "name": "Allungamento statico con respiro",
+            "kind": "flessibilita",
+            "how": "Routine completa con il contrai-rilassa leggero sui posteriori: premi piano il tallone a terra 5 secondi, rilassi e respiri. La nuova posizione non si forza mai.",
+            "steps": [
+              "Mezza spaccata in ginocchio: 20 secondi, poi premi il tallone a terra al 30% per 5 secondi, rilassa e tieni altri 20 secondi. Per lato.",
+              "Affondo basso, 30 secondi per lato; gambe divaricate da seduto, 30 secondi.",
+              "Farfalla e figura 4, 30 secondi ciascuno, espirando lungo."
+            ],
+            "cues": [
+              "Contrazione leggera, mai al massimo",
+              "Dopo il rilascio, nessuna spinta"
+            ],
+            "success": "Riuscito se: completi la routine senza dolore acuto, con tensione al massimo 5 su 10 in ogni posizione.",
+            "easier": "Salta il contrai-rilassa e tieni solo le posizioni statiche, da 20 a 30 secondi.",
+            "dose": {
+              "sets": 1,
+              "work": 180,
+              "rest": 0
+            },
+            "video": "contract relax hamstring stretch gentle"
+          }
+        ]
+      }
+    ],
+    "color": "#e9e4d8",
+    "short": "Karate"
+  },
+  {
     "id": "capoeira",
     "name": "Capoeira",
     "tagline": "Ginga che non si ferma, schivate basse, calci in cerchio.",
