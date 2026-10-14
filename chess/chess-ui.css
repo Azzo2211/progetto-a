@@ -478,6 +478,28 @@
   margin-top: 10px;
 }
 
+/* citazione di fine partita, come all'inizio degli episodi */
+.game-result-quote {
+  margin: 8px 0 0;
+  padding: 10px 2px 0;
+  border-top: 1px solid rgba(230, 199, 119, 0.25);
+  display: grid;
+  gap: 4px;
+}
+.game-result-quote p {
+  margin: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  font-style: italic;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: #eef2fa;
+}
+.game-result-quote cite {
+  font-style: normal;
+  font-size: 0.74rem;
+  color: var(--c-muted);
+}
+
 .game-result-close {
   position: absolute;
   top: 6px;

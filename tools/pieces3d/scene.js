@@ -74,6 +74,131 @@ function materials(color) {
   };
 }
 
+
+/* ------------------------------------------------- stile anime (cel shading) */
+const TOON_VERT = `
+varying vec3 vN;
+varying vec3 vV;
+void main() {
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vN = normalize(normalMatrix * normal);
+  vV = normalize(-mv.xyz);
+  gl_Position = projectionMatrix * mv;
+}`;
+const TOON_FRAG = `
+uniform vec3 uBase;
+uniform vec3 uShade;
+uniform vec3 uDeep;
+uniform vec3 uSpec;
+uniform vec3 uRim;
+uniform vec3 uL;
+uniform float uShadeT;
+uniform float uDeepT;
+uniform float uSpecT;
+uniform float uSpecAmt;
+uniform float uRimT;
+uniform float uRimAmt;
+varying vec3 vN;
+varying vec3 vV;
+float band(float v, float t) {
+  float w = fwidth(v) * 0.9;
+  return smoothstep(t - w, t + w, v);
+}
+void main() {
+  vec3 N = normalize(vN);
+  if (!gl_FrontFacing) N = -N;
+  vec3 V = normalize(vV);
+  vec3 L = normalize(uL);
+  float d = dot(N, L);
+  float lit = band(d, uShadeT);
+  float mid = band(d, uDeepT);
+  vec3 col = mix(uDeep, mix(uShade, uBase, lit), mid);
+  vec3 H = normalize(L + V);
+  float spec = band(dot(N, H), uSpecT) * uSpecAmt;
+  col = mix(col, uSpec, spec);
+  float rim = band(1.0 - max(dot(N, V), 0.0), uRimT) * (1.0 - lit * 0.9) * uRimAmt;
+  col = mix(col, uRim, rim);
+  gl_FragColor = vec4(col, 1.0);
+}`;
+const OUTLINE_VERT = `
+uniform float uThick;
+void main() {
+  vec3 p = position + normalize(normal) * uThick;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+}`;
+const OUTLINE_FRAG = `
+uniform vec3 uInk;
+void main() { gl_FragColor = vec4(uInk, 1.0); }`;
+
+const toonLight = new THREE.Vector3(-0.55, 0.78, 0.62).normalize();
+const toonMats = [];
+function toon(p) {
+  const c = (hex) => new THREE.Color().setHex(hex, THREE.LinearSRGBColorSpace);
+  const m = new THREE.ShaderMaterial({
+    vertexShader: TOON_VERT,
+    fragmentShader: TOON_FRAG,
+    uniforms: {
+      uBase: { value: c(p.base) },
+      uShade: { value: c(p.shade) },
+      uDeep: { value: c(p.deep) },
+      uSpec: { value: c(p.spec || 0xffffff) },
+      uRim: { value: c(p.rim || 0xffffff) },
+      uL: { value: new THREE.Vector3() },
+      uShadeT: { value: p.shadeT ?? 0.18 },
+      uDeepT: { value: p.deepT ?? -0.38 },
+      uSpecT: { value: p.specT ?? 0.975 },
+      uSpecAmt: { value: p.specAmt ?? 1 },
+      uRimT: { value: p.rimT ?? 0.7 },
+      uRimAmt: { value: p.rimAmt ?? 1 }
+    }
+  });
+  toonMats.push(m);
+  return m;
+}
+function toonMaterials(color) {
+  const white = color === "w";
+  return white
+    ? {
+        body: toon({ base: 0xf7f5fb, shade: 0xc5c8e0, deep: 0x989ec0, spec: 0xffffff, specAmt: 0, rim: 0xdff0ff, rimAmt: 0.9 }),
+        band: toon({ base: 0xd4253f, shade: 0x93112b, deep: 0x5f0a1c, spec: 0xffa3b2, specT: 0.97, rim: 0xff7088, rimAmt: 0.8 }),
+        trim: toon({ base: 0xf1f4f9, shade: 0xadb4c8, deep: 0x7c849c, spec: 0xffffff, specT: 0.94, rim: 0xffffff, rimAmt: 0.6 }),
+        ink: 0x161a33
+      }
+    : {
+        body: toon({ base: 0x313a5e, shade: 0x1c223d, deep: 0x11152a, spec: 0xc6d4ff, specT: 0.972, rim: 0x5fcaff, rimT: 0.66, rimAmt: 1 }),
+        band: toon({ base: 0xc9243e, shade: 0x810e26, deep: 0x4f0817, spec: 0xff98aa, specT: 0.97, rim: 0xff5f7a, rimAmt: 0.9 }),
+        trim: toon({ base: 0xf4d06c, shade: 0xbb8b2c, deep: 0x7e5a16, spec: 0xfff4c8, specT: 0.94, rim: 0xffe08a, rimAmt: 0.6 }),
+        ink: 0x0a0c19
+      };
+}
+function addOutlines(group, ink, thick) {
+  const mat = new THREE.ShaderMaterial({
+    vertexShader: OUTLINE_VERT,
+    fragmentShader: OUTLINE_FRAG,
+    side: THREE.BackSide,
+    uniforms: { uThick: { value: thick }, uInk: { value: new THREE.Color().setHex(ink, THREE.LinearSRGBColorSpace) } }
+  });
+  const meshes = [];
+  group.traverse((o) => {
+    if (o.isMesh && !o.userData.outline) meshes.push(o);
+  });
+  meshes.forEach((m) => {
+    const s = m.scale;
+    const k = 1 / Math.max(0.2, Math.min(s.x, s.y, s.z));
+    const local = mat.clone();
+    local.uniforms.uThick.value = thick * Math.min(k, 2.5);
+    // normali "lisce" (una per posizione) cosi' il contorno non si spezza sugli spigoli
+    const g0 = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
+    const flat = new THREE.BufferGeometry();
+    flat.setAttribute("position", g0.getAttribute("position").clone());
+    const smoothGeo = mergeVertices(flat, 1e-4);
+    smoothGeo.computeVertexNormals();
+    const o = new THREE.Mesh(smoothGeo, local);
+    o.userData.outline = true;
+    m.add(o);
+  });
+}
+
 /* ------------------------------------------------------------ helpers */
 const V2 = (x, y) => new THREE.Vector2(x, y);
 
@@ -326,24 +451,31 @@ function rook(mats) {
   ]);
   base.push([0.2, 0.088], ...quad([0.2, 0.088], [0.162, 0.25], [0.168, 0.4], 18));
   const c = collar(0.168, 0.4, 0.212, 0.014);
+  const floor = 0.588;
   const top = rounded([
     [0.172, c.top],
     [0.182, c.top + 0.02, 0.01],
     [0.226, c.top + 0.062, 0.012],
     [0.232, c.top + 0.08, 0.006],
-    [0.232, 0.64, 0.008],
-    [0.176, 0.64, 0.006],
-    [0.176, 0.6, 0.01],
-    [0, 0.6]
+    [0.232, floor, 0.01],
+    [0.12, floor],
+    [0, floor]
   ]);
-  g.add(mesh(lathe(base), mats.body), mesh(lathe(c.pts), mats.band));
-  const cutters = [0, 60, 120].map((deg) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.09, 0.062));
-    m.position.y = 0.64;
-    m.rotation.y = THREE.MathUtils.degToRad(deg + 30);
-    return m;
-  });
-  g.add(csgSubtract(lathe(top, 192), mats.body, cutters, mats.body));
+  g.add(mesh(lathe(base), mats.body), mesh(lathe(c.pts), mats.band), mesh(lathe(top, 192), mats.body));
+  // merli: settori di anello estrusi verso l'alto, arrotondati
+  const count = 6;
+  const span = ((Math.PI * 2) / count) * 0.62;
+  for (let i = 0; i < count; i += 1) {
+    const a0 = (i / count) * Math.PI * 2 + Math.PI / 2 - span / 2 + Math.PI / count;
+    const shape = new THREE.Shape();
+    shape.absarc(0, 0, 0.222, a0, a0 + span, false);
+    shape.absarc(0, 0, 0.158, a0 + span, a0, true);
+    shape.closePath();
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.04, bevelEnabled: true, bevelThickness: 0.01, bevelSize: 0.009, bevelSegments: 4, curveSegments: 20 });
+    geo.rotateX(-Math.PI / 2);
+    geo.translate(0, floor + 0.004, 0);
+    g.add(mesh(geo, mats.body));
+  }
   addCollarRings(g, c, mats);
   return g;
 }
@@ -388,9 +520,9 @@ function queen(mats) {
   const fin = arc(0, c.top + 0.31, 0.03, -52, 90, 16);
   g.add(mesh(lathe(base), mats.body), mesh(lathe(c.pts), mats.band), mesh(lathe([...crown, ...fin]), mats.body));
   const ballMat = mats.trim;
-  for (let i = 0; i < 10; i += 1) {
-    const a = (i / 10) * Math.PI * 2 + 0.31;
-    const ball = mesh(new THREE.SphereGeometry(0.023, 24, 16), ballMat);
+  for (let i = 0; i < 8; i += 1) {
+    const a = (i / 8) * Math.PI * 2 + 0.39;
+    const ball = mesh(new THREE.SphereGeometry(0.026, 24, 16), ballMat);
     ball.position.set(Math.cos(a) * 0.196, c.top + 0.247, Math.sin(a) * 0.196);
     g.add(ball);
   }
@@ -519,9 +651,13 @@ const BUILDERS = { P: pawn, N: knight, B: bishop, R: rook, Q: queen, K: king };
 
 let current = null;
 window.renderPiece = function (type, color, cfg = {}) {
-  const config = { elevation: 14, fov: 16, S: 0.9, ratio: 1.25, baseFromBottom: 0.17, ...cfg };
+  const config = { elevation: 14, fov: 16, S: 0.9, ratio: 1.25, baseFromBottom: 0.17, variant: "real", outline: 0.011, ...cfg };
+  const anime = config.variant === "anime";
   if (current) scene.remove(current);
-  current = BUILDERS[type](materials(color));
+  toonMats.length = 0;
+  const mats = anime ? toonMaterials(color) : materials(color);
+  current = BUILDERS[type](mats);
+  if (anime) addOutlines(current, mats.ink, config.outline);
   if (config.yaw) current.rotation.y = THREE.MathUtils.degToRad(config.yaw);
   scene.add(current);
   const W = SIZE;
@@ -531,7 +667,6 @@ window.renderPiece = function (type, color, cfg = {}) {
   camera.aspect = W / H;
   const frameH = config.S * config.ratio;
   const distance = frameH / (2 * Math.tan(THREE.MathUtils.degToRad(config.fov / 2)));
-  // ndc desiderato per il centro della base
   const desired = -1 + (2 * config.baseFromBottom * config.S) / frameH;
   let targetY = 0.45;
   const origin = new THREE.Vector3();
@@ -542,7 +677,17 @@ window.renderPiece = function (type, color, cfg = {}) {
     targetY += (ndc - desired) * (frameH / 2);
   }
   frameCamera({ elevation: config.elevation, distance, targetY });
+  camera.updateMatrixWorld();
   const white = color === "w";
+  if (anime) {
+    renderer.toneMapping = THREE.NoToneMapping;
+    renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+    const lv = toonLight.clone().transformDirection(camera.matrixWorldInverse);
+    toonMats.forEach((m) => m.uniforms.uL.value.copy(lv));
+  } else {
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+  }
   renderer.toneMappingExposure = white ? (config.whiteExposure || 0.86) : (config.blackExposure || 1.0);
   scene.environmentIntensity = white ? 0.3 : 0.55;
   key.intensity = white ? 3.3 : 2.6;

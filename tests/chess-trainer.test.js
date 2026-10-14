@@ -275,13 +275,14 @@ test("Profilo: fasce coerenti con i gradi", () => {
   });
 });
 
-test("Pezzi: set Elite predefinito e immagini presenti per ogni set", () => {
+test("Pezzi: set Classroom predefinito e immagini presenti per ogni set", () => {
   const fs = require("fs");
-  assert.strictEqual(Board.DEFAULT_SET, "elite");
+  assert.strictEqual(Board.DEFAULT_SET, "cote");
+  assert.strictEqual(Board.pieceSrc("cote", "N"), "assets/pieces/cote/wN.webp");
   assert.strictEqual(Board.pieceSrc("elite", "K"), "assets/pieces/elite/wK.webp");
   assert.strictEqual(Board.pieceSrc("elite", "n"), "assets/pieces/elite/bN.webp");
   assert.strictEqual(Board.pieceSrc("elite", "bQ"), "assets/pieces/elite/bQ.webp");
-  assert.strictEqual(Board.pieceSrc("inesistente", "p"), "assets/pieces/elite/bP.webp");
+  assert.strictEqual(Board.pieceSrc("inesistente", "p"), "assets/pieces/cote/bP.webp");
   assert.strictEqual(Board.pieceSrc("staunty", "R"), "assets/pieces/staunty/wR.svg");
   Object.keys(Board.PIECE_SETS).forEach((set) => {
     ["w", "b"].forEach((c) => "KQRBNP".split("").forEach((p) => {

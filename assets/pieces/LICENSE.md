@@ -1,7 +1,8 @@
 # Pezzi degli scacchi
 
-`elite/` e' un set originale di Progetto A (modellato e renderizzato con
-`tools/pieces3d`), in stile Classroom of the Elite.
+`cote/` ("Classroom", stile anime) ed `elite/` ("Elite 3D", resa realistica)
+sono set originali di Progetto A, modellati e renderizzati con `tools/pieces3d`,
+in stile Classroom of the Elite.
 
 Gli altri set provengono dal progetto [lila (lichess.org)](https://github.com/lichess-org/lila/tree/master/public/piece).
 

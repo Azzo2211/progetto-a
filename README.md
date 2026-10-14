@@ -22,7 +22,7 @@ Poi apri **http://localhost:8765** (non aprire `index.html` con doppio click: St
 | `chess/analysis-core.js` | Probabilità di vittoria, precisione (metodo Lichess), classificazione mosse, pattern di errore, commenti del coach. |
 | `chess/bot.js` | I 19 livelli del bot (da 250 a 3600 Elo) e la scelta delle mosse. |
 | `chess/review.js` | Revisione della partita: analizza ogni posizione e costruisce il report. |
-| `chess/board-view.js` | Scacchiera: pezzi animati (si alzano e si appoggiano con l'ombra, il cavallo salta, il pezzo catturato cade con un taglio cremisi, il re trema allo scacco e cade allo scacco matto), trascinamento, frecce, promozione, temi di colore, suoni. |
+| `chess/board-view.js` | Scacchiera: pezzi animati (si alzano e si appoggiano con l'ombra, il cavallo salta, il pezzo catturato cade con un taglio cremisi, il re trema allo scacco e cade allo scacco matto) ed effetti speciali in stile Classroom disattivabili (scie color ghiaccio, luce su traversa e colonna, mirino, linee di velocita' sulle catture, lampo in bianco e nero allo scacco); trascinamento, frecce, promozione, temi di colore, suoni. |
 | `chess/chess-ui.js` | Pagina scacchi: schede, scelta del bot, barre dei giocatori, coach, suggerimenti, fine partita. |
 | `chess/coach.js` | Coach in allenamento: pezzi in presa, matti in una, minacce del bot, consigli d'apertura. |
 | `chess/lessons.js` | 40 lezioni per grado (teoria, esempi guidati, esercizi). |
@@ -31,8 +31,8 @@ Poi apri **http://localhost:8765** (non aprire `index.html` con doppio click: St
 | `chess/rating.js` | Rating Glicko contro i bot e sugli esercizi, requisiti dei gradi E-S. |
 | `chess/skills.js` | Profilo di gioco a 6 categorie: eventi per mossa (errori e mosse buone) e aggiornamento dopo ogni partita. |
 | `chess/puzzles.json` | 4.070 esercizi dal database Lichess (CC0), da 400 a 2600 di rating. |
-| `assets/pieces/` | Set "Elite" (predefinito, originale, in stile Classroom of the Elite) e set di lichess.org (licenze in `assets/pieces/LICENSE.md`). |
-| `tools/pieces3d/` | Generatore 3D del set Elite (three.js): forme, materiali, luci, rendering in WebP. |
+| `assets/pieces/` | Set "Classroom" (predefinito, originale, disegnato in stile anime Classroom of the Elite), "Elite 3D" (stessi pezzi, resa realistica) e set di lichess.org (licenze in `assets/pieces/LICENSE.md`). |
+| `tools/pieces3d/` | Generatore 3D dei set Classroom ed Elite 3D (three.js): forme, materiali, cel shading anime, rendering in WebP. |
 | `app.js` | Logica della partita, revisione e quadro. |
 
 ### Grado E-S: come si misura

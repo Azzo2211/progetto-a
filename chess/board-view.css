@@ -388,3 +388,179 @@
   .bv-piece.bv-fallen.bv-fall-now .bv-img { animation: none; }
   .bv-sq.mark-hint::before { animation: none; }
 }
+
+/* ------------------------------------------------ effetti stile Classroom */
+
+/* immagini residue color ghiaccio dietro al pezzo */
+.bv-ghost {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 12.5%;
+  height: 12.5%;
+  z-index: 35;
+  pointer-events: none;
+  opacity: 0;
+}
+.bv-ghost .bv-img {
+  transition: none;
+  background: linear-gradient(180deg, #d9f4ff 0%, #79d3ff 55%, #3aa6f0 100%);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  filter: drop-shadow(0 0 6px rgba(90, 195, 255, 0.9));
+}
+
+/* luce lungo traversa e colonna della casa d'arrivo */
+.bv-scan {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  animation: bv-scan 620ms cubic-bezier(0.2, 0.75, 0.3, 1) forwards;
+  --c: 150, 218, 255;
+}
+.bv-scan.blood { --c: 255, 84, 110; }
+.bv-scan.gold { --c: 245, 214, 130; }
+.bv-scan-row {
+  left: 0;
+  right: 0;
+  height: 12.5%;
+  transform-origin: var(--o) 50%;
+  background:
+    linear-gradient(90deg, rgba(var(--c), 0), rgba(var(--c), 0.95) var(--o), rgba(var(--c), 0)) center / 100% max(2px, 0.3cqi) no-repeat,
+    linear-gradient(90deg, rgba(var(--c), 0), rgba(var(--c), 0.3) var(--o), rgba(var(--c), 0));
+}
+.bv-scan-col {
+  top: 0;
+  bottom: 0;
+  width: 12.5%;
+  transform-origin: 50% var(--o);
+  background:
+    linear-gradient(180deg, rgba(var(--c), 0), rgba(var(--c), 0.95) var(--o), rgba(var(--c), 0)) center / max(2px, 0.3cqi) 100% no-repeat,
+    linear-gradient(180deg, rgba(var(--c), 0), rgba(var(--c), 0.3) var(--o), rgba(var(--c), 0));
+}
+.bv-scan-row { animation-name: bv-scan-x; }
+.bv-scan-col { animation-name: bv-scan-y; }
+
+@keyframes bv-scan-x {
+  0% { opacity: 1; transform: scaleX(0); }
+  45% { opacity: 1; }
+  100% { opacity: 0; transform: scaleX(1); }
+}
+@keyframes bv-scan-y {
+  0% { opacity: 1; transform: scaleY(0); }
+  45% { opacity: 1; }
+  100% { opacity: 0; transform: scaleY(1); }
+}
+
+/* mirino che si chiude sulla casa d'arrivo */
+.bv-lock {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+  pointer-events: none;
+  --c: #a8e2ff;
+}
+.bv-lock.blood { --c: #ff5a74; }
+.bv-lock.gold { --c: #f6d683; }
+.bv-lock::before {
+  content: "";
+  position: absolute;
+  inset: 5%;
+  --t: max(2px, 0.34cqi);
+  --l: 28%;
+  background:
+    linear-gradient(var(--c), var(--c)) left top / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) left top / var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) right top / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) right top / var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) left bottom / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) left bottom / var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) right bottom / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) right bottom / var(--t) var(--l) no-repeat;
+  filter: drop-shadow(0 0 4px var(--c));
+  opacity: 0;
+  animation: bv-lock 640ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation-delay: inherit;
+}
+@keyframes bv-lock {
+  0% { opacity: 0; transform: scale(1.6) rotate(8deg); }
+  30% { opacity: 1; }
+  55% { opacity: 1; transform: scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: scale(0.94); }
+}
+
+/* linee di velocita' (manga) sulla cattura */
+.bv-burst {
+  position: absolute;
+  width: 37.5%;
+  height: 37.5%;
+  pointer-events: none;
+}
+.bv-burst::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from var(--spin, 0deg), rgba(255, 255, 255, 0) 0deg 7deg, rgba(255, 246, 248, 0.95) 7deg 8.2deg, rgba(255, 255, 255, 0) 8.2deg 15deg);
+  -webkit-mask-image: radial-gradient(circle, transparent 22%, #000 30%, #000 50%, transparent 70%);
+  mask-image: radial-gradient(circle, transparent 22%, #000 30%, #000 50%, transparent 70%);
+  filter: drop-shadow(0 0 3px rgba(255, 70, 100, 0.9));
+  opacity: 0;
+  transform: scale(0.45);
+  animation: bv-burst 460ms cubic-bezier(0.15, 0.8, 0.3, 1) forwards;
+  animation-delay: inherit;
+}
+@keyframes bv-burst {
+  0% { opacity: 0; transform: scale(0.45); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.25); }
+}
+
+/* scacco: lampo freddo in bianco e nero, il re resta acceso di rosso */
+.bv .bv-squares,
+.bv .bv-pieces { transition: filter 520ms ease; }
+.bv.bv-cold .bv-squares,
+.bv.bv-cold .bv-pieces {
+  filter: grayscale(1) sepia(0.25) hue-rotate(185deg) brightness(0.78) contrast(1.25);
+  transition: filter 90ms ease;
+}
+.bv.bv-endcold .bv-squares { filter: grayscale(0.85) sepia(0.2) hue-rotate(185deg) brightness(0.72) contrast(1.2); transition: filter 900ms ease 500ms; }
+
+.bv-aura,
+.bv-aura-fixed {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+  pointer-events: none;
+}
+.bv-aura::before,
+.bv-aura-fixed::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 40, 70, 0.9) 0%, rgba(210, 20, 50, 0.55) 28%, rgba(160, 0, 30, 0) 62%);
+}
+.bv-aura::before {
+  opacity: 0;
+  animation: bv-aura 1100ms ease-out forwards;
+  animation-delay: inherit;
+}
+.bv-aura-fixed::before { animation: bv-aura-in 900ms ease-out 400ms backwards; }
+@keyframes bv-aura {
+  0% { opacity: 0; transform: scale(0.4); }
+  25% { opacity: 1; transform: scale(1.05); }
+  60% { opacity: 0.9; transform: scale(0.95); }
+  100% { opacity: 0; transform: scale(1.1); }
+}
+@keyframes bv-aura-in {
+  from { opacity: 0; transform: scale(0.3); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bv-ghost, .bv-scan, .bv-lock, .bv-burst, .bv-aura { display: none; }
+  .bv .bv-squares, .bv .bv-pieces { transition: none; }
+}

@@ -2,8 +2,9 @@
  * Progetto A - Scacchi: scacchiera interattiva riutilizzabile.
  *
  * Una sola scacchiera per partita, revisione, lezioni ed esercizi:
- *  - set "Elite" (pezzi 3D originali in stile Classroom of the Elite, generati
- *    con tools/pieces3d) e set SVG di lichess (vedi assets/pieces/LICENSE.md)
+ *  - set "Classroom" (pezzi originali disegnati in stile anime Classroom of the
+ *    Elite) ed "Elite 3D" (stessi pezzi, resa realistica), generati con
+ *    tools/pieces3d; set SVG di lichess (vedi assets/pieces/LICENSE.md)
  *  - mosse animate: il pezzo si alza, scivola e si appoggia con la sua ombra;
  *    il cavallo salta, il pezzo catturato cade di lato, il re trema allo
  *    scacco e cade allo scacco matto (anche nella revisione, avanti e indietro)
@@ -27,13 +28,14 @@
   // ext: formato delle immagini; ratio: altezza/larghezza dell'immagine (i pezzi
   // 3D sono piu' alti della casa e sporgono verso l'alto); depth: ha volume.
   const PIECE_SETS = {
-    elite: { label: "Elite", author: "Progetto A", license: "originale", ext: "webp", ratio: 1.25, depth: true },
+    cote: { label: "Classroom", author: "Progetto A", license: "originale", ext: "webp", ratio: 1.25, depth: true },
+    elite: { label: "Elite 3D", author: "Progetto A", license: "originale", ext: "webp", ratio: 1.25, depth: true },
     staunty: { label: "Staunty", author: "sadsnake1", license: "CC BY-NC-SA 4.0", ext: "svg", ratio: 1 },
     maestro: { label: "Maestro", author: "sadsnake1", license: "CC BY-NC-SA 4.0", ext: "svg", ratio: 1 },
     california: { label: "California", author: "Jerry S.", license: "CC BY-NC-SA 4.0", ext: "svg", ratio: 1 },
     cburnett: { label: "Classico", author: "Colin M.L. Burnett", license: "GPLv2+", ext: "svg", ratio: 1 }
   };
-  const DEFAULT_SET = "elite";
+  const DEFAULT_SET = "cote";
 
   // Colori case chiare/scure. "accademia" e' pensato per il tema scuro della pagina.
   const BOARD_THEMES = {
@@ -217,6 +219,7 @@
         orientation: "white",
         coordinates: true,
         animationMs: 190,
+        effects: true, // effetti speciali in stile Classroom (scie, griglia, lampo freddo)
         piecePath: "assets/pieces",
         onPieceGrab: null, // (square) => boolean: il pezzo puo' essere trascinato?
         onSquareTap: null, // (square, { wasSelected }) => void
@@ -345,6 +348,90 @@
       return Boolean(el && el.animate) && !this.reducedMotion();
     }
 
+    fxOn() {
+      return this.options.effects !== false && !this.reducedMotion() && Boolean(this.root.animate);
+    }
+
+    squareTransform(square) {
+      const { x, y } = this.squareOffset(square);
+      return `translate(${x * 100}%, ${y * 100}%)`;
+    }
+
+    // Scia di "immagini residue" color ghiaccio dietro al pezzo che si muove.
+    ghostTrail(entry, from, to, { duration, delay = 0, hop = false } = {}) {
+      const fromT = this.squareTransform(from);
+      const toT = this.squareTransform(to);
+      const easing = "cubic-bezier(0.32, 0.72, 0.2, 1)";
+      for (let i = 1; i <= 3; i += 1) {
+        const ghost = document.createElement("div");
+        ghost.className = "bv-ghost";
+        const img = document.createElement("div");
+        img.className = "bv-img";
+        // sagoma piena color ghiaccio: l'immagine del pezzo fa da maschera
+        img.style.webkitMaskImage = entry.img.style.backgroundImage;
+        img.style.maskImage = entry.img.style.backgroundImage;
+        ghost.appendChild(img);
+        ghost.style.transform = fromT;
+        this.piecesEl.appendChild(ghost);
+        const lag = delay + i * 42;
+        ghost.animate([{ transform: fromT }, { transform: toT }], { duration, delay: lag, easing, fill: "both" });
+        ghost.animate(
+          [{ opacity: 0 }, { opacity: 0.78 - i * 0.16, offset: 0.08 }, { opacity: 0.55 - i * 0.12, offset: 0.62 }, { opacity: 0 }],
+          { duration: duration + 40, delay: lag, fill: "both" }
+        );
+        if (hop) {
+          img.animate(
+            [{ transform: "none" }, { transform: "translateY(-30%) scale(1.08)", offset: 0.42 }, { transform: "none", offset: 0.84 }, { transform: "none" }],
+            { duration: duration + 50, delay: lag }
+          );
+        }
+        setTimeout(() => ghost.remove(), lag + duration + 80);
+      }
+    }
+
+    // Arrivo: la luce corre lungo traversa e colonna e un mirino si chiude sulla casa.
+    landFx(square, { delay = 0, tone = "ice" } = {}) {
+      const { x, y } = this.squareOffset(square);
+      const row = document.createElement("span");
+      row.className = `bv-scan bv-scan-row ${tone}`;
+      row.style.top = `${y * 12.5}%`;
+      row.style.setProperty("--o", `${(x + 0.5) * 12.5}%`);
+      const col = document.createElement("span");
+      col.className = `bv-scan bv-scan-col ${tone}`;
+      col.style.left = `${x * 12.5}%`;
+      col.style.setProperty("--o", `${(y + 0.5) * 12.5}%`);
+      [row, col].forEach((el) => {
+        el.style.animationDelay = `${delay}ms`;
+        this.fxEl.appendChild(el);
+        setTimeout(() => el.remove(), delay + 700);
+      });
+      this.effect("lock", square, { delay, cls: tone, life: 700 });
+    }
+
+    // Cattura: linee di velocita' da manga e un piccolo scossone della scacchiera.
+    impactFx(square, delay) {
+      const { x, y } = this.squareOffset(square);
+      const burst = document.createElement("span");
+      burst.className = "bv-burst";
+      burst.style.left = `${(x - 1) * 12.5}%`;
+      burst.style.top = `${(y - 1) * 12.5}%`;
+      burst.style.setProperty("--spin", `${Math.round(Math.random() * 40)}deg`);
+      burst.style.animationDelay = `${delay}ms`;
+      this.fxTopEl.appendChild(burst);
+      setTimeout(() => burst.remove(), delay + 600);
+      this.root.animate(
+        [
+          { transform: "none" },
+          { transform: "translate(-3px, 2px)" },
+          { transform: "translate(3px, -2px)" },
+          { transform: "translate(-2px, -1px)" },
+          { transform: "translate(1px, 1px)" },
+          { transform: "none" }
+        ],
+        { duration: 240, delay }
+      );
+    }
+
     // Posiziona un pezzo sulla sua casa. Con animate scivola dalla posizione
     // attuale (anche se era a meta' di un'altra animazione o trascinato).
     placeEl(el, square, animate, opts = {}) {
@@ -405,9 +492,10 @@
     }
 
     // Il pezzo si alza, scivola e si appoggia (il cavallo salta piu' in alto).
-    animateMove(entry, to, { duration, delay = 0, hop = false, dropped = false } = {}) {
+    animateMove(entry, to, { duration, delay = 0, hop = false, dropped = false, from = null, trail = false } = {}) {
       const anim = this.placeEl(entry.el, to, true, { duration, delay });
       if (!anim) return null;
+      if (trail && from && !dropped) this.ghostTrail(entry, from, to, { duration, delay, hop });
       const timing = { duration: duration + 50, delay, easing: "linear" };
       if (dropped) {
         entry.img.animate(
@@ -468,7 +556,7 @@
       el.style.left = `${x * 12.5}%`;
       el.style.top = `${y * 12.5}%`;
       el.style.animationDelay = `${delay}ms`;
-      (kind === "slash" ? this.fxTopEl : this.fxEl).appendChild(el);
+      (kind === "slash" || kind === "lock" ? this.fxTopEl : this.fxEl).appendChild(el);
       setTimeout(() => el.remove(), delay + life);
     }
 
@@ -542,6 +630,8 @@
       const castle = moves.some((m) => m.entry.piece.toUpperCase() === "K" && Math.abs(squareToXY(m.from).file - squareToXY(m.to).file) === 2);
       const dropped = this.justDropped;
       const timings = new Map();
+      const fx = single && doAnimate && this.fxOn();
+      const capture = victims.length > 0;
       moves.forEach((m) => {
         const type = m.entry.piece.toUpperCase();
         const wasPawn = Boolean(m.promoteTo);
@@ -549,13 +639,29 @@
         const isDropped = m.entry.el === dropped;
         const delay = castle && type === "R" ? 120 : 0;
         const d = distance(m.from, m.to);
-        const duration = isDropped ? 130 : hop ? 330 : Math.min(380, this.options.animationMs + 20 + d * 26);
+        const base = this.options.animationMs + (fx ? 60 : 20);
+        const duration = isDropped ? 130 : hop ? (fx ? 380 : 330) : Math.min(fx ? 440 : 380, base + d * (fx ? 30 : 26));
         timings.set(m.to, { from: m.from, duration, delay });
         if (!doAnimate) {
           this.placeEl(m.entry.el, m.to, false);
         } else {
-          this.animateMove(m.entry, m.to, { duration, delay, hop: hop && single, dropped: isDropped });
-          if (single && !isDropped) this.effect("ring", m.to, { delay: delay + duration * 0.86, cls: m.promoteTo ? "promo" : "" });
+          this.animateMove(m.entry, m.to, { duration, delay, hop: hop && single, dropped: isDropped, from: m.from, trail: fx });
+          const land = delay + duration * 0.82;
+          if (single && m.promoteTo) this.effect("ring", m.to, { delay: land, cls: "promo" });
+          else if (single && !fx && !isDropped) this.effect("ring", m.to, { delay: land });
+          if (fx && !(castle && type === "R")) {
+            const tone = m.promoteTo ? "gold" : capture ? "blood" : "ice";
+            this.landFx(m.to, { delay: isDropped ? 40 : land, tone });
+            const glow = { ice: "120, 210, 255", blood: "255, 80, 110", gold: "250, 215, 120" }[tone];
+            m.entry.img.animate(
+              [
+                { filter: "none" },
+                { filter: `brightness(1.55) drop-shadow(0 0 7px rgba(${glow}, 0.95))`, offset: 0.2 },
+                { filter: "none" }
+              ],
+              { duration: 460, delay: isDropped ? 20 : land }
+            );
+          }
         }
         if (m.promoteTo) {
           const swap = () => {
@@ -606,6 +712,7 @@
         const impact = hit.delay + hit.duration * 0.62;
         this.topple(item.entry, { delay: impact, dir });
         this.effect("slash", item.square, { delay: impact - 40, life: 520 });
+        if (this.fxOn()) this.impactFx(item.square, impact - 30);
       });
       this.position = next;
     }
@@ -628,6 +735,34 @@
       this.renderKingState(animate);
     }
 
+    // Scacco: per un attimo la scacchiera diventa fredda, in bianco e nero, e solo
+    // il re resta acceso di rosso (lo "sguardo" alla Classroom).
+    coldFlash(square) {
+      clearTimeout(this.coldTimer);
+      this.root.classList.remove("bv-cold");
+      void this.root.offsetWidth;
+      this.root.classList.add("bv-cold");
+      this.effect("aura", square, { delay: 180, life: 1300 });
+      this.coldTimer = setTimeout(() => this.root.classList.remove("bv-cold"), 1050);
+    }
+
+    // Alone rosso fisso sotto il re scaccomattato (resta acceso anche in bianco e nero).
+    renderAura(square) {
+      let el = this.fxEl.querySelector(".bv-aura-fixed");
+      if (!square || this.options.effects === false) {
+        if (el) el.remove();
+        return;
+      }
+      if (!el) {
+        el = document.createElement("span");
+        el.className = "bv-aura-fixed";
+        this.fxEl.appendChild(el);
+      }
+      const { x, y } = this.squareOffset(square);
+      el.style.left = `${x * 12.5}%`;
+      el.style.top = `${y * 12.5}%`;
+    }
+
     // Re sotto scacco: trema una volta. Re scaccomattato: cade e resta a terra.
     renderKingState(animate) {
       const vm = this.vm || {};
@@ -641,7 +776,10 @@
         }
         entry.el.classList.toggle("bv-fallen", fallen);
       });
+      this.root.classList.toggle("bv-endcold", Boolean(mated) && this.options.effects !== false);
+      this.renderAura(mated);
       const check = vm.check && !mated ? vm.check : null;
+      if (check && check !== this.lastCheck && animate && this.fxOn()) this.coldFlash(check);
       if (check && check !== this.lastCheck && animate) {
         const entry = this.pieceEls.get(check);
         if (entry && this.canAnimate(entry.img)) {

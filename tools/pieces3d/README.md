@@ -1,10 +1,16 @@
-# Pezzi "Elite" (generatore)
+# Pezzi "Classroom" ed "Elite 3D" (generatore)
 
-Il set `assets/pieces/elite/` e' disegnato qui, in 3D, e poi fotografato in
-immagini WebP (256x320, trasparenti). Stile: Classroom of the Elite — il Bianco
-in porcellana con filetti argento, il Nero in lacca blu notte con filetti oro,
-tutti con il collare cremisi della divisa; il cavallo ha la criniera cremisi a
-punte e l'alfiere il taglio cremisi.
+I set `assets/pieces/cote/` (Classroom, predefinito) e `assets/pieces/elite/`
+(Elite 3D) sono gli stessi pezzi disegnati qui in 3D e poi fotografati in
+immagini WebP (256x320, trasparenti):
+
+- Classroom: stile anime (cel shading a bande, contorno a inchiostro, riflessi
+  netti, luce di contorno azzurra), come nei disegni di Classroom of the Elite;
+- Elite 3D: resa realistica, porcellana e lacca blu notte.
+
+In entrambi il collare e' cremisi come la divisa della scuola, con filetti
+argento (Bianco) o oro (Nero); il cavallo ha la criniera cremisi a punte e
+l'alfiere il taglio cremisi.
 
 Rigenerare (serve Node e Python con Pillow):
 
@@ -12,8 +18,10 @@ Rigenerare (serve Node e Python con Pillow):
 cd tools/pieces3d
 npm install
 npm install playwright        # oppure CHROME_PATH=/percorso/chrome
-node render.js out            # 12 PNG 1024x1280
-python3 finalize.py out ../../assets/pieces/elite 256
+node render.js out-anime '{"variant":"anime"}'   # Classroom: 12 PNG 1024x1280
+python3 finalize.py out-anime ../../assets/pieces/cote 256 anime
+node render.js out-real                          # Elite 3D
+python3 finalize.py out-real ../../assets/pieces/elite 256 real
 ```
 
 - `scene.js`: forme dei pezzi (profili torniti, criniera e testa del cavallo

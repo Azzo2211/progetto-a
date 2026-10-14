@@ -47,7 +47,7 @@ const defaultState = {
     levelStats: {},
     levelScheme: 2,
     mode: "rated",
-    ui: { theme: "accademia", pieceSet: "elite", sound: true, coords: true, evalBarInGame: false, orientation: "white" },
+    ui: { theme: "accademia", pieceSet: "cote", effects: true, sound: true, coords: true, evalBarInGame: false, orientation: "white" },
     rating: {},
     lessons: {},
     mistakeBank: []

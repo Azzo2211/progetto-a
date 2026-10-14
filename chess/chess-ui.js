@@ -7,8 +7,8 @@
   "use strict";
 
   const Kit = window.ChessBoardKit;
-  const PIECE_SET_VERSION = 2;
-  const UI_DEFAULTS = { theme: "accademia", pieceSet: "elite", sound: true, coords: true, evalBarInGame: false, orientation: "white" };
+  const PIECE_SET_VERSION = 3;
+  const UI_DEFAULTS = { theme: "accademia", pieceSet: "cote", effects: true, sound: true, coords: true, evalBarInGame: false, orientation: "white" };
 
   // Mentori: uno per grado. Il coach e' legato al TUO grado, non al bot.
   const MENTORS = {
@@ -40,7 +40,7 @@
       delete state.chess.ui.eliteSet;
       if (typeof saveState === "function") setTimeout(saveState, 0);
     }
-    if (!Kit.PIECE_SETS[state.chess.ui.pieceSet]) state.chess.ui.pieceSet = "elite";
+    if (!Kit.PIECE_SETS[state.chess.ui.pieceSet]) state.chess.ui.pieceSet = Kit.DEFAULT_SET;
     return state.chess.ui;
   }
 
@@ -66,6 +66,7 @@
       pieceSet: settings.pieceSet,
       theme: settings.theme,
       coordinates: settings.coords,
+      effects: settings.effects !== false,
       orientation: "white",
       onPieceGrab: (square) => (trainerOwnsBoard() ? window.ChessLearn.trainer.handleGrab(square) : gameGrab(square)),
       onSquareTap: (square, info) => (trainerOwnsBoard() ? window.ChessLearn.trainer.handleTap(square, info) : gameTap(square, info)),
@@ -913,6 +914,30 @@
 
   /* ---------------------------------------------------- fine partita */
 
+  // Citazioni a fine partita, come quelle che aprono gli episodi di Classroom of the Elite.
+  const END_QUOTES = {
+    win: [
+      ["I guerrieri vittoriosi prima vincono, e poi vanno in guerra.", "Sun Tzu, L'arte della guerra"],
+      ["È molto più sicuro essere temuto che amato.", "Niccolò Machiavelli, Il Principe"],
+      ["Il cielo non crea un uomo sopra un altro uomo, né un uomo sotto un altro uomo.", "Fukuzawa Yukichi"]
+    ],
+    loss: [
+      ["Ciò che non mi uccide mi rende più forte.", "Friedrich Nietzsche"],
+      ["Conosci il nemico e conosci te stesso: in cento battaglie non sarai in pericolo.", "Sun Tzu, L'arte della guerra"],
+      ["Non è perché le cose sono difficili che non osiamo: è perché non osiamo che sono difficili.", "Seneca"]
+    ],
+    draw: [
+      ["Chi conosce gli altri è sapiente; chi conosce se stesso è illuminato.", "Lao Tzu"],
+      ["L'uomo è nato libero, e ovunque è in catene.", "Jean-Jacques Rousseau"]
+    ]
+  };
+
+  function endQuote(result) {
+    const list = END_QUOTES[result] || END_QUOTES.draw;
+    const [text, author] = list[Math.floor(Math.random() * list.length)];
+    return `<blockquote class="game-result-quote"><p>${text}</p><cite>${author}</cite></blockquote>`;
+  }
+
   window.showGameResult = function showGameResult(result, reason, ratingInfo) {
     const box = document.getElementById("gameResult");
     if (!box) return;
@@ -929,6 +954,7 @@
       <span class="game-result-reason">${reasonText}</span>
       <span class="game-result-rating">${ratingLine}</span>
       ${ratingInfo && ratingInfo.promoted ? `<span class="game-result-grade">Nuovo grado ${ratingInfo.promoted.key}: ${ratingInfo.promoted.name}</span>` : ""}
+      ${endQuote(result)}
       <div class="game-result-actions">
         <button class="primary-action" type="button" data-result-act="review">Analizza la partita</button>
         <button class="ghost-action" type="button" data-result-act="new">Nuova partita</button>
@@ -968,20 +994,23 @@
       <button type="button" class="piece-set${settings.pieceSet === key ? " active" : ""}" data-piece-set="${key}" aria-pressed="${settings.pieceSet === key}">
         <img src="${pieceImg("wN", key)}" alt=""><img src="${pieceImg("bQ", key)}" alt="">${set.label}
       </button>`).join("");
+    document.getElementById("effectsToggle").checked = settings.effects !== false;
     document.getElementById("soundToggle").checked = settings.sound !== false;
     document.getElementById("coordsToggle").checked = settings.coords !== false;
     document.getElementById("evalBarToggle").checked = Boolean(settings.evalBarInGame);
     const set = Kit.PIECE_SETS[settings.pieceSet];
-    document.getElementById("pieceCredits").textContent = settings.pieceSet === "elite"
-      ? `Pezzi "Elite": set originale di Progetto A in stile Classroom of the Elite (porcellana e lacca, collare cremisi).`
-      : `Pezzi "${set.label}" di ${set.author} (${set.license}), dal progetto lichess.org.`;
+    document.getElementById("pieceCredits").textContent = settings.pieceSet === "cote"
+      ? `Pezzi "Classroom": set originale di Progetto A disegnato in stile anime Classroom of the Elite (collare cremisi della divisa).`
+      : settings.pieceSet === "elite"
+        ? `Pezzi "Elite 3D": set originale di Progetto A, resa realistica (porcellana e lacca, collare cremisi).`
+        : `Pezzi "${set.label}" di ${set.author} (${set.license}), dal progetto lichess.org.`;
   }
 
   function updateSettings(patch) {
     Object.assign(ui(), patch);
     saveState();
     const settings = ui();
-    getBoardView().setOptions({ theme: settings.theme, pieceSet: settings.pieceSet, coordinates: settings.coords });
+    getBoardView().setOptions({ theme: settings.theme, pieceSet: settings.pieceSet, coordinates: settings.coords, effects: settings.effects !== false });
     Kit.Sound.enabled = settings.sound !== false;
     renderSettings();
     renderBotPicker();
@@ -1033,6 +1062,7 @@
       const button = event.target.closest("[data-piece-set]");
       if (button) updateSettings({ pieceSet: button.dataset.pieceSet });
     });
+    document.getElementById("effectsToggle").addEventListener("change", (event) => updateSettings({ effects: event.target.checked }));
     document.getElementById("soundToggle").addEventListener("change", (event) => updateSettings({ sound: event.target.checked }));
     document.getElementById("coordsToggle").addEventListener("change", (event) => updateSettings({ coords: event.target.checked }));
     document.getElementById("evalBarToggle").addEventListener("change", (event) => updateSettings({ evalBarInGame: event.target.checked }));
