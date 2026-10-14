@@ -222,65 +222,7 @@ const dailyPlans = [
 
 // Gli scenari sociali sono in scenarios/ (esami speciali e risposta libera).
 
-const topics = [
-  {
-    id: "storia-guerra-fredda",
-    area: "Storia",
-    difficulty: 6,
-    title: "Guerra fredda: perche' si chiama fredda e come ha diviso il mondo",
-    brief: "La Guerra fredda fu il lungo confronto tra Stati Uniti e Unione Sovietica dopo la Seconda guerra mondiale. Si chiama 'fredda' perche' le due superpotenze evitarono quasi sempre uno scontro militare diretto tra loro, ma combatterono attraverso alleanze, propaganda, spionaggio, corsa agli armamenti, economia e guerre indirette in altri Paesi.\n\nIl punto di partenza e' il 1945: la Germania nazista e' sconfitta, ma il mondo non torna semplicemente alla normalita'. Gli Stati Uniti rappresentano capitalismo liberale, mercato, democrazia rappresentativa e influenza occidentale. L'Unione Sovietica rappresenta comunismo, economia pianificata, partito unico e controllo dell'Europa orientale. Le due potenze hanno interessi incompatibili e soprattutto si temono a vicenda.\n\nL'Europa viene divisa simbolicamente e concretamente. A ovest ci sono Paesi legati agli Stati Uniti e alla NATO; a est Paesi sotto influenza sovietica e Patto di Varsavia. Berlino diventa il simbolo piu' potente: una citta' divisa dentro una Germania divisa. Il Muro di Berlino, costruito nel 1961, mostra che la divisione non e' solo ideologica, ma fisica.\n\nLa Guerra fredda e' anche corsa nucleare. Entrambe le parti accumulano armi capaci di distruggere il pianeta. Nasce cosi' la logica della deterrenza: non attacco perche' anche l'altro puo' distruggermi. E' un equilibrio terribile, ma per decenni impedisce la guerra diretta. La crisi dei missili di Cuba del 1962 e' il momento in cui il mondo si avvicina di piu' alla guerra nucleare.\n\nFinisce tra il 1989 e il 1991: cade il Muro di Berlino, i regimi comunisti europei crollano, l'URSS si dissolve. Capire la Guerra fredda serve ancora oggi per leggere alleanze, diffidenza tra potenze, propaganda, intelligence e conflitti indiretti.",
-    question: "Perche' la deterrenza nucleare puo' impedire una guerra e allo stesso tempo rendere il mondo piu' pericoloso?"
-  },
-  {
-    id: "geografia-suez",
-    area: "Geografia",
-    difficulty: 5,
-    title: "Canale di Suez: il collo di bottiglia che collega Mediterraneo e Oceano Indiano",
-    brief: "Il Canale di Suez e' un passaggio artificiale in Egitto che collega il Mar Mediterraneo al Mar Rosso. Prima della sua apertura nel 1869, molte navi dovevano circumnavigare l'Africa passando dal Capo di Buona Speranza. Suez riduce enormemente tempi, distanza e costi tra Europa e Asia.\n\nLa cosa importante e' che non e' solo una via d'acqua. E' un punto strategico globale. Petrolio, gas, merci industriali, componenti elettronici, cibo e container possono passare da li'. Se il canale si blocca, come e' accaduto nel 2021 con la nave Ever Given, le catene di approvvigionamento rallentano e i costi salgono.\n\nIn geografia politica si parla spesso di chokepoint, cioe' colli di bottiglia. Sono zone strette in cui passa tanto movimento. Chi controlla o influenza questi punti puo' condizionare Paesi lontanissimi. Suez, Malacca, Hormuz, Panama e Bosforo sono esempi fondamentali.\n\nPer capirlo bene, pensa a una porta in un edificio affollato: la stanza puo' essere enorme, ma se tutti devono passare da una sola porta, quella porta diventa potere. Il Canale di Suez e' una porta del commercio mondiale.",
-    question: "Perche' bloccare un punto geografico piccolo puo' produrre effetti economici mondiali?"
-  },
-  {
-    id: "biologia-sistema-immunitario",
-    area: "Biologia",
-    difficulty: 6,
-    title: "Sistema immunitario: difesa, memoria e rischio di errore",
-    brief: "Il sistema immunitario e' l'insieme di cellule, organi e molecole che protegge il corpo da virus, batteri, funghi, parassiti e cellule anomale. Non e' una singola barriera: e' una rete di difesa distribuita.\n\nLa prima linea e' l'immunita' innata. Comprende pelle, mucose, infiammazione, febbre e cellule che attaccano in modo rapido ma poco specifico. Se ti tagli, il rossore e il gonfiore indicano che il corpo sta portando risorse nella zona. Questa risposta e' veloce, ma non ha una memoria raffinata.\n\nLa seconda linea e' l'immunita' adattativa. Qui entrano in gioco linfociti B e T. I linfociti B producono anticorpi, molecole che riconoscono bersagli specifici. I linfociti T aiutano a coordinare la risposta o distruggono cellule infette. Questa parte richiede piu' tempo, ma crea memoria immunitaria.\n\nLa memoria immunitaria e' il motivo per cui alcuni vaccini funzionano: mostrano al corpo un bersaglio o una sua parte in modo controllato, cosi' il sistema impara a riconoscerlo prima di incontrare il pericolo vero. La prossima risposta sara' piu' rapida ed efficace.\n\nIl sistema pero' puo' sbagliare. Nelle allergie reagisce troppo a sostanze normalmente innocue. Nelle malattie autoimmuni attacca parti del corpo. Quindi una difesa perfetta non e' solo forte: deve anche distinguere bene il bersaglio.",
-    question: "Perche' la memoria immunitaria e' utile, ma una risposta troppo aggressiva puo' diventare un problema?"
-  },
-  {
-    id: "economia-domanda-offerta",
-    area: "Economia",
-    difficulty: 4,
-    title: "Domanda e offerta: il meccanismo base dei prezzi",
-    brief: "Domanda e offerta sono due forze fondamentali dell'economia. La domanda indica quanto le persone vogliono comprare un bene a un certo prezzo. L'offerta indica quanto i produttori sono disposti a vendere a quel prezzo. Il prezzo nasce dall'incontro tra queste due forze.\n\nSe la domanda aumenta e l'offerta resta uguale, il prezzo tende a salire. Esempio: se tutti vogliono comprare un certo modello di scarpe ma i pezzi disponibili sono pochi, chi vende puo' alzare il prezzo. Se invece l'offerta aumenta molto e la domanda resta uguale, il prezzo tende a scendere.\n\nIl prezzo non e' solo un numero: e' un segnale. Dice ai consumatori se qualcosa e' scarso o abbondante e dice ai produttori dove conviene investire. Se il prezzo di un bene sale molto, nuove imprese potrebbero entrare nel mercato per produrlo.\n\nQuesto modello e' semplice, ma non spiega tutto. Nella realta' esistono monopoli, regolamenti, mode, pubblicita', informazioni incomplete e comportamenti irrazionali. Pero' domanda e offerta restano la grammatica base per capire mercati, affitti, stipendi, materie prime e inflazione.",
-    question: "Perche' un prezzo alto puo' essere sia un problema per chi compra sia un segnale per chi produce?"
-  },
-  {
-    id: "matematica-crescita-esponenziale",
-    area: "Matematica",
-    difficulty: 5,
-    title: "Crescita esponenziale: quando il piccolo diventa enorme",
-    brief: "La crescita esponenziale avviene quando una quantita' cresce in proporzione a se stessa. Non aggiunge sempre lo stesso numero, ma moltiplica. Questo rende l'inizio lento e quasi invisibile, poi improvvisamente rapidissimo.\n\nEsempio: se qualcosa raddoppia ogni giorno, al giorno 1 hai 1, al giorno 2 hai 2, al giorno 3 hai 4, poi 8, 16, 32. Per molte fasi sembra gestibile, ma dopo pochi raddoppi diventa grande. La mente umana spesso sottovaluta questo tipo di crescita perche' ragiona in modo lineare.\n\nLa crescita esponenziale compare in interessi composti, popolazioni, epidemie, diffusione di contenuti online, potenza di calcolo e apprendimento cumulativo. Anche migliorare dell'1% al giorno non sembra molto, ma nel tempo produce differenze enormi.\n\nIl concetto centrale e': quando la crescita dipende dalla quantita' gia' presente, il tempo diventa una forza potentissima. Piccoli vantaggi ripetuti possono diventare superiorita' enorme; piccoli problemi ignorati possono diventare crisi.",
-    question: "Perche' la crescita esponenziale e' facile da sottovalutare all'inizio?"
-  },
-  {
-    id: "trading-gestione-rischio",
-    area: "Trading",
-    difficulty: 7,
-    title: "Gestione del rischio nel trading: sopravvivere prima di guadagnare",
-    brief: "Nel trading molte persone guardano prima al guadagno possibile. La gestione del rischio ribalta la domanda: prima chiedi quanto puoi perdere, poi chiedi quanto puoi guadagnare. Senza questa disciplina, anche una strategia buona puo' fallire per una serie negativa.\n\nUn concetto base e' il rischio per operazione. Se hai un capitale e rischi una percentuale troppo alta in una singola operazione, poche perdite consecutive possono distruggerti. Rischiare poco non garantisce il guadagno, ma ti permette di restare nel gioco abbastanza a lungo da valutare se la strategia funziona.\n\nAltro concetto e' il rapporto rischio/rendimento. Se rischi 100 per provare a guadagnare 200, il rapporto e' 1:2. Ma serve anche la probabilita': una strategia che vince poco spesso deve guadagnare molto quando vince; una che vince spesso deve evitare perdite enormi.\n\nQuesta scheda e' educativa, non un consiglio finanziario. La lezione generale e' utile anche fuori dal trading: non confondere possibilita' con piano. Un piano serio definisce perdita massima, criterio di uscita, dimensione della posizione e revisione degli errori.",
-    question: "Perche' una strategia con tante piccole vittorie puo' comunque essere pericolosa?"
-  }
-];
-
-const cultureEnhancements = {
-  default: {
-    example: "Esempio pratico: prova a collegare il concetto a una notizia, una scelta quotidiana o una decisione strategica. Se riesci a usarlo per spiegare un fatto reale, non lo stai solo leggendo: lo stai capendo.",
-    importance: "Perche' e' importante: la cultura generale serve a costruire mappe mentali. Piu' mappe hai, piu' riconosci pattern, cause, conseguenze e analogie tra campi diversi.",
-    links: "Collegamenti: storia, economia, geografia, psicologia, tecnologia e politica si intrecciano spesso. Ogni argomento va collegato almeno a un altro per diventare conoscenza utilizzabile.",
-    answer: "Risposta spiegata: una buona risposta deve citare causa, effetto e limite del concetto, non solo ripetere una definizione."
-  }
-};
+// Le schede di cultura sono in culture/ (biblioteca, verifica e ripasso distanziato).
 
 const planningGoals = [
   "Una persona ti prende in giro spesso davanti agli altri. Crea un piano per farla smettere senza peggiorare la situazione e senza perdere controllo.",
@@ -595,12 +537,12 @@ const moduleSkillDefinitions = {
     { key: "etica", label: "Etica", general: "emotionalControl" }
   ],
   culture: [
-    { key: "understanding", label: "Comprensione", general: "culture" },
-    { key: "conceptMemory", label: "Memoria concetti", general: "memory" },
-    { key: "connections", label: "Collegamenti", general: "culture" },
-    { key: "depth", label: "Profondità", general: "culture" },
-    { key: "practicalApplication", label: "Applicazione pratica", general: "strategicMind" },
-    { key: "recall", label: "Richiamo", general: "memory" }
+    { key: "comprensione", label: "Comprensione", general: "culture" },
+    { key: "memoria", label: "Memoria", general: "memory" },
+    { key: "collegamenti", label: "Collegamenti", general: "culture" },
+    { key: "applicazione", label: "Applicazione", general: "strategicMind" },
+    { key: "ampiezza", label: "Ampiezza", general: "culture" },
+    { key: "costanza", label: "Costanza", general: "memory" }
   ],
   planning: [
     { key: "goalClarity", label: "Chiarezza obiettivo", general: "strategicMind" },
@@ -667,7 +609,6 @@ let reviewBoard = null;
 let lastMoveSquares = null;
 let reviewMoveSquares = null;
 let currentGame = createNewGame();
-let currentTopic = null;
 let currentRiddle = null;
 let currentMemory = null;
 let memoryTimer = null;
@@ -689,9 +630,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderBotLevel();
   initEngine();
   renderGameReport(buildGameAnalysis("partial"));
-  renderStudiedList();
-  renderReviewList();
-  loadRandomTopic();
   loadRandomGoal();
   loadDefenseDrill();
   loadRandomRiddle();
@@ -993,8 +931,6 @@ function bindControls() {
     }
     renderMoveReview(false);
   });
-  document.getElementById("newTopicBtn").addEventListener("click", loadRandomTopic);
-  document.getElementById("markTopicBtn").addEventListener("click", markTopicStudied);
   document.getElementById("newGoalBtn").addEventListener("click", loadRandomGoal);
   document.getElementById("clearGoalBtn").addEventListener("click", clearGoal);
   document.getElementById("analyzePlanBtn").addEventListener("click", analyzePlan);
@@ -1060,9 +996,9 @@ function renderRankCard(score) {
 function buildFinalRecap(abilities) {
   const weakest = [...abilities].sort((a, b) => a.value - b.value)[0];
   const chessErrors = Object.values(state.mistakeCounts).reduce((sum, item) => sum + item, 0);
-  const studied = state.studied.length;
+  const studied = state.cultureLab && state.cultureLab.cards ? Object.values(state.cultureLab.cards).filter((c) => c.box >= 1).length : 0;
   const memoryRate = state.memory.attempts ? Math.round((state.memory.correct / state.memory.attempts) * 100) : 0;
-  return `Priorita': ${abilityLabels[weakest.key]}. Scacchi: ${state.chess.games} partite, ${chessErrors} pattern errore. Cultura: ${studied} argomenti studiati. Memoria: ${memoryRate}% precisione. Estetica: ${state.aesthetic.score || 0}/100.`;
+  return `Priorita': ${abilityLabels[weakest.key]}. Scacchi: ${state.chess.games} partite, ${chessErrors} pattern errore. Cultura: ${studied} schede studiate. Memoria: ${memoryRate}% precisione. Estetica: ${state.aesthetic.score || 0}/100.`;
 }
 
 function renderTodayPlan(forceNew) {
@@ -1162,6 +1098,10 @@ function renderModuleStatus(moduleKey) {
     renderScenarioProfile();
     return;
   }
+  if (moduleKey === "culture" && window.renderCultureProfile) {
+    renderCultureProfile();
+    return;
+  }
   const skills = getModuleSkills(moduleKey);
   const score = getModuleScore(moduleKey);
   const radar = document.getElementById(`${moduleKey}ModuleRadar`);
@@ -1231,14 +1171,8 @@ function getModuleSkills(moduleKey) {
       const lab = ScenarioEngine.ensureProfile(state.scenarioLab);
       return ScenarioEngine.DIMENSIONS.map((d) => [d.label, lab[d.key]]);
     })() : [],
-    culture: [
-      ["Comprensione", metric("ragionamento") + studied * 2],
-      ["Memoria concetti", metric("sostenibilita") + studied * 1.5],
-      ["Collegamenti", metric("adattamento") + studied * 1.5],
-      ["Profondità", metric("ragionamento") + studied * 1.5],
-      ["Applicazione pratica", metric("efficacia") + studied],
-      ["Richiamo", metric("tempo") + (state.cultureReviews.length ? 4 : 0)]
-    ],
+    // Cultura: categorie calcolate dalle risposte di verifiche e ripassi (culture/engine.js).
+    culture: window.CultureEngine && window.cultureProfileSkills ? window.cultureProfileSkills().map((k) => [k.label, k.value]) : [],
     planning: [
       ["Chiarezza obiettivo", (metric("lucidita") + planAverage) / 2],
       ["Priorità", (metric("ragionamento") + planAverage) / 2],
@@ -1325,7 +1259,13 @@ function dashboardTrend(moduleKey, average) {
       const info = ScenarioEngine.classFor(lab, window.ScenarioExams || []);
       return info.done || lab.freeCount ? `${info.current.name} · ${info.done} esami · ${lab.pp} punti privati` : "Classe D · fai il primo esame speciale";
     })() : "Base iniziale · rispondi agli scenari",
-    culture: `${state.studied.length} argomenti · ${state.cultureReviews.length} ripassi programmati`,
+    culture: window.CultureEngine && state.cultureLab ? (() => {
+      const cards = window.CultureCards || [];
+      const lab = state.cultureLab;
+      const studied = Object.values(lab.cards || {}).filter((c) => c.box >= 1).length;
+      const due = CultureEngine.dueCards(lab, cards).length;
+      return studied ? `${studied}/${cards.length} schede studiate · ${due ? `${due} da ripassare oggi` : "nessun ripasso oggi"}` : "Biblioteca nuova · leggi la prima scheda";
+    })() : "Biblioteca nuova · leggi la prima scheda",
     planning: state.planScores.length ? `${state.planScores.length} piani · media ${Math.round(averageArray(state.planScores))}` : "Base iniziale · scrivi un piano",
     defense: state.reflexBest ? `Livello ${state.defenseLevel} · miglior riflesso ${state.reflexBest} ms` : `Livello ${state.defenseLevel} · riflessi non misurati`,
     logic: state.logicAttempts ? `${state.logicSolved}/${state.logicAttempts} corretti · media ${average}` : "Base iniziale · risolvi un indovinello",
@@ -1406,7 +1346,7 @@ function trainingForPattern(moduleKey, key) {
   if (moduleKey === "scenarios") return "Allenamento: prima i fatti, poi una frase breve senza accuse, poi il piano B.";
   if (moduleKey === "defense") return "Allenamento: 3 round lenti su guardia, footwork e reazione a stimolo.";
   if (moduleKey === "influence") return "Allenamento: riscrivi la leva rendendo chiari costi, confini e possibilita' di dire no.";
-  if (moduleKey === "culture") return "Allenamento: ripasso programmato e spiegazione in parole tue.";
+  if (moduleKey === "culture") return "Allenamento: fai i ripassi del giorno e spiega ogni scheda con parole tue.";
   if (moduleKey === "planning") return "Allenamento: aggiungi metrica, soglia di rischio e revisione a 72 ore.";
   if (moduleKey === "aesthetic") return "Allenamento: completa 5 punti checklist per 5 giorni.";
   return "Allenamento: ripeti l'esercizio spiegando il ragionamento.";
@@ -3921,74 +3861,6 @@ function clearBotTimer() {
     window.clearTimeout(botMoveTimer);
     botMoveTimer = null;
   }
-}
-
-function loadRandomTopic() {
-  const unseen = topics.filter((topic) => !state.studied.includes(topic.id));
-  const pool = unseen.length ? unseen : topics;
-  currentTopic = pool[Math.floor(Math.random() * pool.length)];
-  state.currentTopicId = currentTopic.id;
-  saveState();
-  renderTopic(currentTopic);
-}
-
-function renderTopic(topic) {
-  const extra = cultureEnhancements[topic.id] || cultureEnhancements.default;
-  document.getElementById("topicArea").textContent = topic.area;
-  document.getElementById("topicDifficulty").textContent = `Difficolta' ${topic.difficulty}/10`;
-  document.getElementById("topicTitle").textContent = topic.title;
-  document.getElementById("topicBrief").textContent = `${topic.brief}\n\nEsempio pratico\n${extra.example}\n\nPerche' e' importante\n${extra.importance}\n\nCollegamenti con altri argomenti\n${extra.links}`;
-  document.getElementById("topicQuestion").textContent = topic.question;
-  document.getElementById("topicAnswer").textContent = extra.answer;
-}
-
-function markTopicStudied() {
-  if (!currentTopic) loadRandomTopic();
-  if (!state.studied.includes(currentTopic.id)) state.studied.push(currentTopic.id);
-  const due = Date.now() + 1000 * 60 * 60 * 24;
-  state.cultureReviews = state.cultureReviews.filter((item) => item.id !== currentTopic.id);
-  state.cultureReviews.push({ id: currentTopic.id, title: currentTopic.title, due });
-  updateModuleMetrics("culture", { lucidita: 2, efficacia: 2, ragionamento: 3, sostenibilita: 2, tempo: 1, rischio: 1 });
-  addModulePattern("culture", "ripasso programmato");
-  saveState();
-  renderStudiedList();
-  renderReviewList();
-  renderDashboard();
-}
-
-function renderStudiedList() {
-  const list = document.getElementById("studiedList");
-  list.innerHTML = "";
-  if (!state.studied.length) {
-    const empty = document.createElement("li");
-    empty.textContent = "Ancora nessun argomento segnato.";
-    list.appendChild(empty);
-    return;
-  }
-  state.studied.slice(-8).reverse().forEach((id) => {
-    const topic = topics.find((item) => item.id === id);
-    const item = document.createElement("li");
-    item.textContent = topic ? `${topic.area}: ${topic.title}` : id;
-    list.appendChild(item);
-  });
-}
-
-function renderReviewList() {
-  const list = document.getElementById("reviewList");
-  if (!list) return;
-  list.innerHTML = "";
-  if (!state.cultureReviews.length) {
-    const empty = document.createElement("li");
-    empty.textContent = "Nessun ripasso programmato.";
-    list.appendChild(empty);
-    return;
-  }
-  state.cultureReviews.slice(-8).reverse().forEach((review) => {
-    const item = document.createElement("li");
-    const date = new Date(review.due);
-    item.textContent = `${review.title} - ripasso ${date.toLocaleDateString("it-IT")}`;
-    list.appendChild(item);
-  });
 }
 
 function loadRandomGoal() {

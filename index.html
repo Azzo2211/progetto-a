@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="chess/board-view.css?v=20261014-9" />
     <link rel="stylesheet" href="chess/chess-ui.css?v=20261014-9" />
     <link rel="stylesheet" href="scenarios/scenarios.css?v=20261014-9" />
+    <link rel="stylesheet" href="culture/culture.css?v=20261014-10" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
@@ -442,46 +443,23 @@
           <div class="scen-panel" id="scenPanel-profile" role="tabpanel" hidden></div>
         </section>
 
-        <section id="culture" class="page">
-          <div class="page-heading">
+        <section id="culture" class="page cult-page">
+          <div class="page-heading cult-heading">
             <div>
               <p class="eyebrow">Cultura generale</p>
-              <h1>Argomenti completi spiegati dall'inizio alla fine.</h1>
-              <p class="page-subtitle">Allena conoscenza, collegamenti, comprensione e ripasso programmato.</p>
+              <h1>Una biblioteca da capire e ricordare.</h1>
+              <p class="page-subtitle">Schede brevi, verifica subito, ripasso al momento giusto: quello che studi resta.</p>
             </div>
-            <div class="button-row">
-              <a class="ghost-link" href="#dashboard">Quadro</a>
-              <button class="primary-action" id="newTopicBtn" type="button">Argomento random</button>
-            </div>
+            <button class="cult-due-chip" id="cultDueChip" type="button" aria-label="Inizia il ripasso di oggi"></button>
           </div>
-
-          <div class="two-column wide-main">
-            <article class="tool-card reading-card">
-              <div class="topic-meta">
-                <span class="scenario-type" id="topicArea">Storia</span>
-                <span class="difficulty-badge" id="topicDifficulty">Difficolta' 1/10</span>
-              </div>
-              <h2 id="topicTitle">Premi Argomento random</h2>
-              <div id="topicBrief" class="topic-body">Ogni scheda contiene contesto, spiegazione, esempio e perche' l'argomento conta.</div>
-              <div class="question-box">
-                <strong>Domanda di verifica</strong>
-                <p id="topicQuestion">Quale area vuoi rendere meno debole oggi?</p>
-                <p id="topicAnswer" class="small-note">La risposta spiegata comparira' con l'argomento.</p>
-              </div>
-              <button class="ghost-action" id="markTopicBtn" type="button">Segna studiato</button>
-            </article>
-            <article class="tool-card">
-              <h2>Archivio studiato</h2>
-              <ul id="studiedList" class="studied-list"></ul>
-              <h2>Ripasso programmato</h2>
-              <ul id="reviewList" class="studied-list"></ul>
-              <h2>Profilo cultura</h2>
-              <svg id="cultureModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar cultura"></svg>
-              <div id="cultureModuleMetrics" class="metric-list"></div>
-              <div id="culturePatternBox" class="analysis-box">Pattern: studia un argomento e programma ripasso.</div>
-              <div id="cultureTrainingBox" class="analysis-box">Allenamento: riassumi il tema in 5 frasi senza guardare.</div>
-            </article>
+          <div class="cult-tabs" role="tablist" aria-label="Sezioni cultura">
+            <button class="cult-tab active" type="button" role="tab" data-cult-tab="library" aria-selected="true" aria-controls="cultPanel-library">Biblioteca</button>
+            <button class="cult-tab" type="button" role="tab" data-cult-tab="review" aria-selected="false" aria-controls="cultPanel-review">Ripasso</button>
+            <button class="cult-tab" type="button" role="tab" data-cult-tab="profile" aria-selected="false" aria-controls="cultPanel-profile">Profilo</button>
           </div>
+          <div class="cult-panel" id="cultPanel-library" role="tabpanel"></div>
+          <div class="cult-panel" id="cultPanel-review" role="tabpanel" hidden></div>
+          <div class="cult-panel" id="cultPanel-profile" role="tabpanel" hidden></div>
         </section>
 
         <section id="planning" class="page">
@@ -740,11 +718,14 @@
     <script src="scenarios/engine.js?v=20261014-9"></script>
     <script src="scenarios/exams.js?v=20261014-9"></script>
     <script src="scenarios/free.js?v=20261014-9"></script>
+    <script src="culture/engine.js?v=20261014-10"></script>
+    <script src="culture/cards.js?v=20261014-10"></script>
     <script src="app.js?v=20261014-9"></script>
     <script src="chess/chess-ui.js?v=20261014-9"></script>
     <script src="chess/learn-ui.js?v=20261014-9"></script>
     <script src="chess/grade-ui.js?v=20261014-9"></script>
     <script src="cote-theme.js?v=20261014-9"></script>
     <script src="scenarios/ui.js?v=20261014-9"></script>
+    <script src="culture/ui.js?v=20261014-10"></script>
   </body>
 </html>

@@ -82,7 +82,7 @@
   function prose(text) {
     const t = String(text == null ? "" : text)
       .replace(/"([^"]*)"/g, "\u201c$1\u201d")
-      .replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ])/g, "$1\u2019$2");
+      .replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ0-9])/g, "$1\u2019$2");
     return esc(t);
   }
 
