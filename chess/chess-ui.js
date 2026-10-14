@@ -7,6 +7,7 @@
   "use strict";
 
   const Kit = window.ChessBoardKit;
+  const PIECE_SET_VERSION = 2;
   const UI_DEFAULTS = { theme: "accademia", pieceSet: "elite", sound: true, coords: true, evalBarInGame: false, orientation: "white" };
 
   // Mentori: uno per grado. Il coach e' legato al TUO grado, non al bot.
@@ -30,10 +31,14 @@
   function ui() {
     if (!state.chess.ui || typeof state.chess.ui !== "object") state.chess.ui = { ...UI_DEFAULTS };
     state.chess.ui = { ...UI_DEFAULTS, ...state.chess.ui };
-    // Una sola volta: passa al nuovo set "Elite" (poi resta la scelta dell'utente).
-    if (!state.chess.ui.eliteSet) {
-      state.chess.ui.pieceSet = "elite";
-      state.chess.ui.eliteSet = true;
+    // Una sola volta per ogni nuovo set predefinito: passa al nuovo set (poi
+    // resta la scelta dell'utente). Il numero NON deve stare nei default di
+    // app.js, altrimenti mergeDefaults lo aggiunge ai salvataggi vecchi.
+    if ((Number(state.chess.ui.setVersion) || 0) < PIECE_SET_VERSION) {
+      state.chess.ui.pieceSet = Kit.DEFAULT_SET;
+      state.chess.ui.setVersion = PIECE_SET_VERSION;
+      delete state.chess.ui.eliteSet;
+      if (typeof saveState === "function") setTimeout(saveState, 0);
     }
     if (!Kit.PIECE_SETS[state.chess.ui.pieceSet]) state.chess.ui.pieceSet = "elite";
     return state.chess.ui;
