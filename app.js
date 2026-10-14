@@ -44,7 +44,8 @@ const defaultState = {
     losses: 0,
     draws: 0,
     lastAccuracy: 0,
-    levelStats: {}
+    levelStats: {},
+    levelScheme: 2
   },
   planScores: [],
   defenseLevel: 1,
@@ -107,15 +108,6 @@ const routes = [
   "aesthetic"
 ];
 
-const pieceValues = {
-  p: 100,
-  n: 320,
-  b: 330,
-  r: 500,
-  q: 900,
-  k: 0
-};
-
 const pieceNames = {
   P: "pedone bianco",
   N: "cavallo bianco",
@@ -155,47 +147,24 @@ const mistakeDrills = {
 
 const chessPatternOrder = ["hangingPiece", "calculation", "concentration", "missedThreat", "kingSafety", "development", "noPlan", "weakEndgame"];
 
-const botLevels = [
-  { level: 1, name: "Principiante assoluto", description: "Errori frequenti, pezzi appesi e mosse passive.", estimatedElo: 250, skillLevel: 0, depth: 1, moveTimeMs: 50, mistakeRatePercent: 60, blunderRatePercent: 40, randomMovePercent: 30, topN: 5, noiseCp: 260 },
-  { level: 2, name: "Novizio", description: "Vede poco le minacce e sbaglia tattiche semplici.", estimatedElo: 400, skillLevel: 1, depth: 1, moveTimeMs: 80, mistakeRatePercent: 52, blunderRatePercent: 32, randomMovePercent: 24, topN: 5, noiseCp: 220 },
-  { level: 3, name: "Base", description: "Sviluppo irregolare e calcolo molto corto.", estimatedElo: 550, skillLevel: 2, depth: 2, moveTimeMs: 120, mistakeRatePercent: 44, blunderRatePercent: 24, randomMovePercent: 18, topN: 5, noiseCp: 180 },
-  { level: 4, name: "Principiante", description: "Mosse naturali ma tattica ancora fragile.", estimatedElo: 700, skillLevel: 3, depth: 2, moveTimeMs: 180, mistakeRatePercent: 36, blunderRatePercent: 18, randomMovePercent: 13, topN: 5, noiseCp: 150 },
-  { level: 5, name: "Intermedio basso", description: "Meno blunder, piani ancora instabili.", estimatedElo: 850, skillLevel: 4, depth: 3, moveTimeMs: 250, mistakeRatePercent: 30, blunderRatePercent: 13, randomMovePercent: 9, topN: 5, noiseCp: 120 },
-  { level: 6, name: "Intermedio", description: "Sviluppa meglio ma sbaglia cambi e finali.", estimatedElo: 1000, skillLevel: 5, depth: 4, moveTimeMs: 350, mistakeRatePercent: 24, blunderRatePercent: 9, randomMovePercent: 6, topN: 5, noiseCp: 95 },
-  { level: 7, name: "Buon principiante", description: "Manca tattiche da 2-3 mosse e piani lunghi.", estimatedElo: 1150, skillLevel: 5, depth: 4, moveTimeMs: 350, mistakeRatePercent: 26, blunderRatePercent: 8, randomMovePercent: 8, topN: 6, noiseCp: 130 },
-  { level: 8, name: "Intermedio forte", description: "Gioco discreto, ma sbaglia ancora piani e tattiche corte.", estimatedElo: 1300, skillLevel: 6, depth: 4, moveTimeMs: 500, mistakeRatePercent: 20, blunderRatePercent: 4, randomMovePercent: 5, topN: 5, noiseCp: 90 },
-  { level: 9, name: "Club basso", description: "1450 realistico: sa giocare, ma non ha precisione da motore.", estimatedElo: 1450, skillLevel: 8, depth: 5, moveTimeMs: 650, mistakeRatePercent: 17, blunderRatePercent: 2, randomMovePercent: 3, topN: 5, noiseCp: 70 },
-  { level: 10, name: "Club", description: "1600 realistico: forte, ma con imprecisioni strategiche vere.", estimatedElo: 1600, skillLevel: 9, depth: 6, moveTimeMs: 750, mistakeRatePercent: 14, blunderRatePercent: 2, randomMovePercent: 2, topN: 4, noiseCp: 55 },
-  { level: 11, name: "Avanzato", description: "Forte ma non perfetto, scelte quasi sempre sane.", estimatedElo: 1800, skillLevel: 11, depth: 7, moveTimeMs: 900, mistakeRatePercent: 9, blunderRatePercent: 1, randomMovePercent: 1, topN: 4, noiseCp: 45 },
-  { level: 12, name: "Esperto", description: "Molto preciso, pochi errori non forzati.", estimatedElo: 2000, skillLevel: 14, depth: 10, moveTimeMs: 1200, mistakeRatePercent: 4, blunderRatePercent: 0, randomMovePercent: 0, topN: 3, noiseCp: 18 },
-  { level: 13, name: "Maestro", description: "Quasi sempre tra le migliori linee Stockfish.", estimatedElo: 2300, skillLevel: 17, depth: 14, moveTimeMs: 2200, mistakeRatePercent: 1, blunderRatePercent: 0, randomMovePercent: 0, topN: 2, noiseCp: 3 },
-  { level: 14, name: "Super Maestro", description: "Comportamento quasi da motore.", estimatedElo: 2800, skillLevel: 20, depth: 20, moveTimeMs: 3500, mistakeRatePercent: 0, blunderRatePercent: 0, randomMovePercent: 0, topN: 1, noiseCp: 0 },
-  { level: 15, name: "Imbattibile", description: "Massima forza disponibile nel browser.", estimatedElo: 3500, skillLevel: 20, depth: 24, moveTimeMs: 6000, mistakeRatePercent: 0, blunderRatePercent: 0, randomMovePercent: 0, topN: 1, noiseCp: 0 }
-];
+// Livelli del bot: definiti in chess/bot.js (Elo, errori calibrati, ricerca Stockfish).
+const botLevels = ChessBot.LEVELS.map((level) => ({
+  level: level.level,
+  name: level.name,
+  description: level.description,
+  estimatedElo: level.elo,
+  targetAccuracy: level.targetAccuracy
+}));
 
-const botLevelProfiles = Object.fromEntries(botLevels.map((level) => [level.level, { elo: level.estimatedElo, displayElo: level.displayElo || String(level.estimatedElo), label: level.name, description: level.description }]));
-const botLevelSpecs = Object.fromEntries(botLevels.map((level) => [level.level, { mode: "Stockfish", depth: level.depth, timeMs: level.moveTimeMs, moveTimeMs: level.moveTimeMs, topN: level.topN, noiseCp: level.noiseCp, skillLevel: level.skillLevel, mistakeRatePercent: level.mistakeRatePercent, blunderRatePercent: level.blunderRatePercent, randomMovePercent: level.randomMovePercent }]));
+const botLevelProfiles = Object.fromEntries(botLevels.map((level) => [level.level, { elo: level.estimatedElo, displayElo: String(level.estimatedElo), label: level.name, description: level.description }]));
 
 const STOCKFISH_ENGINE_ENABLED = true;
-const CHESS_REVIEW_DEPTH = 14;
-const CHESS_REVIEW_TIME_MS = 1800;
-const CHESS_REVIEW_MULTIPV = 5;
-const STOCKFISH_REQUIRED_NOTICE = "Stockfish non disponibile: il bot non muove con euristiche finte. Avvia il server locale e ricarica la pagina per usare il motore.";
-const STOCKFISH_WORKER_SOURCES = [
-  { label: "Stockfish WASM locale", url: "stockfish-wasm-worker.js", remote: false },
-  { label: "Stockfish ASM locale", url: "stockfish-worker.js", remote: false },
-  { label: "Stockfish ASM diretto", url: "stockfish-asm.js", remote: false }
-];
-
-const botAccuracyRanges = botLevels.map((level) => {
-  const targets = {
-    1: [30, 42], 2: [38, 48], 3: [44, 54], 4: [50, 58], 5: [55, 64],
-    6: [60, 69], 7: [65, 73], 8: [69, 76], 9: [72, 80], 10: [75, 82],
-    11: [80, 86], 12: [84, 90], 13: [88, 94], 14: [94, 97], 15: [97, 99]
-  };
-  const [min, max] = targets[level.level];
-  return { elo: level.estimatedElo, level: level.level, min, max };
-});
+const CHESS_REVIEW_DEPTH = ChessReview.DEFAULT_DEPTH;
+const CHESS_REVIEW_MULTIPV = ChessReview.DEFAULT_MULTIPV;
+const STOCKFISH_ENGINE_LABEL = "Stockfish 17.1 Lite";
+const STOCKFISH_REQUIRED_NOTICE = "Stockfish non disponibile: avvia il server locale (node local-server.js) e apri http://localhost:8765.";
+// Analisi gia' calcolate (anche in background durante la partita), per FEN.
+const chessAnalysisCache = ChessReview.createCache();
 
 const moveQualityMeta = {
   book: { label: "Mossa da libro", icon: "📖", report: "Libro" },
@@ -209,6 +178,8 @@ const moveQualityMeta = {
   mistake: { label: "Errore", icon: "?", report: "Errore" },
   blunder: { label: "Blunder", icon: "??", report: "Blunder" },
   missed: { label: "Mossa mancata", icon: "X", report: "Mossa mancata" },
+  forced: { label: "Forzata", icon: "\u25a1", report: "Forzata" },
+  pending: { label: "In attesa di revisione", icon: "\u2026", report: "In attesa" },
   unknown: { label: "Analisi non disponibile", icon: "-", report: "Unknown" },
   bot: { label: "Risposta bot", icon: "B", report: "Bot" }
 };
@@ -710,7 +681,6 @@ const moduleSkillDefinitions = {
 };
 
 const pieceImageCache = {};
-const ChessEngineService = createChessEngineService();
 
 let state = loadState();
 let board = createInitialBoard();
@@ -718,7 +688,6 @@ let gameState = createInitialGameState();
 let selectedSquare = null;
 let history = [];
 let moveNumber = 1;
-let playerMoveStats = {};
 let thinkStartedAt = Date.now();
 let botMoveTimer = null;
 let chessGameOver = false;
@@ -766,7 +735,7 @@ function maybeRedirectFileChessToLocalServer() {
   if (typeof window === "undefined" || !window.location || window.location.protocol !== "file:") return;
   if (typeof fetch !== "function") return;
   const target = `http://127.0.0.1:8765/index.html${window.location.hash || ""}`;
-  fetch("http://127.0.0.1:8765/stockfish-worker.js", { mode: "no-cors", cache: "no-store" })
+  fetch("http://127.0.0.1:8765/chess/engine.js", { mode: "no-cors", cache: "no-store" })
     .then(() => {
       window.location.replace(target);
     })
@@ -778,10 +747,32 @@ window.addEventListener("hashchange", routeToCurrentHash);
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return mergeDefaults(defaultState, saved || {});
+    const merged = mergeDefaults(defaultState, saved || {});
+    const needsMigration = Boolean(saved && saved.chess && saved.chess.levelScheme !== 2);
+    return needsMigration ? migrateChessState(merged) : merged;
   } catch (error) {
     return JSON.parse(JSON.stringify(defaultState));
   }
+}
+
+// I vecchi livelli (1-15) avevano Elo diversi: li convertiamo al livello nuovo
+// con l'Elo piu' vicino, statistiche comprese.
+function migrateChessState(loaded) {
+  if (!loaded || !loaded.chess) return loaded;
+  const oldElo = [250, 400, 550, 700, 850, 1000, 1150, 1300, 1450, 1600, 1800, 2000, 2300, 2800, 3500];
+  const mapLevel = (level) => ChessBot.levelForElo(oldElo[Math.min(oldElo.length, Math.max(1, Number(level) || 1)) - 1]);
+  const hadGames = Boolean(loaded.chess.games);
+  if (hadGames || loaded.chess.botLevel !== defaultState.chess.botLevel) loaded.chess.botLevel = mapLevel(loaded.chess.botLevel);
+  const migratedStats = {};
+  Object.entries(loaded.chess.levelStats || {}).forEach(([key, stats]) => {
+    const target = String(mapLevel(key));
+    const current = migratedStats[target] || { games: 0, wins: 0, losses: 0, draws: 0, accuracySum: 0, accuracyGames: 0 };
+    Object.keys(current).forEach((field) => { current[field] += Number(stats && stats[field]) || 0; });
+    migratedStats[target] = current;
+  });
+  loaded.chess.levelStats = migratedStats;
+  loaded.chess.levelScheme = 2;
+  return loaded;
 }
 
 function mergeDefaults(defaults, saved) {
@@ -1010,6 +1001,7 @@ function bindControls() {
   document.getElementById("resetBoardBtn").addEventListener("click", resetChess);
   document.getElementById("undoMoveBtn").addEventListener("click", undoMovePair);
   document.getElementById("botLevelSelect").addEventListener("change", handleBotLevelChange);
+  document.getElementById("applyBotLevelBtn").addEventListener("click", () => applyBotLevel(document.getElementById("botLevelSelect").value));
   document.getElementById("reviewGameBtn").addEventListener("click", () => renderMoveReview(false));
   document.getElementById("exitReviewBtn").addEventListener("click", exitReviewMode);
   document.getElementById("reviewStartBtn").addEventListener("click", () => selectReviewMove(-1));
@@ -1236,7 +1228,14 @@ function getModuleSkills(moduleKey) {
   const social = state.socialScores;
 
   const profiles = {
-    chess: [
+    chess: state.chess.skills && state.chess.skills.games ? [
+      ["Concentrazione", state.chess.skills.concentration],
+      ["Calcolo", state.chess.skills.calculation],
+      ["Strategia", state.chess.skills.strategy],
+      ["Visione minacce", state.chess.skills.threatVision],
+      ["Sicurezza re", state.chess.skills.kingSafety],
+      ["Controllo impulso", state.chess.skills.impulseControl]
+    ] : [
       ["Concentrazione", metric("lucidita") - patternCount("concentration") * 3],
       ["Calcolo", metric("ragionamento") - patternCount("calculation") * 3],
       ["Strategia", (metric("adattamento") + metric("ragionamento")) / 2],
@@ -1558,16 +1557,6 @@ function getMoveRecord(moveReference) {
   return moveReference || null;
 }
 
-function getFenBeforeMove(moveReference) {
-  const record = getMoveRecord(moveReference);
-  return record ? record.fenBefore : null;
-}
-
-function getFenAfterMove(moveReference) {
-  const record = getMoveRecord(moveReference);
-  return record ? record.fenAfter : null;
-}
-
 function saveMoveData(record) {
   if (currentGame) {
     currentGame.reviewStatus = "idle";
@@ -1576,6 +1565,8 @@ function saveMoveData(record) {
     currentGame.engineError = null;
     currentGame.supabaseAnalysisQueued = false;
     currentGame.supabaseExercisesQueued = false;
+    currentGame.reviewSummary = null;
+    currentGame.engineAnalysisInProgress = false;
   }
   const normalized = {
     gameId: currentGame.id,
@@ -1691,7 +1682,7 @@ function buildSupabaseAnalysisPayload(analysis) {
   return {
     game_id: currentGame.id,
     analyzed_at: new Date().toISOString(),
-    engine: ChessEngineService && ChessEngineService.getStatus ? ChessEngineService.getStatus().name : "Stockfish",
+    engine: STOCKFISH_ENGINE_LABEL,
     engine_based: Boolean(analysis && analysis.engineBased),
     accuracy: analysis ? analysis.accuracy : null,
     bot_accuracy: analysis ? analysis.botAccuracy : null,
@@ -1728,7 +1719,11 @@ function setChessGameFinalState(result, reason = null) {
 
 function chessFinalStateLabel(result, reason = null) {
   if (reason === "checkmate") return "scacco matto";
-  if (reason === "stalemate" || result === "draw") return "patta";
+  if (reason === "stalemate") return "patta per stallo";
+  if (reason === "repetition") return "patta per ripetizione";
+  if (reason === "insufficient") return "patta per materiale insufficiente";
+  if (reason === "fifty") return "patta per regola delle 50 mosse";
+  if (result === "draw") return "patta";
   if (reason === "resign") return "abbandono";
   if (!result || result === "partial" || result === "in corso") return "in corso";
   return "conclusa";
@@ -1736,12 +1731,13 @@ function chessFinalStateLabel(result, reason = null) {
 
 function resetChess() {
   clearBotTimer();
+  const engines = chessEngines();
+  if (engines) engines.review.cancelPending();
   board = createInitialBoard();
   gameState = createInitialGameState();
   selectedSquare = null;
   history = [];
   moveNumber = 1;
-  playerMoveStats = {};
   thinkStartedAt = Date.now();
   chessGameOver = false;
   reviewBoard = null;
@@ -1765,6 +1761,11 @@ function resetChess() {
 
 function undoMovePair() {
   if (reviewBoard) return;
+  if (chessGameOver) {
+    document.getElementById("coachMessage").textContent = "La partita e' finita: premi Reset per giocarne un'altra.";
+    return;
+  }
+  if (isBotTurn()) return;
   clearBotTimer();
   if (history.length === 0) return;
   let lastWhiteState = null;
@@ -1787,6 +1788,10 @@ function undoMovePair() {
     if (removed?.side === "Bianco") break;
   }
   currentGame.moveList = currentGame.moves;
+  moveNumber = Math.floor(currentGame.moves.length / 2) + 1;
+  currentGame.reviewStatus = "idle";
+  currentGame.reviewResult = createStableReviewResult({ status: "idle" });
+  currentGame.reviewSummary = null;
   currentGame.result = "in corso";
   currentGame.status = "in corso";
   currentGame.finalState = "in corso";
@@ -1856,7 +1861,7 @@ function renderBoard() {
     }
   }
 
-  document.getElementById("evalStatus").textContent = `Valutazione ${formatEval(evaluateBoard(displayBoard))}`;
+  renderEvalStatus(displayBoard);
   if (reviewBoard) {
     document.getElementById("turnStatus").textContent = "Revisione";
   } else if (chessGameOver) {
@@ -1906,6 +1911,7 @@ function pieceShape(kind, fill, stroke, accent) {
 
 function handleSquareClick(row, col) {
   if (reviewBoard || chessGameOver) return;
+  if (isBotTurn()) return;
   const piece = board[row][col];
   if (selectedSquare) {
     const legalMoves = getLegalMoves(board, selectedSquare.row, selectedSquare.col);
@@ -1925,144 +1931,34 @@ function makePlayerMove(move) {
   const before = cloneBoard(board);
   const movedPiece = before[move.fromRow][move.fromCol];
   const seconds = Math.round((Date.now() - thinkStartedAt) / 1000);
+  const fenBefore = boardToFen(before, "w", beforeGameState);
   board = applyMove(board, move);
   updateGameStateForMove(move, before);
   selectedSquare = null;
-  const analysis = analyzePlayerMove(before, board, move, movedPiece, seconds);
-  const classification = classifyChessMove(analysis, before, board, move);
-  const record = buildMoveRecord({
+  const record = buildPlainMoveRecord({
     side: "Bianco",
     color: "w",
     move,
     piece: movedPiece,
     before,
     after: board,
-    beforeState: beforeGameState,
-    afterState: gameState,
-    seconds,
-    analysis,
-    classification
+    fenBefore,
+    fenAfter: boardToFen(board, "b", gameState),
+    seconds
   });
-  record.quality = "good";
-  const engineReadyForReview = isStockfishEngineEnabled();
-  record.classification = engineReadyForReview ? "In attesa Stockfish" : "Da analizzare";
-  record.categories = [];
-  record.pattern = null;
-  record.loss = 0;
-  record.bestGap = 0;
-  record.accuracyScore = null;
-  record.bestMoveText = engineReadyForReview ? "Stockfish" : "Motore non disponibile";
-  record.drill = engineReadyForReview ? "Attendi la review Stockfish per il drill reale." : "Analisi reale bloccata: installa una build Stockfish funzionante per avere il drill engine-based.";
-  record.comment = engineReadyForReview ? "Mossa salvata. La classificazione reale verra' calcolata da Stockfish." : "Mossa salvata. Stockfish non e' disponibile, quindi questa mossa non riceve una classificazione engine-based.";
-  record.note = record.comment;
   const savedRecord = saveMoveData(record);
   lastMoveSquares = moveSquaresFromRecord(savedRecord);
-  document.getElementById("coachMessage").textContent = engineReadyForReview ? "Mossa salvata. Stockfish analizzera' la precisione reale; ora il motore calcola la risposta." : "Mossa salvata. Stockfish sta partendo: se non risponde, ricarica dal server locale.";
-  document.getElementById("chessDrill").textContent = engineReadyForReview ? "Drill in attesa: dopo la review Stockfish apparira' il pattern reale." : "Drill in pausa: la review reale richiede Stockfish disponibile.";
+  queueBackgroundAnalysis(savedRecord.fenAfter);
+  document.getElementById("coachMessage").textContent = `Mossa ${savedRecord.san} registrata (${seconds}s). Stockfish la valutera' nella revisione.`;
   renderBoard();
   if (finishIfGameOver("b")) return;
-  botMoveTimer = window.setTimeout(makeBotMove, 420);
+  clearBotTimer();
+  botMoveTimer = window.setTimeout(makeBotMove, 200);
 }
 
-function activeBotLevelForAnalysis() {
-  return getActiveBotLevel(currentGame.botLevel || state.chess.botLevel || 1);
-}
-
-async function makeBotMove() {
-  botMoveTimer = null;
-  if (chessGameOver) return;
-  const moves = getAllLegalMoves(board, "b");
-  if (moves.length === 0) {
-    finishIfGameOver("b");
-    return;
-  }
-  const beforeGameState = cloneGameState(gameState);
-  const activeLevelForThinking = getActiveBotLevel(currentGame.botLevel || state.chess.botLevel || 1);
-  const activeProfileForThinking = getBotProfile(activeLevelForThinking);
-  document.getElementById("coachMessage").textContent = `Stockfish livello ${activeLevelForThinking} (${activeProfileForThinking.elo} Elo) sta calcolando...`;
-  const botMove = await chooseBotMoveAsync(board, moves);
-  if (!botMove || chessGameOver) {
-    const error = currentGame.engineError ? ` Dettaglio: ${currentGame.engineError}` : "";
-    document.getElementById("coachMessage").textContent = `Stockfish non e' riuscito a muovere. Avvia il server locale e ricarica la pagina.${error}`;
-    renderBotLevel();
-    return;
-  }
-  history.push({ turn: "black", board: cloneBoard(board), gameState: beforeGameState });
-  const movedPiece = board[botMove.fromRow][botMove.fromCol];
-  const before = cloneBoard(board);
-  const engineResult = currentGame.lastEngineResult && currentGame.lastEngineResult.ok ? currentGame.lastEngineResult : null;
-  const engineBestMove = engineResult ? moveFromUci(engineResult.bestMove, moves) : null;
-  const evalBefore = engineResult ? engineEvalToCentipawns(engineResult.evaluation, "b", "w") : 0;
-  board = applyMove(board, botMove);
-  updateGameStateForMove(botMove, before);
-  const evalAfter = evalBefore;
-  const botMates = getAllLegalMoves(board, "w").length === 0 && isKingInCheck(board, "w");
-  const botWasBest = engineBestMove && sameMove(botMove, engineBestMove);
-  const botClassification = botMates
-    ? { quality: "excellent", label: "Scacco matto", explanation: engineResult ? "Stockfish chiude la partita." : "il bot locale chiude la partita." }
-      : engineResult && engineResult.source === "book"
-        ? { quality: "book", label: "Mossa da libro", explanation: "segue il book d'apertura curato prima della ricerca motore." }
-      : botWasBest
-        ? { quality: "best", label: "Migliore", explanation: "coincide con la mossa migliore calcolata da Stockfish." }
-        : { quality: "good", label: "Buona", explanation: "mossa scelta tra le linee Stockfish del livello selezionato." };
-  const activeBotLevel = getActiveBotLevel(currentGame.botLevel || state.chess.botLevel || 1);
-  const activeBotProfile = getBotProfile(activeBotLevel);
-  const botRecord = {
-    side: "Nero",
-    color: "b",
-    move: formatMoveText(botMove),
-    readable: readableMove(movedPiece, botMove, before),
-    piece: movedPiece,
-    moveNumber: Math.floor(currentGame.moves.length / 2) + 1,
-    fromRow: botMove.fromRow,
-    fromCol: botMove.fromCol,
-    toRow: botMove.toRow,
-    toCol: botMove.toCol,
-    san: moveToSan(before, board, botMove, movedPiece, "b"),
-    moveSan: moveToSan(before, board, botMove, movedPiece, "b"),
-    uci: moveToUci(before, botMove),
-    colorMoved: "b",
-    timeSeconds: 0,
-    fenBefore: boardToFen(before, "b", beforeGameState),
-    fenAfter: boardToFen(board, "w", gameState),
-    eval: evalAfter,
-    seconds: 0,
-    categories: [],
-    loss: 0,
-    quality: botMates ? "excellent" : botClassification.quality,
-    classification: botClassification.label,
-    bestMoveText: botMates ? "Scacco matto" : engineBestMove ? formatMoveText(engineBestMove) : "Stockfish",
-    evalBefore,
-    evalAfter,
-    evalDiff: evalAfter - evalBefore,
-    variation: engineResult && engineResult.pv && engineResult.pv.length ? engineResult.pv.slice(0, 5).join(" ") : "-",
-    pattern: null,
-    drill: "-",
-    note: `Risposta Stockfish: ${readableMove(movedPiece, botMove, before)}.`,
-    comment: botMates ? "Stockfish chiude la partita con scacco matto." : `Stockfish livello ${activeBotLevel} (${activeBotProfile.elo} Elo) gioca: ${botClassification.explanation}`,
-    boardBefore: cloneBoard(before),
-    boardAfter: cloneBoard(board),
-    engineAnalysis: null,
-    reviewMeta: engineResult ? { engine: engineResult.source === "book" ? "Book apertura" : ChessEngineService.getStatus().name || "Stockfish", depth: engineResult.depth || 0, timeMs: engineResult.source === "book" ? 0 : getEngineTimeForLevel(activeBotLevel), model: engineResult.source === "book" ? "book-fast-path" : "stockfish-bot" } : null
-  };
-  const savedBotRecord = saveMoveData(botRecord);
-  lastMoveSquares = moveSquaresFromRecord(savedBotRecord);
-  moveNumber += 1;
-  thinkStartedAt = Date.now();
-  document.getElementById("coachMessage").textContent = `Il bot risponde ${formatMoveText(botMove)}. Cerca la minaccia piu' forzante prima di muovere.`;
-  renderBoard();
-  finishIfGameOver("w");
-}
-
-function buildMoveRecord({ side, color, move, piece, before, after, beforeState, afterState, seconds, analysis, classification }) {
-  const realError = isErrorQuality(classification.quality);
-  const categories = realError ? analysis.categories : [];
-  const pattern = categories[0] || null;
-  const drill = pattern ? mistakeDrills[pattern] : "Drill mantenimento: prima della prossima mossa trova una minaccia per entrambi i lati.";
-  const hasUsefulBestMove = analysis.bestMove && analysis.bestGap > 30 && !analysis.isMate;
-  const bestMoveText = analysis.isMate ? "Scacco matto" : hasUsefulBestMove ? formatMoveText(analysis.bestMove) : "nessuna alternativa necessaria";
-  const reviewSignals = buildReviewSignals(before, after, move, color, analysis, classification);
-  const comment = buildCoachComment(classification, analysis, bestMoveText, drill);
+// Record base di una mossa: la classificazione arriva dalla revisione Stockfish.
+function buildPlainMoveRecord({ side, color, move, piece, before, after, fenBefore, fenAfter, seconds }) {
+  const san = moveToSan(before, after, move, piece, color);
   return {
     side,
     color,
@@ -2074,105 +1970,137 @@ function buildMoveRecord({ side, color, move, piece, before, after, beforeState,
     fromCol: move.fromCol,
     toRow: move.toRow,
     toCol: move.toCol,
-    san: moveToSan(before, after, move, piece, color),
-    moveSan: moveToSan(before, after, move, piece, color),
+    san,
+    moveSan: san,
     uci: moveToUci(before, move),
     colorMoved: color,
     timeSeconds: seconds,
-    fenBefore: boardToFen(before, color, beforeState),
-    fenAfter: boardToFen(after, color === "w" ? "b" : "w", afterState),
-    eval: analysis.afterEval,
     seconds,
-    categories,
-    loss: Math.max(0, analysis.bestGap),
-    bestGap: Math.max(0, analysis.bestGap),
-    accuracyScore: typeof analysis.accuracyScore === "number" ? analysis.accuracyScore : heuristicAccuracyScore(classification.quality, analysis.bestGap, reviewSignals),
-    quality: classification.quality,
-    classification: classification.label,
-    bestMoveText,
-    evalBefore: analysis.beforeEval,
-    evalAfter: analysis.afterEval,
-    evalDiff: analysis.afterEval - analysis.beforeEval,
-    epLoss: analysis.epLoss,
-    epBefore: analysis.epBefore,
-    epBest: analysis.epBest,
-    epPlayed: analysis.epPlayed,
-    reviewRating: analysis.reviewRating,
-    variation: hasUsefulBestMove ? analysis.variation : "-",
-    pattern,
-    phase: reviewSignals.phase,
-    reviewSignals,
-    drill,
-    note: comment,
-    comment,
+    fenBefore,
+    fenAfter,
+    quality: "pending",
+    classification: "In attesa di revisione",
+    categories: [],
+    pattern: null,
+    loss: 0,
+    bestMoveText: null,
+    bestMoveUci: null,
+    evalBefore: 0,
+    evalAfter: 0,
+    evalDiff: 0,
+    variation: "-",
+    drill: "-",
+    comment: "Mossa salvata: la valutazione arriva con la revisione Stockfish.",
+    note: "Mossa salvata.",
     boardBefore: cloneBoard(before),
-    boardAfter: cloneBoard(after)
+    boardAfter: cloneBoard(after),
+    engineAnalysis: null
   };
 }
 
-function buildCoachComment(classification, analysis, bestMoveText, drill) {
-  const pattern = isErrorQuality(classification.quality) ? analysis.categories[0] : null;
-  const patternText = pattern ? mistakeLabels[pattern] : "nessun pattern critico";
-  if (analysis.isMate) {
-    return `Questa e' ${classification.label}: la mossa conclude la partita con scacco matto. Non serve proporre un'alternativa casuale: il punto era riconoscere la rete di matto e chiuderla. Pattern: ${patternText}. Drill: rivedi la posizione finale e trova tutte le case di fuga controllate.`;
+async function makeBotMove() {
+  botMoveTimer = null;
+  if (chessGameOver) return;
+  const moves = getAllLegalMoves(board, "b");
+  if (moves.length === 0) {
+    finishIfGameOver("b");
+    return;
   }
-  const delta = moveDeltaPawns(analysis.beforeEval, analysis.afterEval, "w");
-  const epText = typeof analysis.epLoss === "number" ? ` Perdita risultato atteso: ${(analysis.epLoss * 100).toFixed(1)}%.` : "";
-  const lossText = `Delta valutazione: ${delta >= 0 ? "+" : ""}${delta.toFixed(2)} pedoni.${epText}`;
-  const usefulAlternative = bestMoveText && bestMoveText !== "nessuna alternativa necessaria" && bestMoveText !== "-";
-  const alternativeText = usefulAlternative ? `Alternativa migliore: ${bestMoveText}.` : "Non c'e' una alternativa migliore utile da mostrare: la mossa e' abbastanza coerente con la posizione.";
-  return `Questa e' ${classification.label}: ${classification.explanation} ${lossText} Dovevi controllare minacce, catture e risposta forzante dell'avversario. ${alternativeText} Pattern: ${patternText}. Drill: ${drill}`;
-}
-
-function buildReviewSignals(before, after, move, color, analysis, classification) {
-  const opponent = color === "w" ? "b" : "w";
-  const movedPiece = before[move.fromRow][move.fromCol];
-  const capturedPiece = move.enPassant ? before[move.fromRow][move.toCol] : before[move.toRow][move.toCol];
-  const beforeLoose = looseMaterial(before, color);
-  const afterLoose = looseMaterial(after, color);
-  const opponentLooseBefore = looseMaterial(before, opponent);
-  const opponentLooseAfter = looseMaterial(after, opponent);
-  const ownThreatBefore = immediateThreatScore(before, color).score;
-  const ownThreatAfter = immediateThreatScore(after, color).score;
-  const opponentThreatBefore = immediateThreatScore(before, opponent).score;
-  const opponentThreatAfter = immediateThreatScore(after, opponent).score;
-  const phase = getChessPhase(before);
-  const evalDelta = moveDeltaPawns(analysis.beforeEval, analysis.afterEval, color);
-  const bestGapPawns = Math.max(0, analysis.bestGap) / 100;
-  return {
-    phase,
+  const gameId = currentGame.id;
+  const plyBefore = currentGame.moves.length;
+  const level = getActiveBotLevel(currentGame.botLevel || state.chess.botLevel || 1);
+  const profile = getBotProfile(level);
+  const beforeGameState = cloneGameState(gameState);
+  const fenBefore = boardToFen(board, "b", beforeGameState);
+  const positionChanged = () => currentGame.id !== gameId || chessGameOver || currentGame.moves.length !== plyBefore || boardToFen(board, "b", gameState) !== fenBefore;
+  const coach = document.getElementById("coachMessage");
+  coach.textContent = `Il bot (livello ${level}, ${profile.elo} Elo) sta pensando...`;
+  const ready = await ensureStockfishReadyForChess();
+  if (positionChanged()) return;
+  if (!ready) {
+    coach.textContent = `${STOCKFISH_REQUIRED_NOTICE} ${currentGame.engineError ? `Dettaglio: ${currentGame.engineError}` : ""}`;
+    renderBotLevel();
+    return;
+  }
+  const startedAt = Date.now();
+  const choice = await ChessBot.chooseMove(chessEngines().play, fenBefore, level, { ply: currentGame.moves.length });
+  // Pausa minima per rendere la risposta naturale anche ai livelli bassi.
+  const minimumThink = 350 + Math.random() * 650;
+  const elapsed = Date.now() - startedAt;
+  if (elapsed < minimumThink) await new Promise((resolve) => setTimeout(resolve, minimumThink - elapsed));
+  if (positionChanged()) return;
+  const botMove = choice.ok ? moveFromUci(choice.uci, moves) : null;
+  if (!botMove) {
+    currentGame.engineError = choice.error || `Mossa non valida: ${choice.uci}`;
+    coach.textContent = `Stockfish non e' riuscito a muovere: ${currentGame.engineError}. Ricarica la pagina dal server locale.`;
+    return;
+  }
+  history.push({ turn: "black", board: cloneBoard(board), gameState: beforeGameState });
+  const movedPiece = board[botMove.fromRow][botMove.fromCol];
+  const before = cloneBoard(board);
+  board = applyMove(board, botMove);
+  updateGameStateForMove(botMove, before);
+  moveNumber += 1;
+  const record = buildPlainMoveRecord({
+    side: "Nero",
+    color: "b",
+    move: botMove,
     piece: movedPiece,
-    captured: capturedPiece,
-    evalDelta,
-    bestGapPawns,
-    beforeLoose,
-    afterLoose,
-    looseChange: afterLoose - beforeLoose,
-    opponentLooseChange: opponentLooseAfter - opponentLooseBefore,
-    ownThreatChange: ownThreatAfter - ownThreatBefore,
-    opponentThreatChange: opponentThreatAfter - opponentThreatBefore,
-    givesCheck: isKingInCheck(after, opponent),
-    givesMate: analysis.isMate,
-    worsened: evalDelta < -0.3 || classification.quality === "mistake" || classification.quality === "blunder"
-  };
+    before,
+    after: board,
+    fenBefore,
+    fenAfter: boardToFen(board, "w", gameState),
+    seconds: 0
+  });
+  record.botReason = choice.reason;
+  record.comment = `Il bot gioca ${record.san}.`;
+  const savedBotRecord = saveMoveData(record);
+  lastMoveSquares = moveSquaresFromRecord(savedBotRecord);
+  queueBackgroundAnalysis(savedBotRecord.fenAfter);
+  thinkStartedAt = Date.now();
+  coach.textContent = `Il bot risponde ${savedBotRecord.san}. Prima di muovere: cosa minaccia questa mossa?`;
+  renderBoard();
+  finishIfGameOver("w");
 }
 
 function getChessPhase(currentBoard) {
-  if (isEndgame(currentBoard)) return "Finale";
-  if (currentGame.moves.length < 12) return "Apertura";
+  const pieces = currentBoard.flat().filter((piece) => piece && !["p", "k"].includes(piece.toLowerCase())).length;
+  if (pieces <= 6) return "Finale";
+  if (currentGame.moves.length < 20 && pieces > 10) return "Apertura";
   return "Mediogioco";
 }
 
-function heuristicAccuracyScore(quality, bestGap, signals) {
-  if (quality === "book") return 98;
-  if (quality === "brilliant" || quality === "best") return 100;
-  if (quality === "excellent") return clamp(98 - bestGap / 120, 95, 99);
-  if (quality === "good") return clamp(93 - bestGap / 100, 88, 94);
-  if (quality === "inexact") return clamp(86 - bestGap / 80, 75, 87);
-  if (quality === "mistake") return clamp(72 - bestGap / 60 - Math.max(0, signals.looseChange) / 20, 45, 74);
-  if (quality === "blunder") return clamp(42 - bestGap / 35 - Math.max(0, signals.looseChange) / 12, 0, 44);
-  if (quality === "missed") return clamp(78 - bestGap / 55, 35, 80);
-  return 90;
+// Durante la partita mostriamo solo il bilancio materiale (la valutazione del
+// motore sarebbe un suggerimento); in revisione mostriamo quella di Stockfish.
+function renderEvalStatus(displayBoard) {
+  const status = document.getElementById("evalStatus");
+  if (!status) return;
+  if (reviewBoard) {
+    const move = currentGame.reviewIndex >= 0 ? currentGame.moves[currentGame.reviewIndex] : null;
+    status.textContent = move && move.engineAnalysis && move.engineAnalysis.ok ? `Stockfish ${formatEngineEval(move.evalAfter)}` : "Stockfish --";
+    return;
+  }
+  const material = materialBalance(displayBoard);
+  status.textContent = material === 0 ? "Materiale pari" : `Materiale ${material > 0 ? "+" : ""}${material}`;
+}
+
+function materialBalance(currentBoard) {
+  const values = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+  return currentBoard.flat().reduce((sum, piece) => {
+    if (!piece) return sum;
+    const value = values[piece.toLowerCase()] || 0;
+    return sum + (isWhite(piece) ? value : -value);
+  }, 0);
+}
+
+function formatEngineEval(cp) {
+  const value = Number(cp) || 0;
+  if (Math.abs(value) >= ChessAnalysis.MATE_CP) return value > 0 ? "matto (vince il Bianco)" : "matto (vince il Nero)";
+  if (Math.abs(value) >= 9000) {
+    const mateIn = Math.max(1, Math.round((ChessAnalysis.MATE_CP - Math.abs(value)) / 10));
+    return `${value > 0 ? "" : "-"}#${mateIn}`;
+  }
+  return `${value >= 0 ? "+" : ""}${(value / 100).toFixed(1)}`;
 }
 
 function readableMove(piece, move, currentBoard) {
@@ -2271,12 +2199,36 @@ function boardToFen(currentBoard, activeColor = "w", stateSnapshot = gameState) 
 
 function finishIfGameOver(sideToMove) {
   const moves = getAllLegalMoves(board, sideToMove);
-  if (moves.length > 0) return false;
-  const inCheck = isKingInCheck(board, sideToMove);
-  if (!inCheck) finishGame("draw", "stalemate");
-  else if (sideToMove === "b") finishGame("win", "checkmate");
-  else finishGame("loss", "checkmate");
-  return true;
+  if (moves.length === 0) {
+    const inCheck = isKingInCheck(board, sideToMove);
+    if (!inCheck) finishGame("draw", "stalemate");
+    else if (sideToMove === "b") finishGame("win", "checkmate");
+    else finishGame("loss", "checkmate");
+    return true;
+  }
+  const drawReason = detectDrawByRules();
+  if (drawReason) {
+    finishGame("draw", drawReason);
+    return true;
+  }
+  return false;
+}
+
+function detectDrawByRules() {
+  const moves = getSafeChessMoves();
+  if (!moves.length || typeof window === "undefined" || !window.Chess) return null;
+  try {
+    const game = new window.Chess(moves[0].fenBefore);
+    for (const record of moves) {
+      if (!ChessAnalysis.applyUci(game, record.uci)) return null;
+    }
+    if (game.isThreefoldRepetition()) return "repetition";
+    if (game.isInsufficientMaterial()) return "insufficient";
+    if (game.isDrawByFiftyMoves()) return "fifty";
+  } catch (error) {
+    return null;
+  }
+  return null;
 }
 
 function finishGame(result, reason = null) {
@@ -2320,9 +2272,8 @@ function buildGameAnalysis(result = "partial", reason = currentGame.endReason ||
   const reviewedBlackMoves = blackMoves.filter((move) => move?.engineAnalysis?.ok && move.quality !== "unknown");
   const counts = countMoveQualities(whiteMoves);
   const botCounts = countMoveQualities(blackMoves);
-  const evalSeries = [0].concat(safeMoves.map((move) => move.evalAfter || 0));
-  const playerAccuracyDetails = reviewedWhiteMoves.length ? computeAccuracyDetails(reviewedWhiteMoves, "w", result, evalSeries) : null;
-  const rawAccuracy = playerAccuracyDetails ? playerAccuracyDetails.final : 0;
+  const evalSeries = [safeMoves.length ? safeMoves[0].evalBefore || 0 : 0].concat(safeMoves.map((move) => move.evalAfter || 0));
+  const reviewSummary = currentGame.reviewSummary || null;
   const mistakeMap = {};
   (currentGame.mistakes || []).forEach((mistake) => {
     if (!mistake || !Array.isArray(mistake.categories)) return;
@@ -2334,16 +2285,17 @@ function buildGameAnalysis(result = "partial", reason = currentGame.endReason ||
   let resultLabel = result === "win" ? "Vittoria" : result === "loss" ? "Sconfitta" : result === "draw" ? "Patta" : safeMoves.length ? "Analisi parziale" : "In corso";
   if (reason === "checkmate") resultLabel = result === "win" ? "Vittoria per scacco matto" : "Sconfitta per scacco matto";
   if (reason === "stalemate") resultLabel = "Patta per stallo";
+  if (reason === "repetition") resultLabel = "Patta per ripetizione";
+  if (reason === "insufficient") resultLabel = "Patta per materiale insufficiente";
+  if (reason === "fifty") resultLabel = "Patta per regola delle 50 mosse";
   const exerciseObjects = buildChessExerciseObjects(whiteMoves);
-  const exercises = exerciseObjects.length ? exerciseObjects.map((exercise) => `${exercise.theme}: ${exercise.explanation}`) : topErrors.length ? topErrors.slice(0, 2).map(([category]) => mistakeDrills[category]) : ["Esercizio: rigioca mentalmente le ultime 5 mosse e cerca una minaccia nascosta per ogni lato."];
+  const exercises = exerciseObjects.length ? exerciseObjects.map((exercise) => `${exercise.theme} - mossa ${Math.ceil(exercise.ply / 2)}: ${exercise.short}`) : topErrors.length ? topErrors.slice(0, 2).map(([category]) => mistakeDrills[category]) : ["Esercizio: rigioca mentalmente le ultime 5 mosse e cerca una minaccia nascosta per ogni lato."];
   const botLevel = getActiveBotLevel(currentGame.botLevel || state.chess.botLevel || 1);
   const botProfile = getBotProfile(botLevel);
-  const botAccuracyDetails = reviewedBlackMoves.length ? computeAccuracyDetails(reviewedBlackMoves, "b", result, evalSeries) : null;
-  const rawBotAccuracy = botAccuracyDetails ? botAccuracyDetails.final : 0;
-  const accuracy = calibratePlayerAccuracy(rawAccuracy, counts, result);
-  const botAccuracy = blackMoves.length ? calibrateBotAccuracy(rawBotAccuracy, botCounts, botLevel) : 0;
+  const accuracy = reviewSummary && typeof reviewSummary.accuracy.w === "number" ? Math.round(reviewSummary.accuracy.w) : 0;
+  const botAccuracy = reviewSummary && typeof reviewSummary.accuracy.b === "number" ? Math.round(reviewSummary.accuracy.b) : 0;
   const engineAvailable = isStockfishEngineEnabled();
-  const engineBased = Boolean(reviewCompleted && (reviewedWhiteMoves.length || reviewedBlackMoves.length));
+  const engineBased = Boolean(reviewCompleted && reviewSummary && (reviewedWhiteMoves.length || reviewedBlackMoves.length));
   const mainPattern = topErrors[0] ? { key: topErrors[0][0], label: mistakeLabels[topErrors[0][0]], count: topErrors[0][1] } : null;
   const phase = getGamePhaseLabel();
   const gameRating = null;
@@ -2367,38 +2319,27 @@ function buildGameAnalysis(result = "partial", reason = currentGame.endReason ||
     engineBased,
     reviewStatus,
     reviewResult: currentGame.reviewResult || createStableReviewResult({ status: reviewStatus }),
-    analysisSource: engineBased ? "Stockfish engine-based" : reviewStatus === "analyzing" ? "Stockfish sta analizzando" : "Stockfish non disponibile: analisi reale bloccata",
+    analysisSource: engineBased ? STOCKFISH_ENGINE_LABEL : reviewStatus === "analyzing" ? "Stockfish sta analizzando" : "Revisione Stockfish non ancora eseguita",
     engineError: currentGame.engineError || (engineAvailable ? null : "Motore non disponibile"),
     gameRating,
     phase,
     moveCount: safeMoves.length,
     playerMoveCount: whiteMoves.length,
-    accuracyDetails: playerAccuracyDetails,
-    botAccuracyDetails,
-    accuracyBreakdown: buildAccuracyBreakdown(counts, whiteMoves.length, playerAccuracyDetails),
+    opening: reviewSummary ? reviewSummary.opening : null,
+    reviewDepth: reviewSummary ? reviewSummary.depth : null,
+    accuracyBreakdown: buildAccuracyBreakdown(counts, whiteMoves.length, reviewSummary),
     mainPattern,
     message: ""
   };
   analysis.gameRating = engineBased && whiteMoves.length ? estimateGameRating(accuracy, botProfile.elo, result, analysis) : null;
   analysis.message = buildChessReportMessage(analysis);
   analysis.coachSummary = buildChessCoachSummary(analysis, whiteMoves);
-  chessDebugLog("review-summary", {
-    finalAccuracy: analysis.accuracy,
-    botAccuracy: analysis.botAccuracy,
-    gameRating: analysis.gameRating,
-    moveClassifications: analysis.counts,
-    accuracyDetails: analysis.accuracyDetails,
-    botAccuracyDetails: analysis.botAccuracyDetails,
-    reviewStatus: analysis.reviewStatus
-  });
-  console.log("finalAccuracy", analysis.accuracy);
-  console.log("gameRating", analysis.gameRating);
   return analysis;
 }
 
 function buildChessExerciseObjects(playerMoves) {
   return playerMoves
-    .filter((move) => move && ["inaccuracy", "inexact", "mistake", "blunder", "missed"].includes(move.quality))
+    .filter((move) => move && ["inaccuracy", "inexact", "mistake", "blunder", "missed"].includes(move.quality) && move.bestMoveUci)
     .map((move, index) => {
       const theme = move.pattern ? mistakeLabels[move.pattern] : move.quality === "missed" ? "Mossa mancata" : "Calcolo";
       const difficulty = move.quality === "blunder" ? 5 : move.quality === "mistake" || move.quality === "missed" ? 4 : 3;
@@ -2407,10 +2348,12 @@ function buildChessExerciseObjects(playerMoves) {
         exercise_index: index + 1,
         ply: move.ply,
         fen_before: move.fenBefore,
-        correct_move: move.bestMoveText || move.engineAnalysis?.bestMove || null,
+        correct_move: move.bestMoveUci,
+        correct_move_san: move.bestMoveText,
         theme,
         difficulty,
         explanation: move.comment || buildShortReviewComment(move),
+        short: buildShortReviewComment(move),
         hint: `Cerca prima scacchi, catture e minacce. Tema: ${theme}.`,
         source_quality: move.quality
       };
@@ -2441,45 +2384,31 @@ function getGamePhaseLabel() {
   return getChessPhase(currentBoard);
 }
 
+// "Game rating": l'Elo a cui corrisponde la tua precisione in questa partita
+// (stessa tabella usata per calibrare i bot). Serve almeno qualche mossa.
 function estimateGameRating(accuracy, botElo, result, analysis = null) {
-  const counts = analysis && analysis.counts ? analysis.counts : {};
-  const moveCount = analysis ? analysis.playerMoveCount || analysis.moveCount || 0 : 0;
-  const complexityMoves = getSafeChessMoves().filter((move) => move.side === "Bianco" && typeof move.moveComplexity === "number");
-  const averageComplexity = analysis?.accuracyDetails && typeof analysis.accuracyDetails.averageComplexity === "number"
-    ? analysis.accuracyDetails.averageComplexity
-    : complexityMoves.length
-      ? complexityMoves.reduce((sum, move) => sum + move.moveComplexity, 0) / complexityMoves.length
-      : 0.35;
-  const normalizedMoveCount = Math.max(moveCount, 1);
-  const exactTopCount = (counts.best || 0) + (counts.great || 0) + (counts.brilliant || 0);
-  const strongMoveCount = exactTopCount + (counts.excellent || 0) * 0.6 + (counts.book || 0) * 0.35;
-  const strongMoveRatio = strongMoveCount / normalizedMoveCount;
-  let rating = botElo + (accuracy - 78) * 12 + (averageComplexity - 0.35) * 180;
-  rating += result === "win" ? 45 : result === "loss" ? -75 : 0;
-  rating += moveCount >= 24 ? 25 : moveCount <= 10 ? -70 : 0;
-  rating += (strongMoveRatio - 0.45) * 120;
-  rating -= (counts.blunder || 0) * 320;
-  rating -= (counts.mistake || 0) * 150;
-  rating -= ((counts.inaccuracy || 0) + (counts.inexact || 0)) * 45;
-  rating -= (counts.missed || 0) * 120;
-  if ((counts.blunder || 0) >= 1) rating = Math.min(rating, 1800);
-  if ((counts.mistake || 0) >= 2) rating = Math.min(rating, 1700);
-  if (averageComplexity < 0.28 && accuracy < 97) rating = Math.min(rating, botElo <= 1600 ? 1850 : 2150);
-  const hasMajorError = Boolean((counts.blunder || 0) || (counts.mistake || 0));
-  if (botElo <= 600) rating = Math.min(rating, botElo + (hasMajorError ? 450 : 650));
-  else if (botElo <= 1000) rating = Math.min(rating, botElo + (hasMajorError ? 500 : 700));
-  else if (botElo <= 1300) rating = Math.min(rating, botElo + (hasMajorError ? 500 : 650));
-  else if (botElo <= 1600) rating = Math.min(rating, botElo + (accuracy >= 97 && !hasMajorError ? 450 : 350));
-  else if (botElo <= 2000) rating = Math.min(rating, botElo + (accuracy >= 97 && !hasMajorError ? 500 : 350));
-  const gameRating = clamp(Math.round(rating), 250, 3000);
-  chessDebugLog("game-rating", { accuracy, botElo, result, averageComplexity, strongMoveRatio, counts, gameRating });
-  return gameRating;
+  const playerMoves = analysis ? analysis.playerMoveCount || 0 : 0;
+  if (playerMoves < 8 || typeof accuracy !== "number") return null;
+  const competitive = competitiveAccuracy(getSafeChessMoves().filter((move) => move.side === "Bianco"));
+  return ChessAnalysis.eloFromAccuracy(competitive !== null ? competitive : accuracy);
+}
+
+// Precisione nelle sole posizioni ancora aperte (probabilita' di vittoria tra
+// 10% e 90%): le mosse in posizioni gia' decise dicono poco sul livello reale.
+function competitiveAccuracy(playerMoves) {
+  const values = playerMoves
+    .filter((move) => move.engineAnalysis && move.engineAnalysis.ok && typeof move.accuracyScore === "number" && move.winBefore >= 10 && move.winBefore <= 90)
+    .map((move) => move.accuracyScore);
+  if (values.length < 6) return null;
+  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+  const harmonic = values.length / values.reduce((sum, value) => sum + 1 / Math.max(value, 1), 0);
+  return (mean + harmonic) / 2;
 }
 
 function countMoveQualities(moves) {
-  const counts = { book: 0, best: 0, great: 0, brilliant: 0, excellent: 0, good: 0, inaccuracy: 0, inexact: 0, mistake: 0, blunder: 0, missed: 0, unknown: 0 };
+  const counts = { book: 0, best: 0, great: 0, brilliant: 0, excellent: 0, good: 0, inaccuracy: 0, inexact: 0, mistake: 0, blunder: 0, missed: 0, forced: 0, pending: 0, unknown: 0 };
   moves.forEach((move) => {
-    const key = move.quality && Object.prototype.hasOwnProperty.call(counts, move.quality) ? move.quality : "good";
+    const key = move.quality && Object.prototype.hasOwnProperty.call(counts, move.quality) ? move.quality : "pending";
     counts[key] += 1;
   });
   return counts;
@@ -2488,239 +2417,50 @@ function countMoveQualities(moves) {
 function getReportClassificationRows(counts = {}) {
   const safeCounts = counts || {};
   return [
-    { key: "best", label: "Migliore", count: safeCounts.best || 0, className: "best" },
-    { key: "great", label: "Grande", count: safeCounts.great || 0, className: "great" },
     { key: "brilliant", label: "Brillante", count: safeCounts.brilliant || 0, className: "brilliant" },
+    { key: "great", label: "Grande", count: safeCounts.great || 0, className: "great" },
+    { key: "best", label: "Migliore", count: (safeCounts.best || 0) + (safeCounts.forced || 0), className: "best" },
     { key: "excellent", label: "Ottima", count: safeCounts.excellent || 0, className: "excellent" },
     { key: "good", label: "Buona", count: safeCounts.good || 0, className: "good" },
+    { key: "book", label: "Libro", count: safeCounts.book || 0, className: "book" },
     { key: "inaccuracy", label: "Imprecisione", count: (safeCounts.inaccuracy || 0) + (safeCounts.inexact || 0), className: "inexact" },
-    { key: "mistake", label: "Errore", count: (safeCounts.mistake || 0) + (safeCounts.missed || 0), className: "mistake" },
+    { key: "mistake", label: "Errore", count: safeCounts.mistake || 0, className: "mistake" },
+    { key: "missed", label: "Mancata", count: safeCounts.missed || 0, className: "missed" },
     { key: "blunder", label: "Blunder", count: safeCounts.blunder || 0, className: "blunder" }
   ];
 }
 
 function formatReviewClassificationCounts(counts = {}) {
   const safeCounts = counts || {};
-  const parts = getReportClassificationRows(safeCounts).map((row) => `${row.count} ${row.label}`);
-  if (safeCounts.book) parts.push(`${safeCounts.book} Libro`);
-  if (safeCounts.unknown) parts.push(`${safeCounts.unknown} non analizzate`);
-  return parts.join(", ");
+  const parts = getReportClassificationRows(safeCounts).filter((row) => row.count).map((row) => `${row.count} ${row.label}`);
+  if (safeCounts.pending) parts.push(`${safeCounts.pending} non analizzate`);
+  return parts.length ? parts.join(", ") : "nessuna";
 }
 
-function computeAccuracyFromMoves(moves, side, result, evalSeries) {
-  return computeAccuracyDetails(moves, side, result, evalSeries).final;
-}
-
-function computeAccuracyDetails(moves, side, result, evalSeries) {
-  if (!moves.length) return {
-    final: 0,
-    rawWeighted: 0,
-    harmonic: 0,
-    base: 0,
-    cap: 100,
-    averageComplexity: 0,
-    exactTopRatio: 0,
-    strongMoveRatio: 0,
-    nonBestPenalty: 0,
-    simplePositionPenalty: 0,
-    goodOnlyPenalty: 0,
-    tacticalPenalty: 0
-  };
-  const counts = countMoveQualities(moves);
-  const totals = moves.reduce((acc, move) => {
-    const impact = moveAccuracyImpactWeight(move);
-    const score = moveAccuracyWeight(move) * 100;
-    acc.score += score * impact;
-    acc.harmonic += impact / Math.max(score, 1);
-    acc.weight += impact;
-    acc.complexity += (typeof move.moveComplexity === "number" ? move.moveComplexity : 0.35);
-    return acc;
-  }, { score: 0, harmonic: 0, complexity: 0, weight: 0 });
-  const weightedMean = totals.score / (totals.weight || moves.length);
-  const harmonicMean = totals.weight / (totals.harmonic || 1);
-  const averageComplexity = totals.complexity / moves.length;
-  const exactTopCount = (counts.best || 0) + (counts.great || 0) + (counts.brilliant || 0);
-  const excellentCount = counts.excellent || 0;
-  const bookCount = counts.book || 0;
-  const goodCount = counts.good || 0;
-  const inaccuracyCount = (counts.inaccuracy || 0) + (counts.inexact || 0);
-  const exactTopRatio = exactTopCount / moves.length;
-  const strongMoveRatio = (exactTopCount + excellentCount * 0.6 + bookCount * 0.35) / moves.length;
-  const goodRatio = goodCount / moves.length;
-  const base = weightedMean * 0.68 + harmonicMean * 0.32;
-  const nonBestPenalty = Math.max(0, 0.52 - strongMoveRatio) * 8;
-  const simplePositionPenalty = base > 88 ? Math.max(0, 0.45 - averageComplexity) * 18 : 0;
-  const goodOnlyPenalty = goodRatio * 2.5;
-  const tacticalPenalty = inaccuracyCount * 0.7 + (counts.mistake || 0) * 1.4 + (counts.blunder || 0) * 3.5 + (counts.missed || 0) * 2.2;
-  let adjusted = base - nonBestPenalty - simplePositionPenalty - goodOnlyPenalty - tacticalPenalty;
-  let cap = 100;
-  if (moves.length >= 6 && exactTopRatio < 0.12 && base > 88) cap = Math.min(cap, 89);
-  if (moves.length >= 6 && exactTopRatio < 0.22 && averageComplexity < 0.38 && base > 90) cap = Math.min(cap, 88);
-  if (averageComplexity < 0.28 && base > 88) cap = Math.min(cap, 87);
-  if ((counts.blunder || 0) >= 1) cap = Math.min(cap, 78);
-  if ((counts.mistake || 0) >= 2) cap = Math.min(cap, 82);
-  if (inaccuracyCount >= Math.max(3, Math.ceil(moves.length * 0.25))) cap = Math.min(cap, 86);
-  const final = Math.round(clamp(Math.min(adjusted, cap), 0, 100));
-  return {
-    final,
-    rawWeighted: Math.round(weightedMean),
-    harmonic: Math.round(harmonicMean),
-    base: Math.round(base),
-    cap,
-    averageComplexity: Number(averageComplexity.toFixed(2)),
-    exactTopRatio: Number(exactTopRatio.toFixed(2)),
-    strongMoveRatio: Number(strongMoveRatio.toFixed(2)),
-    nonBestPenalty: Number(nonBestPenalty.toFixed(1)),
-    simplePositionPenalty: Number(simplePositionPenalty.toFixed(1)),
-    goodOnlyPenalty: Number(goodOnlyPenalty.toFixed(1)),
-    tacticalPenalty: Number(tacticalPenalty.toFixed(1))
-  };
-}
-
-function moveAccuracyWeight(move) {
-  if (typeof move.accuracyScore === "number") return clamp(move.accuracyScore, 0, 100) / 100;
-  if (move.quality === "best" || move.quality === "brilliant" || move.quality === "great") return 1;
-  if (move.quality === "book") return 0.99;
-  if (move.quality === "excellent") return 0.97;
-  if (move.quality === "good") return 0.91;
-  if (move.quality === "inexact" || move.quality === "inaccuracy") return 0.81;
-  if (move.quality === "mistake" || move.quality === "missed") return 0.6;
-  if (move.quality === "blunder") return 0.25;
-  return 0.9;
-}
-
-function moveAccuracyImpactWeight(move) {
-  if (move.quality === "book") return 0.75;
-  if (move.quality === "brilliant" || move.quality === "great") return 1.15;
-  if (move.quality === "missed") return 1.15;
-  if (move.quality === "blunder") return 1.25;
-  if (move.quality === "mistake") return 1.1;
-  return 1;
-}
-
-function getReviewRatingForMove(move) {
-  if (move.side === "Nero" || move.colorMoved === "b") return getBotProfile(currentGame.botLevel || state.chess.botLevel || 1).elo;
-  return clamp(1200 + (state.chess.wins || 0) * 18 - (state.chess.losses || 0) * 12 + (state.chess.lastAccuracy || 65) * 2, 800, 2200);
-}
-
-function expectedPoints(evalCpFromPlayerPOV, playerRating = 1300) {
-  const cp = clamp(evalCpFromPlayerPOV || 0, -1200, 1200);
-  const skill = 0.75 + 0.00025 * (playerRating - 400);
-  return 1 / (1 + Math.exp(-(skill * cp) / 230.0));
-}
-
-function expectedPointsFromEval(evalCpFromPlayerPov, playerRating = 1300) {
-  if (evalCpFromPlayerPov >= 90000) return 1;
-  if (evalCpFromPlayerPov <= -90000) return 0;
-  return expectedPoints(evalCpFromPlayerPov, playerRating);
-}
-
-function qualityScoreFromExpectedLoss(quality, epLoss, context = {}) {
-  const loss = Math.max(0, typeof epLoss === "number" ? epLoss : 0);
-  let score = 90;
-  if (quality === "best") score = 100;
-  else if (quality === "excellent") score = interpolateClamped(loss, 0.00, 0.02, 99, 95);
-  else if (quality === "good") score = interpolateClamped(loss, 0.02, 0.05, 94, 88);
-  else if (quality === "inexact" || quality === "inaccuracy") score = interpolateClamped(loss, 0.05, 0.10, 87, 75);
-  else if (quality === "mistake") score = interpolateClamped(loss, 0.10, 0.20, 74, 45);
-  else if (quality === "blunder") score = interpolateClamped(loss, 0.20, 1.00, 44, 0);
-  else if (quality === "missed") score = interpolateClamped(loss, 0.10, 0.35, 80, 35);
-  else if (quality === "great") score = Math.max(98, interpolateClamped(loss, 0, 0.02, 100, 98));
-  else if (quality === "brilliant") score = Math.max(99, interpolateClamped(loss, 0, 0.02, 100, 99));
-  else if (quality === "book") score = 98;
-  if (context.epBefore >= 0.92 && context.epPlayed >= 0.88) score = Math.max(score, 82);
-  if (context.positionAlreadyDecided && ["good", "inaccuracy", "mistake"].includes(quality)) score = Math.max(score, 82);
-  return Math.round(clamp(score, 0, 100));
-}
-
-function interpolateClamped(value, inMin, inMax, outMin, outMax) {
-  if (inMax === inMin) return outMax;
-  const ratio = clamp((value - inMin) / (inMax - inMin), 0, 1);
-  return outMin + (outMax - outMin) * ratio;
-}
-
-function getAccuracyDecayK(context = {}) {
-  if (context.isNormalOpening) return 0.25;
-  if (context.positionAlreadyDecided) return 0.20;
-  const complexity = calculateMoveComplexity(context);
-  if (complexity >= 0.72) return 0.45;
-  return 0.35;
-}
-
-function calculateMoveComplexity(context = {}) {
-  let complexity = 0.3;
-  const topMoves = Array.isArray(context.topMoves) ? context.topMoves : [];
-  if (topMoves.length >= 4) complexity += 0.1;
-  if (typeof context.secondBestCp === "number" && typeof context.playedCp === "number" && Math.abs(context.playedCp - context.secondBestCp) >= 140) complexity += 0.18;
-  if (Math.abs(context.beforeCp || 0) <= 250) complexity += 0.12;
-  if ((context.lossCp || 0) >= 120) complexity += 0.14;
-  if (context.isMissed || context.isGreat || context.isBrilliant) complexity += 0.18;
-  if (context.positionAlreadyDecided) complexity -= 0.18;
-  if (context.isNormalOpening) complexity -= 0.08;
-  return clamp(complexity, 0.15, 1);
-}
-
-function calibratePlayerAccuracy(raw, counts, result) {
-  return Math.round(clamp(raw, 0, 100));
-}
-
-function calibrateBotAccuracy(raw, counts, level) {
-  if (!raw) return 0;
-  return Math.round(clamp(raw, 0, 100));
-}
-
-function getBotAccuracyRange(level) {
-  const elo = getBotProfile(level).elo;
-  const ranges = botAccuracyRanges;
-  const exact = ranges.find((range) => range.elo === elo);
-  if (exact) return [exact.min, exact.max];
-  const lower = [...ranges].reverse().find((range) => range.elo < elo) || ranges[0];
-  const upper = ranges.find((range) => range.elo > elo) || ranges[ranges.length - 1];
-  if (lower.elo === upper.elo) return [lower.min, lower.max];
-  const ratio = (elo - lower.elo) / (upper.elo - lower.elo);
-  const min = Math.round(lower.min + (upper.min - lower.min) * ratio);
-  const max = Math.round(lower.max + (upper.max - lower.max) * ratio);
-  return [min, max];
-}
-
-function conversionPenalty(side, result, evalSeries) {
-  if (!evalSeries.length) return 0;
-  const finalEval = evalSeries[evalSeries.length - 1];
-  if (side === "w") {
-    const peak = Math.max(...evalSeries);
-    if (peak > 300 && finalEval < 80 && result !== "win") return 8;
-    if (peak > 180 && finalEval < -100) return 5;
-  } else {
-    const trough = Math.min(...evalSeries);
-    if (trough < -300 && finalEval > -80 && result !== "loss") return 8;
-    if (trough < -180 && finalEval > 100) return 5;
-  }
-  return 0;
-}
-
-function buildAccuracyBreakdown(counts, moveCount, details = null) {
-  if (!moveCount) return "Precisione calcolata da: nessuna mossa ancora giocata.";
-  const detailText = details
-    ? ` Base ${details.base}%, media grezza ${details.rawWeighted}%, complessita' ${details.averageComplexity}, rapporto Migliore ${Math.round(details.exactTopRatio * 100)}%, penalita' semplicita'/non-migliori ${Math.round(details.simplePositionPenalty + details.nonBestPenalty + details.goodOnlyPenalty)}%.`
-    : "";
-  return `Precisione calcolata da: ${formatReviewClassificationCounts(counts)}.${detailText}`;
+function buildAccuracyBreakdown(counts, moveCount, summary = null) {
+  if (!moveCount) return "Precisione: nessuna mossa ancora giocata.";
+  const depthText = summary && summary.depth ? ` Analisi ${STOCKFISH_ENGINE_LABEL}, profondita' ${summary.depth}.` : "";
+  return `Precisione calcolata con il metodo Lichess: per ogni mossa si misura quanta probabilita' di vittoria perdi rispetto alla mossa migliore, poi si fa la media pesata sui momenti critici. Nessuna correzione manuale.${depthText} Mosse: ${formatReviewClassificationCounts(counts)}.`;
 }
 
 function buildChessReportMessage(analysis) {
   const c = analysis.counts;
+  const opening = analysis.opening ? `Apertura: ${analysis.opening}. ` : "";
   const majorErrors = c.mistake + c.blunder + c.missed;
-  if (analysis.result === "win" && majorErrors >= 2) return "Hai vinto perche' hai convertito meglio il vantaggio, ma hai concesso controgioco.";
-  if (analysis.result === "loss" && c.blunder > 0) return "Hai perso per un Blunder tattico: nella revisione guarda la prima mossa rossa.";
-  if (analysis.result === "loss" && analysis.accuracy >= 75 && analysis.botAccuracy > analysis.accuracy) return "Hai giocato una partita precisa, ma il bot ha mantenuto una qualita' superiore.";
-  if (analysis.result === "win" && analysis.mainPattern && analysis.mainPattern.key === "development") return "Hai vinto con buona tattica finale, ma la fase di apertura e' stata debole.";
-  if (analysis.result === "win" && analysis.accuracy >= 80) return "Hai vinto con buona qualita': poche concessioni e mosse decisive corrette.";
-  if (!analysis.moveCount) return "Gioca una partita per ottenere una diagnosi completa.";
-  if (!analysis.mainPattern) return "Partita pulita: nessun pattern critico nella partita.";
-  return `Pattern principale: ${analysis.mainPattern.label}. La priorita' e' ridurre questo errore nella prossima partita.`;
+  let message;
+  if (!analysis.moveCount) message = "Gioca una partita per ottenere una diagnosi completa.";
+  else if (analysis.result === "win" && majorErrors >= 2) message = "Hai vinto, ma hai concesso occasioni all'avversario: rivedi gli errori segnati.";
+  else if (analysis.result === "loss" && c.blunder > 0) message = "Hai perso per un blunder: nella revisione parti dalla prima mossa rossa.";
+  else if (analysis.result === "loss" && analysis.accuracy >= 75 && analysis.botAccuracy > analysis.accuracy) message = "Partita precisa, ma il bot ha mantenuto una qualita' superiore.";
+  else if (analysis.result === "win" && analysis.mainPattern && analysis.mainPattern.key === "development") message = "Hai vinto, ma la fase di apertura e' stata debole.";
+  else if (analysis.result === "win" && analysis.accuracy >= 80) message = "Vittoria di qualita': poche concessioni e mosse decisive corrette.";
+  else if (!analysis.mainPattern) message = "Partita pulita: nessun pattern critico nella partita.";
+  else message = `Pattern principale: ${analysis.mainPattern.label}. La priorita' e' ridurre questo errore nella prossima partita.`;
+  return `${opening}${message}`;
 }
 
-async function analyzeCurrentGameWithEngine(depth = CHESS_REVIEW_DEPTH, timeMs = CHESS_REVIEW_TIME_MS) {
-  return analyzeGame(null, { depth, timeMs });
+async function analyzeCurrentGameWithEngine(depth = CHESS_REVIEW_DEPTH) {
+  return analyzeGame(null, { depth });
 }
 
 async function reviewFromPGN(pgn) {
@@ -2823,77 +2563,173 @@ async function analyzeGame(pgn = null, options = {}) {
   const moves = getSafeChessMoves();
   if (!moves.length) return setChessReviewStatus("idle", createStableReviewResult({ status: "idle", summary: null }));
   const depth = options.depth || CHESS_REVIEW_DEPTH;
-  const timeMs = options.timeMs || CHESS_REVIEW_TIME_MS;
+  const gameId = currentGame.id;
+  const moveCount = moves.length;
+  const outdated = () => currentGame.id !== gameId || currentGame.moves.length !== moveCount;
   currentGame.reviewFailed = false;
   currentGame.engineError = null;
   setChessReviewStatus("analyzing", createStableReviewResult({ status: "analyzing" }));
-  currentGame.engineReviewConfig = { depth, timeMs, requestedAt: new Date().toISOString(), source: pgn ? "pgn-or-current-game" : "current-game" };
-  const init = await ChessEngineService.initEngine();
-  if (!init.ok || !isStockfishEngineEnabled()) {
+  currentGame.engineReviewConfig = { depth, multipv: CHESS_REVIEW_MULTIPV, requestedAt: new Date().toISOString(), source: pgn ? "pgn" : "current-game" };
+  const ready = await ensureStockfishReadyForChess();
+  if (!ready) {
     currentGame.reviewFailed = true;
-    currentGame.engineError = init.error || "Stockfish non disponibile";
-    setReviewProgress(getReviewStatusMessage("error"));
-    chessDebugLog("Stockfish error", { error: currentGame.engineError });
-    return setChessReviewStatus("error", {
-      error: currentGame.engineError,
-      summary: null,
-      engineAnalysis: [],
-      moveClassifications: {},
-      drills: []
-    });
+    currentGame.engineError = currentGame.engineError || STOCKFISH_REQUIRED_NOTICE;
+    setReviewProgress(currentGame.engineError);
+    return setChessReviewStatus("error", { error: currentGame.engineError, summary: null, engineAnalysis: [], moveClassifications: {}, drills: [] });
   }
-  const total = moves.length;
-  const engineAnalysis = [];
-  for (let index = 0; index < total; index += 1) {
-    const move = moves[index];
-    if (!move) {
-      engineAnalysis.push({ ply: index + 1, ok: false, classification: "unknown", error: "Move data missing" });
-      continue;
+  const review = await ChessReview.reviewGame(moves, {
+    engine: chessEngines().review,
+    depth,
+    multipv: CHESS_REVIEW_MULTIPV,
+    cache: chessAnalysisCache,
+    onProgress: (done, total) => {
+      if (!outdated()) setReviewProgress(`Stockfish analizza la posizione ${done} di ${total}...`);
+    },
+    isCancelled: outdated,
+    finalDraw: chessGameOver && ["repetition", "fifty", "insufficient"].includes(currentGame.endReason)
+  });
+  if (outdated()) {
+    // La partita e' andata avanti nel frattempo: questa revisione non vale piu'.
+    if (currentGame.id === gameId) {
+      currentGame.engineAnalysisInProgress = false;
+      if (chessGameOver && currentGame.reviewStatus !== "completed") queueEngineReviewAnalysis(true);
     }
-    if (move.engineAnalysis?.ok) {
-      setReviewProgress(`Stockfish sta analizzando mossa ${index + 1} di ${total}`);
-      engineAnalysis.push(move.engineAnalysis);
-      continue;
-    }
-    setReviewProgress(`Stockfish sta analizzando mossa ${index + 1} di ${total}`);
-    chessDebugLog("analyzing move", { index: index + 1, total, fen: move.fenBefore, uci: move.uci, depth });
-    const analysis = await analyzeRecordedMoveWithEngine(move, depth, timeMs, index + 1, total);
-    applyEngineAnalysisToMove(move, analysis);
-    engineAnalysis.push(move.engineAnalysis || analysis);
-    if (!analysis.ok) {
-      const moveError = analysis.error || "Stockfish failed on this move";
-      currentGame.engineError = moveError;
-      chessDebugLog("Stockfish error", { index: index + 1, error: moveError });
-    }
+    return createStableReviewResult({ status: "cancelled" });
   }
+  if (!review.ok) {
+    currentGame.reviewFailed = true;
+    currentGame.engineError = review.error || "Stockfish non ha completato l'analisi";
+    setReviewProgress(`Errore durante l'analisi: ${currentGame.engineError}`);
+    return setChessReviewStatus("error", { error: currentGame.engineError, engineAnalysis: [], moveClassifications: {}, drills: [], summary: null });
+  }
+  applyReviewToMoves(moves, review);
+  currentGame.reviewSummary = review.summary;
   rebuildCurrentGamePatterns();
-  const hasEngineData = moves.some((move) => move?.engineAnalysis?.ok);
-  if (!hasEngineData) {
-    currentGame.engineError = currentGame.engineError || "Errore: Stockfish non ha restituito analisi valide.";
-    setReviewProgress(getReviewStatusMessage("error"));
-    return setChessReviewStatus("error", {
-      error: currentGame.engineError,
-      engineAnalysis,
-      moveClassifications: countMoveQualities(moves),
-      drills: [],
-      summary: null
-    });
-  }
+  renderMistakes();
+  renderModuleStatus("chess");
   currentGame.reviewStatus = "completed";
   const analysis = buildGameAnalysis(currentGame.result || "partial", currentGame.endReason || null);
+  if (chessGameOver && !currentGame.skillsUpdated) {
+    updateChessProfileFromReview(analysis, moves);
+    currentGame.skillsUpdated = true;
+  }
   const reviewResult = setChessReviewStatus("completed", {
     completed: true,
     engineBased: analysis.engineBased,
-    engineAnalysis,
+    engineAnalysis: moves.map((move) => move.engineAnalysis),
     moveClassifications: analysis.counts || {},
     drills: analysis.exerciseObjects || [],
     summary: analysis,
-    error: currentGame.engineError || null
+    error: null
   });
   queueSupabaseGameSave("engine-review", analysis);
   queueSupabaseAnalysisSave(analysis);
-  setReviewProgress("Analisi Stockfish completata.");
+  setReviewProgress("Revisione Stockfish completata.");
   return reviewResult;
+}
+
+// Copia i risultati della revisione dentro i record delle mosse (usati dall'interfaccia).
+function applyReviewToMoves(moves, review) {
+  review.moves.forEach((result, index) => {
+    const move = moves[index];
+    if (!move) return;
+    move.engineAnalysis = { ok: true, depth: result.depth };
+    move.quality = result.quality;
+    move.classification = result.label;
+    move.loss = Math.round(result.loss * 10) / 10;
+    move.epLoss = result.loss / 100;
+    move.accuracyScore = result.accuracy;
+    move.winBefore = result.winBefore;
+    move.winBest = result.winBest;
+    move.winSecond = result.winSecond;
+    move.winAfter = result.winAfter;
+    move.bestMoveUci = result.bestUci;
+    move.bestMoveText = result.bestSan ? ChessAnalysis.figurine(result.bestSan) : "-";
+    move.variation = result.bestLine || "-";
+    move.playedLine = result.refutationLine || "-";
+    move.refutation = result.refutationSan;
+    move.evalBefore = result.evalBeforeWhite;
+    move.evalAfter = result.evalAfterWhite;
+    move.evalDiff = result.evalAfterWhite - result.evalBeforeWhite;
+    move.categories = result.patterns.slice();
+    move.pattern = result.patterns[0] || null;
+    move.drill = move.pattern ? mistakeDrills[move.pattern] : isErrorQuality(move.quality) ? "Rivedi la posizione: trova 3 candidate e la risposta piu' forzante dell'avversario." : "-";
+    move.comment = result.comment;
+    move.note = result.comment;
+    move.opening = result.opening;
+    move.phase = result.phase;
+    move.reviewMeta = { engine: STOCKFISH_ENGINE_LABEL, depth: result.depth, multipv: CHESS_REVIEW_MULTIPV };
+  });
+}
+
+// Aggiorna il profilo scacchi (esagono, statistiche livello) con i dati reali della partita.
+function updateChessProfileFromReview(analysis, moves) {
+  const playerMoves = moves.filter((move) => move.side === "Bianco" && move.engineAnalysis && move.engineAnalysis.ok);
+  if (!analysis.engineBased || !playerMoves.length) return;
+  const level = getActiveBotLevel(currentGame.botLevel || state.chess.botLevel || 1);
+  const stats = getLevelStats(level);
+  stats.accuracySum += analysis.accuracy;
+  stats.accuracyGames += 1;
+  state.chess.lastAccuracy = analysis.accuracy;
+  state.chess.recentGames = (state.chess.recentGames || []).concat([{
+    date: currentGame.date,
+    botLevel: level,
+    botElo: analysis.botElo,
+    result: analysis.result,
+    accuracy: analysis.accuracy,
+    botAccuracy: analysis.botAccuracy,
+    gameRating: analysis.gameRating,
+    opening: analysis.opening,
+    moves: playerMoves.length
+  }]).slice(-30);
+
+  playerMoves.forEach((move) => {
+    (move.categories || []).forEach((category) => {
+      state.mistakeCounts[category] = (state.mistakeCounts[category] || 0) + 1;
+      addModulePattern("chess", category);
+    });
+  });
+
+  if (playerMoves.length >= 5) {
+    const gameSkills = computeChessGameSkills(analysis, playerMoves);
+    const previous = state.chess.skills || { games: 0 };
+    const weight = Math.min(1, playerMoves.length / 20);
+    const alpha = previous.games ? 0.35 * weight : 1;
+    const next = { games: (previous.games || 0) + 1 };
+    Object.entries(gameSkills).forEach(([key, value]) => {
+      const old = typeof previous[key] === "number" ? previous[key] : value;
+      next[key] = Math.round(old + (value - old) * alpha);
+    });
+    state.chess.skills = next;
+  }
+  saveState();
+  renderDashboard();
+  renderBotLevel();
+}
+
+// Valori dell'esagono scacchi per una singola partita (0-100).
+function computeChessGameSkills(analysis, playerMoves) {
+  const per40 = 40 / Math.max(playerMoves.length, 10);
+  const count = (pattern) => playerMoves.filter((move) => (move.categories || []).includes(pattern)).length * per40;
+  const quality = (key) => playerMoves.filter((move) => move.quality === key).length * per40;
+  const meanAccuracy = (list) => {
+    const values = list.map((move) => move.accuracyScore).filter((value) => typeof value === "number");
+    return values.length >= 3 ? values.reduce((sum, value) => sum + value, 0) / values.length : acc;
+  };
+  const open = playerMoves.filter((move) => move.winBefore >= 10 && move.winBefore <= 90);
+  const sharp = open.filter((move) => typeof move.winSecond === "number" && move.winBest - move.winSecond >= 8);
+  const quiet = open.filter((move) => !sharp.includes(move));
+  const competitive = competitiveAccuracy(playerMoves);
+  const acc = competitive !== null ? competitive : analysis.accuracy;
+  const skill = (value) => Math.round(clamp(value, 10, 99));
+  return {
+    concentration: skill(acc - 6 * count("hangingPiece") - 3 * quality("blunder")),
+    calculation: skill(meanAccuracy(sharp) - 5 * count("calculation")),
+    strategy: skill(meanAccuracy(quiet) - 4 * (count("noPlan") + count("development"))),
+    threatVision: skill(acc - 6 * count("missedThreat") - 4 * quality("missed")),
+    kingSafety: skill(0.5 * acc + 0.5 * (100 - 15 * count("kingSafety"))),
+    impulseControl: skill(acc - 8 * count("concentration"))
+  };
 }
 
 function setReviewProgress(message) {
@@ -2903,506 +2739,8 @@ function setReviewProgress(message) {
   if (coach) coach.textContent = message;
 }
 
-async function analyzeRecordedMoveWithEngine(move, depth, timeMs, progressIndex = null, progressTotal = null) {
-  if (!move.fenBefore || !move.uci) return { ok: false, error: "Dati FEN/UCI mancanti" };
-  const color = move.colorMoved || move.color;
-  const opponent = oppositeColor(color);
-  const root = await analyzePosition(move.fenBefore, depth, timeMs, CHESS_REVIEW_MULTIPV);
-  if (!root.ok || !root.bestMove) return { ok: false, error: root.error || "Mossa migliore non disponibile" };
-  const playedAfter = await analyzePosition(move.fenAfter, depth, timeMs, 1);
-  if (!playedAfter.ok) return { ok: false, error: playedAfter.error || "Errore: Stockfish non ha risposto." };
-  const rootCandidates = root.candidateMoves || [];
-  const bestCandidate = rootCandidates[0] || { uci: root.bestMove, evaluation: root.evaluation, pv: root.pv || [], depth: root.depth || 0 };
-  const secondCandidate = rootCandidates[1] || null;
-  const playedCandidate = findCandidateForMove(rootCandidates, move.uci);
-  const bestMove = bestCandidate.uci || root.bestMove;
-  if (!root.bestMove) return { ok: false, error: "Mossa migliore nulla: posizione terminale o nessuna mossa legale", rawLines: root.rawLines || [] };
-  const bestAfter = await analyzePositionAfterMoves(move.fenBefore, [bestMove], depth, timeMs, 1);
-  const rootEvaluation = root.engineEvaluation || cpToEngineEvaluation(root.evaluationCp, root.mate);
-  const bestEvaluation = bestAfter && bestAfter.ok ? bestAfter.engineEvaluation || cpToEngineEvaluation(bestAfter.evaluationCp, bestAfter.mate) : bestCandidate.evaluation || rootEvaluation;
-  const playedPostMoveEvaluation = playedAfter.engineEvaluation || cpToEngineEvaluation(playedAfter.evaluationCp, playedAfter.mate);
-  const playedEvaluation = playedPostMoveEvaluation;
-  const beforeActiveColor = getFenActiveColor(move.fenBefore) || color;
-  const playedAfterActiveColor = getFenActiveColor(move.fenAfter) || opponent;
-  const bestAfterActiveColor = opponent;
-  const beforeWhite = engineEvalToWhiteCentipawns(rootEvaluation, beforeActiveColor);
-  const bestWhite = engineEvalToWhiteCentipawns(bestEvaluation, bestAfterActiveColor);
-  const playedWhite = engineEvalToWhiteCentipawns(playedEvaluation, playedAfterActiveColor);
-  const playedPostMoveCp = engineEvalToPlayerCentipawns(playedPostMoveEvaluation, getFenActiveColor(move.fenAfter) || opponent, color);
-  const beforeCp = engineEvalToPlayerCentipawns(rootEvaluation, beforeActiveColor, color);
-  const bestCp = engineEvalToPlayerCentipawns(bestEvaluation, bestAfterActiveColor, color);
-  const playedCp = engineEvalToPlayerCentipawns(playedEvaluation, playedAfterActiveColor, color);
-  const secondBestCp = secondCandidate && secondCandidate.evaluation ? engineEvalToPlayerCentipawns(secondCandidate.evaluation, beforeActiveColor, color) : null;
-  const bestLine = bestCandidate.pv && bestCandidate.pv.length ? bestCandidate.pv : [bestMove].filter(Boolean);
-  const playedLine = playedCandidate && playedCandidate.pv && playedCandidate.pv.length ? playedCandidate.pv : [move.uci].concat(playedAfter.pv || []).filter(Boolean);
-  const bestOpponentReply = bestAfter && bestAfter.bestMove ? bestAfter.bestMove : bestLine[1] || null;
-  const playedOpponentReply = playedLine[1] || playedAfter.bestMove || null;
-  const evalBefore = beforeCp / 100;
-  const evalBest = bestCp / 100;
-  const evalAfter = playedCp / 100;
-  const evalLoss = Math.max(0, evalBest - evalAfter);
-  const lossCp = Math.max(0, bestCp - playedCp);
-  const reviewRating = getReviewRatingForMove(move);
-  const epBefore = expectedPointsFromEval(beforeCp, reviewRating);
-  const epBest = expectedPointsFromEval(bestCp, reviewRating);
-  const epPlayed = expectedPointsFromEval(playedCp, reviewRating);
-  const epLoss = Math.max(0, epBest - epPlayed);
-  const context = {
-    color,
-    beforeCp,
-    bestCp,
-    playedCp,
-    evalBefore,
-    evalBest,
-    evalAfter,
-    evalLoss,
-    lossCp,
-    epBefore,
-    epBest,
-    epPlayed,
-    epLoss,
-    reviewRating,
-    bestMove,
-    playedMove: move.uci,
-    move,
-    moveNumber: move.moveNumber,
-    san: move.san || move.moveSan || move.move,
-    secondBestCp,
-    topMoves: rootCandidates,
-    isNormalOpening: isNormalOpeningMove(move, move.moveNumber, move.san || move.moveSan || move.move),
-    positionAlreadyDecided: Math.abs(beforeCp) >= 650 && Math.abs(playedCp) >= 500,
-    tablebaseFallback: isTablebasePosition(move.boardBefore) && !isTablebaseAvailable(),
-    playedAfter,
-    bestOpponentReply,
-    playedOpponentReply,
-    evaluationHorizon: "bestMove/actualMove post-move Stockfish",
-    isBook: isBookMoveRecord(move, lossCp, epLoss),
-    isGreat: isEngineGreatMove(move, beforeCp, bestCp, playedCp, lossCp, epBefore, epBest, epPlayed, secondBestCp, rootCandidates),
-    isBrilliant: isEngineBrilliantMove(move, beforeCp, playedCp, lossCp, epBefore, epPlayed),
-    isMissed: isEngineMissedMove(beforeCp, bestCp, playedCp, lossCp, epBefore, epBest, epPlayed)
-  };
-  const classification = classifyEngineMove(context);
-  const moveComplexity = calculateMoveComplexity(context);
-  const moveAccuracy = qualityScoreFromExpectedLoss(classification.quality, epLoss, context);
-  chessDebugLog("move-analysis", {
-    ply: move.ply,
-    san: move.san,
-    uci: move.uci,
-    depth,
-    candidateMoves: rootCandidates.map((candidate) => ({ rank: candidate.rank, uci: candidate.uci, eval: candidate.evaluation })),
-    beforeActiveColor,
-    bestAfterActiveColor,
-    playedAfterActiveColor,
-    bestOpponentReply,
-    playedOpponentReply,
-    playedPostMoveCp,
-    playedEvaluationSource: "post-move-search",
-    eval_before: evalBefore,
-    eval_after: evalAfter,
-    eval_loss: evalLoss,
-    evalBeforeWhitePOV: beforeWhite,
-    bestEvalWhitePOV: bestWhite,
-    actualEvalWhitePOV: playedWhite,
-    bestEvalPlayerPOV: bestCp,
-    actualEvalPlayerPOV: playedCp,
-    epBest,
-    epActual: epPlayed,
-    epLoss,
-    moveAccuracy,
-    moveComplexity,
-    classification: classification.label,
-    quality: classification.quality,
-    reason: classification.reason || null,
-    reasonClassification: classification.reason || null,
-    brilliantReason: context.isBrilliant ? "sacrificio corretto con miglioramento concreto validato da Stockfish" : null,
-    greatReason: context.isGreat ? "mossa critica o risorsa difensiva validata da Stockfish" : null
-  });
-  console.log("evalBefore", evalBefore);
-  console.log("evalAfter", evalAfter);
-  console.log("evalLoss", evalLoss);
-  console.log("moveAccuracy", moveAccuracy);
-  console.log("classification", classification.label);
-  console.log("reasonClassification", classification.reason || null);
-  console.log("moveComplexity", moveComplexity);
-  console.table([{
-    moveNumber: move.moveNumber,
-    playerColor: color,
-    fenBefore: move.fenBefore,
-    playedMove: move.uci,
-    bestMove,
-    beforeActiveColor,
-    bestAfterActiveColor,
-    playedAfterActiveColor,
-    bestOpponentReply,
-    playedOpponentReply,
-    actualPostMovePlayerPOV: playedPostMoveCp,
-    playedEvaluationSource: "post-move-search",
-    evalBeforeWhitePOV: beforeWhite,
-    bestEvalWhitePOV: bestWhite,
-    actualEvalWhitePOV: playedWhite,
-    bestEvalPlayerPOV: bestCp,
-    actualEvalPlayerPOV: playedCp,
-    epBest,
-    epActual: epPlayed,
-    epLoss,
-    classification: classification.label,
-    moveQualityScore: moveAccuracy,
-    moveWeight: moveAccuracyImpactWeight({ quality: classification.quality }),
-    accuracyMove: moveAccuracy,
-    reasonClassification: classification.reason || null
-  }]);
-  return {
-    ok: true,
-    bestMove,
-    playedMove: move.uci,
-    lossCp,
-    evalLoss,
-    evalBefore,
-    evalBest,
-    evalAfter,
-    epLoss,
-    epBefore,
-    epBest,
-    epPlayed,
-    reviewRating,
-    moveComplexity,
-    accuracyScore: moveAccuracy,
-    beforeCp,
-    bestCp,
-    playedCp,
-    playedPostMoveCp,
-    bestOpponentReply,
-    playedOpponentReply,
-    bestLine,
-    playedLine,
-    evaluationHorizon: context.evaluationHorizon,
-    beforeWhite,
-    bestWhite,
-    playedWhite,
-    evalBeforeWhitePOV: beforeWhite,
-    bestEvalWhitePOV: bestWhite,
-    actualEvalWhitePOV: playedWhite,
-    bestEvalPlayerPOV: bestCp,
-    actualEvalPlayerPOV: playedCp,
-    tablebaseFallback: context.tablebaseFallback,
-    depth: Math.min(root.depth || 0, playedAfter.depth || 0),
-    timeMs,
-    engineName: ChessEngineService.getStatus().name || "Stockfish",
-    pv: bestCandidate.pv || [],
-    classification
-  };
-}
-
-function normalizeEngineCandidates(result) {
-  const raw = result && result.topMoves && result.topMoves.length
-    ? result.topMoves
-    : [{ rank: 1, uci: result && result.bestMove, evaluation: result && result.evaluation, depth: result && result.depth, pv: result && result.pv }];
-  return raw
-    .filter((item) => item && item.uci)
-    .sort((a, b) => (a.rank || 1) - (b.rank || 1));
-}
-
-function findCandidateForMove(candidates, moveUci) {
-  const normalized = normalizeMoveAnswer(moveUci);
-  if (!normalized || !Array.isArray(candidates)) return null;
-  return candidates.find((candidate) => normalizeMoveAnswer(candidate && candidate.uci) === normalized) || null;
-}
-
-async function analyzePosition(fen, depth = CHESS_REVIEW_DEPTH, timeMs = CHESS_REVIEW_TIME_MS, multiPv = CHESS_REVIEW_MULTIPV) {
-  if (!fen) return { ok: false, fen, error: "FEN mancante", bestMove: null, evaluation: null, evaluationCp: null, mate: null, depth: 0, rawLines: [], rawStockfishLines: [] };
-  const ready = await ensureStockfishReadyForChess();
-  if (!ready) {
-    const status = ChessEngineService && ChessEngineService.getStatus ? ChessEngineService.getStatus() : {};
-    const error = status.error || "Stockfish non disponibile";
-    chessDebugLog("Stockfish error", { fen, error });
-    return { ok: false, fen, error, bestMove: null, evaluation: null, evaluationCp: null, mate: null, depth: 0, rawLines: [], rawStockfishLines: [] };
-  }
-  const result = await ChessEngineService.getTopMoves(fen, depth, timeMs, multiPv);
-  const analyzed = {
-    ok: Boolean(result.ok && (result.bestMove || result.terminal)),
-    fen,
-    error: result.ok ? null : result.error || "Stockfish non ha restituito una mossa migliore",
-    bestMove: result.bestMove,
-    evaluation: result.evaluationPawns,
-    evaluationCp: result.evaluationCp,
-    engineEvaluation: result.evaluation,
-    mate: result.mate,
-    depth: result.depth || 0,
-    terminal: Boolean(result.terminal),
-    pv: result.pv || [],
-    candidateMoves: normalizeEngineCandidates(result).map((candidate) => ({
-      rank: candidate.rank,
-      uci: candidate.uci,
-      evaluation: candidate.evaluation,
-      depth: candidate.depth,
-      pv: candidate.pv || []
-    })),
-    rawLines: result.rawLines || result.rawStockfishLines || [],
-    rawStockfishLines: result.rawStockfishLines || result.rawLines || []
-  };
-  chessDebugLog("analyzePosition", {
-    fen,
-    depth,
-    bestMove: analyzed.bestMove,
-    evaluationCp: analyzed.evaluationCp,
-    evaluation: analyzed.evaluation,
-    candidateMoves: analyzed.candidateMoves
-  });
-  return analyzed;
-}
-
-async function analyzePositionAfterMoves(fen, moves = [], depth = CHESS_REVIEW_DEPTH, timeMs = CHESS_REVIEW_TIME_MS, multiPv = 1) {
-  if (!fen) return { ok: false, fen, error: "FEN mancante", bestMove: null, evaluation: null, evaluationCp: null, mate: null, depth: 0, rawLines: [], rawStockfishLines: [] };
-  const ready = await ensureStockfishReadyForChess();
-  if (!ready) {
-    const status = ChessEngineService && ChessEngineService.getStatus ? ChessEngineService.getStatus() : {};
-    return { ok: false, fen, error: status.error || "Stockfish non disponibile", bestMove: null, evaluation: null, evaluationCp: null, mate: null, depth: 0, rawLines: [], rawStockfishLines: [] };
-  }
-  const result = await ChessEngineService.evaluatePosition(fen, depth, timeMs, moves);
-  return {
-    ok: Boolean(result.ok || result.terminal),
-    fen,
-    error: result.ok ? null : result.error || "Stockfish non ha valutato la posizione",
-    bestMove: result.bestMove,
-    evaluation: result.evaluationPawns,
-    evaluationCp: result.evaluationCp,
-    engineEvaluation: result.evaluation,
-    mate: result.mate,
-    depth: result.depth || 0,
-    terminal: Boolean(result.terminal),
-    pv: result.pv || [],
-    candidateMoves: normalizeEngineCandidates(result),
-    rawLines: result.rawLines || result.rawStockfishLines || [],
-    rawStockfishLines: result.rawStockfishLines || result.rawLines || []
-  };
-}
-
-function applyEngineAnalysisToMove(move, analysis) {
-  if (!move) return;
-  const failedAnalysis = { ok: false, classification: "unknown", error: "Stockfish failed on this move" };
-  move.engineAnalysis = analysis && analysis.ok ? analysis : { ...failedAnalysis, ...(analysis || {}) };
-  if (!move.engineAnalysis.ok) {
-    move.quality = "unknown";
-    move.classification = "unknown";
-    move.comment = move.engineAnalysis.error || "Stockfish failed on this move";
-    move.note = move.comment;
-    move.categories = [];
-    move.pattern = null;
-    move.drill = "Analisi non disponibile per questa mossa: riprova la review.";
-    move.bestMoveText = null;
-    return;
-  }
-  const classification = analysis.classification;
-  move.quality = classification.quality;
-  move.classification = classification.label;
-  move.loss = Math.round(analysis.lossCp);
-  move.evalLoss = analysis.evalLoss;
-  move.epLoss = analysis.epLoss;
-  move.accuracyScore = analysis.accuracyScore;
-  move.bestMoveText = analysis.bestMove || "nessuna alternativa necessaria";
-  move.variation = analysis.bestLine && analysis.bestLine.length ? analysis.bestLine.join(" ") : analysis.pv && analysis.pv.length ? analysis.pv.slice(0, 5).join(" ") : "-";
-  move.playedLine = analysis.playedLine && analysis.playedLine.length ? analysis.playedLine.join(" ") : move.uci || "-";
-  move.bestOpponentReply = analysis.bestOpponentReply || null;
-  move.playedOpponentReply = analysis.playedOpponentReply || null;
-  move.evalBefore = analysis.beforeWhite;
-  move.evalAfter = analysis.playedWhite;
-  move.evalDiff = analysis.playedWhite - analysis.beforeWhite;
-  move.engineBestEval = analysis.bestWhite;
-  move.moveComplexity = analysis.moveComplexity;
-  move.evalBeforeWhitePOV = analysis.evalBeforeWhitePOV;
-  move.bestEvalWhitePOV = analysis.bestEvalWhitePOV;
-  move.actualEvalWhitePOV = analysis.actualEvalWhitePOV;
-  move.bestEvalPlayerPOV = analysis.bestEvalPlayerPOV;
-  move.actualEvalPlayerPOV = analysis.actualEvalPlayerPOV;
-  move.moveWeight = moveAccuracyImpactWeight(move);
-  move.reviewMeta = { engine: analysis.engineName || "Stockfish", depth: analysis.depth || 0, timeMs: analysis.timeMs || 0, model: "expected-points + post-game reply", horizon: analysis.evaluationHorizon || "single-position search" };
-  move.comment = buildEngineCoachComment(move, analysis, classification);
-  move.note = move.comment;
-  if (isErrorQuality(move.quality)) {
-    move.categories = detectEngineErrorCategories(move, analysis);
-    move.pattern = move.categories[0];
-    move.drill = mistakeDrills[move.pattern] || "Drill: rivedi la posizione e scrivi 3 candidate prima di muovere.";
-  } else {
-    move.categories = [];
-    move.pattern = null;
-    move.drill = "Drill mantenimento: prima della prossima mossa trova la minaccia piu' forzante avversaria.";
-  }
-}
-
-function detectEngineErrorCategories(move, analysis) {
-  const categories = [];
-  const loss = analysis.lossCp || 0;
-  const seconds = move.timeSeconds || move.seconds || 0;
-  if (move.quality === "missed" || analysis.epLoss >= 0.12) categories.push("missedThreat");
-  if (loss >= 500) categories.push("hangingPiece");
-  if (seconds > 0 && seconds <= 6 && analysis.epLoss >= 0.05) categories.push("concentration");
-  if (move.moveNumber <= 8 && loss >= 120) categories.push("development");
-  if (loss >= 180) categories.push("calculation");
-  if (analysis.playedCp <= -250 && analysis.beforeCp >= -80) categories.push("kingSafety");
-  if (!categories.length && loss >= 90) categories.push("noPlan");
-  if (!categories.length) categories.push("calculation");
-  return uniqueList(categories).slice(0, 3);
-}
-
-function classifyEngineMove(context) {
-  if (context.isBook) return { quality: "book", label: "Mossa da libro", reason: "book-db" };
-  if (context.isBrilliant) return { quality: "brilliant", label: "Brillante", reason: "sacrificio corretto con vantaggio concreto" };
-  if (context.isGreat) return { quality: "great", label: "Grande", reason: "risorsa critica o unica mossa forte" };
-  if (context.isMissed) return { quality: "missed", label: "Mossa mancata", reason: "tattica o risorsa decisiva non sfruttata" };
-  const epLoss = typeof context.epLoss === "number" ? context.epLoss : null;
-  const loss = typeof context.evalLoss === "number" ? context.evalLoss : Math.max(0, (context.lossCp || 0) / 100);
-  const positionShift = typeof context.evalBefore === "number" && typeof context.evalAfter === "number" ? Math.abs(context.evalBefore - context.evalAfter) : null;
-  if (epLoss !== null) {
-    if (sameUciMove(context.playedMove, context.bestMove) || (epLoss <= 0.001 && (context.lossCp || 0) <= 8)) return { quality: "best", label: "Migliore", reason: "mossa migliore o perdita expected points praticamente zero" };
-    if (epLoss <= 0.02) return { quality: "excellent", label: "Ottima", reason: "epLoss <= 0.02" };
-    if (context.isNormalOpening && epLoss <= 0.10) return { quality: "good", label: "Buona", reason: "apertura naturale: epLoss basso, non punita" };
-    if (context.positionAlreadyDecided && epLoss <= 0.14) return { quality: "good", label: "Buona", reason: "posizione gia' decisa: risultato atteso quasi invariato" };
-    if (context.tablebaseFallback && epLoss <= 0.20) return { quality: "inaccuracy", label: "Imprecisione", reason: "finale tecnico senza tablebase: giudizio attenuato" };
-    if (epLoss <= 0.05) return { quality: "good", label: "Buona", reason: "epLoss <= 0.05" };
-    if (epLoss <= 0.10) return { quality: "inaccuracy", label: "Imprecisione", reason: "epLoss <= 0.10" };
-    if (epLoss <= 0.20) return { quality: "mistake", label: "Errore", reason: "epLoss <= 0.20" };
-    return { quality: "blunder", label: "Blunder", reason: "epLoss > 0.20" };
-  }
-  if (loss <= 0.15) return { quality: "best", label: "Migliore", reason: "fallback centipawn: perdita <= 0.15 pedoni" };
-  if (loss <= 0.35) return { quality: "excellent", label: "Ottima", reason: "fallback centipawn: perdita <= 0.35 pedoni" };
-  if (context.isNormalOpening && loss <= 1.00) return { quality: "good", label: "Buona", reason: "fallback apertura naturale" };
-  if (positionShift !== null && positionShift <= 0.25 && loss <= 1.50) return { quality: "good", label: "Buona", reason: "fallback cambio valutazione minimo" };
-  if (loss <= 0.75) return { quality: "good", label: "Buona", reason: "fallback perdita <= 0.75 pedoni" };
-  if (loss <= 1.50) return { quality: "inaccuracy", label: "Imprecisione", reason: "fallback perdita <= 1.50 pedoni" };
-  if (loss <= 3.00) return { quality: "mistake", label: "Errore", reason: "fallback perdita <= 3.00 pedoni" };
-  return { quality: "blunder", label: "Blunder", reason: "fallback perdita > 3.00 pedoni" };
-}
-
-function sameUciMove(a, b) {
-  return normalizeMoveAnswer(a) === normalizeMoveAnswer(b);
-}
-
-function isNormalOpeningMove(move, moveNumber, san) {
-  if (!move || moveNumber > 8) return false;
-  const cleanSan = String(san || "").replace(/[+#?!]/g, "").trim();
-  const normalSan = new Set(["e4", "d4", "c4", "Nf3", "e5", "c5", "e6", "c6", "d5", "Nf6", "Nc6", "g6", "b6"]);
-  const normalUci = new Set(["e2e4", "d2d4", "c2c4", "g1f3", "e7e5", "c7c5", "e7e6", "c7c6", "d7d5", "g8f6", "b8c6", "g7g6", "b7b6"]);
-  return normalSan.has(cleanSan) || normalUci.has(move.uci || "");
-}
-
-function isBookMoveRecord(move, lossCp, epLoss = null) {
-  return Boolean(move && move.moveNumber <= 8 && isNormalOpeningMove(move, move.moveNumber, move.san || move.moveSan || move.move) && (typeof epLoss !== "number" || epLoss <= 0.02) && (lossCp || 0) <= 75);
-}
-
-function isEngineGreatMove(move, beforeCp, bestCp, playedCp, lossCp, epBefore = null, epBest = null, epPlayed = null, secondBestCp = null, topMoves = []) {
-  if (!move || lossCp > 20 || currentGame.moves.indexOf(move) < 8 || move.moveNumber <= 8) return false;
-  if (move.classification === "Scacco matto") return false;
-  if (isNormalOpeningMove(move, move.moveNumber, move.san || move.moveSan || move.move)) return false;
-  const improvesFromBad = beforeCp <= -120 && playedCp >= -30;
-  const savesResult = typeof epBefore === "number" && typeof epPlayed === "number" && epBefore <= 0.42 && epPlayed >= 0.50;
-  const keepsCriticalAdvantage = typeof epBefore === "number" && typeof epBest === "number" && typeof epPlayed === "number" && epBest >= 0.70 && epPlayed >= 0.68 && epBefore <= 0.62;
-  const uniqueMove = typeof secondBestCp === "number" && playedCp - secondBestCp >= 220;
-  const playerColor = move.colorMoved || move.color;
-  const candidatePressure = Array.isArray(topMoves) && topMoves.length >= 3 ? topMoves.slice(2, 5).filter((candidate) => {
-    const cp = candidate.evaluation ? engineEvalToPlayerCentipawns(candidate.evaluation, playerColor, playerColor) : playedCp;
-    return playedCp - cp >= 180;
-  }).length >= 2 : uniqueMove;
-  return Boolean(candidatePressure && (improvesFromBad || savesResult || keepsCriticalAdvantage || uniqueMove));
-}
-
-function isEngineBrilliantMove(move, beforeCp, playedCp, lossCp, epBefore = null, epPlayed = null) {
-  if (!move || lossCp > 15 || currentGame.moves.indexOf(move) < 8 || move.moveNumber <= 8) return false;
-  if (currentGame.moves.filter((item) => item && item.quality === "brilliant").length >= 1) return false;
-  if (move.classification === "Scacco matto") return false;
-  if (isNormalOpeningMove(move, move.moveNumber, move.san || move.moveSan || move.move)) return false;
-  if (beforeCp >= 500 || (typeof epBefore === "number" && epBefore >= 0.82)) return false;
-  if (playedCp < 160 || (typeof epPlayed === "number" && epPlayed < 0.62)) return false;
-  const improvesEnough = playedCp - beforeCp >= 120 || (typeof epBefore === "number" && typeof epPlayed === "number" && epPlayed - epBefore >= 0.06);
-  if (!improvesEnough) return false;
-  const movedValue = move.piece ? pieceValues[move.piece.toLowerCase()] || 0 : 0;
-  if (movedValue < 300 || !move.boardAfter) return false;
-  const targetPiece = move.boardBefore ? move.boardBefore[move.toRow][move.toCol] : null;
-  const capturedValue = targetPiece ? pieceValues[targetPiece.toLowerCase()] || 0 : 0;
-  const sacrifice = capturedValue < movedValue && isSquareAttacked(move.boardAfter, move.toRow, move.toCol, oppositeColor(move.colorMoved || move.color));
-  return sacrifice && playedCp >= beforeCp - 30 && playedCp >= 150;
-}
-
-function isEngineMissedMove(beforeCp, bestCp, playedCp, lossCp, epBefore = null, epBest = null, epPlayed = null) {
-  if (typeof epBefore === "number" && typeof epBest === "number" && typeof epPlayed === "number") {
-    if (epBefore >= 0.82 || epPlayed >= 0.82) return false;
-    const epSwing = epBest - epBefore;
-    const epLoss = epBest - epPlayed;
-    const changesResult = (epBefore < 0.38 && epBest >= 0.50) || (epBefore < 0.62 && epBest >= 0.82);
-    return epLoss >= 0.12 && epSwing >= 0.10 && changesResult;
-  }
-  if (beforeCp >= 500 || playedCp >= 500) return false;
-  const bestSwing = bestCp - beforeCp;
-  const changesResult = (beforeCp < -120 && bestCp >= -30) || (beforeCp < 120 && bestCp >= 350);
-  return lossCp >= 180 && bestSwing >= 220 && changesResult;
-}
-
-function buildEngineCoachComment(move, analysis, classification) {
-  const loss = (typeof analysis.evalLoss === "number" ? analysis.evalLoss : analysis.lossCp / 100).toFixed(2);
-  const epLoss = typeof analysis.epLoss === "number" ? (analysis.epLoss * 100).toFixed(1) : null;
-  const epText = epLoss !== null ? ` Perdita risultato atteso: ${epLoss}%.` : "";
-  const best = analysis.bestMove || "-";
-  const replyText = analysis.playedOpponentReply ? ` Risposta critica considerata: ${analysis.playedOpponentReply}.` : "";
-  const tablebaseText = analysis.tablebaseFallback ? " Finale tecnico: tablebase non disponibile, giudizio attenuato con fallback Stockfish." : "";
-  if (classification.quality === "best") return `Migliore: la perdita di risultato atteso e' praticamente zero dopo la miglior risposta avversaria. Mossa migliore: ${best}.${epText}${replyText}${tablebaseText}`;
-  if (classification.quality === "book") return `Libro: mossa di apertura sana e vicina alla scelta del motore. Mossa migliore: ${best}.${epText}${replyText}`;
-  if (classification.quality === "great") return `Grande: risorsa critica validata da Stockfish anche dopo la risposta avversaria. Perdita rispetto alla migliore: ${loss} pedoni. Mossa migliore: ${best}.${epText}${replyText}`;
-  if (classification.quality === "brilliant") return `Brillante: sacrificio corretto o idea tattica rara, mossa migliore o quasi anche dopo la miglior risposta. Perdita rispetto alla migliore: ${loss} pedoni.${epText}${replyText}`;
-  if (classification.quality === "missed") return `Mossa mancata reale: il motore vedeva una risorsa decisiva (${best}) che cambiava il risultato della posizione.`;
-  return `${classification.label}: perdita rispetto alla mossa migliore ${best}: ${loss} pedoni dopo la miglior risposta disponibile.${epText}${replyText}${tablebaseText}`;
-}
-
-function engineEvalToCentipawns(evaluation, activeColor, perspectiveColor) {
-  if (!evaluation) return 0;
-  const raw = evaluation.type === "mate" ? Math.sign(evaluation.value || 1) * 100000 : Number(evaluation.value || 0);
-  return activeColor === perspectiveColor ? raw : -raw;
-}
-
-function engineEvalToWhiteCentipawns(evaluation, activeColor = "w") {
-  if (!evaluation) return 0;
-  const sideToMoveCp = evaluation.type === "mate" ? Math.sign(evaluation.value || 1) * 100000 : Number(evaluation.value || 0);
-  return activeColor === "b" ? -sideToMoveCp : sideToMoveCp;
-}
-
-function playerCpFromWhiteCp(evalWhiteCp, color) {
-  return color === "b" ? -evalWhiteCp : evalWhiteCp;
-}
-
-function engineEvalToPlayerCentipawns(evaluation, activeColor, playerColor) {
-  return playerCpFromWhiteCp(engineEvalToWhiteCentipawns(evaluation, activeColor), playerColor);
-}
-
-function getFenActiveColor(fen) {
-  const parts = String(fen || "").trim().split(/\s+/);
-  return parts[1] === "b" ? "b" : "w";
-}
-
-function engineEvalToNormalizedPawns(evaluation, activeColor, perspectiveColor) {
-  if (!evaluation) return 0;
-  const raw = evaluation.type === "mate" ? Math.sign(evaluation.value || 1) * 100 : Number(evaluation.value || 0) / 100;
-  return activeColor === perspectiveColor ? raw : -raw;
-}
-
-function cpToEngineEvaluation(evaluationCp, mate = null) {
-  if (typeof mate === "number") return { type: "mate", value: mate };
-  if (typeof evaluationCp === "number") return { type: "cp", value: evaluationCp };
-  return null;
-}
-
 function oppositeColor(color) {
   return color === "w" ? "b" : "w";
-}
-
-function isTablebasePosition(currentBoard) {
-  return countBoardPieces(currentBoard || board) <= 7;
-}
-
-function isTablebaseAvailable() {
-  return false;
-}
-
-function countBoardPieces(currentBoard) {
-  if (!currentBoard || !Array.isArray(currentBoard)) return 32;
-  return currentBoard.flat().filter(Boolean).length;
 }
 
 function queueEngineReviewAnalysis(fromFinish = false) {
@@ -3410,30 +2748,31 @@ function queueEngineReviewAnalysis(fromFinish = false) {
   if (!moves.length || currentGame.engineAnalysisInProgress) return;
   if (currentGame.reviewStatus === "completed" && moves.every((move) => move?.engineAnalysis)) return;
   setChessReviewStatus("analyzing", currentGame.reviewResult || createStableReviewResult({ status: "analyzing" }));
-  const box = document.getElementById("gameAnalysis");
-  if (box) box.innerHTML += "<br>Analisi motore in corso...";
+  const gameId = currentGame.id;
   analyzeCurrentGameWithEngine().then((reviewResult) => {
+    if (currentGame.id !== gameId || reviewResult?.status === "cancelled") return;
     const analysis = reviewResult?.summary || buildGameAnalysis(currentGame.result || "partial", currentGame.endReason || null);
     if (reviewResult?.status === "completed" && analysis.engineBased) renderMoveReview(fromFinish, analysis);
     else {
       renderGameReport(analysis);
-      const message = currentGame.engineError || "Errore: Stockfish non ha risposto.";
       const gameBox = document.getElementById("gameAnalysis");
-      if (gameBox) gameBox.textContent = message;
+      if (gameBox) gameBox.textContent = currentGame.engineError || "Errore: Stockfish non ha risposto.";
       const drillBox = document.getElementById("chessDrill");
-      if (drillBox) drillBox.textContent = "Drill non generati: la review Stockfish non e' stata completata.";
+      if (drillBox) drillBox.textContent = "Drill non generati: la revisione Stockfish non e' stata completata.";
     }
   }).catch((error) => {
     currentGame.engineError = error.message || String(error);
-    setChessReviewStatus("error", {
-      error: currentGame.engineError,
-      engineAnalysis: currentGame.reviewResult?.engineAnalysis || [],
-      moveClassifications: currentGame.reviewResult?.moveClassifications || {},
-      drills: currentGame.reviewResult?.drills || []
-    });
-    setReviewProgress(getReviewStatusMessage("error"));
+    setChessReviewStatus("error", { error: currentGame.engineError, engineAnalysis: [], moveClassifications: {}, drills: [] });
+    setReviewProgress(`Errore durante l'analisi: ${currentGame.engineError}`);
     renderBotLevel();
   });
+}
+
+// Analizza in background ogni nuova posizione: a fine partita la revisione e' quasi pronta.
+function queueBackgroundAnalysis(fen) {
+  const engines = chessEngines();
+  if (!engines || !fen) return;
+  ChessReview.analysePosition(engines.review, fen, { depth: CHESS_REVIEW_DEPTH, multipv: CHESS_REVIEW_MULTIPV, cache: chessAnalysisCache }).catch(() => {});
 }
 
 function renderMoveReview(fromFinish = false, analysis = null) {
@@ -3441,7 +2780,7 @@ function renderMoveReview(fromFinish = false, analysis = null) {
   renderGameReport(gameAnalysis);
   const statusMessage = getReviewStatusMessage(gameAnalysis.reviewStatus || currentGame.reviewStatus);
   const accuracyText = gameAnalysis.engineBased && typeof gameAnalysis.accuracy === "number" ? `${gameAnalysis.accuracy}%` : "--";
-  const sourceText = gameAnalysis.engineBased ? "Analisi Stockfish engine-based." : statusMessage || "Stockfish non disponibile: analisi reale bloccata, nessuna review euristica.";
+  const sourceText = gameAnalysis.engineBased ? `Analisi ${STOCKFISH_ENGINE_LABEL}.` : statusMessage || "La revisione Stockfish partira' a breve.";
   document.getElementById("reviewAccuracy").textContent = accuracyText;
   updateReviewSparklineActive();
   updateReviewKeyFilterButton();
@@ -3450,7 +2789,8 @@ function renderMoveReview(fromFinish = false, analysis = null) {
     : "in attesa di Stockfish";
   const breakdown = gameAnalysis.engineBased ? gameAnalysis.accuracyBreakdown : statusMessage || "La precisione verra' mostrata solo dopo analisi Stockfish.";
   const exercises = gameAnalysis.engineBased ? gameAnalysis.exercises : ["Attendi il completamento dell'analisi motore per vedere pattern e drill reali."];
-  document.getElementById("gameAnalysis").innerHTML = `<strong>${gameAnalysis.resultLabel}</strong><br>${sourceText} Precisione engine-based: ${accuracyText}. Errori principali: ${errors}.<br>${breakdown}<ul class="plan-steps">${exercises.map((item) => `<li>${item}</li>`).join("")}</ul>`;
+  const openingText = gameAnalysis.opening ? `Apertura: ${gameAnalysis.opening}.<br>` : "";
+  document.getElementById("gameAnalysis").innerHTML = `<strong>${gameAnalysis.resultLabel}</strong><br>${openingText}${sourceText} Precisione: ${accuracyText}. Errori principali: ${errors}.<br>${breakdown}<ul class="plan-steps">${exercises.map((item) => `<li>${item}</li>`).join("")}</ul>`;
   if (gameAnalysis.engineBased) {
     renderChessExercises(gameAnalysis);
     renderChessCoachSummary(gameAnalysis);
@@ -3508,7 +2848,7 @@ function buildMoveReviewButton(move, index) {
 
   const notation = document.createElement("span");
   notation.className = "move-review-notation";
-  notation.textContent = `${move.moveNumber}. ${move.side} ${move.san || move.move}`;
+  notation.textContent = `${move.moveNumber}. ${move.side} ${ChessAnalysis.figurine(move.san || move.move)}`;
 
   const classification = document.createElement("span");
   classification.className = "move-review-classification";
@@ -3519,7 +2859,7 @@ function buildMoveReviewButton(move, index) {
   const bottom = document.createElement("div");
   bottom.className = "move-review-bottom";
   const evalText = document.createElement("span");
-  evalText.textContent = `Eval ${formatEval(move.evalBefore)} -> ${formatEval(move.evalAfter)}`;
+  evalText.textContent = `Eval ${formatEngineEval(move.evalBefore)} -> ${formatEngineEval(move.evalAfter)}`;
   const bestText = document.createElement("span");
   bestText.textContent = `Migliore: ${move.bestMoveText || "-"}`;
   const diffText = document.createElement("span");
@@ -3568,8 +2908,9 @@ function buildEvalSparkline(values, activeIndex = null, moves = []) {
   const safeValues = values.length ? values : [0];
   const coordinates = safeValues.map((value, index) => {
     const x = safeValues.length === 1 ? width / 2 : padding + (index / (safeValues.length - 1)) * (width - padding * 2);
-    const clipped = clamp(value, -600, 600);
-    const y = height / 2 - (clipped / 600) * (height / 2 - padding);
+    // Asse verticale = probabilita' di vittoria del Bianco (come il grafico di chess.com).
+    const win = ChessAnalysis.winPercent(value || 0);
+    const y = height / 2 - ((win - 50) / 50) * (height / 2 - padding);
     return { x, y };
   });
   const points = coordinates.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ");
@@ -3728,7 +3069,7 @@ function selectReviewMove(index) {
   reviewBoard = cloneBoard(move.boardAfter || board);
   reviewMoveSquares = moveSquaresFromRecord(move);
   document.getElementById("reviewPlyText").textContent = `${currentGame.reviewIndex + 1}/${currentGame.moves.length}`;
-  document.getElementById("reviewMoveTitle").textContent = `${move.moveNumber}. ${move.side} ${move.readable || move.move} - ${move.classification}`;
+  document.getElementById("reviewMoveTitle").textContent = `${move.moveNumber}. ${move.side} ${ChessAnalysis.figurine(move.san || move.move)} - ${move.classification}`;
   document.getElementById("reviewCoachPanel").textContent = buildDetailedReviewComment(move);
   document.getElementById("reviewBestMove").textContent = move.bestMoveText || "-";
   document.getElementById("reviewBestDiff").textContent = formatBestMoveDiff(move);
@@ -3736,7 +3077,7 @@ function selectReviewMove(index) {
   document.getElementById("reviewPattern").textContent = move.pattern ? mistakeLabels[move.pattern] : "-";
   document.getElementById("reviewDrill").textContent = move.drill || "-";
   document.getElementById("reviewMeta").textContent = formatReviewMeta(move);
-  document.getElementById("coachMessage").textContent = `${move.moveNumber}. ${move.side} ${move.move}: ${move.comment || move.note}`;
+  document.getElementById("coachMessage").textContent = `${move.moveNumber}. ${move.side}: ${move.comment || move.note}`;
   updateReviewEvalBar(move.evalAfter || 0);
   updateReviewActiveItem();
   updateReviewSparklineActive(currentGame.reviewIndex + 1);
@@ -3746,75 +3087,40 @@ function selectReviewMove(index) {
 function updateReviewSparklineActive(activeIndex = null) {
   const sparkline = document.getElementById("reviewEvalSparkline");
   if (!sparkline) return;
-  const series = [0].concat(getSafeChessMoves().map((move) => move.evalAfter || 0));
+  const reviewMoves = getSafeChessMoves();
+  const series = [reviewMoves.length ? reviewMoves[0].evalBefore || 0 : 0].concat(reviewMoves.map((move) => move.evalAfter || 0));
   const index = typeof activeIndex === "number" ? activeIndex : currentGame.reviewIndex >= 0 ? currentGame.reviewIndex + 1 : null;
   sparkline.innerHTML = buildEvalSparkline(series, index, getSafeChessMoves());
 }
 
 function formatBestMoveDiff(move) {
-  if (!move) return "-";
-  const parts = [];
-  if (typeof move.epLoss === "number") parts.push(`-${move.epLoss.toFixed(3)} EP`);
-  if (typeof move.evalLoss === "number") parts.push(`${move.evalLoss.toFixed(2)} pedoni`);
-  else if (typeof move.loss === "number") parts.push(`${(move.loss / 100).toFixed(2)} pedoni`);
-  return parts.length ? parts.join(" / ") : "-";
+  if (!move || !move.engineAnalysis || !move.engineAnalysis.ok) return "-";
+  if (!move.loss) return "nessuna perdita";
+  return `-${move.loss.toFixed(1)} punti di probabilita' di vittoria`;
 }
 
 function formatReviewMeta(move) {
   const meta = move && move.reviewMeta;
-  if (!meta) return "Quick review locale";
-  const depth = meta.depth ? `depth ${meta.depth}` : "book/fast path";
-  const time = meta.timeMs ? `${meta.timeMs} ms` : "0 ms";
-  return `${meta.engine || "Stockfish"} - ${depth} - ${time} - ${meta.model || "expected-points"} - ${meta.horizon || "post-game"}`;
+  if (!meta) return "Revisione non ancora eseguita";
+  const accuracy = typeof move.accuracyScore === "number" ? ` · precisione mossa ${move.accuracyScore}%` : "";
+  return `${meta.engine || STOCKFISH_ENGINE_LABEL} · profondita' ${meta.depth || "-"} · ${meta.multipv || 1} linee${accuracy}`;
 }
 
 function buildDetailedReviewComment(move) {
   if (!move) return "Analisi in corso o non disponibile.";
-  if (move.quality === "unknown") return move.comment || "Stockfish non ha completato l'analisi di questa mossa. Puoi riprovare la review.";
-  const meta = getMoveQualityMeta(move.quality);
-  const best = move.bestMoveText && move.bestMoveText !== "nessuna alternativa necessaria" ? move.bestMoveText : "nessuna alternativa utile da mostrare";
-  const lossText = typeof move.loss === "number" ? `${(move.loss / 100).toFixed(2)} pedoni` : "non disponibile";
-  const epText = typeof move.epLoss === "number" ? `; perdita risultato atteso ${(move.epLoss * 100).toFixed(1)}%` : "";
-  return [
-    `Cosa e' successo: ${reviewWhatHappenedText(move, meta)}.`,
-    `Perche' e' ${move.classification || meta.label}: ${reviewWhyText(move, lossText + epText)}.`,
-    `Fattori posizione: ${formatReviewSignals(move)}.`,
-    `Cosa controllare: ${reviewChecklistText(move)}.`,
-    `Mossa migliore: ${best}. Differenza dalla migliore: ${formatBestMoveDiff(move)}. Linea consigliata: ${move.variation && move.variation !== "-" ? move.variation : "non disponibile"}. Linea valutata: ${move.playedLine || move.move || "-"}.`,
-    `Cosa imparare: ${reviewLearningText(move)}`
-  ].join("\n");
-}
-
-function reviewWhatHappenedText(move, meta) {
-  const signals = move.reviewSignals || {};
-  if (move.classification === "Scacco matto") return "la mossa chiude la partita con scacco matto";
-  if (signals.captured) return `${move.san || move.move} cattura ${pieceName(signals.captured)} e cambia la tensione tattica`;
-  if (signals.givesCheck) return `${move.san || move.move} crea scacco e forza una risposta precisa`;
-  if (move.quality === "book") return `hai giocato una mossa di apertura riconosciuta (${move.san || move.move})`;
-  if (move.quality === "best") return `hai trovato la scelta indicata dal motore (${move.san || move.move})`;
-  if (move.quality === "great") return "hai trovato una risorsa critica che mantiene o recupera la posizione";
-  if (move.quality === "brilliant") return "hai giocato una risorsa tattica rara senza perdere il filo della posizione";
-  if (move.quality === "missed") return "hai mancato una risorsa concreta che poteva cambiare la posizione";
-  if (isErrorQuality(move.quality)) return `la posizione peggiora dopo ${move.san || move.move}`;
-  return `la mossa ${move.san || move.move} mantiene la posizione dentro margini accettabili`;
-}
-
-function reviewWhyText(move, lossText) {
-  if (move.quality === "book") return "sviluppa secondo principi sani e resta vicina alla mossa migliore";
-  if (move.quality === "best") return "coincide con la mossa migliore del motore, quindi non perde valore rispetto alla scelta migliore";
-  if (move.quality === "great") return "era una delle pochissime mosse corrette in una posizione critica";
-  if (move.quality === "brilliant") return "richiede un'idea tattica o un sacrificio non ovvio e resta mossa migliore o quasi";
-  if (move.quality === "excellent") return `resta molto vicina alla mossa migliore (${lossText}) e migliora o stabilizza la posizione`;
-  if (move.quality === "good") return `perde poco rispetto alla mossa migliore (${lossText}) e non concede problemi seri`;
-  if (move.quality === "inexact" || move.quality === "inaccuracy") return `la perdita rispetto alla mossa migliore e' moderata (${lossText}), ma non crolla la partita`;
-  if (move.quality === "mistake") return `la perdita rispetto alla mossa migliore e' concreta (${lossText}) e concede iniziativa o materiale`;
-  if (move.quality === "blunder") return `la perdita rispetto alla mossa migliore e' grave (${lossText}) e cambia nettamente la posizione`;
-  if (move.quality === "missed") return "la mossa migliore era una risorsa decisiva, non un semplice miglioramento di una posizione gia' vinta";
-  return `la perdita rispetto alla mossa migliore e' ${lossText}`;
+  if (!move.engineAnalysis || !move.engineAnalysis.ok) return move.comment || "Questa mossa non e' ancora stata analizzata da Stockfish.";
+  const lines = [move.comment];
+  if (typeof move.winBefore === "number") {
+    const who = move.side === "Bianco" ? "tua" : "del bot";
+    lines.push(`Probabilita' di vittoria ${who}: ${Math.round(move.winBefore)}% prima, ${Math.round(move.winAfter)}% dopo. Precisione della mossa: ${move.accuracyScore}%.`);
+  }
+  if (move.refutation && isErrorQuality(move.quality)) lines.push(`Risposta che punisce la mossa: ${ChessAnalysis.figurine(move.refutation)}${move.playedLine && move.playedLine !== "-" ? ` (${move.playedLine})` : ""}.`);
+  lines.push(`Cosa imparare: ${reviewLearningText(move)}`);
+  return lines.join("\n");
 }
 
 function reviewLearningText(move) {
-  if (move.pattern) return `${patternShortReason(move.pattern)}. Drill: ${move.drill || mistakeDrills[move.pattern] || "calcola candidate, minacce e risposta forzante prima di muovere"}.`;
+  if (move.pattern) return `${patternShortReason(move.pattern)}. ${move.drill || mistakeDrills[move.pattern] || "Calcola candidate, minacce e risposta forzante prima di muovere."}`;
   if (move.quality === "best") return "conserva il processo: candidate, minaccia avversaria, verifica tattica, poi mossa.";
   if (move.quality === "book") return "memorizza il piano dietro l'apertura, non solo la mossa.";
   if (move.quality === "great") return "salva questa posizione: il punto era trovare la risorsa critica, non la mossa naturale.";
@@ -3823,53 +3129,21 @@ function reviewLearningText(move) {
   return "prima della prossima mossa confronta 2 candidate e cerca la risposta piu' forzante dell'avversario.";
 }
 
-function formatReviewSignals(move) {
-  const signals = move.reviewSignals;
-  if (!signals) return `eval ${formatEval(move.evalBefore)} -> ${formatEval(move.evalAfter)}`;
-  const parts = [
-    `${signals.phase || "Fase"}: eval ${formatEval(move.evalBefore)} -> ${formatEval(move.evalAfter)} (${signals.evalDelta >= 0 ? "+" : ""}${signals.evalDelta.toFixed(2)} pedoni)`
-  ];
-  if (signals.captured) parts.push(`cattura ${pieceName(signals.captured)}`);
-  if (signals.looseChange > 60) parts.push(`pezzi tuoi piu' esposti (+${Math.round(signals.looseChange)})`);
-  if (signals.looseChange < -60) parts.push(`riduci pezzi appesi (${Math.round(signals.looseChange)})`);
-  if (signals.opponentLooseChange > 60) parts.push(`aumenti pressione su materiale avversario`);
-  if (signals.opponentThreatChange > 70) parts.push(`concedi una minaccia immediata`);
-  if (signals.ownThreatChange > 70) parts.push(`crei minaccia concreta`);
-  if (signals.givesCheck) parts.push("scacco");
-  return parts.join("; ");
-}
-
-function reviewChecklistText(move) {
-  const signals = move.reviewSignals || {};
-  if (move.quality === "book") return "piano dell'apertura: sviluppo, centro, sicurezza del re";
-  if (move.quality === "best" || move.quality === "excellent" || move.quality === "great") return "perche' questa candidata funziona e quale risposta forzata limita l'avversario";
-  if (move.pattern === "hangingPiece" || signals.looseChange > 60) return "pezzi appesi dopo la mossa, soprattutto donna, torri e pezzi non difesi";
-  if (move.pattern === "missedThreat" || signals.opponentThreatChange > 70) return "minacce avversarie immediate: scacchi, catture e attacchi doppi";
-  if (move.pattern === "kingSafety") return "linee verso il re, case deboli e possibilita' di arroccare o semplificare";
-  if (move.pattern === "development") return "pezzi ancora fermi, controllo del centro e tempi persi in apertura";
-  if (move.pattern === "noPlan") return "obiettivo delle prossime 2-3 mosse: migliorare pezzo, creare pressione o eliminare debolezza";
-  if (move.quality === "missed") return "candidate forzanti: scacco, cattura, minaccia e unica risorsa difensiva";
-  return "candidate migliori, risposta piu' forzante dell'avversario e sicurezza del pezzo mosso";
-}
-
-function pieceName(piece) {
-  const names = { p: "pedone", n: "cavallo", b: "alfiere", r: "torre", q: "donna", k: "re" };
-  return names[String(piece || "").toLowerCase()] || "pezzo";
-}
-
 function buildShortReviewComment(move) {
-  if (move.classification === "Scacco matto") return "Ottima: dai scacco matto e chiudi la partita.";
-  if (move.quality === "book") return "Libro: segui una linea di apertura sana e sviluppi senza rischi.";
-  if (move.quality === "best") return "Migliore: perdita entro 0.15 pedoni rispetto alla scelta Stockfish.";
-  if (move.quality === "great") return "Grande: trovi una risorsa critica o una delle pochissime mosse corrette.";
-  if (move.quality === "brilliant") return "Brillante: trovi una risorsa tattica rara con sacrificio o idea non ovvia.";
-  if (move.quality === "excellent") return "Ottima: migliori la posizione e resti molto vicino alla mossa migliore.";
-  if (move.quality === "good") return "Buona mossa: sviluppi, difendi o migliori la posizione senza concedere problemi seri.";
-  if (move.quality === "inexact" || move.quality === "inaccuracy") return move.pattern ? `Imprecisione: ${patternShortReason(move.pattern)}.` : "Imprecisione: piccolo peggioramento, ma la posizione resta giocabile.";
-  if (move.quality === "mistake") return move.pattern ? `Errore: ${patternShortReason(move.pattern)}.` : "Errore: la posizione peggiora in modo concreto.";
-  if (move.quality === "blunder") return move.pattern ? `Blunder: ${patternShortReason(move.pattern)}.` : "Blunder: perdi materiale importante o concedi una tattica decisiva.";
-  if (move.quality === "missed") return "Mossa mancata: c'era una continuazione molto piu' forte da trovare.";
-  return move.comment || move.note || "Mossa registrata nella revisione.";
+  if (!move.engineAnalysis || !move.engineAnalysis.ok) return move.comment || move.note || "Mossa registrata.";
+  if (move.quality === "book") return move.opening ? `Libro: ${move.opening}.` : "Libro: linea di apertura conosciuta.";
+  if (move.quality === "forced") return "Forzata: era l'unica mossa legale.";
+  if (move.quality === "best") return "Migliore: la scelta di Stockfish.";
+  if (move.quality === "great") return "Grande: l'unica mossa che teneva la posizione.";
+  if (move.quality === "brilliant") return "Brillante: sacrificio corretto.";
+  if (move.quality === "excellent") return "Ottima: quasi equivalente alla migliore.";
+  if (move.quality === "good") return `Buona: perdi poco (${move.loss.toFixed(1)} punti).`;
+  const reason = move.pattern ? patternShortReason(move.pattern) : "la posizione peggiora";
+  if (move.quality === "inexact" || move.quality === "inaccuracy") return `Imprecisione: ${reason}.`;
+  if (move.quality === "mistake") return `Errore: ${reason}.`;
+  if (move.quality === "blunder") return `Blunder: ${reason}.`;
+  if (move.quality === "missed") return `Mossa mancata: c'era ${move.bestMoveText || "una mossa"} per sfruttare l'errore avversario.`;
+  return move.comment || "Mossa registrata.";
 }
 
 function patternShortReason(pattern) {
@@ -3905,7 +3179,7 @@ function resetReviewPanel() {
 
 function reviewQualityClass(quality) {
   if (quality === "book") return "book";
-  if (quality === "best") return "best";
+  if (quality === "best" || quality === "forced") return "best";
   if (quality === "great") return "great";
   if (quality === "brilliant") return "brilliant";
   if (quality === "excellent") return "excellent";
@@ -3920,455 +3194,9 @@ function reviewQualityClass(quality) {
 function updateReviewEvalBar(score) {
   const fill = document.getElementById("reviewEvalFill");
   if (!fill) return;
-  const width = clamp(50 + (score || 0) / 18, 3, 97);
+  const width = clamp(ChessAnalysis.winPercent(score || 0), 3, 97);
   fill.style.width = `${width}%`;
   fill.style.background = score >= 0 ? "rgba(31, 122, 109, 0.72)" : "rgba(184, 74, 58, 0.72)";
-}
-
-function classifyBotMove(loss, evalBefore, evalAfter, isMate) {
-  if (isMate) return { quality: "excellent", label: "Ottima", explanation: "chiude con scacco matto." };
-  const delta = moveDeltaPawns(evalBefore, evalAfter, "b");
-  return classifyByDelta(delta, {
-    winningBefore: isWinningForColor(evalBefore, "b"),
-    winningAfter: isWinningForColor(evalAfter, "b")
-  });
-}
-
-function moveDeltaPawns(evalBefore, evalAfter, color) {
-  const deltaCentipawns = color === "b" ? evalBefore - evalAfter : evalAfter - evalBefore;
-  return deltaCentipawns / 100;
-}
-
-function isWinningForColor(evalScore, color) {
-  return color === "b" ? evalScore <= -500 : evalScore >= 500;
-}
-
-function classifyByDelta(delta, context = {}) {
-  if (context.isMate) {
-    return {
-      quality: "excellent",
-      label: "Ottima",
-      explanation: "da' scacco matto e conclude la partita senza bisogno di alternative."
-    };
-  }
-  if (context.brilliant) {
-    return {
-      quality: "brilliant",
-      label: "Brillante",
-      explanation: "sacrifica o accetta un rischio non ovvio e migliora nettamente la posizione. E' una classificazione rara."
-    };
-  }
-  if (context.missed) {
-    return {
-      quality: "missed",
-      label: "Mossa mancata",
-      explanation: "c'era una risorsa decisiva che cambiava la partita, ma la posizione non era gia' vinta."
-    };
-  }
-  if (context.winningBefore && context.winningAfter && delta < 0) {
-    if (delta >= -0.8) {
-      return {
-        quality: "good",
-        label: "Buona",
-        explanation: "mantiene un vantaggio grande: non e' perfetta, ma non cambia il controllo della partita."
-      };
-    }
-    return {
-      quality: "inexact",
-      label: "Imprecisione",
-      explanation: "perde precisione in una posizione gia' vinta, ma conserva un vantaggio molto ampio."
-    };
-  }
-  if (delta >= 0) {
-    return {
-      quality: "excellent",
-      label: "Ottima",
-      explanation: "migliora o mantiene la valutazione dal punto di vista di chi muove."
-    };
-  }
-  if (delta >= -0.3) {
-    return {
-      quality: "good",
-      label: "Buona",
-      explanation: "peggiora pochissimo la valutazione e resta coerente con la posizione."
-    };
-  }
-  if (delta >= -0.8) {
-    return {
-      quality: "inexact",
-      label: "Imprecisione",
-      explanation: "perde qualcosa rispetto alla posizione iniziale, ma non concede un vantaggio decisivo."
-    };
-  }
-  if (delta >= -2) {
-    return {
-      quality: "mistake",
-      label: "Errore",
-      explanation: "peggiora chiaramente la valutazione e concede iniziativa o materiale."
-    };
-  }
-  return {
-    quality: "blunder",
-    label: "Blunder",
-    explanation: "crolla di oltre due pedoni o permette una tattica decisiva."
-  };
-}
-
-function classifyChessMove(analysis, before, after, move) {
-  const loss = Math.max(0, analysis.bestGap);
-  const givesCheck = isKingInCheck(after, "b");
-  const captured = before[move.toRow][move.toCol];
-  const movedPiece = before[move.fromRow][move.fromCol];
-  const givesMate = analysis.isMate || (givesCheck && getAllLegalMoves(after, "b").length === 0);
-  const delta = moveDeltaPawns(analysis.beforeEval, analysis.afterEval, "w");
-  const winningBefore = isWinningForColor(analysis.beforeEval, "w");
-  const winningAfter = isWinningForColor(analysis.afterEval, "w");
-  const movedValue = movedPiece ? pieceValues[movedPiece.toLowerCase()] || 0 : 0;
-  const capturedValue = captured ? pieceValues[captured.toLowerCase()] || 0 : 0;
-  const sacrificeRisk = movedValue >= 300 && capturedValue < movedValue && isSquareAttacked(after, move.toRow, move.toCol, "b");
-  const brilliant = !givesMate && currentGame.moves.length >= 6 && sacrificeRisk && delta >= 1.5 && (givesCheck || captured || analysis.threatAfter.score > 180);
-  const reviewRating = getReviewRatingForMove({ side: "Bianco", colorMoved: "w" });
-  const bestEval = typeof analysis.bestEval === "number" ? analysis.bestEval : analysis.afterEval;
-  const epBefore = expectedPointsFromEval(analysis.beforeEval, reviewRating);
-  const epBest = expectedPointsFromEval(bestEval, reviewRating);
-  const epPlayed = expectedPointsFromEval(analysis.afterEval, reviewRating);
-  const epLoss = Math.max(0, epBest - epPlayed);
-  const missed = shouldMarkMissedMoveExpected(analysis, delta, epBefore, epBest, epPlayed);
-  const context = {
-    lossCp: loss,
-    epBefore,
-    epBest,
-    epPlayed,
-    epLoss,
-    reviewRating,
-    winningBefore,
-    winningAfter,
-    brilliant,
-    missed,
-    isBest: analysis.bestMove && sameMove(move, analysis.bestMove)
-  };
-  analysis.epBefore = epBefore;
-  analysis.epBest = epBest;
-  analysis.epPlayed = epPlayed;
-  analysis.epLoss = epLoss;
-  analysis.reviewRating = reviewRating;
-  if (givesMate) {
-    analysis.accuracyScore = qualityScoreFromExpectedLoss("excellent", 0, context);
-    return classifyByDelta(delta, { isMate: true });
-  }
-  if (isBookMove(move) && loss <= 70 && !analysis.categories.includes("hangingPiece")) {
-    analysis.accuracyScore = qualityScoreFromExpectedLoss("book", epLoss, context);
-    return {
-      quality: "book",
-      label: "Mossa da libro",
-      explanation: "sviluppa o controlla il centro secondo un impianto sano, senza concedere materiale evidente."
-    };
-  }
-  const result = classifyByExpectedLoss(context, delta);
-  analysis.accuracyScore = qualityScoreFromExpectedLoss(result.quality, epLoss, context);
-  return result;
-}
-
-function sameMove(a, b) {
-  return a && b && a.fromRow === b.fromRow && a.fromCol === b.fromCol && a.toRow === b.toRow && a.toCol === b.toCol;
-}
-
-function classifyByExpectedLoss(context, delta = 0) {
-  if (context.brilliant) {
-    return {
-      quality: "brilliant",
-      label: "Brillante",
-      explanation: "sacrificio o idea tattica rara, mossa migliore o quasi, senza nascere da una posizione gia' completamente vinta."
-    };
-  }
-  if (context.isBest || context.lossCp <= 12 || context.epLoss <= 0.003) {
-    return {
-      quality: "best",
-      label: "Migliore",
-      explanation: "coincide con la scelta migliore stimata o perde praticamente zero risultato atteso."
-    };
-  }
-  if (context.missed) {
-    return {
-      quality: "missed",
-      label: "Mossa mancata",
-      explanation: "c'era una risorsa decisiva che cambiava davvero il risultato atteso, non solo una mossa leggermente piu' precisa."
-    };
-  }
-  if (context.epBefore >= 0.92 && context.epPlayed >= 0.88) {
-    if (context.epLoss <= 0.08 || delta > -1.5) {
-      return {
-        quality: "good",
-        label: "Buona",
-        explanation: "la posizione era gia' molto favorevole e la mossa conserva il risultato pratico."
-      };
-    }
-    return {
-      quality: "inexact",
-      label: "Imprecisione",
-      explanation: "perde precisione, ma non trasforma una posizione vinta in un errore grave."
-    };
-  }
-  if (context.epLoss <= 0.02) {
-    return { quality: "excellent", label: "Ottima", explanation: "resta molto vicina alla scelta migliore in termini di risultato atteso." };
-  }
-  if (context.epLoss <= 0.05) {
-    return { quality: "good", label: "Buona", explanation: "perde poco risultato atteso e mantiene una posizione sana." };
-  }
-  if (context.epLoss <= 0.10) {
-    return { quality: "inexact", label: "Imprecisione", explanation: "perdita moderata di risultato atteso, senza crollo immediato." };
-  }
-  if (context.epLoss <= 0.20) {
-    return { quality: "mistake", label: "Errore", explanation: "perdita seria di risultato atteso: concede iniziativa, materiale o difesa piu' difficile." };
-  }
-  return { quality: "blunder", label: "Blunder", explanation: "crollo netto del risultato atteso, spesso legato a materiale, matto o tattica decisiva." };
-}
-
-function shouldMarkMissedMove(analysis, delta) {
-  if (!analysis.bestMove || analysis.bestEval === null) return false;
-  if (isWinningForColor(analysis.beforeEval, "w")) return false;
-  const bestDelta = moveDeltaPawns(analysis.beforeEval, analysis.bestEval, "w");
-  const missedSwing = bestDelta - delta;
-  const changesResult = (analysis.beforeEval < -100 && analysis.bestEval >= -50) || (analysis.beforeEval < 150 && analysis.bestEval >= 350);
-  return bestDelta >= 2 && missedSwing >= 1.8 && changesResult;
-}
-
-function shouldMarkMissedMoveExpected(analysis, delta, epBefore, epBest, epPlayed) {
-  if (!analysis.bestMove || analysis.bestEval === null) return false;
-  if (epBefore >= 0.82 || epPlayed >= 0.82 || isWinningForColor(analysis.beforeEval, "w") || isWinningForColor(analysis.afterEval, "w")) return false;
-  const epSwing = epBest - epBefore;
-  const epLoss = epBest - epPlayed;
-  const classicMiss = shouldMarkMissedMove(analysis, delta);
-  const changesResult = (epBefore < 0.38 && epBest >= 0.50) || (epBefore < 0.62 && epBest >= 0.82);
-  return (epLoss >= 0.12 && epSwing >= 0.10 && changesResult) || classicMiss;
-}
-
-function isBookMove(move) {
-  const bookMoves = new Set([
-    "e2-e4",
-    "d2-d4",
-    "g1-f3",
-    "c2-c4",
-    "b1-c3",
-    "e7-e5",
-    "c7-c5",
-    "e7-e6",
-    "c7-c6",
-    "g8-f6",
-    "d7-d5",
-    "b8-c6"
-  ]);
-  return currentGame.moves.length < 10 && bookMoves.has(formatMoveText(move));
-}
-
-function buildRecommendedVariation(currentBoard, bestMove) {
-  const afterBest = applyMove(currentBoard, bestMove);
-  const blackMoves = getAllLegalMoves(afterBest, "b");
-  if (!blackMoves.length) return formatMoveText(bestMove);
-  const blackReply = chooseAnalysisBlackMove(afterBest, blackMoves);
-  const afterReply = applyMove(afterBest, blackReply);
-  const whiteReply = getBestWhiteMove(afterReply);
-  const parts = [
-    formatMoveText(bestMove),
-    formatMoveText(blackReply)
-  ];
-  if (whiteReply) parts.push(formatMoveText(whiteReply.move));
-  return parts.join(" ");
-}
-
-function chooseAnalysisBlackMove(currentBoard, moves) {
-  const level = activeBotLevelForAnalysis();
-  let best = null;
-  moves.forEach((move) => {
-    const score = scoreMoveForColorFast(currentBoard, move, "b", Math.max(level, 7));
-    if (!best || score > best.score) best = { move, score };
-  });
-  return best ? best.move : moves[0];
-}
-
-function analyzePlayerMove(before, after, move, movedPiece, seconds) {
-  const categories = [];
-  const analysisLevel = Math.max(activeBotLevelForAnalysis(), 7);
-  const beforeEval = evaluateBoardAdvanced(before, analysisLevel);
-  const afterEval = evaluateBoardAdvanced(after, analysisLevel);
-  const best = getBestWhiteMove(before);
-  const bestGap = best ? best.eval - afterEval : 0;
-  const evalLoss = beforeEval - afterEval;
-  const movedIntoAttack = isSquareAttacked(after, move.toRow, move.toCol, "b");
-  const isProtected = isSquareAttacked(after, move.toRow, move.toCol, "w");
-  const kingCheck = isKingInCheck(after, "w");
-  const pieceKey = movedPiece + coord(move.fromRow, move.fromCol);
-  playerMoveStats[pieceKey] = (playerMoveStats[pieceKey] || 0) + 1;
-  const movedToCenter = [[3, 3], [3, 4], [4, 3], [4, 4]].some(([r, c]) => r === move.toRow && c === move.toCol);
-  const wasCapture = Boolean(before[move.toRow][move.toCol]);
-  const givesCheck = isKingInCheck(after, "b");
-  const hanging = isHangingProblem(before, after, move, movedPiece, movedIntoAttack, isProtected);
-  const threatBefore = immediateThreatScore(before, "b");
-  const threatAfter = immediateThreatScore(after, "b");
-  const developing = isDevelopingMove(before, after, move, movedPiece);
-  const neutralMove = !wasCapture && !givesCheck && !developing && !move.castle && !movedToCenter;
-  const isMate = givesCheck && getAllLegalMoves(after, "b").length === 0;
-
-  if (seconds < 4 && (evalLoss > 30 || bestGap > 60 || hanging)) categories.push("concentration");
-  if (hanging) categories.push("hangingPiece");
-  if (bestGap > 80 || evalLoss > 80) categories.push("calculation");
-  if (threatBefore.score > 110 && threatAfter.score > 90 && neutralMove) categories.push("missedThreat");
-  if (kingCheck || kingPressureScore(after, "w") > kingPressureScore(before, "w") + 1 || (movedPiece === "K" && !move.castle) || isCastlingRightWeakened(move, movedPiece)) categories.push("kingSafety");
-  if (isSlowDevelopment(before, after, move, movedPiece, pieceKey, bestGap)) categories.push("development");
-  if (moveNumber > 6 && bestGap > 70 && neutralMove) categories.push("noPlan");
-  if (isEndgame(before) && (evalLoss > 55 || lostWhitePawn(before, after))) categories.push("weakEndgame");
-  if (isMate) categories.length = 0;
-
-  const uniqueCategories = [...new Set(categories)];
-  return {
-    categories: uniqueCategories,
-    bestMove: best ? best.move : null,
-    bestEval: best ? best.eval : null,
-    bestGap,
-    beforeEval,
-    afterEval,
-    variation: best && !isMate ? buildRecommendedVariation(before, best.move) : "-",
-    threatBefore,
-    threatAfter,
-    isMate
-  };
-}
-
-function isHangingProblem(before, after, move, movedPiece, movedIntoAttack, isProtected) {
-  const movedValue = pieceValues[movedPiece.toLowerCase()] || 0;
-  const movedHanging = movedValue >= 300 && movedIntoAttack && (!isProtected || evaluateBoard(after) <= evaluateBoard(before) + 60);
-  if (movedHanging) return true;
-  const loose = findLooseWhitePiece(after);
-  return Boolean(loose && loose.value >= 300 && evaluateBoard(after) <= evaluateBoard(before) + 50);
-}
-
-function findLooseWhitePiece(currentBoard) {
-  let worst = null;
-  for (let row = 0; row < 8; row += 1) {
-    for (let col = 0; col < 8; col += 1) {
-      const piece = currentBoard[row][col];
-      if (!piece || !isWhite(piece) || piece === "K") continue;
-      const attacked = isSquareAttacked(currentBoard, row, col, "b");
-      const defended = isSquareAttacked(currentBoard, row, col, "w");
-      const value = pieceValues[piece.toLowerCase()] || 0;
-      if (attacked && !defended && (!worst || value > worst.value)) worst = { row, col, piece, value };
-    }
-  }
-  return worst;
-}
-
-function immediateThreatScore(currentBoard, color) {
-  const moves = getAllLegalMoves(currentBoard, color);
-  if (!moves.length) return { score: 0, move: null };
-  const base = evaluateBoard(currentBoard);
-  let best = { score: 0, move: null };
-  moves.forEach((candidate) => {
-    const next = applyMove(currentBoard, candidate);
-    const nextEval = evaluateBoard(next);
-    const gain = color === "b" ? base - nextEval : nextEval - base;
-    const captured = currentBoard[candidate.toRow][candidate.toCol];
-    const captureBonus = captured ? pieceValues[captured.toLowerCase()] * 0.25 : 0;
-    const checkBonus = isKingInCheck(next, color === "b" ? "w" : "b") ? 45 : 0;
-    const score = gain + captureBonus + checkBonus;
-    if (score > best.score) best = { score, move: candidate };
-  });
-  return best;
-}
-
-function kingPressureScore(currentBoard, color) {
-  const king = findKing(currentBoard, color);
-  if (!king) return 0;
-  const enemy = color === "w" ? "b" : "w";
-  let pressure = 0;
-  for (let dr = -1; dr <= 1; dr += 1) {
-    for (let dc = -1; dc <= 1; dc += 1) {
-      const row = king.row + dr;
-      const col = king.col + dc;
-      if (inside(row, col) && isSquareAttacked(currentBoard, row, col, enemy)) pressure += 1;
-    }
-  }
-  if (color === "w" && king.row === 7 && king.col === 4 && moveNumber > 6) pressure += 2;
-  return pressure;
-}
-
-function isCastlingRightWeakened(move, movedPiece) {
-  if (movedPiece === "R" && move.fromRow === 7 && (move.fromCol === 0 || move.fromCol === 7) && moveNumber <= 10) return true;
-  return false;
-}
-
-function isDevelopingMove(before, after, move, movedPiece) {
-  const lower = movedPiece.toLowerCase();
-  if (move.castle) return true;
-  if ((lower === "n" || lower === "b") && move.fromRow === 7 && move.toRow < 7) return true;
-  if (lower === "p" && (move.fromCol === 3 || move.fromCol === 4) && Math.abs(move.toRow - move.fromRow) >= 1) return true;
-  return evaluateBoard(after) > evaluateBoard(before) + 35;
-}
-
-function isSlowDevelopment(before, after, move, movedPiece, pieceKey, bestGap) {
-  if (moveNumber > 10) return false;
-  const lower = movedPiece.toLowerCase();
-  const repeatedMinor = (lower === "n" || lower === "b" || lower === "q") && move.fromRow !== 7;
-  const blockedPieces = countWhiteHomeMinorPieces(after);
-  return repeatedMinor || (blockedPieces >= 3 && !isDevelopingMove(before, after, move, movedPiece) && bestGap > 35) || playerMoveStats[pieceKey] > 1;
-}
-
-function countWhiteHomeMinorPieces(currentBoard) {
-  return ["N", "B"].reduce((count, piece) => count + currentBoard[7].filter((item) => item === piece).length, 0);
-}
-
-function isEndgame(currentBoard) {
-  let queens = 0;
-  let nonPawnMaterial = 0;
-  currentBoard.flat().forEach((piece) => {
-    if (!piece || piece.toLowerCase() === "k" || piece.toLowerCase() === "p") return;
-    if (piece.toLowerCase() === "q") queens += 1;
-    nonPawnMaterial += pieceValues[piece.toLowerCase()] || 0;
-  });
-  return moveNumber >= 22 && (queens === 0 || nonPawnMaterial <= 1800);
-}
-
-function lostWhitePawn(before, after) {
-  const beforePawns = before.flat().filter((piece) => piece === "P").length;
-  const afterPawns = after.flat().filter((piece) => piece === "P").length;
-  return afterPawns < beforePawns;
-}
-
-function registerChessMoveImpact(record, seconds) {
-  if (isErrorQuality(record.quality) && record.categories.length) {
-    currentGame.mistakes.push({ move: record.move, categories: record.categories, bestGap: record.loss || 0 });
-    record.categories.forEach((category) => {
-      if (!currentGame.patternCounts) currentGame.patternCounts = {};
-      currentGame.patternCounts[category] = (currentGame.patternCounts[category] || 0) + 1;
-      state.mistakeCounts[category] = (state.mistakeCounts[category] || 0) + 1;
-      addModulePattern("chess", category);
-    });
-  }
-  updateModuleMetrics("chess", {
-    lucidita: record.categories.includes("concentration") ? -4 : 1,
-    efficacia: record.quality === "blunder" ? -5 : record.quality === "mistake" ? -3 : record.quality === "missed" ? -2 : 2,
-    rischio: record.categories.includes("hangingPiece") || record.categories.includes("kingSafety") ? -5 : 1,
-    controllo: seconds < 4 && record.categories.length ? -4 : 1,
-    adattamento: record.categories.includes("noPlan") ? -3 : 1,
-    ragionamento: record.categories.includes("calculation") ? -5 : 2,
-    sostenibilita: record.categories.includes("development") ? -2 : 1,
-    tempo: seconds < 4 ? -2 : 1
-  });
-  saveState();
-  renderMistakes();
-  renderDashboard();
-}
-
-function updateCoachAfterPlayerMove(record, seconds) {
-  if (!isErrorQuality(record.quality) || record.categories.length === 0) {
-    document.getElementById("coachMessage").textContent = `Mossa stabile. Tempo pensato: ${seconds}s. Ora controlla la risposta forzante del bot.`;
-    document.getElementById("chessDrill").textContent = "Drill mantenimento: nomina ad alta voce la minaccia del bot prima della prossima mossa.";
-    return;
-  }
-  const main = record.categories[0];
-  const count = currentGame.patternCounts && currentGame.patternCounts[main] ? currentGame.patternCounts[main] : 1;
-  const repeated = count >= 2 ? ` Nella partita corrente e' gia' successo ${count} volte.` : "";
-  document.getElementById("coachMessage").textContent = `${mistakeLabels[main]}: errore da rivedere nella lista mossa per mossa.${repeated}`;
-  document.getElementById("chessDrill").textContent = mistakeDrills[main];
 }
 
 function renderMistakes() {
@@ -4481,7 +3309,7 @@ function showChessDrillSolution() {
   if (!exercise || !feedback) return;
   currentGame.drillAttempt = { uci: normalizeMoveAnswer(exercise.correct_move), solution: true };
   renderMiniDrillBoard();
-  feedback.textContent = `Soluzione: ${exercise.correct_move}. ${exercise.explanation}`;
+  feedback.textContent = `Soluzione: ${exercise.correct_move_san || exercise.correct_move}. ${exercise.explanation}`;
 }
 
 function nextChessDrill() {
@@ -4538,7 +3366,7 @@ function evaluateChessDrillMove(answer) {
     exercise.completed = true;
     exercise.completed_at = new Date().toISOString();
     currentGame.drillAttempt = currentGame.drillAttempt || { uci: normalizedAnswer };
-    feedback.textContent = `Corretto: ${exercise.correct_move}. ${exercise.explanation}`;
+    feedback.textContent = `Corretto: ${exercise.correct_move_san || exercise.correct_move}. ${exercise.explanation}`;
     queueSupabaseExerciseCompletion(exercise);
   } else {
     feedback.textContent = `Non corretto. ${exercise.hint || "Hint: cerca scacchi, catture e minacce prima della mossa candidata."}`;
@@ -4633,23 +3461,53 @@ function rebuildCurrentGamePatterns() {
 function renderBotLevel() {
   const requestedLevel = state.chess.botLevel || 1;
   const level = getActiveBotLevel(requestedLevel);
-  if (state.chess.botLevel !== level && !isStockfishEngineInitializing()) {
+  if (state.chess.botLevel !== level) {
     state.chess.botLevel = level;
     saveState();
   }
-  const profile = getBotProfile(level);
-  const spec = getBotLevelSpec(level);
   const config = getBotLevelConfig(level);
-  const [targetMin, targetMax] = getBotAccuracyRange(level);
+  const errors = ChessBot.errorProfile(config);
   const stats = getLevelStats(level);
   const accuracyGames = stats.accuracyGames || 0;
-  const averageAccuracy = accuracyGames ? Math.round(stats.accuracySum / accuracyGames) : 0;
-  const engineStatus = getEngineStatusText();
-  const engineNotice = isStockfishEngineEnabled() ? "" : `<br><strong>${STOCKFISH_REQUIRED_NOTICE}</strong>`;
-  console.log("botLevel", level);
-  console.log("botElo", profile.elo);
-  document.getElementById("botLevelText").innerHTML = `Livello ${level} - ${profile.displayElo || profile.elo} Elo stimato, ${profile.label}.<br>${profile.description || config.description || "Livello Stockfish calibrato."}<br>Modalita': ${spec.mode}; skill ${config.skillLevel}; depth ${spec.depth}; budget ${spec.moveTimeMs || spec.timeMs} ms; Top-${spec.topN}.<br>Errori target: mistake ${config.mistakeRatePercent}%, blunder ${config.blunderRatePercent}%, candidate inferiore ${config.randomMovePercent}%.<br>Motore: ${engineStatus}.<br>Record contro questo livello: ${stats.wins} vittorie, ${stats.losses} sconfitte, ${stats.draws} patte.<br>Range target futuro: ${targetMin}-${targetMax}%. Media reale engine-based: ${accuracyGames ? `${averageAccuracy}%` : "non disponibile"}.${engineNotice}`;
+  const averageAccuracy = accuracyGames ? Math.round(stats.accuracySum / accuracyGames) : null;
+  const engineNotice = isStockfishEngineEnabled() || isStockfishEngineInitializing() ? "" : `<br><strong>${STOCKFISH_REQUIRED_NOTICE}</strong>`;
+  const style = config.temperature
+    ? `Errori tipici ogni 100 mosse: circa ${errors.blunder} blunder, ${errors.mistake} errori e ${errors.inaccuracy} imprecisioni.`
+    : "Gioca sempre la mossa migliore di Stockfish, senza errori.";
+  document.getElementById("botLevelText").innerHTML = `<strong>Livello ${level} - ${config.elo} Elo stimato - ${config.name}.</strong><br>${config.description}<br>${style}<br>Precisione tipica a questo livello: circa ${config.targetAccuracy}%.<br>Motore: ${getEngineStatusText()}.<br>Tuo record contro questo livello: ${stats.wins} vittorie, ${stats.losses} sconfitte, ${stats.draws} patte${averageAccuracy !== null ? `, precisione media ${averageAccuracy}%` : ""}.${engineNotice}`;
   renderBotLevelOptions(level);
+  ensureReportBotLevelSelect(level);
+  const badge = document.getElementById("activeBotLevelBadge");
+  if (badge) badge.textContent = `Bot L${level} · ${config.elo}`;
+}
+
+// Selettore del livello anche dentro il report partita.
+function ensureReportBotLevelSelect(level) {
+  const reportValue = document.getElementById("reportBotLevel");
+  if (!reportValue) return;
+  reportValue.style.display = "none";
+  let select = document.getElementById("reportBotLevelSelect");
+  if (!select) {
+    select = document.createElement("select");
+    select.id = "reportBotLevelSelect";
+    select.className = "bot-level-report-select";
+    select.setAttribute("aria-label", "Scegli livello bot");
+    select.addEventListener("change", () => applyBotLevel(select.value));
+    reportValue.insertAdjacentElement("afterend", select);
+  }
+  const options = botLevels.map((item) => `<option value="${item.level}">Livello ${item.level} - ${item.name} - ${item.estimatedElo} Elo</option>`).join("");
+  if (select.dataset.optionsKey !== String(botLevels.length)) {
+    select.innerHTML = options;
+    select.dataset.optionsKey = String(botLevels.length);
+  }
+  select.value = String(level);
+}
+
+function applyBotLevel(value) {
+  const level = getActiveBotLevel(Number(value));
+  state.chess.botLevel = level;
+  saveState();
+  resetChess();
 }
 
 function renderBotLevelOptions(activeLevel) {
@@ -4669,10 +3527,7 @@ function renderBotLevelOptions(activeLevel) {
 }
 
 function handleBotLevelChange(event) {
-  const level = getActiveBotLevel(Number(event.target.value));
-  state.chess.botLevel = level;
-  saveState();
-  resetChess();
+  applyBotLevel(event.target.value);
 }
 
 function getBotProfile(level) {
@@ -4681,26 +3536,7 @@ function getBotProfile(level) {
 }
 
 function getBotLevelConfig(level) {
-  return botLevels.find((item) => item.level === getActiveBotLevel(level)) || botLevels[0];
-}
-
-function getBotLevelSpec(level) {
-  const activeLevel = getActiveBotLevel(level);
-  const profile = getBotProfile(activeLevel);
-  const spec = botLevelSpecs[activeLevel] || botLevelSpecs[1];
-  return {
-    elo: profile.elo,
-    mode: spec.mode,
-    depth: spec.depth,
-    timeMs: spec.timeMs,
-    moveTimeMs: spec.moveTimeMs || spec.timeMs,
-    topN: spec.topN,
-    noiseCp: spec.noiseCp,
-    skillLevel: spec.skillLevel,
-    mistakeRatePercent: spec.mistakeRatePercent,
-    blunderRatePercent: spec.blunderRatePercent,
-    randomMovePercent: spec.randomMovePercent
-  };
+  return ChessBot.getLevel(getActiveBotLevel(level));
 }
 
 function getLevelStats(level) {
@@ -4711,35 +3547,43 @@ function getLevelStats(level) {
   return state.chess.levelStats[key];
 }
 
+function chessEngines() {
+  return typeof window !== "undefined" ? window.ChessEngines || null : null;
+}
+
 function isStockfishEngineEnabled() {
-  return Boolean(STOCKFISH_ENGINE_ENABLED && ChessEngineService && ChessEngineService.isEngineAvailable());
+  const engines = chessEngines();
+  return Boolean(STOCKFISH_ENGINE_ENABLED && engines && engines.play.ready);
 }
 
 function isStockfishEngineInitializing() {
-  if (!STOCKFISH_ENGINE_ENABLED || !ChessEngineService) return false;
-  const status = ChessEngineService.getStatus();
-  return Boolean(status && status.initializing);
+  const engines = chessEngines();
+  return Boolean(engines && engines.play.initPromise && !engines.play.ready && !engines.play.error);
 }
 
 function getEngineStatusText() {
-  if (!ChessEngineService) return "Motore non disponibile";
-  const status = ChessEngineService.getStatus();
-  if (status.available) return `${status.name || "Stockfish"} pronto`;
-  if (status.initializing) return "inizializzazione Stockfish";
-  if (status.error) return `Motore non disponibile (${status.error})`;
-  return "Motore non disponibile";
+  const engines = chessEngines();
+  if (!engines) {
+    return typeof window !== "undefined" && window.location && window.location.protocol === "file:"
+      ? "non disponibile: il sito va aperto da http://localhost:8765, non con doppio click sul file"
+      : "non disponibile in questo browser";
+  }
+  if (engines.play.ready) return `${engines.play.name} pronto`;
+  if (engines.play.error) return `non disponibile (${engines.play.error})`;
+  return "in caricamento...";
 }
 
 function initEngine() {
-  if (!ChessEngineService) return Promise.resolve({ ok: false, error: "Servizio motore non inizializzato" });
-  const initPromise = ChessEngineService.initEngine();
+  const engines = chessEngines();
+  if (!engines) {
+    renderBotLevel();
+    return Promise.resolve({ ok: false, error: getEngineStatusText() });
+  }
+  const initPromise = Promise.all([engines.play.init(), engines.review.init()]).then(([play]) => play);
   renderBotLevel();
   return initPromise.then((result) => {
-    if (result && result.ok && currentGame && currentGame.moves && !currentGame.moves.length) {
-      syncCurrentGameBotLevel();
-    }
+    if (result && result.ok && currentGame && currentGame.moves && !currentGame.moves.length) syncCurrentGameBotLevel();
     renderBotLevel();
-    renderGameReport(buildGameAnalysis("partial"));
     return result;
   });
 }
@@ -4750,429 +3594,6 @@ function syncCurrentGameBotLevel() {
   currentGame.botLevel = level;
   currentGame.botElo = profile.elo;
   currentGame.botLabel = profile.label;
-}
-
-function createChessEngineService() {
-  let worker = null;
-  let workerUrl = null;
-  let available = false;
-  let initializing = false;
-  let name = "Stockfish";
-  let error = "Motore non inizializzato";
-  let queue = Promise.resolve();
-  let supportedOptions = new Set();
-  const listeners = new Set();
-
-  function getStatus() {
-    return { available, initializing, name, error };
-  }
-
-  function isEngineAvailable() {
-    return available;
-  }
-
-  async function initEngine() {
-    if (!STOCKFISH_ENGINE_ENABLED) return fail("Motore disattivato");
-    if (available) return { ok: true, name };
-    if (initializing) return waitUntilReady();
-    if (typeof Worker === "undefined") return fail("Web Worker non supportato");
-    if (typeof window !== "undefined" && window.location && window.location.protocol === "file:") {
-      return fail("Stockfish richiede server locale http://localhost, non file://");
-    }
-    initializing = true;
-    error = null;
-    for (const source of getStockfishSources()) {
-      try {
-        await startWorker(source);
-        available = true;
-        initializing = false;
-        name = source.label;
-        error = null;
-        chessDebugLog("Stockfish loaded", { source: source.url, name });
-        return { ok: true, name, source: source.url };
-      } catch (sourceError) {
-        stopWorker();
-        error = sourceError.message || String(sourceError);
-        chessDebugLog("Stockfish error", { source: source.url, error });
-      }
-    }
-    initializing = false;
-    available = false;
-    return fail(error || "Stockfish non caricato");
-  }
-
-  function waitUntilReady() {
-    return new Promise((resolve) => {
-      const started = Date.now();
-      const timer = setInterval(() => {
-        if (available || !initializing || Date.now() - started > 18000) {
-          clearInterval(timer);
-          resolve(available ? { ok: true, name } : fail(error || "Timeout motore"));
-        }
-      }, 120);
-    });
-  }
-
-  async function startWorker(source) {
-    stopWorker();
-    worker = await createStockfishWorker(source);
-    worker.onmessage = (event) => {
-      const line = normalizeEngineLine(event.data);
-      rememberEngineOption(line);
-      listeners.forEach((listener) => listener(line));
-    };
-    worker.onerror = (event) => {
-      const message = event && event.message ? event.message : "Errore worker Stockfish";
-      listeners.forEach((listener) => listener(`error ${message}`));
-    };
-    post("uci");
-    await waitForLine((line) => line === "uciok", 18000);
-    if (hasEngineOption("Hash")) post("setoption name Hash value 16");
-    post("ucinewgame");
-    post("isready");
-    await waitForLine((line) => line === "readyok", 12000);
-  }
-
-  function rememberEngineOption(line) {
-    const match = line.match(/^option name (.+?) type /);
-    if (match && match[1]) supportedOptions.add(match[1]);
-  }
-
-  function hasEngineOption(optionName) {
-    return supportedOptions.has(optionName);
-  }
-
-  function createStockfishWorker(source) {
-    if (source.remote) {
-      const sourceCode = `importScripts(${JSON.stringify(source.url)});`;
-      workerUrl = URL.createObjectURL(new Blob([sourceCode], { type: "application/javascript" }));
-      return new Worker(workerUrl);
-    }
-    return new Worker(new URL(source.url, window.location.href).href);
-  }
-
-  function getStockfishSources() {
-    return STOCKFISH_WORKER_SOURCES.slice();
-  }
-
-  function stopWorker() {
-    if (worker) worker.terminate();
-    worker = null;
-    if (workerUrl) URL.revokeObjectURL(workerUrl);
-    workerUrl = null;
-    supportedOptions = new Set();
-    listeners.clear();
-  }
-
-  function post(command) {
-    if (!worker) throw new Error("Motore non disponibile");
-    worker.postMessage(command);
-  }
-
-  function waitForLine(predicate, timeoutMs) {
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        listeners.delete(listener);
-        reject(new Error("Timeout risposta Stockfish"));
-      }, timeoutMs);
-      const listener = (line) => {
-        if (line.startsWith("error ")) {
-          clearTimeout(timer);
-          listeners.delete(listener);
-          reject(new Error(line.replace(/^error\s+/, "")));
-          return;
-        }
-        if (!predicate(line)) return;
-        clearTimeout(timer);
-        listeners.delete(listener);
-        resolve(line);
-      };
-      listeners.add(listener);
-    });
-  }
-
-  function enqueue(task) {
-    const run = queue.then(task, task);
-    queue = run.catch(() => {});
-    return run;
-  }
-
-  function getBestMove(fen, depth = 8, timeMs = 400) {
-    return searchPosition(fen, [], depth, timeMs);
-  }
-
-  function getTopMoves(fen, depth = 8, timeMs = 400, multiPv = 1) {
-    return searchPosition(fen, [], depth, timeMs, multiPv);
-  }
-
-  function evaluatePosition(fen, depth = 8, timeMs = 400, moves = []) {
-    return searchPosition(fen, moves, depth, timeMs);
-  }
-
-  function configureBotLevel(level, elo) {
-    if (!isEngineAvailable()) return Promise.resolve(unavailableResult());
-    return enqueue(() => new Promise((resolve) => {
-      const skill = getStockfishSkillForLevel(level);
-      const config = getBotLevelConfig(level);
-      const limitStrength = Number(elo || config.estimatedElo || 0) >= 1350;
-      const timer = setTimeout(() => {
-        listeners.delete(listener);
-        resolve({ ok: false, error: "Timeout configurazione Stockfish" });
-      }, 3000);
-      const listener = (line) => {
-        if (line.startsWith("error ")) {
-          clearTimeout(timer);
-          listeners.delete(listener);
-          resolve({ ok: false, error: line.replace(/^error\s+/, "") });
-          return;
-        }
-        if (line !== "readyok") return;
-        clearTimeout(timer);
-        listeners.delete(listener);
-        resolve({ ok: true, skill, elo, limitStrength });
-      };
-      listeners.add(listener);
-      try {
-        if (hasEngineOption("Skill Level")) post(`setoption name Skill Level value ${skill}`);
-        if (hasEngineOption("UCI_LimitStrength")) post(`setoption name UCI_LimitStrength value ${limitStrength ? "true" : "false"}`);
-        if (limitStrength && hasEngineOption("UCI_Elo")) post(`setoption name UCI_Elo value ${clamp(Math.round(elo || config.estimatedElo || 1350), 1350, 2850)}`);
-        post("isready");
-      } catch (configurationError) {
-        clearTimeout(timer);
-        listeners.delete(listener);
-        resolve({ ok: false, error: configurationError.message || String(configurationError) });
-      }
-    }));
-  }
-
-  async function analyzeMove(fenBefore, playedMove, depth = 8, timeMs = 400) {
-    if (!isEngineAvailable()) return unavailableResult();
-    const uci = typeof playedMove === "string" ? playedMove : playedMove && playedMove.uci;
-    if (!uci) return { ok: false, error: "Mossa UCI mancante", bestMove: null, evaluation: null, depth: 0, pv: [] };
-    const before = await searchPosition(fenBefore, [], depth, timeMs);
-    const after = await searchPosition(fenBefore, [uci], depth, timeMs);
-    return {
-      ok: before.ok && after.ok,
-      error: before.ok && after.ok ? null : before.error || after.error,
-      playedMove: uci,
-      bestMove: before.bestMove,
-      evaluationBefore: before.evaluation,
-      evaluationAfter: after.evaluation,
-      depth: Math.min(before.depth || 0, after.depth || 0),
-      pv: before.pv || []
-    };
-  }
-
-  function searchPosition(fen, moves = [], depth = 8, timeMs = 400, multiPv = 1) {
-    if (!isEngineAvailable()) return Promise.resolve(unavailableResult());
-    return enqueue(async () => {
-      const ready = await waitForReadyBeforeSearch();
-      if (!ready.ok) return { ...unavailableResult(), error: ready.error || "Stockfish non pronto", fen, rawLines: ready.rawLines || [], rawStockfishLines: ready.rawLines || [] };
-      return runSearch(fen, moves, depth, timeMs, multiPv);
-    });
-  }
-
-  function waitForReadyBeforeSearch() {
-    return new Promise((resolve) => {
-      const rawLines = [];
-      const timer = setTimeout(() => {
-        listeners.delete(listener);
-        console.log("Stockfish timeout: nessuna readyok ricevuta", rawLines);
-        resolve({ ok: false, error: "Stockfish timeout: nessuna readyok ricevuta", rawLines });
-      }, 5000);
-      const listener = (line) => {
-        if (line) rawLines.push(line);
-        if (line.startsWith("error ")) {
-          clearTimeout(timer);
-          listeners.delete(listener);
-          resolve({ ok: false, error: line.replace(/^error\s+/, ""), rawLines });
-          return;
-        }
-        if (line !== "readyok") return;
-        clearTimeout(timer);
-        listeners.delete(listener);
-        resolve({ ok: true, rawLines });
-      };
-      listeners.add(listener);
-      try {
-        post("isready");
-      } catch (readyError) {
-        clearTimeout(timer);
-        listeners.delete(listener);
-        resolve({ ok: false, error: readyError.message || String(readyError), rawLines });
-      }
-    });
-  }
-
-  function runSearch(fen, moves, depth, timeMs, multiPv = 1) {
-    return new Promise((resolve) => {
-      let latest = { depth: 0, evaluation: null, pv: [] };
-      const topMoves = {};
-      const rawStockfishLines = [];
-      const timer = setTimeout(() => {
-        listeners.delete(listener);
-        console.log("Stockfish timeout: nessuna bestmove ricevuta", rawStockfishLines);
-        resolve(buildSearchResult({
-          ok: false,
-          error: "Stockfish timeout: nessuna bestmove ricevuta",
-          fen,
-          bestMove: null,
-          terminal: false,
-          latest,
-          topMoves,
-          rawStockfishLines
-        }));
-      }, 15000);
-      const listener = (line) => {
-        console.log("Stockfish raw line:", line);
-        if (line) rawStockfishLines.push(line);
-        if (line.startsWith("info ")) {
-          latest = parseEngineInfo(line, latest);
-          if (latest.pv && latest.pv[0]) {
-            topMoves[latest.multiPv || 1] = {
-              rank: latest.multiPv || 1,
-              uci: latest.pv[0],
-              evaluation: latest.evaluation,
-              depth: latest.depth,
-              pv: latest.pv
-            };
-          }
-        }
-        if (!line.startsWith("bestmove ")) return;
-        clearTimeout(timer);
-        listeners.delete(listener);
-        const parsedBest = parseBestMove(line);
-        const bestMove = parsedBest.bestMove;
-        console.log("Bestmove found:", bestMove);
-        console.log("Evaluation cp:", evaluationToCp(latest.evaluation));
-        console.log("FEN:", fen);
-        console.log("Depth:", latest.depth || depth);
-        const sortedTopMoves = Object.values(topMoves).sort((a, b) => a.rank - b.rank);
-        const bestLine = sortedTopMoves[0] || null;
-        if (parsedBest.terminal) {
-          resolve(buildSearchResult({
-            ok: true,
-            error: null,
-            fen,
-            bestMove: null,
-            terminal: true,
-            latest,
-            topMoves,
-            rawStockfishLines,
-            pv: bestLine ? bestLine.pv : latest.pv
-          }));
-          return;
-        }
-        resolve(buildSearchResult({
-          ok: Boolean(bestMove),
-          error: bestMove ? null : "Mossa migliore non trovata",
-          fen,
-          bestMove,
-          terminal: false,
-          latest,
-          topMoves,
-          rawStockfishLines,
-          pv: bestLine ? bestLine.pv : latest.pv
-        }));
-      };
-      listeners.add(listener);
-      try {
-        const moveSuffix = moves.length ? ` moves ${moves.join(" ")}` : "";
-        if (hasEngineOption("MultiPV")) post(`setoption name MultiPV value ${Math.max(1, multiPv || 1)}`);
-        post(`position fen ${fen}${moveSuffix}`);
-        post(`go depth ${Math.max(1, depth || 1)}`);
-      } catch (searchError) {
-        clearTimeout(timer);
-        listeners.delete(listener);
-        resolve({ ok: false, error: searchError.message || String(searchError), fen, bestMove: null, evaluation: null, evaluationCp: null, mate: null, depth: 0, pv: [], topMoves: [], candidateMoves: [], rawLines: rawStockfishLines, rawStockfishLines });
-      }
-    });
-  }
-
-  function buildSearchResult({ ok, error, fen, bestMove, terminal, latest, topMoves, rawStockfishLines, pv = null }) {
-    const sortedTopMoves = Object.values(topMoves || {}).sort((a, b) => a.rank - b.rank);
-    const bestLine = sortedTopMoves[0] || null;
-    const evaluation = bestLine && bestLine.evaluation ? bestLine.evaluation : latest && latest.evaluation ? latest.evaluation : null;
-    const evaluationCp = evaluationToCp(evaluation);
-    const result = {
-      ok,
-      error,
-      fen,
-      bestMove,
-      terminal: Boolean(terminal),
-      evaluation,
-      evaluationCp,
-      evaluationPawns: typeof evaluationCp === "number" ? evaluationCp / 100 : null,
-      mate: evaluation && evaluation.type === "mate" ? evaluation.value : null,
-      depth: latest && latest.depth ? latest.depth : 0,
-      pv: pv || (latest && latest.pv) || [],
-      topMoves: sortedTopMoves,
-      candidateMoves: sortedTopMoves,
-      rawLines: rawStockfishLines,
-      rawStockfishLines
-    };
-    if (!ok && error) console.log("Stockfish error", error, rawStockfishLines);
-    return result;
-  }
-
-  function unavailableResult() {
-    return { ok: false, error: "Motore non disponibile", bestMove: null, evaluation: null, depth: 0, pv: [], topMoves: [] };
-  }
-
-  function fail(message) {
-    error = message || "Motore non disponibile";
-    return { ok: false, error, bestMove: null, evaluation: null, depth: 0, pv: [] };
-  }
-
-  return {
-    initEngine,
-    isEngineAvailable,
-    getStatus,
-    getBestMove,
-    getTopMoves,
-    evaluatePosition,
-    configureBotLevel,
-    analyzeMove
-  };
-}
-
-function getStockfishSkillForLevel(level) {
-  return getBotLevelConfig(level).skillLevel;
-}
-
-function normalizeEngineLine(message) {
-  return String(message && message.data ? message.data : message).trim();
-}
-
-function parseEngineInfo(line, previous = {}) {
-  const depthMatch = line.match(/\bdepth\s+(\d+)/);
-  const multiPvMatch = line.match(/\bmultipv\s+(\d+)/);
-  const cpMatch = line.match(/\bscore\s+cp\s+(-?\d+)/);
-  const mateMatch = line.match(/\bscore\s+mate\s+(-?\d+)/);
-  const pvMatch = line.match(/\bpv\s+(.+)$/);
-  const evaluation = cpMatch ? { type: "cp", value: Number(cpMatch[1]) } : mateMatch ? { type: "mate", value: Number(mateMatch[1]) } : previous.evaluation || null;
-  return {
-    depth: depthMatch ? Number(depthMatch[1]) : previous.depth || 0,
-    multiPv: multiPvMatch ? Number(multiPvMatch[1]) : previous.multiPv || 1,
-    evaluation,
-    pv: pvMatch ? pvMatch[1].split(/\s+/).filter(Boolean) : previous.pv || []
-  };
-}
-
-function parseBestMove(line) {
-  const match = line.match(/^bestmove\s+(\S+)/);
-  const token = match ? match[1] : null;
-  const terminal = !token || token === "(none)" || token === "0000";
-  return {
-    bestMove: terminal ? null : token,
-    terminal
-  };
-}
-
-function evaluationToCp(evaluation) {
-  if (!evaluation) return null;
-  if (evaluation.type === "mate") return Math.sign(evaluation.value || 1) * 10000;
-  return Number(evaluation.value || 0);
 }
 
 function uciToChessMove(uci) {
@@ -5203,367 +3624,11 @@ function isErrorQuality(quality) {
   return quality === "inexact" || quality === "inaccuracy" || quality === "missed" || quality === "mistake" || quality === "blunder";
 }
 
-function filterBotCandidateMoves(currentBoard, moves, level) {
-  if (level < 7 || moves.length <= 1) return moves;
-  const safeMoves = moves.filter((move) => !isBotSuicideMove(currentBoard, move, level));
-  return safeMoves.length ? safeMoves : moves;
-}
-
-function isBotSuicideMove(currentBoard, move, level) {
-  const next = applyMove(currentBoard, move);
-  const blackMates = getAllLegalMoves(next, "w").length === 0 && isKingInCheck(next, "w");
-  if (blackMates) return false;
-  if (hasImmediateMate(next, "w")) return true;
-
-  const captured = currentBoard[move.toRow][move.toCol];
-  const capturedValue = captured ? pieceValues[captured.toLowerCase()] || 0 : 0;
-  const movedPiece = next[move.toRow][move.toCol];
-  const movedValue = movedPiece ? pieceValues[movedPiece.toLowerCase()] || 0 : 0;
-  const blackCounter = immediateThreatScore(next, "b").score;
-  const compensation = capturedValue + blackCounter * 0.4 + (isKingInCheck(next, "w") ? 90 : 0);
-
-  if (movedPiece && movedValue >= 500) {
-    const attacked = isSquareAttacked(next, move.toRow, move.toCol, "w");
-    const defended = isSquareAttacked(next, move.toRow, move.toCol, "b");
-    if (attacked && !defended && compensation < movedValue * 0.7) return true;
-  }
-
-  const looseBefore = looseMaterial(currentBoard, "b");
-  const looseAfter = looseMaterial(next, "b");
-  const looseIncrease = looseAfter - looseBefore;
-  const highValueLooseBefore = highestHangingPiece(currentBoard, "b", 500);
-  const highValueLooseAfter = highestHangingPiece(next, "b", 500);
-  const looseLimit = level >= 11 ? 300 : 450;
-  if (looseIncrease >= looseLimit && compensation < looseIncrease * 0.65) return true;
-  if (highValueLooseAfter && (!highValueLooseBefore || highValueLooseAfter.value >= highValueLooseBefore.value)) {
-    if (compensation < highValueLooseAfter.value * 0.55) return true;
-  }
-
-  const whiteThreat = immediateThreatScore(next, "w").score;
-  const threatLimit = level >= 11 ? 360 : 520;
-  if (whiteThreat >= threatLimit && compensation + blackCounter * 0.5 < whiteThreat * 0.85) return true;
-
-  const whiteCapture = bestImmediateCaptureGain(next, "w");
-  if (level >= 7 && whiteCapture.gain >= 460 && compensation < whiteCapture.gain * 0.75) return true;
-  if (level >= 7 && whiteCapture.capturedValue >= 500 && whiteCapture.gain >= 240 && compensation < whiteCapture.capturedValue * 0.55) return true;
-  if (level >= 8 && whiteCapture.capturedValue >= 300 && whiteCapture.gain >= 180 && compensation < whiteCapture.capturedValue * 0.45) return true;
-
-  const bestImmediate = immediateThreatScore(currentBoard, "b").score;
-  const selectedImmediate = moveImmediateScore(currentBoard, move, "b", level);
-  if (bestImmediate >= 420 && selectedImmediate < bestImmediate * 0.45) {
-    const tacticalGap = bestImmediate - selectedImmediate;
-    if (level >= 11 || tacticalGap >= 650 || whiteThreat >= 220) return true;
-  }
-  const bestCaptureBefore = bestImmediateCaptureGain(currentBoard, "b");
-  const bestCaptureAfter = bestImmediateCaptureGain(next, "b");
-  if (level >= 7 && bestCaptureBefore.gain >= 420 && bestCaptureAfter.gain < bestCaptureBefore.gain * 0.45 && selectedImmediate < bestCaptureBefore.gain * 0.55) return true;
-
-  const beforeEval = evaluateBoardAdvanced(currentBoard, level);
-  const afterEval = evaluateBoardAdvanced(next, level);
-  const blackDrop = afterEval - beforeEval;
-  if (level >= 7 && blackDrop > 200 && compensation < 320) return true;
-  return false;
-}
-
-function bestImmediateCaptureGain(currentBoard, color) {
-  const opponent = color === "w" ? "b" : "w";
-  let best = { gain: 0, capturedValue: 0, move: null };
-  getAllLegalMoves(currentBoard, color).forEach((move) => {
-    const captured = move.enPassant ? currentBoard[move.fromRow][move.toCol] : currentBoard[move.toRow][move.toCol];
-    if (!captured) return;
-    const moved = currentBoard[move.fromRow][move.fromCol];
-    const movedValue = moved ? pieceValues[moved.toLowerCase()] || 0 : 0;
-    const capturedValue = pieceValues[captured.toLowerCase()] || 0;
-    const next = applyMove(currentBoard, move);
-    const recaptureRisk = isSquareAttacked(next, move.toRow, move.toCol, opponent) ? movedValue * 0.85 : 0;
-    const checkBonus = isKingInCheck(next, opponent) ? 70 : 0;
-    const mateBonus = getAllLegalMoves(next, opponent).length === 0 && isKingInCheck(next, opponent) ? 100000 : 0;
-    const gain = capturedValue - recaptureRisk + checkBonus + mateBonus;
-    if (gain > best.gain) best = { gain, capturedValue, move };
-  });
-  return best;
-}
-
-function moveImmediateScore(currentBoard, move, color, level = 10) {
-  const next = applyMove(currentBoard, move);
-  const beforeEval = evaluateBoardAdvanced(currentBoard, level);
-  const afterEval = evaluateBoardAdvanced(next, level);
-  const gain = color === "b" ? beforeEval - afterEval : afterEval - beforeEval;
-  const captured = currentBoard[move.toRow][move.toCol];
-  const capturedValue = captured ? pieceValues[captured.toLowerCase()] || 0 : 0;
-  const opponent = color === "w" ? "b" : "w";
-  const checkBonus = isKingInCheck(next, opponent) ? 45 : 0;
-  return gain + capturedValue * 0.5 + checkBonus;
-}
-
-function highestHangingPiece(currentBoard, color, minimumValue = 0) {
-  const enemy = color === "w" ? "b" : "w";
-  let worst = null;
-  for (let row = 0; row < 8; row += 1) {
-    for (let col = 0; col < 8; col += 1) {
-      const piece = currentBoard[row][col];
-      if (!piece || piece.toLowerCase() === "k") continue;
-      if (color === "w" && !isWhite(piece)) continue;
-      if (color === "b" && !isBlack(piece)) continue;
-      const value = pieceValues[piece.toLowerCase()] || 0;
-      if (value < minimumValue) continue;
-      if (isSquareAttacked(currentBoard, row, col, enemy) && !isSquareAttacked(currentBoard, row, col, color)) {
-        if (!worst || value > worst.value) worst = { row, col, piece, value };
-      }
-    }
-  }
-  return worst;
-}
-
-function botMoveSafetyPenalty(currentBoard, move, level) {
-  if (level < 7) return 0;
-  if (isBotSuicideMove(currentBoard, move, level)) return 100000;
-  const next = applyMove(currentBoard, move);
-  const looseIncrease = Math.max(0, looseMaterial(next, "b") - looseMaterial(currentBoard, "b"));
-  const whiteThreat = immediateThreatScore(next, "w").score;
-  const blackThreat = immediateThreatScore(next, "b").score;
-  const threatGap = Math.max(0, whiteThreat - blackThreat * 0.45);
-  return looseIncrease * (level >= 11 ? 2.3 : 1.5) + threatGap * (level >= 11 ? 1.2 : 0.7);
-}
-
-function chooseBotMove(currentBoard, moves) {
-  const level = Math.min(getActiveBotLevel(currentGame.botLevel || state.chess.botLevel || 1), 7);
-  const candidateMoves = filterBotCandidateMoves(currentBoard, moves, level);
-  if (level >= 7) return chooseSearchBotMove(currentBoard, candidateMoves, level);
-  const scored = candidateMoves.map((move) => ({ move, score: scoreBlackMove(currentBoard, move) })).sort((a, b) => b.score - a.score);
-  const randomChance = { 1: 0.32, 2: 0.24, 3: 0.16, 4: 0.1, 5: 0.05, 6: 0.02, 7: 0 }[level];
-  if (Math.random() < randomChance) {
-    const poolTargets = { 1: 15, 2: 12, 3: 10, 4: 8, 5: 6, 6: 4, 7: 1 };
-    const poolSize = Math.min(scored.length, poolTargets[level] || 5);
-    const pool = scored.slice(0, poolSize);
-    return pool[Math.floor(Math.random() * pool.length)].move;
-  }
-  const candidateSize = level <= 2 ? Math.min(8, scored.length) : level <= 4 ? Math.min(5, scored.length) : level <= 5 ? Math.min(3, scored.length) : level <= 6 ? Math.min(2, scored.length) : 1;
-  const candidates = scored.slice(0, candidateSize);
-  return candidates[Math.floor(Math.random() * candidates.length)].move;
-}
-
-async function chooseBotMoveAsync(currentBoard, moves) {
-  const level = getActiveBotLevel(currentGame.botLevel || state.chess.botLevel || 1);
-  const ready = await ensureStockfishReadyForChess();
-  if (!ready) return null;
-  const profile = getBotProfile(level);
-  const configured = await ChessEngineService.configureBotLevel(level, profile.elo);
-  if (!configured.ok) {
-    currentGame.engineError = configured.error || "Configurazione Stockfish non riuscita";
-    return null;
-  }
-  const depth = getEngineDepthForLevel(level);
-  const timeMs = getEngineTimeForLevel(level);
-  const multiPv = getEngineTopCountForLevel(level);
-  const fen = boardToFen(currentBoard, "b", gameState);
-  const engineResult = await ChessEngineService.getTopMoves(fen, depth, timeMs, multiPv);
-  currentGame.lastEngineResult = engineResult;
-  chessDebugLog("bot-search", {
-    botLevel: level,
-    botElo: profile.elo,
-    depth,
-    moveTimeMs: timeMs,
-    fenBefore: fen,
-    bestMove: engineResult.bestMove,
-    evalBefore: engineResult.evaluation,
-    candidateMoves: normalizeEngineCandidates(engineResult).map((candidate) => ({
-      rank: candidate.rank,
-      uci: candidate.uci,
-      eval: candidate.evaluation
-    }))
-  });
-  console.log("bestMove", engineResult.bestMove);
-  console.log("fenBefore", fen);
-  console.log("evalBefore", engineResult.evaluation);
-  if (!engineResult.ok) {
-    currentGame.engineError = engineResult.error || "Motore non disponibile";
-    return null;
-  }
-  const engineMove = chooseEngineMoveFromResult(currentBoard, engineResult, moves, level);
-  if (!engineMove) {
-    currentGame.engineError = `Mossa Stockfish non legale: ${engineResult.bestMove || "-"}`;
-    return null;
-  }
-  currentGame.engineError = null;
-  return engineMove;
-}
-
 async function ensureStockfishReadyForChess() {
   if (isStockfishEngineEnabled()) return true;
-  const status = ChessEngineService ? ChessEngineService.getStatus() : null;
-  currentGame.engineError = status && status.error ? status.error : "Stockfish non ancora pronto";
   const result = await initEngine();
-  return Boolean(result && result.ok && isStockfishEngineEnabled());
-}
-
-function ensureSafeBotMove(currentBoard, legalMoves, selectedMove, level) {
-  if (!selectedMove) return null;
-  if (level < 7 || !isBotSuicideMove(currentBoard, selectedMove, level)) return selectedMove;
-  return null;
-}
-
-function getEngineDepthForLevel(level) {
-  return getBotLevelSpec(level).depth;
-}
-
-function getEngineTimeForLevel(level) {
-  return getBotLevelSpec(level).timeMs;
-}
-
-function getEngineTopCountForLevel(level) {
-  return getBotLevelSpec(level).topN;
-}
-
-function chooseEngineMoveFromResult(currentBoard, engineResult, legalMoves, level) {
-  const engineCandidates = (engineResult.topMoves && engineResult.topMoves.length ? engineResult.topMoves : [{ rank: 1, uci: engineResult.bestMove, evaluation: engineResult.evaluation, depth: engineResult.depth, pv: engineResult.pv }])
-    .map((item) => ({ ...item, move: moveFromUci(item.uci, legalMoves) }))
-    .filter((item) => item.move);
-  const candidates = engineCandidates.sort((a, b) => (a.rank || 1) - (b.rank || 1));
-  if (!candidates.length) return null;
-  const safeMoveSet = level >= 7 ? new Set(filterBotCandidateMoves(currentBoard, candidates.map((candidate) => candidate.move), level)) : null;
-  const safeCandidates = safeMoveSet ? candidates.filter((candidate) => safeMoveSet.has(candidate.move)) : candidates;
-  const pool = (safeCandidates.length ? safeCandidates : candidates).slice(0, getEngineTopCountForLevel(level));
-  const selection = selectHumanizedEngineCandidate(pool, level);
-  chessDebugLog("bot-choice", {
-    botLevel: level,
-    botElo: getBotProfile(level).elo,
-    selectedMove: selection.candidate && selection.candidate.uci,
-    bestMove: candidates[0] && candidates[0].uci,
-    reason: selection.reason,
-    pool: pool.map((candidate) => ({ rank: candidate.rank, uci: candidate.uci, eval: candidate.evaluation }))
-  });
-  console.log("selectedMove", selection.candidate && selection.candidate.uci);
-  console.log("candidateMoves", pool.map((candidate) => candidate.uci));
-  return selection.candidate ? selection.candidate.move : pool[0].move;
-}
-
-function selectHumanizedEngineCandidate(pool, level) {
-  if (!pool.length) return { candidate: null, reason: "no-candidates" };
-  const spec = getBotLevelSpec(level);
-  const config = getBotLevelConfig(level);
-  if (pool.length === 1 || (config.mistakeRatePercent + config.blunderRatePercent + config.randomMovePercent <= 0 && spec.noiseCp <= 0)) {
-    return { candidate: pool[0], reason: "best-move" };
-  }
-  const roll = Math.random() * 100;
-  const blunderLimit = config.blunderRatePercent;
-  const mistakeLimit = blunderLimit + config.mistakeRatePercent;
-  const randomLimit = mistakeLimit + config.randomMovePercent;
-  let selectedPool = pool.slice(0, Math.max(1, Math.ceil(pool.length / 2)));
-  let reason = "normal-top-candidate";
-  if (roll < blunderLimit && pool.length >= 4) {
-    selectedPool = pool.slice(Math.max(1, Math.floor(pool.length * 0.65)));
-    reason = "controlled-blunder-candidate";
-  } else if (roll < mistakeLimit && pool.length >= 3) {
-    selectedPool = pool.slice(Math.max(1, Math.floor(pool.length * 0.4)));
-    reason = "controlled-mistake-candidate";
-  } else if (roll < randomLimit && pool.length >= 2) {
-    selectedPool = pool.slice(1);
-    reason = "inferior-human-candidate";
-  }
-  selectedPool = keepHumanCandidatePoolWithinLoss(pool, selectedPool, level, reason);
-  if (level <= 10) {
-    const candidate = selectWeightedEngineCandidate(selectedPool, level);
-    return { candidate: candidate || selectedPool[0] || pool[0], reason: `${reason}-weighted-human` };
-  }
-  const noiseCp = spec.noiseCp;
-  if (noiseCp <= 0 || selectedPool.length <= 1) return { candidate: selectedPool[0] || pool[0], reason };
-  let selected = null;
-  selectedPool.forEach((candidate, index) => {
-    const base = engineCandidateScoreCp(candidate) - index * 2;
-    const jitter = (Math.random() * 2 - 1) * noiseCp;
-    const score = base + jitter;
-    if (!selected || score > selected.score) selected = { candidate, score };
-  });
-  return { candidate: selected ? selected.candidate : selectedPool[0], reason };
-}
-
-function keepHumanCandidatePoolWithinLoss(pool, selectedPool, level, reason = "") {
-  if (!pool.length || !selectedPool.length) return selectedPool.length ? selectedPool : pool;
-  const bestScore = engineCandidateScoreCp(pool[0]);
-  const limit = getHumanCandidateLossLimit(level, reason);
-  const filtered = selectedPool.filter((candidate) => {
-    const gap = bestScore - engineCandidateScoreCp(candidate);
-    return gap <= limit;
-  });
-  if (filtered.length) return filtered;
-  const safeFallback = pool.filter((candidate) => bestScore - engineCandidateScoreCp(candidate) <= limit);
-  return safeFallback.length ? safeFallback : pool.slice(0, 1);
-}
-
-function getHumanCandidateLossLimit(level, reason = "") {
-  const base = {
-    7: 280,
-    8: 230,
-    9: 180,
-    10: 150,
-    11: 120,
-    12: 90
-  }[level] || 80;
-  if (reason.includes("controlled-blunder")) return level >= 9 ? base : base + 90;
-  if (reason.includes("controlled-mistake")) return base + 45;
-  if (reason.includes("inferior")) return base + 25;
-  return base;
-}
-
-function selectWeightedEngineCandidate(candidates, level) {
-  if (!candidates.length) return null;
-  const weights = getEngineChoiceWeights(level, candidates.length);
-  const total = candidates.reduce((sum, _candidate, index) => sum + (weights[index] || 0), 0) || 1;
-  let roll = Math.random() * total;
-  for (let index = 0; index < candidates.length; index += 1) {
-    roll -= weights[index] || 0;
-    if (roll <= 0) return candidates[index];
-  }
-  return candidates[0];
-}
-
-function chooseEngineMoveWithNoise(candidates, noiseCp) {
-  let selected = null;
-  candidates.forEach((candidate, index) => {
-    const base = engineCandidateScoreCp(candidate) - index * 2;
-    const jitter = (Math.random() * 2 - 1) * noiseCp;
-    const score = base + jitter;
-    if (!selected || score > selected.score) selected = { move: candidate.move, score };
-  });
-  return selected ? selected.move : candidates[0].move;
-}
-
-function engineCandidateScoreCp(candidate) {
-  const evaluation = candidate && candidate.evaluation;
-  if (!evaluation) return -((candidate && candidate.rank) || 1) * 10;
-  if (evaluation.type === "mate") return Math.sign(evaluation.value || 1) * 100000;
-  return Number(evaluation.value || 0);
-}
-
-function getEngineChoiceWeights(level, count) {
-  const table = {
-    1: [0.18, 0.16, 0.14, 0.12, 0.1, 0.09, 0.08, 0.06, 0.04, 0.03],
-    2: [0.24, 0.2, 0.16, 0.12, 0.1, 0.08, 0.06, 0.04],
-    3: [0.32, 0.22, 0.16, 0.11, 0.08, 0.06, 0.05],
-    4: [0.42, 0.22, 0.14, 0.1, 0.07, 0.05],
-    5: [0.55, 0.22, 0.12, 0.07, 0.04],
-    6: [0.68, 0.2, 0.08, 0.04],
-    7: [0.38, 0.24, 0.16, 0.1, 0.07, 0.05],
-    8: [0.5, 0.24, 0.13, 0.08, 0.05],
-    9: [0.58, 0.23, 0.11, 0.05, 0.03],
-    10: [0.66, 0.22, 0.08, 0.04],
-    11: [0.82, 0.13, 0.04, 0.01],
-    12: [0.9, 0.08, 0.02]
-  };
-  const weights = table[level] || [1];
-  return weights.slice(0, count);
-}
-
-function weightedEngineChoice(candidates, weights) {
-  if (!candidates.length) return null;
-  const total = candidates.reduce((sum, _candidate, index) => sum + (weights[index] || 0), 0) || 1;
-  let roll = Math.random() * total;
-  for (let index = 0; index < candidates.length; index += 1) {
-    roll -= weights[index] || 0;
-    if (roll <= 0) return candidates[index].move;
-  }
-  return candidates[0].move;
+  if (!result || !result.ok) currentGame.engineError = result && result.error ? result.error : getEngineStatusText();
+  return Boolean(result && result.ok);
 }
 
 function moveFromUci(uci, legalMoves) {
@@ -5578,464 +3643,6 @@ function moveFromUci(uci, legalMoves) {
     if (chessMove.promotion && move.promotion && move.promotion.toLowerCase() !== chessMove.promotion) return false;
     return true;
   }) || null;
-}
-
-function chooseBotOpeningBookMove(currentBoard, legalMoves, level) {
-  if (level < 5 || currentGame.moves.length > 10 || isEndgame(currentBoard)) return null;
-  const lastWhite = [...currentGame.moves].reverse().find((move) => move.colorMoved === "w");
-  const firstWhite = currentGame.moves.find((move) => move.colorMoved === "w");
-  const firstUci = firstWhite ? firstWhite.uci : "";
-  const bookLines = {
-    e2e4: ["c7c5", "e7e5", "c7c6", "e7e6", "g8f6"],
-    d2d4: ["g8f6", "d7d5", "e7e6", "c7c5"],
-    c2c4: ["e7e5", "g8f6", "c7c5", "e7e6"],
-    g1f3: ["d7d5", "g8f6", "c7c5"],
-    b1c3: ["d7d5", "g8f6", "e7e5"]
-  };
-  const priority = [
-    ...(bookLines[firstUci] || []),
-    "g8f6",
-    "b8c6",
-    "e7e6",
-    "d7d5",
-    "c7c5",
-    "e7e5",
-    "f8e7",
-    "f8b4",
-    "g7g6",
-    "d8e7",
-    "e8g8"
-  ];
-  if (lastWhite && lastWhite.uci === "f1b5") priority.unshift("a7a6", "g8f6");
-  if (lastWhite && lastWhite.uci === "d1h5") priority.unshift("g7g6", "g8f6");
-  for (const uci of priority) {
-    const move = moveFromUci(uci, legalMoves);
-    if (move && !isBotSuicideMove(currentBoard, move, level)) return move;
-  }
-  return null;
-}
-
-function chooseSearchBotMove(currentBoard, moves, level) {
-  if (!moves.length) return null;
-  const candidateMoves = filterBotCandidateMoves(currentBoard, moves, level);
-  const bookMove = chooseBotOpeningBookMove(currentBoard, candidateMoves, level);
-  if (bookMove) return bookMove;
-  const settings = getHeuristicSearchSettings(level);
-  const depth = settings.depth;
-  const search = createBotSearchContext(level);
-  const ordered = orderMovesForSearch(currentBoard, candidateMoves, "b", level, true);
-  if (!ordered.length) return candidateMoves[0] || moves[0] || null;
-  let best = null;
-  ordered.forEach((move) => {
-    const next = applyMove(currentBoard, move);
-    const score = minimaxBlack(next, depth, "w", -Infinity, Infinity, level, search);
-    if (!best || score > best.score) best = { move, score };
-  });
-  return best ? best.move : ordered[0];
-}
-
-function createBotSearchContext(level, maxNodes = null) {
-  const settings = getHeuristicSearchSettings(level);
-  return {
-    evalCache: new Map(),
-    nodeCount: 0,
-    settings,
-    maxNodes: maxNodes || settings.maxNodes
-  };
-}
-
-function getHeuristicSearchSettings(level) {
-  if (level >= 7) return { depth: 4, maxNodes: 12000, rootLimit: 12, innerLimit: 8, tacticalLimit: 6, quiescenceDepth: 3 };
-  if (level >= 6) return { depth: 3, maxNodes: 7000, rootLimit: 10, innerLimit: 7, tacticalLimit: 5, quiescenceDepth: 3 };
-  if (level >= 5) return { depth: 2, maxNodes: 4200, rootLimit: 9, innerLimit: 6, tacticalLimit: 4, quiescenceDepth: 2 };
-  if (level >= 4) return { depth: 2, maxNodes: 2600, rootLimit: 8, innerLimit: 5, tacticalLimit: 4, quiescenceDepth: 2 };
-  return { depth: 1, maxNodes: 1400, rootLimit: 7, innerLimit: 5, tacticalLimit: 3, quiescenceDepth: 1 };
-}
-
-function minimaxBlack(currentBoard, depth, color, alpha, beta, level, search = createBotSearchContext(level)) {
-  search.nodeCount += 1;
-  if (search.nodeCount > search.maxNodes) return evaluateForBlackCached(currentBoard, level, search);
-  const moves = getAllLegalMoves(currentBoard, color);
-  if (!moves.length) {
-    const inCheck = isKingInCheck(currentBoard, color);
-    if (!inCheck) return 0;
-    return color === "w" ? 100000 + depth : -100000 - depth;
-  }
-  if (depth <= 0) return quiescenceBlack(currentBoard, color, alpha, beta, level, search, search.settings.quiescenceDepth);
-
-  const ordered = orderMovesForSearch(currentBoard, moves, color, level);
-  if (color === "b") {
-    let best = -Infinity;
-    for (const move of ordered) {
-      const score = minimaxBlack(applyMove(currentBoard, move), depth - 1, "w", alpha, beta, level, search);
-      best = Math.max(best, score);
-      alpha = Math.max(alpha, best);
-      if (beta <= alpha) break;
-    }
-    return best;
-  }
-
-  let best = Infinity;
-  for (const move of ordered) {
-    const score = minimaxBlack(applyMove(currentBoard, move), depth - 1, "b", alpha, beta, level, search);
-    best = Math.min(best, score);
-    beta = Math.min(beta, best);
-    if (beta <= alpha) break;
-  }
-  return best;
-}
-
-function quiescenceBlack(currentBoard, color, alpha, beta, level, search, depth) {
-  const standPat = evaluateForBlackCached(currentBoard, level, search);
-  if (depth <= 0 || search.nodeCount > search.maxNodes) return standPat;
-  if (color === "b") {
-    if (standPat >= beta) return beta;
-    alpha = Math.max(alpha, standPat);
-    const moves = orderMovesForSearch(currentBoard, getTacticalSearchMoves(currentBoard, "b"), "b", level).slice(0, search.settings.tacticalLimit);
-    for (const move of moves) {
-      search.nodeCount += 1;
-      const score = quiescenceBlack(applyMove(currentBoard, move), "w", alpha, beta, level, search, depth - 1);
-      alpha = Math.max(alpha, score);
-      if (alpha >= beta) break;
-    }
-    return alpha;
-  }
-
-  if (standPat <= alpha) return alpha;
-  beta = Math.min(beta, standPat);
-  const moves = orderMovesForSearch(currentBoard, getTacticalSearchMoves(currentBoard, "w"), "w", level).slice(0, search.settings.tacticalLimit);
-  for (const move of moves) {
-    search.nodeCount += 1;
-    const score = quiescenceBlack(applyMove(currentBoard, move), "b", alpha, beta, level, search, depth - 1);
-    beta = Math.min(beta, score);
-    if (beta <= alpha) break;
-  }
-  return beta;
-}
-
-function getTacticalSearchMoves(currentBoard, color) {
-  const opponent = color === "w" ? "b" : "w";
-  return getAllLegalMoves(currentBoard, color).filter((move) => {
-    const capture = Boolean(currentBoard[move.toRow][move.toCol] || move.enPassant);
-    const next = applyMove(currentBoard, move);
-    return capture || isKingInCheck(next, opponent) || hasPromotionMove(currentBoard, move);
-  });
-}
-
-function hasPromotionMove(currentBoard, move) {
-  const piece = currentBoard[move.fromRow][move.fromCol];
-  if (!piece || piece.toLowerCase() !== "p") return false;
-  return move.toRow === (isWhite(piece) ? 0 : 7);
-}
-
-function evaluateForBlackCached(currentBoard, level, search) {
-  const key = `${level}|${boardSignature(currentBoard)}`;
-  if (search.evalCache.has(key)) return search.evalCache.get(key);
-  const value = evaluateForBlack(currentBoard, level);
-  if (search.evalCache.size < 6000) search.evalCache.set(key, value);
-  return value;
-}
-
-function boardSignature(currentBoard) {
-  return currentBoard.map((row) => row.map((piece) => piece || ".").join("")).join("/");
-}
-
-function orderMovesForSearch(currentBoard, moves, color, level, isRoot = false) {
-  const settings = getHeuristicSearchSettings(level);
-  const limit = isRoot ? settings.rootLimit : settings.innerLimit;
-  return moves
-    .map((move) => ({ move, score: tacticalMoveOrderScore(currentBoard, move, color, level) }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit)
-    .map((item) => item.move);
-}
-
-function tacticalMoveOrderScore(currentBoard, move, color, level) {
-  const next = applyMove(currentBoard, move);
-  const opponent = color === "w" ? "b" : "w";
-  const captured = currentBoard[move.toRow][move.toCol];
-  let score = color === "b" ? -evaluateBoardAdvanced(next, level) : evaluateBoardAdvanced(next, level);
-  if (captured) {
-    const moved = currentBoard[move.fromRow][move.fromCol];
-    const captureValue = pieceValues[captured.toLowerCase()] || 0;
-    const movedValue = moved ? pieceValues[moved.toLowerCase()] || 0 : 0;
-    score += captureValue * 4 - movedValue * 0.35;
-  }
-  if (isKingInCheck(next, opponent)) score += 450;
-  const movedPiece = next[move.toRow][move.toCol];
-  if (movedPiece && isSquareAttacked(next, move.toRow, move.toCol, opponent) && !isSquareAttacked(next, move.toRow, move.toCol, color)) {
-    score -= (pieceValues[movedPiece.toLowerCase()] || 0) * (level >= 9 ? 4 : 2);
-  }
-  if (move.castle) score += 180;
-  return score;
-}
-
-function scoreBlackMove(currentBoard, move) {
-  const level = getActiveBotLevel(currentGame.botLevel || state.chess.botLevel || 1);
-  const next = applyMove(currentBoard, move);
-  const blackMates = getAllLegalMoves(next, "w").length === 0 && isKingInCheck(next, "w");
-  if (blackMates) return 100000;
-  const captured = currentBoard[move.toRow][move.toCol];
-  const movedPiece = next[move.toRow][move.toCol];
-  const lower = movedPiece.toLowerCase();
-  const beforeScore = evaluateForBlack(currentBoard, level);
-  const afterScore = evaluateForBlack(next, level);
-  let score = (afterScore - beforeScore) * 3 + afterScore * 0.12;
-  const looseBefore = looseMaterial(currentBoard, "b");
-  const looseAfter = looseMaterial(next, "b");
-  if (captured) score += pieceValues[captured.toLowerCase()] * (0.18 + level * 0.08);
-  if (isKingInCheck(next, "w")) score += 35 + level * 10;
-  if (move.castle) score += level >= 5 ? 60 : 18;
-  if (isDevelopingBlackMove(currentBoard, next, move, movedPiece)) score += level >= 3 ? 18 + level * 3 : 5;
-  if (level >= 5 && kingPressureScore(next, "b") < kingPressureScore(currentBoard, "b")) score += 22;
-  if (level >= 7 && immediateThreatScore(next, "b").score > 100) score += 36;
-  if (level >= 7) {
-    score -= Math.max(0, looseAfter - looseBefore) * (level >= 9 ? 1.25 : 0.75);
-    score -= immediateThreatScore(next, "w").score * (level >= 9 ? 0.55 : 0.28);
-    if (hasImmediateMate(next, "w")) score -= 90000;
-  }
-  score -= botMoveSafetyPenalty(currentBoard, move, level);
-  if (level >= 3) {
-    const reply = getBestWhiteMove(next);
-    if (reply) {
-      const afterReply = applyMove(next, reply.move);
-      const replyEval = evaluateBoardAdvanced(afterReply, level);
-      score = level >= 8 ? score * 0.25 + (-replyEval) * 0.75 : score * 0.45 + (-replyEval) * 0.55;
-    }
-  }
-  if (level >= 4) {
-    const attacked = isSquareAttacked(next, move.toRow, move.toCol, "w");
-    const defended = isSquareAttacked(next, move.toRow, move.toCol, "b");
-    if (attacked && !defended) score -= pieceValues[lower] * (level >= 9 ? 1.35 : level >= 7 ? 0.9 : 0.45);
-  }
-  if (level >= 9 && isEndgame(currentBoard) && lower === "k") {
-    score += Math.max(0, 4 - Math.abs(move.toRow - 3.5) - Math.abs(move.toCol - 3.5)) * 10;
-  }
-  const randomness = level >= 7 ? 0 : Math.max(2, 72 - level * 7);
-  return score + Math.random() * randomness - randomness / 2;
-}
-
-function hasImmediateMate(currentBoard, color) {
-  return getAllLegalMoves(currentBoard, color).some((move) => {
-    const next = applyMove(currentBoard, move);
-    const opponent = color === "w" ? "b" : "w";
-    return getAllLegalMoves(next, opponent).length === 0 && isKingInCheck(next, opponent);
-  });
-}
-
-function looseMaterial(currentBoard, color) {
-  const enemy = color === "w" ? "b" : "w";
-  let total = 0;
-  for (let row = 0; row < 8; row += 1) {
-    for (let col = 0; col < 8; col += 1) {
-      const piece = currentBoard[row][col];
-      if (!piece || piece.toLowerCase() === "k") continue;
-      if (color === "w" && !isWhite(piece)) continue;
-      if (color === "b" && !isBlack(piece)) continue;
-      if (isSquareAttacked(currentBoard, row, col, enemy) && !isSquareAttacked(currentBoard, row, col, color)) {
-        total += pieceValues[piece.toLowerCase()] || 0;
-      }
-    }
-  }
-  return total;
-}
-
-function evaluateForBlack(currentBoard, level = 10) {
-  return -evaluateBoardAdvanced(currentBoard, level);
-}
-
-function evaluateBoardAdvanced(currentBoard, level = 10) {
-  let score = evaluateBoard(currentBoard);
-  score += positionalScore(currentBoard, "w") - positionalScore(currentBoard, "b");
-  score += kingSafetyValue(currentBoard, "w") - kingSafetyValue(currentBoard, "b");
-  score += (looseMaterial(currentBoard, "b") - looseMaterial(currentBoard, "w")) * (level >= 9 ? 0.9 : level >= 7 ? 0.72 : 0.45);
-  score += centerControlScore(currentBoard, "w") - centerControlScore(currentBoard, "b");
-  score += pawnStructureScore(currentBoard, "w") - pawnStructureScore(currentBoard, "b");
-  score += developmentStructureScore(currentBoard, "w") - developmentStructureScore(currentBoard, "b");
-  score += kingShieldScore(currentBoard, "w") - kingShieldScore(currentBoard, "b");
-  return score;
-}
-
-function positionalScore(currentBoard, color) {
-  let score = 0;
-  for (let row = 0; row < 8; row += 1) {
-    for (let col = 0; col < 8; col += 1) {
-      const piece = currentBoard[row][col];
-      if (!piece) continue;
-      if (color === "w" && !isWhite(piece)) continue;
-      if (color === "b" && !isBlack(piece)) continue;
-      const lower = piece.toLowerCase();
-      const forward = color === "w" ? 7 - row : row;
-      const centerDistance = Math.abs(col - 3.5) + Math.abs(row - 3.5);
-      if (lower === "n" || lower === "b") score += Math.max(0, 24 - centerDistance * 6) + forward * 3;
-      if (lower === "r") score += forward >= 4 ? 8 : 0;
-      if (lower === "q") score += forward >= 2 && forward <= 5 ? 8 : 0;
-      if (lower === "p") score += forward * 2 + (col >= 2 && col <= 5 ? 6 : 0);
-      if (lower === "k" && isEndgame(currentBoard)) score += Math.max(0, 28 - centerDistance * 5);
-    }
-  }
-  return score;
-}
-
-function kingSafetyValue(currentBoard, color) {
-  const king = findKing(currentBoard, color);
-  if (!king) return -10000;
-  const enemy = color === "w" ? "b" : "w";
-  let score = 80 - kingPressureScore(currentBoard, color) * 28;
-  if (!isEndgame(currentBoard)) {
-    const homeRow = color === "w" ? 7 : 0;
-    if (king.row === homeRow && (king.col === 6 || king.col === 2)) score += 70;
-    if (king.row === homeRow && king.col === 4) score -= 35;
-  }
-  for (let dr = -1; dr <= 1; dr += 1) {
-    for (let dc = -1; dc <= 1; dc += 1) {
-      const row = king.row + dr;
-      const col = king.col + dc;
-      if (inside(row, col) && isSquareAttacked(currentBoard, row, col, enemy)) score -= 12;
-    }
-  }
-  return score;
-}
-
-function centerControlScore(currentBoard, color) {
-  const centers = [[3, 3], [3, 4], [4, 3], [4, 4]];
-  return centers.reduce((sum, [row, col]) => sum + (isSquareAttacked(currentBoard, row, col, color) ? 16 : 0), 0);
-}
-
-function pawnStructureScore(currentBoard, color) {
-  const pawn = color === "w" ? "P" : "p";
-  const enemy = color === "w" ? "b" : "w";
-  const fileCounts = Array(8).fill(0);
-  const pawnSquares = [];
-  for (let row = 0; row < 8; row += 1) {
-    for (let col = 0; col < 8; col += 1) {
-      if (currentBoard[row][col] !== pawn) continue;
-      fileCounts[col] += 1;
-      pawnSquares.push({ row, col });
-    }
-  }
-  let score = 0;
-  fileCounts.forEach((count) => {
-    if (count > 1) score -= (count - 1) * 18;
-  });
-  pawnSquares.forEach(({ row, col }) => {
-    const isolated = !fileCounts[col - 1] && !fileCounts[col + 1];
-    if (isolated) score -= 14;
-    const forwardRows = color === "w" ? [...Array(row).keys()] : [...Array(7 - row).keys()].map((n) => row + 1 + n);
-    const blockedByEnemy = forwardRows.some((r) => {
-      for (let c = Math.max(0, col - 1); c <= Math.min(7, col + 1); c += 1) {
-        const piece = currentBoard[r][c];
-        if (piece && piece.toLowerCase() === "p" && (enemy === "w" ? isWhite(piece) : isBlack(piece))) return true;
-      }
-      return false;
-    });
-    if (!blockedByEnemy) score += 22;
-  });
-  return score;
-}
-
-function developmentStructureScore(currentBoard, color) {
-  if (isEndgame(currentBoard)) return 0;
-  const homeRow = color === "w" ? 7 : 0;
-  const minorPieces = color === "w" ? ["N", "B"] : ["n", "b"];
-  const queen = color === "w" ? "Q" : "q";
-  const rooks = color === "w" ? "R" : "r";
-  let score = 0;
-  for (let col = 0; col < 8; col += 1) {
-    const piece = currentBoard[homeRow][col];
-    if (minorPieces.includes(piece)) score -= 18;
-  }
-  const queenHomeCol = 3;
-  if (currentBoard[homeRow][queenHomeCol] !== queen) score -= currentGame.moves.length < 10 ? 18 : 4;
-  if (currentBoard[homeRow][0] === rooks && currentBoard[homeRow][7] === rooks) score -= 10;
-  const king = findKing(currentBoard, color);
-  if (king && king.row === homeRow && king.col === 4 && currentGame.moves.length > 8) score -= 26;
-  return score;
-}
-
-function kingShieldScore(currentBoard, color) {
-  if (isEndgame(currentBoard)) return 0;
-  const king = findKing(currentBoard, color);
-  if (!king) return -200;
-  const pawn = color === "w" ? "P" : "p";
-  const dir = color === "w" ? -1 : 1;
-  let score = 0;
-  for (let dc = -1; dc <= 1; dc += 1) {
-    const row = king.row + dir;
-    const col = king.col + dc;
-    if (!inside(row, col)) continue;
-    score += currentBoard[row][col] === pawn ? 14 : -10;
-  }
-  return score;
-}
-
-function isDevelopingBlackMove(before, after, move, movedPiece) {
-  const lower = movedPiece.toLowerCase();
-  if (move.castle) return true;
-  if ((lower === "n" || lower === "b") && move.fromRow === 0 && move.toRow > 0) return true;
-  if (lower === "p" && (move.fromCol === 3 || move.fromCol === 4) && Math.abs(move.toRow - move.fromRow) >= 1) return true;
-  return evaluateBoard(after) < evaluateBoard(before) - 35;
-}
-
-function getBestWhiteMove(currentBoard) {
-  const moves = getAllLegalMoves(currentBoard, "w");
-  if (!moves.length) return null;
-  const level = Math.max(activeBotLevelForAnalysis(), 7);
-  const candidates = moves
-    .map((move) => ({ move, score: scoreMoveForColorFast(currentBoard, move, "w", level) }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 4);
-  let best = null;
-  candidates.forEach(({ move, score }) => {
-    const next = applyMove(currentBoard, move);
-    const evalScore = evaluateBoardAdvanced(next, level);
-    const blackReply = chooseAnalysisBlackMove(next, getAllLegalMoves(next, "b"));
-    const afterReplyEval = blackReply ? evaluateBoardAdvanced(applyMove(next, blackReply), level) : evalScore;
-    const stability = Math.min(evalScore, afterReplyEval + 90);
-    const finalScore = score * 0.35 + stability * 0.65;
-    if (!best || finalScore > best.score) best = { move, eval: evalScore, score: finalScore };
-  });
-  return best;
-}
-
-function scoreMoveForColorFast(currentBoard, move, color, level) {
-  const next = applyMove(currentBoard, move);
-  const opponent = color === "w" ? "b" : "w";
-  const movedPiece = next[move.toRow][move.toCol];
-  const captured = move.enPassant ? currentBoard[move.fromRow][move.toCol] : currentBoard[move.toRow][move.toCol];
-  const colorSign = color === "w" ? 1 : -1;
-  let score = evaluateBoardAdvanced(next, level) * colorSign;
-  if (captured) score += (pieceValues[captured.toLowerCase()] || 0) * 1.35;
-  if (isKingInCheck(next, opponent)) score += 140;
-  if (move.castle) score += 80;
-  if (movedPiece && isSquareAttacked(next, move.toRow, move.toCol, opponent) && !isSquareAttacked(next, move.toRow, move.toCol, color)) {
-    score -= (pieceValues[movedPiece.toLowerCase()] || 0) * 1.1;
-  }
-  score -= Math.max(0, looseMaterial(next, color) - looseMaterial(currentBoard, color)) * 0.75;
-  score += Math.max(0, looseMaterial(next, opponent) - looseMaterial(currentBoard, opponent)) * 0.45;
-  return score;
-}
-
-function scoreMoveForColor(currentBoard, move, color, level) {
-  const next = applyMove(currentBoard, move);
-  const opponent = color === "w" ? "b" : "w";
-  const movedPiece = next[move.toRow][move.toCol];
-  const captured = move.enPassant ? currentBoard[move.fromRow][move.toCol] : currentBoard[move.toRow][move.toCol];
-  const colorSign = color === "w" ? 1 : -1;
-  let score = evaluateBoardAdvanced(next, level) * colorSign;
-  const mates = getAllLegalMoves(next, opponent).length === 0 && isKingInCheck(next, opponent);
-  if (mates) score += 100000;
-  if (captured) score += (pieceValues[captured.toLowerCase()] || 0) * 1.4;
-  if (isKingInCheck(next, opponent)) score += 120;
-  if (move.castle) score += 90;
-  if (movedPiece && isSquareAttacked(next, move.toRow, move.toCol, opponent) && !isSquareAttacked(next, move.toRow, move.toCol, color)) {
-    score -= (pieceValues[movedPiece.toLowerCase()] || 0) * 1.15;
-  }
-  score -= Math.max(0, looseMaterial(next, color) - looseMaterial(currentBoard, color)) * 0.85;
-  score += Math.max(0, looseMaterial(next, opponent) - looseMaterial(currentBoard, opponent)) * 0.55;
-  score += Math.max(0, immediateThreatScore(next, color).score - immediateThreatScore(currentBoard, color).score) * 0.35;
-  score -= Math.max(0, immediateThreatScore(next, opponent).score - immediateThreatScore(currentBoard, opponent).score) * 0.45;
-  return score;
 }
 
 function getAllLegalMoves(currentBoard, color) {
@@ -6277,23 +3884,9 @@ function clearPath(currentBoard, fromRow, fromCol, targetRow, targetCol) {
   return true;
 }
 
-function evaluateBoard(currentBoard) {
-  let score = 0;
-  const centerSquares = [[3, 3], [3, 4], [4, 3], [4, 4]];
-  for (let row = 0; row < 8; row += 1) {
-    for (let col = 0; col < 8; col += 1) {
-      const piece = currentBoard[row][col];
-      if (!piece) continue;
-      const value = pieceValues[piece.toLowerCase()];
-      score += isWhite(piece) ? value : -value;
-      if (centerSquares.some(([r, c]) => r === row && c === col)) score += isWhite(piece) ? 14 : -14;
-      if (piece.toLowerCase() === "n" || piece.toLowerCase() === "b") {
-        if (isWhite(piece) && row < 7) score += 10;
-        if (isBlack(piece) && row > 0) score -= 10;
-      }
-    }
-  }
-  return score;
+// Tocca al Nero (il bot): il giocatore non puo' muovere ne' annullare finche' il bot non risponde.
+function isBotTurn() {
+  return currentGame.moves.length % 2 === 1;
 }
 
 function clearBotTimer() {
@@ -6986,11 +4579,6 @@ function formatMoveText(move) {
 function squareLabel(currentBoard, row, col) {
   const piece = currentBoard[row][col];
   return `${coord(row, col)}${piece ? `, ${pieceNames[piece]}` : ", vuota"}`;
-}
-
-function formatEval(score) {
-  const pawns = score / 100;
-  return `${pawns >= 0 ? "+" : ""}${pawns.toFixed(1)}`;
 }
 
 function normalize(text) {

@@ -1,8 +1,8 @@
 (function () {
   const mentors = [
     {
-      min: 1,
-      max: 3,
+      minElo: 0,
+      maxElo: 599,
       name: "Kikyo Kushida",
       role: "Supporto per principianti",
       rank: "Classe D",
@@ -11,8 +11,8 @@
       intro: "Partiamo dalle basi. Prima di muovere, controlla sempre scacchi, catture e pezzi indifesi."
     },
     {
-      min: 4,
-      max: 6,
+      minElo: 600,
+      maxElo: 1199,
       name: "Suzune Horikita",
       role: "Disciplina e fondamentali",
       rank: "Classe D+",
@@ -21,8 +21,8 @@
       intro: "Non perdere tempo con mosse decorative. Sviluppa, proteggi il re e limita gli errori semplici."
     },
     {
-      min: 7,
-      max: 9,
+      minElo: 1200,
+      maxElo: 1899,
       name: "Kakeru Ryuen",
       role: "Pressione tattica",
       rank: "Classe C",
@@ -31,8 +31,8 @@
       intro: "Se lasci una debolezza, verrà sfruttata. Cerca la risposta più aggressiva dell'avversario."
     },
     {
-      min: 10,
-      max: 12,
+      minElo: 1900,
+      maxElo: 2699,
       name: "Arisu Sakayanagi",
       role: "Calcolo e strategia",
       rank: "Classe A",
@@ -41,8 +41,8 @@
       intro: "Una buona mossa non basta. Devi capire quale struttura e quale finale stai costruendo."
     },
     {
-      min: 13,
-      max: 15,
+      minElo: 2700,
+      maxElo: 9999,
       name: "Kiyotaka Ayanokoji",
       role: "Analisi d'élite",
       rank: "White Room",
@@ -58,8 +58,10 @@
     return Number(state?.chess?.botLevel || currentGame?.botLevel || 1);
   }
 
+  // Il coach dipende dall'Elo del bot scelto (i livelli sono definiti in chess/bot.js).
   function mentorForLevel(value) {
-    return mentors.find((item) => value >= item.min && value <= item.max) || mentors[0];
+    const elo = typeof getBotProfile === "function" ? getBotProfile(value).elo : 0;
+    return mentors.find((item) => elo >= item.minElo && elo <= item.maxElo) || mentors[0];
   }
 
   function addThemeStylesheet() {
@@ -76,7 +78,8 @@
       style.id = "coteChessBoardStyle";
       style.textContent = `
         #chess.cote-theme .board-wrap {
-          position: relative;
+          position: sticky;
+          top: 16px;
           padding: 18px;
           border-radius: 22px;
           background: linear-gradient(145deg, rgba(36,18,31,.98), rgba(7,15,28,.98));

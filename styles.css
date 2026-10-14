@@ -231,6 +231,17 @@ a {
   margin-top: 12px;
 }
 
+.bot-active-badge {
+  min-height: 42px;
+  border-radius: 8px;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 820;
+  white-space: nowrap;
+}
+
 .button-row {
   display: flex;
   flex-wrap: wrap;
@@ -617,6 +628,12 @@ a {
   grid-template-columns: minmax(420px, 1fr) minmax(360px, 0.9fr);
   gap: 18px;
   align-items: start;
+}
+
+/* La scacchiera resta visibile mentre leggi report e revisione. */
+.chess-layout > .board-wrap {
+  position: sticky;
+  top: 16px;
 }
 
 .wide-main {
@@ -1149,7 +1166,7 @@ a {
 
 .review-detail-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   margin-top: 12px;
 }
@@ -1683,6 +1700,12 @@ input:focus {
   .chess-layout,
   .wide-main {
     grid-template-columns: 1fr;
+  }
+
+  .chess-layout > .board-wrap,
+  #chess.cote-theme .chess-layout > .board-wrap {
+    position: relative;
+    top: auto;
   }
 
   .board-wrap {
