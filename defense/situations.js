@@ -654,7 +654,7 @@ window.DefenseSituations = [
       {
         "text": "Resto chiuso in auto e gli dico che chiamo il 112 per far venire una pattuglia",
         "score": 2,
-        "note": "È il consiglio dei Carabinieri: chi ha davvero un danno aspetta la pattuglia o compila il CID, chi truffa di solito se ne va. Restare in auto ti tiene al sicuro se la discussione si scalda."
+        "note": "I Carabinieri consigliano di chiamare il 112 per far venire una pattuglia: spesso basta dirlo perché i truffatori se ne vadano. Restare in auto ti tiene al sicuro se la discussione si scalda."
       },
       {
         "text": "Pago i 200 euro: costano meno di un sinistro in assicurazione e chiudo subito la storia",
@@ -783,7 +783,7 @@ window.DefenseSituations = [
     "principle": "Chi ti chiede di fermarti o scendere al semaforo può essere un'esca: controlli dopo, dove scegli tu.",
     "sources": [
       {
-        "label": "Il Giorno, la truffa della gomma a Milano (2025)",
+        "label": "Il Giorno, truffa della gomma bucata nel Milanese (2025)",
         "url": "https://www.ilgiorno.it/milano/cronaca/attenti-alla-truffa-della-gomma-65cf95f1"
       }
     ]
@@ -832,7 +832,7 @@ window.DefenseSituations = [
       {
         "text": "Non lo compro: cerco uno spray a norma, controllando bene l'etichetta",
         "score": 2,
-        "note": "Il D.M. 103/2011 ammette spray fino a 20 ml, oleoresin capsicum al massimo al 10%, gittata entro 3 metri, sigillo e sicura; l'etichetta deve riportarlo, con il divieto di vendita ai minori di 16 anni."
+        "note": "Il D.M. 103/2011 ammette spray fino a 20 ml, oleoresin capsicum max 10% (capsaicinoidi max 2,5%), senza sostanze tossiche o infiammabili, gittata entro 3 metri, sigillo e sicura; vendita vietata ai minori di 16 anni."
       },
       {
         "text": "Lo compro: più è potente e più lontano arriva, meglio riesco a difendermi",
@@ -879,7 +879,7 @@ window.DefenseSituations = [
       {
         "text": "Ne compro uno uguale: se mi fermano dico che mi serve per lavoro",
         "score": 0,
-        "note": "Il motivo deve essere vero e coerente con il momento: il sabato sera in centro non regge. Dal 2026, per lame oltre 8 cm e per molti pieghevoli con blocco, la pena è la reclusione da 6 mesi a 3 anni."
+        "note": "Il motivo deve essere vero e coerente con il momento: il sabato sera in centro non regge. Dal 2026, per lame oltre 8 cm o pieghevoli da 5 cm con blocco o apertura a una mano, la pena è la reclusione da 6 mesi a 3 anni."
       },
       {
         "text": "Lo tengo in macchina ma non lo porto mai addosso, così sono in regola",
@@ -905,6 +905,14 @@ window.DefenseSituations = [
       {
         "label": "Brocardi, spray conforme e oggetti atti a offendere",
         "url": "https://brocardi.it/notizie-giuridiche/spray-peperoncino-quando-puoi-usarlo-quando-invece-andresti-incontro/4706.html"
+      },
+      {
+        "label": "Brocardi, coltello nel vano portaoggetti dell'auto è porto (Cass. 6974/2018)",
+        "url": "https://brocardi.it/notizie-giuridiche/commette-reato-lascia-coltello-nella-propria-auto/1706.html"
+      },
+      {
+        "label": "Cass. pen. sez. VII n. 1594/2024: la difesa personale non è giustificato motivo (Lexced)",
+        "url": "https://www.lexced.com/?p=153914"
       }
     ]
   },
@@ -920,7 +928,7 @@ window.DefenseSituations = [
       {
         "text": "Chiedo al signore di chiamare il 112 e dico forte all'uomo di lasciarla",
         "score": 2,
-        "note": "La legittima difesa copre anche il diritto «altrui» (art. 52 c.p.): puoi intervenire per lei. Voce, testimoni e chiamata spesso bastano; il contatto fisico solo se serve a farlo smettere."
+        "note": "La legittima difesa copre anche il diritto «altrui» (art. 52 c.p.): puoi intervenire per lei. Voce, testimoni e chiamata spesso bastano; il contatto fisico solo se è l'unico modo per farlo smettere."
       },
       {
         "text": "Non intervengo: per legge la legittima difesa vale solo se aggrediscono me",
@@ -961,8 +969,8 @@ window.DefenseSituations = [
     "options": [
       {
         "text": "Con i due passanti lo teniamo fermo, senza colpirlo, e chiamiamo subito il 112",
-        "score": 2,
-        "note": "Per uno scippo appena commesso chiunque può arrestare in flagranza (art. 383 c.p.p.), con l'obbligo di consegnarlo subito alla polizia. Niente peso sul petto; se tira fuori qualcosa, lo lasci andare."
+        "score": 1,
+        "note": "È lecito: per uno scippo in flagranza chiunque può arrestare (art. 383 c.p.p.), con l'obbligo di consegnarlo subito alla polizia. Ma può avere un'arma nascosta: niente peso sul petto e, se reagisce, lasciatelo."
       },
       {
         "text": "Lo portiamo nel retro del bar e lo teniamo lì finché arriva il figlio della signora",
@@ -975,12 +983,12 @@ window.DefenseSituations = [
         "note": "A terra e senza borsa non è più un pericolo: colpirlo ora è vendetta, non difesa, e risponderesti di lesioni. Il potere di arresto non comprende la punizione."
       },
       {
-        "text": "Raccolgo la borsa, gli fotografo il viso e lo lascio andare",
-        "score": 1,
-        "note": "Scelta prudente e lecita: la borsa torna alla signora e la foto aiuta le indagini. Fermarlo non è un obbligo; se lo fai, l'obbligo è consegnarlo subito."
+        "text": "Raccolgo la borsa per la signora, resto a distanza e chiamo il 112 descrivendolo",
+        "score": 2,
+        "note": "La borsa è già recuperata: ora serve la polizia, e una descrizione precisa (viso, vestiti, direzione) la aiuta. Fermarlo in flagranza è un tuo diritto (art. 383 c.p.p.), non un obbligo."
       }
     ],
-    "principle": "In flagranza puoi fermare chi ha scippato o rapinato, ma va consegnato subito alla polizia. Mai punire.",
+    "principle": "Fermare chi ha scippato è un diritto, non un dovere: se lo fai, consegnalo subito alla polizia. Mai punire.",
     "sources": [
       {
         "label": "Art. 383 c.p.p. Facoltà di arresto da parte dei privati (Brocardi)",
@@ -1002,7 +1010,7 @@ window.DefenseSituations = [
     "seconds": 20,
     "options": [
       {
-        "text": "Tiro via il mio amico per il giubbotto verso il parcheggio e mi metto in mezzo a mani aperte",
+        "text": "Tiro via il mio amico per il giubbotto e arretriamo verso il parcheggio, mani aperte verso l'altro",
         "score": 2,
         "note": "Chi provoca di solito non può invocare la legittima difesa, ma una bottiglia alla testa è un'offesa nuova e molto più grave: lì difenderlo può essere lecito (Cass. 36143/2019). Allontanarlo è la difesa più sicura."
       },

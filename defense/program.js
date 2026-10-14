@@ -598,14 +598,14 @@ window.DefenseProgram = {
       "phase": 4,
       "name": "Caduta all'indietro sicura",
       "purpose": "Ti insegna a cadere all'indietro senza battere la testa né farti male ai polsi: abbassi la caduta, arrotondi la schiena e distribuisci l'impatto con le braccia.",
-      "when": "Quando una spinta o un inciampo ti fanno perdere l'equilibrio all'indietro. Si allena solo su un tappeto o una superficie morbida, iniziando sempre da seduto.",
+      "when": "Quando una spinta o un inciampo ti fanno perdere l'equilibrio all'indietro. Si allena solo su un tappetino spesso o un materasso, iniziando sempre da seduto.",
       "frames": [
         "In piedi",
         "Accosciati, mento al petto",
         "Rotola sulla schiena"
       ],
       "steps": [
-        "Parti in piedi su un tappeto morbido, braccia avanti, spazio libero dietro di te. Le prime volte parti da seduto.",
+        "Parti in piedi su un tappetino spesso o un materasso, braccia avanti, spazio libero dietro di te. Le prime volte parti da seduto.",
         "Accosciati: piega le ginocchia e porta il sedere vicino ai talloni, così la caduta parte da molto in basso.",
         "Porta il mento al petto e guarda la cintura: la testa non deve mai toccare terra.",
         "Siediti vicino ai talloni e rotola sulla schiena arrotondata, come un dondolo, fino all'altezza delle scapole.",
@@ -631,7 +631,7 @@ window.DefenseProgram = {
           "fix": "Accosciati sempre prima: più parti dal basso, più la caduta è morbida. Aggiungi altezza solo quando è automatica."
         }
       ],
-      "solo": "Solo su tappeto o materasso: da seduto dondola indietro e avanti 10 volte col mento al petto; poi parti da accosciato; da in piedi solo quando è facile.",
+      "solo": "Solo su tappetino spesso o materasso: da seduto dondola indietro e avanti 10 volte col mento al petto; poi parti da accosciato; da in piedi solo quando è facile.",
       "partner": "Il partner non spinge: osserva mento e mani e ti avvisa se la testa va indietro o le mani vanno dietro. Le spinte vere non servono a casa, senza materassini.",
       "dose": "3 serie da 5: da seduto, poi accosciato, poi in piedi",
       "calls": [
