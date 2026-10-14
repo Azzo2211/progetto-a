@@ -189,7 +189,12 @@
   function renderProgram() {
     const box = $("defPanel-program");
     if (!box) return;
-    if (ui.run) { renderRun(); return; }
+    if (ui.run) {
+      renderRun();
+      // tornando da un'altra scheda la sessione e' in pausa: l'orologio riparte con "Riprendi"
+      if (!ui.tick && (ui.run.step === "warmup" || ui.run.step === "rounds")) ui.tick = setInterval(onTick, 200);
+      return;
+    }
     if (ui.view && ui.view.type === "technique") { renderTechnique(ui.view.id); return; }
     const l = lab();
     const action = E.nextAction(l, DATA);
@@ -1310,7 +1315,11 @@
         abortTest();
         renderReflex();
         break;
-      case "dir": respond(event.timeStamp || performance.now(), el.dataset.dir); break;
+      case "dir":
+        // gia' gestito al pointerdown; qui arrivano solo tastiera e lettori di schermo
+        if (ui.test && ui.test.lastPointer && Date.now() - ui.test.lastPointer < 800) break;
+        respond(event.timeStamp || performance.now(), el.dataset.dir);
+        break;
       case "peri-shape": periShape(el.dataset.shape); break;
       case "peri-pos": periPos2(Number(el.dataset.pos)); break;
       case "situ-start": startSitu(); break;
@@ -1326,12 +1335,20 @@
   }
 
   // Tocco nell'arena del Semaforo: pointerdown e' piu' rapido del click.
+  // Tocchi delle prove: pointerdown e' piu' rapido del click (il click arriva dopo il rilascio).
   function onPointer(event) {
     const t = ui.test;
-    if (!t || t.phase !== "run" || t.kind !== "semaforo") return;
-    if (!event.target.closest("#defArena")) return;
-    event.preventDefault();
-    respond(event.timeStamp || performance.now());
+    if (!t || t.phase !== "run") return;
+    if (t.kind === "semaforo" && event.target.closest("#defArena")) {
+      event.preventDefault();
+      respond(event.timeStamp || performance.now());
+    } else if (t.kind === "direzione") {
+      const pad = event.target.closest(".def-pad");
+      if (!pad) return;
+      event.preventDefault();
+      t.lastPointer = Date.now();
+      respond(event.timeStamp || performance.now(), pad.dataset.dir);
+    }
   }
 
   function onKey(event) {

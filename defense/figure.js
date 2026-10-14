@@ -431,6 +431,8 @@
       pause: pause,
       goTo: goTo,
       isPlaying: function () { return playing; },
+      // disegna un istante tra due fotogrammi (per anteprime e controlli)
+      seek: function (i, j, t) { pause(); paint(i, j, t); },
       frameCount: scene.frames.length,
       destroy: function () { pause(); container.innerHTML = ""; }
     };
