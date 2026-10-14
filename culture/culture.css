@@ -262,6 +262,16 @@
 .cult-option.wrong { border-color: var(--cult-ko); background: rgba(184, 74, 58, 0.08); }
 .cult-option.wrong .cult-option-key { background: var(--cult-ko); border-color: var(--cult-ko); color: #fff; }
 .cult-option.dim { opacity: 0.5; }
+.cult-option { position: relative; }
+.cult-mark { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-weight: 800; font-size: 1.1rem; }
+.cult-option.right .cult-mark { color: var(--cult-ok); }
+.cult-option.wrong .cult-mark { color: var(--cult-ko); }
+.cult-option.right,
+.cult-option.wrong { padding-right: 38px; }
+.cult-question:focus { outline: none; }
+.cult-article h2:focus { outline: none; }
+.cult-link:disabled { opacity: 0.55; cursor: default; }
+.cult-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .cult-hint { margin: 10px 0 0; color: var(--muted); font-size: 0.8rem; }
 
 .cult-feedback {

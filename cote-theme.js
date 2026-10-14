@@ -6,7 +6,7 @@
     const link = document.createElement("link");
     link.id = "coteThemeStylesheet";
     link.rel = "stylesheet";
-    link.href = "cote-theme.css?v=20261014-9";
+    link.href = "cote-theme.css?v=20261014-10";
     document.head.appendChild(link);
   }
 

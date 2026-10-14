@@ -45,6 +45,27 @@
     if (typeof renderDashboard === "function") renderDashboard();
   }
 
+  function studiedInDeck(minBox) {
+    const l = lab();
+    return CARDS.filter((c) => (E.cardState(l, c.id).box || 0) >= minBox).length;
+  }
+
+  // Annuncio per i lettori di schermo (una sola regione, fuori dalle parti ridisegnate).
+  function announce(text) {
+    const live = $("cultLive");
+    if (!live) return;
+    live.textContent = "";
+    setTimeout(() => {
+      live.textContent = text;
+    }, 30);
+  }
+
+  // Dopo un ridisegno rimette il focus su un elemento sensato.
+  function focusAfter(box, selector) {
+    const el = (selector && box.querySelector(selector)) || box.querySelector("[data-autofocus]");
+    if (el) el.focus({ preventScroll: true });
+  }
+
   function areaOf(card) {
     return E.AREAS[card.area] || { label: card.area, color: "#5b6b78" };
   }
@@ -73,6 +94,7 @@
   /* ---------------------------------------------------------- struttura */
 
   function setTab(tab) {
+    if (ui.review && ui.review.index >= ui.review.queue.length && tab !== "review") ui.review = null;
     ui.tab = tab;
     document.querySelectorAll("#culture [data-cult-tab]").forEach((b) => {
       const on = b.dataset.cultTab === tab;
@@ -93,7 +115,7 @@
     const values = E.profile(lab(), CARDS);
     box.innerHTML = `
       <span class="cult-chip-num">${due}</span>
-      <span class="cult-chip-copy"><strong>${due === 0 ? "Nessun ripasso oggi" : due === 1 ? "Ripasso pronto" : "Ripassi pronti"}</strong><span>Profilo cultura ${E.total(values)} · ${Object.values(lab().cards).filter((s) => s.box >= 3).length} schede consolidate</span></span>`;
+      <span class="cult-chip-copy"><strong>${due === 0 ? "Nessun ripasso oggi" : due === 1 ? "Ripasso pronto" : "Ripassi pronti"}</strong><span>Profilo cultura ${E.total(values)} · ${studiedInDeck(3)} schede consolidate</span></span>`;
     box.disabled = due === 0;
     const tab = document.querySelector('#culture [data-cult-tab="review"]');
     if (tab) tab.innerHTML = `Ripasso${due ? ` <b class="cult-badge">${due}</b>` : ""}`;
@@ -155,7 +177,7 @@
         </div>
         <div class="cult-filter-row" role="group" aria-label="Stato">
           ${[["all", "Tutte"], ["new", "Da leggere"], ["learning", "In ripasso"], ["solid", "Consolidate"]].map(([k, label]) => `<button type="button" class="cult-filter small${ui.status === k ? " active" : ""}" data-act="status" data-status="${k}" aria-pressed="${ui.status === k}">${label}</button>`).join("")}
-          <span class="cult-count">${CARDS.filter((c) => (E.cardState(l, c.id).box || 0) >= 1).length}/${CARDS.length} studiate</span>
+          <span class="cult-count">${studiedInDeck(1)}/${CARDS.length} studiate</span>
         </div>
       </div>
       <div class="cult-grid">
@@ -179,13 +201,18 @@
 
   /* ------------------------------------------------------------ lettura */
 
-  function openCard(id) {
+  function openCard(id, { fromReview = false } = {}) {
     const card = byId.get(id);
     if (!card) return;
-    ui.read = { card, step: "read", order: card.quiz.map((q) => shuffle(q.options.map((_, i) => i))), qi: 0, answers: [], picked: null, explainText: "", compared: false, self: null, result: null };
+    ui.read = { card, step: "read", fromReview, order: card.quiz.map((q) => shuffle(q.options.map((_, i) => i))), qi: 0, answers: [], picked: null, explainText: "", compared: false, self: null, result: null };
     ui.stepAt = Date.now();
     if (ui.tab !== "library") setTab("library");
     else render();
+    const heading = document.querySelector("#cultPanel-library .cult-article h2");
+    if (heading) {
+      heading.setAttribute("tabindex", "-1");
+      heading.focus({ preventScroll: true });
+    }
     const panel = $("cultPanel-library");
     if (panel && panel.getBoundingClientRect().top < 0) panel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
@@ -205,7 +232,7 @@
     box.innerHTML = `
       <div class="cult-read" style="--area:${a.color}">
         <div class="cult-read-bar">
-          <button type="button" class="ghost-action small" data-act="close">Biblioteca</button>
+          ${r.fromReview ? `<button type="button" class="ghost-action small" data-act="back-review">Torna al ripasso</button>` : `<button type="button" class="ghost-action small" data-act="close">Biblioteca</button>`}
           <span class="cult-meta"><span class="cult-dot"></span>${esc(a.label)} · ${esc(E.LEVEL_LABELS[c.level])} · ${c.minutes} min${st.box ? ` · ${esc(E.BOX_LABELS[st.box])}` : ""}</span>
         </div>
         ${main}
@@ -216,6 +243,7 @@
 
   function readHtml(c, st) {
     const links = (c.links || []).map((id) => byId.get(id)).filter(Boolean);
+    const fromReview = ui.read && ui.read.fromReview;
     return `
       <div class="cult-read-layout">
         <article class="cult-article">
@@ -223,7 +251,9 @@
           <p class="cult-lead">${prose(c.hook)}</p>
           ${c.sections.map((s) => `<section><h3>${esc(s.h)}</h3>${String(s.text).split(/\n\s*\n/).map((p) => `<p>${prose(p)}</p>`).join("")}</section>`).join("")}
           <div class="cult-actions">
-            <button class="primary-action" type="button" data-act="quiz">${st.box ? "Rifai la verifica" : "Verifica: 5 domande"}</button>
+            ${fromReview
+              ? `<button class="primary-action" type="button" data-act="back-review">Torna al ripasso</button>`
+              : `<button class="primary-action" type="button" data-act="quiz">${E.isStudied(st) ? "Rifai la verifica" : "Verifica: 5 domande"}</button>`}
           </div>
         </article>
         <aside class="cult-aside">
@@ -234,7 +264,7 @@
           ${links.length ? `
           <div class="cult-links">
             <h3>Collegamenti</h3>
-            ${links.map((l) => `<button type="button" class="cult-link" data-act="open" data-id="${esc(l.id)}" style="--area:${areaOf(l).color}"><span class="cult-dot"></span>${esc(l.title)}</button>`).join("")}
+            ${links.map((l) => `<button type="button" class="cult-link" data-act="open" data-id="${esc(l.id)}" style="--area:${areaOf(l).color}" ${fromReview ? "disabled" : ""}><span class="cult-dot"></span>${esc(l.title)}</button>`).join("")}
           </div>` : ""}
         </aside>
       </div>`;
@@ -252,7 +282,8 @@
         else if (index === picked) cls = " wrong";
         else cls = " dim";
       }
-      return `<button type="button" class="cult-option${cls}" data-act="answer" data-index="${index}" ${picked !== null ? "disabled" : ""}><span class="cult-option-key">${letters[pos]}</span><span>${prose(q.options[index])}</span></button>`;
+      const mark = picked === null ? "" : index === q.answer ? `<span class="cult-mark" aria-label="risposta corretta">✓</span>` : index === picked ? `<span class="cult-mark" aria-label="la tua risposta, sbagliata">✗</span>` : "";
+      return `<button type="button" class="cult-option${cls}" data-act="answer" data-index="${index}" ${picked !== null ? "disabled" : ""}><span class="cult-option-key">${letters[pos]}</span><span>${prose(q.options[index])}</span>${mark}</button>`;
     }).join("");
     const last = r.qi === c.quiz.length - 1;
     return `
@@ -262,10 +293,10 @@
           <span class="cult-type">${esc(E.TYPE_LABELS[q.type] || q.type)}</span>
         </div>
         <div class="cult-steps">${c.quiz.map((_, i) => `<i class="${i < r.answers.length ? (r.answers[i].correct ? "ok" : "ko") : i === r.qi ? "now" : ""}"></i>`).join("")}</div>
-        <h3 class="cult-question">${prose(q.q)}</h3>
+        <h3 class="cult-question" tabindex="-1" ${picked === null ? "data-autofocus" : ""}>${prose(q.q)}</h3>
         <div class="cult-options" role="group" aria-label="Risposte">${options}</div>
         ${picked !== null ? `
-        <div class="cult-feedback ${picked === q.answer ? "ok" : "ko"}" role="status" aria-live="polite">
+        <div class="cult-feedback ${picked === q.answer ? "ok" : "ko"}">
           <strong>${picked === q.answer ? "Esatto." : "Non è questa."}</strong>
           <p>${prose(q.why)}</p>
           <div class="cult-actions"><button class="primary-action" type="button" data-act="next-q" data-autofocus>${last ? "Spiegalo con parole tue" : "Domanda successiva"}</button></div>
@@ -314,8 +345,10 @@
         <div>
           <span class="cult-kicker">Scheda studiata</span>
           <h2>${esc(c.title)}</h2>
-          <p>${correct >= 4 ? "Ottimo: la scheda entra in ripasso tra qualche giorno." : correct >= 3 ? "Buona base: un ripasso già domani la fisserà." : "Rileggila con calma: domani un ripasso ti aiuterà a fissarla."} Prossimo ripasso: <strong>${esc(due)}</strong>.</p>
-          ${r.result && !r.result.first ? `<p class="cult-small">Era già stata studiata: le statistiche del profilo contano solo il primo studio e i ripassi.</p>` : ""}
+          <p>${r.result && !r.result.first
+            ? (st.box >= 2 && correct >= 4 ? "La conoscevi già: il ripasso resta dov'era." : "Qualcosa non era chiaro: la scheda torna in ripasso domani.")
+            : st.box >= 2 ? "Ottimo: la scheda entra in ripasso tra qualche giorno." : correct >= 3 ? "Buona base: un ripasso già domani la fisserà." : "Rileggila con calma: domani un ripasso ti aiuterà a fissarla."} Prossimo ripasso: <strong>${esc(due)}</strong>.</p>
+          ${r.result && !r.result.first ? `<p class="cult-small">Era già stata studiata: le statistiche del profilo contano solo la prima verifica e i ripassi.</p>` : ""}
           <div class="cult-actions">
             ${next ? `<button class="primary-action" type="button" data-act="open" data-id="${esc(next.id)}">Prossima scheda: ${esc(next.title)}</button>` : ""}
             <button class="ghost-action" type="button" data-act="reread">Rileggi</button>
@@ -331,15 +364,16 @@
     const q = r.card.quiz[r.qi];
     r.picked = index;
     r.answers[r.qi] = { q: r.qi, correct: index === q.answer };
+    if (E.recordAnswer(lab(), r.card, r.qi, index === q.answer) && typeof saveState === "function") saveState();
     ui.stepAt = Date.now();
     renderRead();
+    announce(`${index === q.answer ? "Esatto." : `Non è questa. Risposta corretta: ${q.options[q.answer]}.`} ${q.why}`);
   }
 
   function finishStudy(self) {
     const r = ui.read;
     if (!r || r.step === "done") return;
-    const before = E.cardState(lab(), r.card.id);
-    const first = !before.studiedAt || before.legacy;
+    const first = !E.isStudied(E.cardState(lab(), r.card.id));
     E.recordStudy(lab(), r.card, r.answers, self || null);
     r.result = { first };
     r.step = "done";
@@ -353,7 +387,7 @@
   function startReview() {
     const due = E.dueCards(lab(), CARDS);
     if (!due.length) return;
-    ui.review = { queue: due.map((c) => c.id), index: 0, done: [] };
+    ui.review = { queue: due.map((c) => c.id), index: 0, done: [], day: E.dayKey(Date.now()) };
     prepareReviewCard();
     ui.stepAt = Date.now();
     setTab("review");
@@ -373,6 +407,7 @@
     const box = $("cultPanel-review");
     if (!box) return;
     const l = lab();
+    if (ui.review && ui.review.day !== E.dayKey(Date.now())) ui.review = null;
     const rv = ui.review;
     if (!rv) {
       const due = E.dueCards(l, CARDS);
@@ -421,7 +456,8 @@
     const options = rv.orders[rv.qi].map((index, pos) => {
       let cls = "";
       if (picked !== null) cls = index === q.answer ? " right" : index === picked ? " wrong" : " dim";
-      return `<button type="button" class="cult-option${cls}" data-act="review-answer" data-index="${index}" ${picked !== null ? "disabled" : ""}><span class="cult-option-key">${letters[pos]}</span><span>${prose(q.options[index])}</span></button>`;
+      const mark = picked === null ? "" : index === q.answer ? `<span class="cult-mark" aria-label="risposta corretta">✓</span>` : index === picked ? `<span class="cult-mark" aria-label="la tua risposta, sbagliata">✗</span>` : "";
+      return `<button type="button" class="cult-option${cls}" data-act="review-answer" data-index="${index}" ${picked !== null ? "disabled" : ""}><span class="cult-option-key">${letters[pos]}</span><span>${prose(q.options[index])}</span>${mark}</button>`;
     }).join("");
     const lastQ = rv.qi === rv.questions.length - 1;
     box.innerHTML = `
@@ -431,15 +467,15 @@
           <span class="cult-type">${esc(E.TYPE_LABELS[q.type] || q.type)}</span>
         </div>
         <p class="cult-meta"><span class="cult-dot"></span>${esc(card.title)}</p>
-        <h3 class="cult-question">${prose(q.q)}</h3>
+        <h3 class="cult-question" tabindex="-1" ${picked === null ? "data-autofocus" : ""}>${prose(q.q)}</h3>
         <div class="cult-options" role="group" aria-label="Risposte">${options}</div>
         ${picked !== null ? `
-        <div class="cult-feedback ${picked === q.answer ? "ok" : "ko"}" role="status" aria-live="polite">
+        <div class="cult-feedback ${picked === q.answer ? "ok" : "ko"}">
           <strong>${picked === q.answer ? "Esatto." : "Non è questa."}</strong>
           <p>${prose(q.why)}</p>
           <div class="cult-actions">
             <button class="primary-action" type="button" data-act="review-next" data-autofocus>${lastQ ? (rv.index === rv.queue.length - 1 ? "Fine del ripasso" : "Scheda successiva") : "Domanda successiva"}</button>
-            ${picked !== q.answer ? `<button class="ghost-action" type="button" data-act="open" data-id="${esc(card.id)}">Rileggi la scheda</button>` : ""}
+            ${picked !== q.answer ? `<button class="ghost-action" type="button" data-act="reread-review" data-id="${esc(card.id)}">Rileggi la scheda</button>` : ""}
           </div>
         </div>` : `<p class="cult-hint">Tasti 1–4 o A–D per rispondere.</p>`}
       </article>`;
@@ -453,9 +489,11 @@
     const card = byId.get(rv.queue[rv.index]);
     const qIndex = rv.questions[rv.qi];
     rv.picked = index;
-    rv.results[rv.qi] = { q: qIndex, correct: index === card.quiz[qIndex].answer };
+    const rq = card.quiz[qIndex];
+    rv.results[rv.qi] = { q: qIndex, correct: index === rq.answer };
     ui.stepAt = Date.now();
     renderReview();
+    announce(`${index === rq.answer ? "Esatto." : `Non è questa. Risposta corretta: ${rq.options[rq.answer]}.`} ${rq.why}`);
   }
 
   function reviewNext() {
@@ -560,7 +598,7 @@
     const act = el.dataset.act;
     const quick = Date.now() - (ui.stepAt || 0) < 300;
     if (["answer", "review-answer"].includes(act) && (event.detail > 1 || Date.now() - (ui.stepAt || 0) < 350)) return;
-    if (["open", "quiz", "next-q", "review-next", "start-review", "close", "end-review"].includes(act) && quick) return;
+    if (["open", "quiz", "next-q", "review-next", "start-review", "close", "end-review", "reread-review", "back-review"].includes(act) && quick) return;
     if (act === "open") openCard(el.dataset.id);
     else if (act === "area") {
       ui.area = el.dataset.area;
@@ -573,6 +611,10 @@
       ui.read.qi = 0;
       ui.read.answers = [];
       ui.read.picked = null;
+      ui.read.explainText = "";
+      ui.read.compared = false;
+      ui.read.self = null;
+      ui.read.result = null;
       ui.read.order = ui.read.card.quiz.map((q) => shuffle(q.options.map((_, i) => i)));
       ui.stepAt = Date.now();
       renderRead();
@@ -600,6 +642,11 @@
       if (ui.tab !== "library") setTab("library");
       else render();
     } else if (act === "start-review") startReview();
+    else if (act === "reread-review") openCard(el.dataset.id, { fromReview: true });
+    else if (act === "back-review") {
+      ui.read = null;
+      setTab("review");
+    }
     else if (act === "review-answer") reviewAnswer(Number(el.dataset.index));
     else if (act === "review-next") reviewNext();
     else if (act === "end-review") {
@@ -609,7 +656,7 @@
   }
 
   function onKey(event) {
-    if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing || event.repeat) return;
+    if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey || event.isComposing || event.repeat) return;
     if (event.target && /input|textarea|select/i.test(event.target.tagName)) return;
     const page = $("culture");
     if (!page || !page.classList.contains("active-page")) return;

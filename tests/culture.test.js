@@ -59,49 +59,80 @@ test("Schede: tutte le aree, livelli diversi", () => {
   [1, 2, 3].forEach((lv) => assert.ok(CARDS.some((c) => c.level === lv), `livello ${lv}`));
 });
 
-test("Studio: verifica buona = ripasso tra 3 giorni, debole = domani", () => {
-  const now = Date.UTC(2026, 9, 14, 10);
+const days = (from, to) => Math.round((E.addDays(to, 0) - E.addDays(from, 0)) / DAY);
+
+test("Studio: verifica buona = ripasso tra 3 giorni di calendario, debole = domani", () => {
+  const now = new Date(2026, 9, 14, 23, 55).getTime(); // tarda sera: niente ripasso dopo 5 minuti
   const lab = E.ensureLab(null, { cards: CARDS, now });
   const [a, b] = CARDS;
   const sa = E.recordStudy(lab, a, allRight(a), "ok", now);
   assert.strictEqual(sa.box, 2);
-  assert.strictEqual(sa.due, now + 3 * DAY);
+  assert.strictEqual(days(now, sa.due), 3);
   const sb = E.recordStudy(lab, b, allWrong(b), null, now);
   assert.strictEqual(sb.box, 1);
-  assert.strictEqual(sb.due, now + DAY);
-  const sa2 = E.recordStudy(lab, a, allRight(a), "no", now);
-  assert.strictEqual(sa2.box, 1, "'da rivedere' rimanda il ripasso a domani");
+  assert.strictEqual(days(now, sb.due), 1);
+  assert.ok(!E.dueCards(lab, CARDS, now).some((c) => c.id === b.id), "non torna la sera stessa");
+  // cambio dell'ora (25 ottobre 2026): la scadenza resta a mezzanotte del giorno giusto
+  const dst = new Date(2026, 9, 25, 0, 30).getTime();
+  const sd = E.recordStudy(E.ensureLab(null, { cards: CARDS, now: dst }), a, allWrong(a), null, dst);
+  assert.strictEqual(E.dayKey(sd.due), "2026-10-26");
 });
 
-test("Studio: le statistiche contano solo il primo studio", () => {
+test("Ristudio: una scheda gia' nota non retrocede se la verifica va bene", () => {
+  let now = new Date(2026, 9, 14, 10).getTime();
+  const lab = E.ensureLab(null, { cards: CARDS, now });
+  const c = CARDS[0];
+  E.recordStudy(lab, c, allRight(c), "ok", now);
+  for (let i = 0; i < 3; i += 1) {
+    now = lab.cards[c.id].due;
+    E.recordReview(lab, c, [{ q: 0, correct: true }, { q: 1, correct: true }], now);
+  }
+  const box = lab.cards[c.id].box;
+  const due = lab.cards[c.id].due;
+  E.recordStudy(lab, c, allRight(c), "ok", now);
+  assert.strictEqual(lab.cards[c.id].box, box);
+  assert.strictEqual(lab.cards[c.id].due, due);
+  E.recordStudy(lab, c, allWrong(c), null, now);
+  assert.strictEqual(lab.cards[c.id].box, 1, "se va male torna in ripasso domani");
+});
+
+test("Studio: le statistiche contano solo la prima risposta a ogni domanda", () => {
   const lab = E.ensureLab(null, { cards: CARDS });
   const c = CARDS[0];
+  const total = () => Object.values(lab.stats).reduce((n, s) => n + s.a, 0);
+  assert.strictEqual(E.recordAnswer(lab, c, 0, false), true);
+  assert.strictEqual(E.recordAnswer(lab, c, 0, true), false, "rifare la stessa domanda non conta");
+  c.quiz.forEach((_, i) => E.recordAnswer(lab, c, i, false));
+  const counted = total();
+  assert.strictEqual(counted, c.quiz.length);
   E.recordStudy(lab, c, allWrong(c));
-  const attempts = Object.values(lab.stats).reduce((n, s) => n + s.a, 0);
+  c.quiz.forEach((_, i) => E.recordAnswer(lab, c, i, true));
   E.recordStudy(lab, c, allRight(c));
-  E.recordStudy(lab, c, allRight(c));
-  const after = Object.values(lab.stats).reduce((n, s) => n + s.a, 0);
-  assert.strictEqual(after, attempts, "rifare la verifica non gonfia il profilo");
+  assert.strictEqual(total(), counted, "dopo lo studio le verifiche rifatte non contano");
 });
 
-test("Ripasso: giuste = scatola su, sbagliate = torna a 1, scadenze crescenti", () => {
-  let now = Date.UTC(2026, 9, 14, 10);
+test("Ripasso: giuste = scatola su, a meta' scende di una, sbagliate = torna a 1", () => {
+  let now = new Date(2026, 9, 14, 10).getTime();
   const lab = E.ensureLab(null, { cards: CARDS, now });
   const c = CARDS[0];
   E.recordStudy(lab, c, allRight(c), "ok", now);
   const boxes = [];
   for (let i = 0; i < 4; i += 1) {
-    now = lab.cards[c.id].due;
+    now = lab.cards[c.id].due + 10 * 60 * 60 * 1000;
     assert.ok(E.dueCards(lab, CARDS, now).some((x) => x.id === c.id), "in scadenza");
     const qs = E.pickReviewQuestions(c, lab.cards[c.id], 2);
     E.recordReview(lab, c, qs.map((q) => ({ q, correct: true })), now);
     boxes.push(lab.cards[c.id].box);
   }
   assert.deepStrictEqual(boxes, [3, 4, 5, 5]);
-  assert.strictEqual(lab.cards[c.id].due - now, 35 * DAY);
+  assert.strictEqual(days(now, lab.cards[c.id].due), 35);
+  E.recordReview(lab, c, [{ q: 0, correct: true }, { q: 1, correct: false }], now);
+  assert.strictEqual(lab.cards[c.id].box, 4, "mezzo errore: scende di una");
   E.recordReview(lab, c, [{ q: 0, correct: false }, { q: 1, correct: false }], now);
   assert.strictEqual(lab.cards[c.id].box, 1);
+  assert.strictEqual(E.recordReview(lab, c, [], now), null, "ripasso vuoto ignorato");
   assert.strictEqual(lab.reviewsOnTime, lab.reviewsDone, "ripassi fatti alla scadenza: in tempo");
+  assert.strictEqual(lab.stats.comprensione.a + lab.stats.collegamento.a + lab.stats.applicazione.a + lab.stats.fatto.a, 0, "i ripassi contano solo per la memoria");
 });
 
 test("Ripasso: prima le domande sbagliate", () => {
@@ -116,7 +147,10 @@ test("Profilo: sale con risposte giuste, la memoria cala con ripassi scaduti", (
   let now = Date.UTC(2026, 9, 14, 10);
   const lab = E.ensureLab(null, { cards: CARDS, now });
   const start = E.profile(lab, CARDS, now);
-  CARDS.slice(0, 8).forEach((c) => E.recordStudy(lab, c, allRight(c), "ok", now));
+  CARDS.slice(0, 8).forEach((c) => {
+    c.quiz.forEach((_, i) => E.recordAnswer(lab, c, i, true));
+    E.recordStudy(lab, c, allRight(c), "ok", now);
+  });
   CARDS.slice(0, 8).forEach((c) => {
     const t = lab.cards[c.id].due;
     E.recordReview(lab, c, [{ q: 0, correct: true }, { q: 1, correct: true }], t);
@@ -128,16 +162,19 @@ test("Profilo: sale con risposte giuste, la memoria cala con ripassi scaduti", (
   Object.values(late).forEach((v) => assert.ok(v >= 10 && v <= 99));
 });
 
-test("Migrazione: gli argomenti gia' studiati entrano subito in ripasso", () => {
-  const now = Date.UTC(2026, 9, 14, 10);
+test("Migrazione: gli argomenti gia' studiati entrano in ripasso quando la scheda esiste", () => {
+  const now = new Date(2026, 9, 14, 10).getTime();
   const legacy = ["storia-guerra-fredda", "geografia-suez", "inesistente"];
-  const lab = E.ensureLab(null, { legacy, cards: CARDS, now });
+  // prima del caricamento delle schede: niente si perde, resta in attesa
+  const early = E.ensureLab(null, { legacy, cards: [], now });
+  assert.deepStrictEqual(early.legacyPending.sort(), legacy.slice().sort());
+  const lab = E.ensureLab(early, { legacy, cards: CARDS, now });
   const present = legacy.filter((id) => CARDS.some((c) => c.id === id));
   present.forEach((id) => assert.strictEqual(lab.cards[id].box, 1));
-  assert.ok(!lab.cards.inesistente);
+  assert.ok(!lab.cards.inesistente, "mai schede inesistenti");
   assert.strictEqual(E.dueCards(lab, CARDS, now).length, present.length);
   const again = E.ensureLab(lab, { legacy: ["economia-domanda-offerta"], cards: CARDS, now });
-  assert.ok(!again.cards["economia-domanda-offerta"], "la migrazione avviene una sola volta");
+  assert.ok(!again.cards["economia-domanda-offerta"], "la migrazione si fa una volta sola");
 });
 
 test("Consigli: prossima scheda nell'area meno coperta, livello base prima", () => {

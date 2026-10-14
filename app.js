@@ -996,7 +996,7 @@ function renderRankCard(score) {
 function buildFinalRecap(abilities) {
   const weakest = [...abilities].sort((a, b) => a.value - b.value)[0];
   const chessErrors = Object.values(state.mistakeCounts).reduce((sum, item) => sum + item, 0);
-  const studied = state.cultureLab && state.cultureLab.cards ? Object.values(state.cultureLab.cards).filter((c) => c.box >= 1).length : 0;
+  const studied = state.cultureLab && state.cultureLab.cards ? (window.CultureCards || []).filter((c) => state.cultureLab.cards[c.id] && state.cultureLab.cards[c.id].box >= 1).length : 0;
   const memoryRate = state.memory.attempts ? Math.round((state.memory.correct / state.memory.attempts) * 100) : 0;
   return `Priorita': ${abilityLabels[weakest.key]}. Scacchi: ${state.chess.games} partite, ${chessErrors} pattern errore. Cultura: ${studied} schede studiate. Memoria: ${memoryRate}% precisione. Estetica: ${state.aesthetic.score || 0}/100.`;
 }
@@ -1262,7 +1262,7 @@ function dashboardTrend(moduleKey, average) {
     culture: window.CultureEngine && state.cultureLab ? (() => {
       const cards = window.CultureCards || [];
       const lab = state.cultureLab;
-      const studied = Object.values(lab.cards || {}).filter((c) => c.box >= 1).length;
+      const studied = cards.filter((c) => lab.cards && lab.cards[c.id] && lab.cards[c.id].box >= 1).length;
       const due = CultureEngine.dueCards(lab, cards).length;
       return studied ? `${studied}/${cards.length} schede studiate · ${due ? `${due} da ripassare oggi` : "nessun ripasso oggi"}` : "Biblioteca nuova · leggi la prima scheda";
     })() : "Biblioteca nuova · leggi la prima scheda",

@@ -18,7 +18,6 @@
   const VERSION = 1;
   const DAY = 24 * 60 * 60 * 1000;
   const INTERVALS = [0, 1, 3, 7, 16, 35];
-  const ON_TIME_GRACE = 2 * DAY;
 
   const AREAS = {
     storia: { label: "Storia", color: "#b5523b" },
@@ -57,6 +56,15 @@
     return d.getTime();
   }
 
+  // Mezzanotte (ora locale) del giorno "time + n giorni di calendario":
+  // niente scivolamenti col cambio dell'ora o studiando a tarda sera.
+  function addDays(time, n) {
+    const d = new Date(time);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + n);
+    return d.getTime();
+  }
+
   function emptyStats() {
     return { fatto: { c: 0, a: 0 }, comprensione: { c: 0, a: 0 }, applicazione: { c: 0, a: 0 }, collegamento: { c: 0, a: 0 }, review: { c: 0, a: 0 } };
   }
@@ -74,14 +82,24 @@
     });
     if (typeof lab.reviewsDone !== "number") lab.reviewsDone = 0;
     if (typeof lab.reviewsOnTime !== "number") lab.reviewsOnTime = 0;
+    if (!Array.isArray(lab.reviewLog)) lab.reviewLog = [];
     if (!Array.isArray(lab.days)) lab.days = [];
     if (!Array.isArray(lab.history)) lab.history = [];
-    if (!lab.migrated) {
+    // Migrazione: gli id gia' studiati nella vecchia versione restano "in attesa"
+    // finche' la scheda corrispondente esiste, poi entrano in ripasso (una volta).
+    if (lab.migrated !== 2) {
+      lab.legacyPending = Array.from(new Set((lab.legacyPending || []).concat(legacy)));
+      lab.migrated = 2;
+    }
+    if (Array.isArray(lab.legacyPending) && lab.legacyPending.length && cards.length) {
       const known = new Set(cards.map((c) => c.id));
-      legacy.forEach((id) => {
-        if ((!known.size || known.has(id)) && !lab.cards[id]) lab.cards[id] = { box: 1, due: now, studiedAt: now, reviews: 0, lapses: 0, wrong: [], asked: [], legacy: true };
+      lab.legacyPending = lab.legacyPending.filter((id) => {
+        if (!known.has(id)) return true;
+        if (!lab.cards[id] || !lab.cards[id].studiedAt) {
+          lab.cards[id] = { box: 1, due: addDays(now, 0), studiedAt: now, reviews: 0, lapses: 0, wrong: [], asked: [], legacy: true };
+        }
+        return false;
       });
-      lab.migrated = true;
     }
     return lab;
   }
@@ -102,28 +120,54 @@
     if (correct) s.c += 1;
   }
 
+  function isStudied(st) {
+    return Boolean(st && st.studiedAt && !st.legacy);
+  }
+
   /*
-   * Studio di una scheda. answers: [{ q: indice domanda, correct }].
+   * Risposta a una domanda della verifica. Le statistiche contano solo la
+   * PRIMA risposta a ogni domanda di una scheda mai studiata: chi esce e
+   * rifa' la verifica (dopo aver visto le spiegazioni) non conta di nuovo.
+   */
+  function recordAnswer(lab, card, qIndex, correct) {
+    const st = lab.cards[card.id] || (lab.cards[card.id] = { box: 0 });
+    if (isStudied(st)) return false;
+    if (!Array.isArray(st.seen)) st.seen = [];
+    if (st.seen.includes(qIndex)) return false;
+    st.seen.push(qIndex);
+    const q = card.quiz[qIndex];
+    if (q) addStat(lab, q.type, correct);
+    return true;
+  }
+
+  /*
+   * Fine dello studio di una scheda. answers: [{ q, correct }].
    * self: "ok" | "quasi" | "no" | null (autovalutazione della spiegazione).
-   * Le statistiche contano solo al primo studio (poi conosci gia' le domande).
+   * Prima volta: 4-5 giuste -> scatola 2 (ripasso tra 3 giorni), altrimenti 1.
+   * Ristudio di una scheda gia' nota: se va bene non cambia nulla (non
+   * retrocede), se va male torna in ripasso domani.
    */
   function recordStudy(lab, card, answers, self = null, now = Date.now()) {
     const prev = lab.cards[card.id];
-    const first = !prev || !prev.studiedAt || prev.legacy;
+    const first = !isStudied(prev);
     const correct = answers.filter((a) => a.correct).length;
     const ratio = answers.length ? correct / answers.length : 0;
-    let box = ratio >= 0.8 ? 2 : 1;
-    if (self === "no") box = 1;
-    if (!first && prev) box = Math.min(box, Math.max(1, prev.box + 1));
+    const passed = ratio >= 0.8 && self !== "no";
+    let box;
+    let due;
     if (first) {
-      answers.forEach((a) => {
-        const q = card.quiz[a.q];
-        if (q) addStat(lab, q.type, a.correct);
-      });
+      box = passed ? 2 : 1;
+      due = addDays(now, INTERVALS[box]);
+    } else if (passed) {
+      box = prev.box;
+      due = prev.due;
+    } else {
+      box = 1;
+      due = addDays(now, INTERVALS[1]);
     }
     lab.cards[card.id] = {
       box,
-      due: now + INTERVALS[box] * DAY,
+      due,
       studiedAt: first ? now : prev.studiedAt,
       lastScore: Math.round(ratio * 100),
       self,
@@ -132,7 +176,7 @@
       wrong: answers.filter((a) => !a.correct).map((a) => a.q),
       asked: answers.map((a) => a.q)
     };
-    markDay(lab, now);
+    if (first) markDay(lab, now);
     lab.history.unshift({ kind: "study", id: card.id, title: card.title, area: card.area, score: Math.round(ratio * 100), first, box, date: now });
     lab.history = lab.history.slice(0, 80);
     return lab.cards[card.id];
@@ -153,27 +197,27 @@
 
   /*
    * Ripasso: results [{ q, correct }]. Tutte giuste: scatola +1.
-   * Almeno meta': resta. Tutte sbagliate: torna alla scatola 1.
+   * Almeno meta': scende di una (torna prima). Meno della meta': scatola 1.
+   * Le risposte dei ripassi contano per la Memoria.
    */
   function recordReview(lab, card, results, now = Date.now()) {
     const st = lab.cards[card.id];
-    if (!st) return null;
+    if (!st || !results.length) return null;
     const correct = results.filter((r) => r.correct).length;
-    results.forEach((r) => {
-      addStat(lab, "review", r.correct);
-      const q = card.quiz[r.q];
-      if (q) addStat(lab, q.type, r.correct);
-    });
-    const onTime = now <= (st.due || now) + ON_TIME_GRACE;
+    results.forEach((r) => addStat(lab, "review", r.correct));
+    // in tempo: entro due giorni di calendario dalla scadenza
+    const onTime = dayKey(now) <= dayKey(addDays(st.due || now, 2));
     lab.reviewsDone += 1;
     if (onTime) lab.reviewsOnTime += 1;
-    let box = st.box;
+    lab.reviewLog.push({ date: now, onTime });
+    lab.reviewLog = lab.reviewLog.slice(-120);
+    let box;
     if (correct === results.length) box = Math.min(5, st.box + 1);
-    else if (correct * 2 >= results.length) box = Math.max(1, st.box);
+    else if (correct * 2 >= results.length) box = Math.max(1, st.box - 1);
     else box = 1;
     if (correct < results.length) st.lapses = (st.lapses || 0) + 1;
     st.box = box;
-    st.due = now + INTERVALS[box] * DAY;
+    st.due = addDays(now, INTERVALS[box]);
     st.reviews = (st.reviews || 0) + 1;
     st.legacy = false;
     st.wrong = results.filter((r) => !r.correct).map((r) => r.q).concat((st.wrong || []).filter((q) => !results.some((r) => r.q === q)));
@@ -194,17 +238,17 @@
       .sort((a, b) => lab.cards[a.id].due - lab.cards[b.id].due);
   }
 
-  // Ripassi in arrivo nei prossimi giorni: [{ day, count }].
+  // Ripassi in arrivo nei prossimi giorni: [{ day, count }] (oggi include gli arretrati).
   function upcoming(lab, cards, days = 7, now = Date.now()) {
     const out = [];
     for (let i = 0; i < days; i += 1) {
-      const start = i === 0 ? 0 : endOfDay(now + (i - 1) * DAY) + 1;
-      const end = endOfDay(now + i * DAY);
+      const start = i === 0 ? -Infinity : addDays(now, i);
+      const end = addDays(now, i + 1) - 1;
       const count = cards.filter((c) => {
         const st = lab.cards[c.id];
         return st && st.box >= 1 && st.due >= start && st.due <= end;
       }).length;
-      out.push({ day: dayKey(now + i * DAY), count });
+      out.push({ day: dayKey(addDays(now, i)), count });
     }
     return out;
   }
@@ -219,9 +263,14 @@
    */
   function profile(lab, cards, now = Date.now()) {
     const st = lab.stats;
-    const overdue = cards.filter((c) => {
+    const today = addDays(now, 0);
+    const overdueWeek = cards.filter((c) => {
       const s = lab.cards[c.id];
-      return s && s.box >= 1 && s.due < now - 7 * DAY;
+      return s && s.box >= 1 && s.due < addDays(now, -7);
+    }).length;
+    const overdueLate = cards.filter((c) => {
+      const s = lab.cards[c.id];
+      return s && s.box >= 1 && s.due < addDays(today, -2);
     }).length;
     const weights = { 1: 1, 2: 1.4, 3: 1.8 };
     let have = 0;
@@ -231,20 +280,25 @@
       const w = weights[c.level] || 1;
       max += w;
       const box = cardState(lab, c.id).box || 0;
-      have += w * (box >= 3 ? 1 : box === 2 ? 0.5 : box === 1 ? 0.2 : 0);
-      if (box >= 2) areas.add(c.area);
+      // credito pieno solo dopo almeno un ripasso riuscito (scatola 3)
+      have += w * (box >= 3 ? 1 : box === 2 ? 0.25 : box === 1 ? 0.1 : 0);
+      if (box >= 3) areas.add(c.area);
     });
     const frac = max ? have / max : 0;
     const areaCount = Object.keys(AREAS).length;
-    const recent = lab.days.filter((d) => d >= dayKey(now - 13 * DAY)).length;
-    const onTime = (lab.reviewsOnTime + 0.35 * 4) / (lab.reviewsDone + 4);
+    const since = addDays(now, -13);
+    const recentDays = lab.days.filter((d) => d >= dayKey(since)).length;
+    const recentReviews = lab.reviewLog.filter((r) => r.date >= since);
+    const onTimeRecent = recentReviews.filter((r) => r.onTime).length;
+    // i ripassi saltati da piu' di due giorni contano come "in ritardo"
+    const onTime = (onTimeRecent + 0.35 * 4) / (recentReviews.length + overdueLate + 4);
     const values = {
       comprensione: 100 * smoothed(st.comprensione),
-      memoria: 100 * smoothed(st.review) - Math.min(20, overdue * 2),
+      memoria: 100 * smoothed(st.review) - Math.min(20, overdueWeek * 2),
       collegamenti: 100 * smoothed(st.collegamento),
       applicazione: 100 * smoothed(st.applicazione),
       ampiezza: 20 + 55 * Math.pow(frac, 0.7) + 24 * (areas.size / areaCount),
-      costanza: 15 + 45 * onTime + 3 * recent
+      costanza: 15 + 45 * onTime + 3 * recentDays
     };
     Object.keys(values).forEach((k) => {
       values[k] = Math.round(clamp(values[k], 10, 99));
@@ -289,8 +343,11 @@
     TYPE_LABELS,
     DIMENSIONS,
     dayKey,
+    addDays,
     ensureLab,
     cardState,
+    isStudied,
+    recordAnswer,
     recordStudy,
     pickReviewQuestions,
     recordReview,
