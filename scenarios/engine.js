@@ -77,8 +77,47 @@
     return t ? t.split(/\s+/).length : 0;
   }
 
-  function countTerms(text, terms) {
-    return terms.reduce((n, term) => n + (text.includes(term) ? 1 : 0), 0);
+  // Testo "a parole": minuscolo, senza accenti, solo lettere e numeri separati
+  // da uno spazio, con uno spazio anche all'inizio e alla fine.
+  function clean(text) {
+    return ` ${normalize(text).replace(/[^a-z0-9€%]+/g, " ").trim()} `;
+  }
+
+  // Cerca un termine all'inizio di una parola: "propon" trova "propongo".
+  // I termini corti (fino a 4 lettere) devono essere parole intere.
+  function hasTerm(cleanText, term) {
+    const t = clean(term).trim();
+    if (!t) return false;
+    return t.length <= 4 ? cleanText.includes(` ${t} `) : cleanText.includes(` ${t}`);
+  }
+
+  function countTerms(cleanText, terms) {
+    return terms.reduce((n, term) => n + (hasTerm(cleanText, term) ? 1 : 0), 0);
+  }
+
+  const NEGATIONS = ["non", "senza", "mai", "evito", "evitare", "niente", "nessun", "nessuna"];
+
+  // Come countTerms, ma ignora i termini negati poco prima ("non urlo", "senza umiliare").
+  function countUnnegated(cleanText, terms) {
+    const words = cleanText.trim().split(" ");
+    let count = 0;
+    terms.forEach((term) => {
+      const t = clean(term).trim().split(" ");
+      if (!t[0]) return;
+      for (let i = 0; i <= words.length - t.length; i += 1) {
+        const match = t.every((part, j) => {
+          const w = words[i + j] || "";
+          return part.length > 4 ? w.startsWith(part) : w === part;
+        });
+        if (!match) continue;
+        const before = words.slice(Math.max(0, i - 3), i);
+        if (!before.some((w) => NEGATIONS.includes(w))) {
+          count += 1;
+          return;
+        }
+      }
+    });
+    return count;
   }
 
   // Mescola (Fisher-Yates) con un generatore opzionale, per i test.
@@ -94,20 +133,31 @@
   /* ------------------------------------------------------- frase scritta */
 
   const SIGNALS = {
-    accuse: ["tu sei", "sei sempre", "sei un ", "sei una ", "colpa tua", "non capisci", "fai sempre", "non fai mai", "ridicol", "stupid", "idiot", "vergognati", "incapace", "sei il solito", "sei la solita"],
     threat: ["te la faccio pagare", "ti rovino", "ti denuncio", "vedrai che", "te ne pentirai", "ti distruggo", "ti faccio licenziare", "lo dico a tutti"],
-    hedge: ["scusa", "scusami", "forse", "magari", "non so se", "se non ti dispiace", "mi dispiace disturbare", "un attimo solo", "piccola cosa", "se possibile eh"],
-    self: [" io ", "per me", "ho notato", "mi serve", "preferisco", "propongo", "vorrei", "mi aspetto", "ci tengo", "ho bisogno", "la mia ", "il mio "],
-    request: [" puoi ", "potresti", "ti chiedo", "vi chiedo", "propongo", " entro ", "domani", "lunedi", "martedi", "mercoledi", "giovedi", "venerdi", " alle ", "facciamo", "fissiamo", "ci sentiamo", "ti mando", "ti invio", "possiamo"],
-    empathy: ["capisco", "immagino", "ha senso", "comprendo", "grazie", "apprezzo", "mi rendo conto", "comprensibile", " so che"]
+    hedge: ["scusa", "forse", "magari", "non so se", "se non ti dispiace", "mi dispiace disturbare", "un attimo solo", "piccola cosa"],
+    self: ["io", "per me", "ho notato", "mi serve", "preferisco", "propongo", "vorrei", "mi aspetto", "ci tengo", "ho bisogno", "la mia", "il mio"],
+    request: ["puoi", "potresti", "ti chiedo", "vi chiedo", "propongo", "entro", "domani", "lunedi", "martedi", "mercoledi", "giovedi", "venerdi", "alle", "facciamo", "fissiamo", "ci sentiamo", "ti mando", "ti invio", "possiamo"],
+    empathy: ["capisco", "immagino", "ha senso", "comprendo", "grazie", "apprezzo", "mi rendo conto", "comprensibile", "so che"]
   };
 
+  // Accuse: giudizi sulla persona, non sul comportamento.
+  const ACCUSE = [
+    / sei (sempre |proprio |davvero |solo )?(un |una |il |la |lo )?(solito|solita|incapace|idiota|stupid\w*|egoist\w*|bugiard\w*|irresponsabil\w*|maleducat\w*|arrogant\w*|inutil\w*|ridicol\w*|scorrett\w*|pigr\w*|falso|falsa) /,
+    / colpa tua /,
+    / non capisci (niente|mai|nulla) /,
+    / fai sempre /,
+    / non fai mai /,
+    / vergognati /,
+    / (idiota|stupido|stupida|imbecille|cretino|cretina|deficiente) /
+  ];
+
   function readSignals(text) {
-    const t = ` ${normalize(text)} `;
+    const t = clean(text);
     const found = {};
     Object.entries(SIGNALS).forEach(([key, terms]) => {
       found[key] = countTerms(t, terms);
     });
+    found.accuse = ACCUSE.reduce((n, re) => n + (re.test(t) ? 1 : 0), 0);
     found.question = /\?/.test(String(text || "")) ? 1 : 0;
     found.numbers = /\d/.test(String(text || "")) ? 1 : 0;
     return found;
@@ -119,12 +169,12 @@
    */
   function evalPhrase(text, keys = []) {
     const words = wordCount(text);
-    const t = ` ${normalize(text)} `;
+    const t = clean(text);
     if (words === 0) return { score: 0, words, hits: [], misses: keys.map((k) => k.label), signals: {}, notes: [], effects: {}, empty: true };
     const hits = [];
     const misses = [];
     keys.forEach((key) => {
-      const ok = key.terms.some((term) => t.includes(normalize(term)));
+      const ok = key.terms.some((term) => hasTerm(t, term));
       (ok ? hits : misses).push(key.label);
     });
     const s = readSignals(text);
@@ -144,7 +194,7 @@
 
     const notes = [];
     if (s.threat) notes.push({ tone: "bad", text: "C'è una minaccia: anche se ti dà forza adesso, ti toglie credibilità e alza lo scontro." });
-    if (s.accuse) notes.push({ tone: "bad", text: "Togli le accuse (\"tu sei…\", \"fai sempre…\"): descrivi il comportamento e cosa chiedi." });
+    if (s.accuse) notes.push({ tone: "bad", text: "Togli i giudizi sulla persona (\"sei un…\", \"fai sempre…\"): descrivi il comportamento e cosa chiedi." });
     misses.forEach((label) => notes.push({ tone: "miss", text: `Manca: ${label.toLowerCase()}.` }));
     if (s.hedge >= 2) notes.push({ tone: "miss", text: "Troppe attenuazioni (\"scusa\", \"forse\", \"magari\"): ne basta una, o nessuna." });
     if (!s.request && !s.numbers && !s.question) notes.push({ tone: "miss", text: "Chiudi con un passo concreto: una richiesta, un orario, una proposta." });
@@ -229,6 +279,8 @@
     if (!p.completed || typeof p.completed !== "object") p.completed = {};
     if (typeof p.pp !== "number") p.pp = 0;
     if (typeof p.freeCount !== "number") p.freeCount = 0;
+    if (!p.started || typeof p.started !== "object") p.started = {};
+    if (!p.freeDone || typeof p.freeDone !== "object") p.freeDone = {};
     return p;
   }
 
@@ -263,20 +315,35 @@
     return applied;
   }
 
+  // Segna un esame come iniziato alla prima mossa: se lo abbandoni e lo rifai,
+  // conta come ripetizione (hai gia' visto le conseguenze delle mosse).
+  function markStarted(profile, id, date = new Date().toISOString()) {
+    const p = ensureProfile(profile);
+    if (!p.started[id] && !p.completed[id]) p.started[id] = date;
+  }
+
   /*
    * Registra un esame completato. Restituisce { changes, pp, replay, result }.
+   * Ripetizioni: peso 1/4, poi sempre meno; se non migliori il tuo record
+   * contano solo i cali (niente punti "gratis" rifacendo lo stesso esame).
    */
-  function recordExam(profile, scenario, choices, phrase, { date = new Date().toISOString() } = {}) {
+  function recordExam(profile, scenario, choices, phrase, { date = new Date().toISOString(), replay: forced = false } = {}) {
     const p = ensureProfile(profile);
     const prev = p.completed[scenario.id];
-    const replay = Boolean(prev);
+    const replay = Boolean(prev) || Boolean(forced);
     const result = scoreExam(scenario, choices, phrase);
-    const weight = replay ? REPLAY_WEIGHT : 1;
-    const changes = applyChanges(p, scaleEffects(result.effects, { difficulty: scenario.difficulty, weight }));
+    const attempts = prev ? prev.attempts : forced ? 1 : 0;
+    const weight = replay ? REPLAY_WEIGHT / Math.max(1, attempts) : 1;
+    let scaled = scaleEffects(result.effects, { difficulty: scenario.difficulty, weight });
+    if (replay && (!prev || result.score <= prev.best)) {
+      scaled = Object.fromEntries(Object.entries(scaled).filter(([, v]) => v < 0));
+    }
+    const changes = applyChanges(p, scaled);
     const pp = privatePoints(scenario, result.score, replay);
     p.pp += pp;
+    delete p.started[scenario.id];
     p.completed[scenario.id] = {
-      attempts: (prev ? prev.attempts : 0) + 1,
+      attempts: attempts + 1,
       best: Math.max(prev ? prev.best : 0, result.score),
       grade: prev && prev.best > result.score ? prev.grade : result.grade,
       first: prev ? prev.first : result.score,
@@ -304,44 +371,46 @@
   /* ----------------------------------------------------- risposta libera */
 
   const FREE_MARKERS = {
-    observe: ["osservo", "noto", " vedo", "sembra", "potrebbe", "non so", "verific", "chiedo", "fatti", "segnal", "capire se", "prima di", "contesto", " tono", " chi "],
-    hypothesis: ["forse", "potrebbe", "magari", "ipotesi", "non e' detto", "o forse", "oppure"],
-    planB: [" se ", "nel caso", "altrimenti", "se continua", "se insiste", "se non", " dopo", "a quel punto", "in quel caso"],
+    observe: ["osservo", "noto", "vedo", "sembra", "potrebbe", "non so", "verific", "chiedo", "fatti", "segnal", "capire se", "prima di", "contesto", "tono", "chi"],
+    hypothesis: ["forse", "potrebbe", "magari", "ipotesi", "non e detto", "o forse", "oppure"],
+    planB: ["se", "nel caso", "altrimenti", "se continua", "se insiste", "se non", "dopo", "a quel punto", "in quel caso"],
     planAction: ["parlo con", "ne parlo", "chiudo", "mi allontano", "segnal", "per iscritto", "riepilogo", "coinvolgo", "rimando", "fisso", "chiedo aiuto", "lascio", "interrompo", "documento", "salvo"],
     calm: ["calma", "respiro", "aspetto", "non reagisco", "a freddo", "in privato", "a parte", "con ordine"]
   };
 
-  const DIRTY = ["ricatt", "bugia", " mento ", "umili", "minacc", "vendetta", "manipolo", "sputtan", "lo dico a tutti", "insult", "urlo", "picchio", "spingo", "colpisco"];
+  const DIRTY = ["ricatt", "bugia", "mento", "umili", "minacc", "vendetta", "manipolo", "sputtan", "lo dico a tutti", "insult", "urlo", "picchio", "spingo", "colpisco"];
 
   /*
    * answers: { observe, say, planB }; scenario: { ideal: [], traps: [] }
    * Valuta le tre parti e restituisce punteggi, consigli ed effetti (gia' pesati).
    */
   function evalFree(answers, scenario) {
-    const obs = normalize(answers.observe);
-    const plan = normalize(answers.planB);
-    const all = normalize(`${answers.observe} ${answers.say} ${answers.planB}`);
-    const ideal = (scenario.ideal || []).map(normalize);
-    const traps = (scenario.traps || []).map(normalize).concat(DIRTY);
-    const dirty = countTerms(` ${all} `, traps);
-    const idealHits = ideal.filter((term) => all.includes(term));
+    const obs = clean(answers.observe);
+    const plan = clean(answers.planB);
+    const all = clean(`${answers.observe} ${answers.say} ${answers.planB}`);
+    // le reazioni sporche contano solo in cio' che dici o fai (non in cio' che osservi negli altri)
+    const own = clean(`${answers.say} ${answers.planB}`);
+    const ideal = scenario.ideal || [];
+    const traps = (scenario.traps || []).concat(DIRTY);
+    const dirty = countUnnegated(own, traps);
+    const idealHits = ideal.filter((term) => hasTerm(all, term));
 
     const obsWords = wordCount(answers.observe);
-    let observe = obsWords ? 25 + Math.min(30, obsWords * 1.2) + countTerms(` ${obs} `, FREE_MARKERS.observe) * 7 + (countTerms(` ${obs} `, FREE_MARKERS.hypothesis) ? 8 : 0) : 0;
+    let observe = obsWords ? 25 + Math.min(30, obsWords * 1.2) + countTerms(obs, FREE_MARKERS.observe) * 7 + (countTerms(obs, FREE_MARKERS.hypothesis) ? 8 : 0) : 0;
     observe = Math.round(clamp(observe, 0, 100));
 
     // la frase: segnali di comunicazione + elementi chiave della scena
     const say = evalPhrase(answers.say, []);
-    const sayText = normalize(answers.say);
-    const sayIdeal = ideal.filter((term) => sayText.includes(term)).length;
+    const sayText = clean(answers.say);
+    const sayIdeal = ideal.filter((term) => hasTerm(sayText, term)).length;
     if (!say.empty) say.score = Math.round(clamp(say.score + Math.min(24, sayIdeal * 8), 0, 100));
 
     const planWords = wordCount(answers.planB);
-    let planB = planWords ? 20 + Math.min(25, planWords * 1.2) + (countTerms(` ${plan} `, FREE_MARKERS.planB) ? 18 : 0) + Math.min(3, countTerms(` ${plan} `, FREE_MARKERS.planAction)) * 10 : 0;
+    let planB = planWords ? 20 + Math.min(25, planWords * 1.2) + (countTerms(plan, FREE_MARKERS.planB) ? 18 : 0) + Math.min(3, countTerms(plan, FREE_MARKERS.planAction)) * 10 : 0;
     planB = Math.round(clamp(planB, 0, 100));
 
     const ethics = Math.round(clamp(90 - dirty * 25, 0, 100));
-    const calm = countTerms(` ${all} `, FREE_MARKERS.calm);
+    const calm = countTerms(all, FREE_MARKERS.calm);
     const control = Math.round(clamp(55 + calm * 10 - dirty * 15 - (say.signals.accuse || 0) * 10, 0, 100));
     const parts = { observe, say: say.score, planB, ethics, control };
     const score = Math.round(observe * 0.25 + say.score * 0.35 + planB * 0.25 + ethics * 0.1 + control * 0.05);
@@ -371,9 +440,13 @@
     return { score, grade: gradeFor(score), parts, notes, say, raw, idealHits };
   }
 
+  // La stessa situazione rifatta pesa un quarto (si conosce gia' il modello).
   function recordFree(profile, scenario, evaluation, { date = new Date().toISOString() } = {}) {
     const p = ensureProfile(profile);
-    const changes = applyChanges(p, scaleEffects(evaluation.raw, { difficulty: scenario.difficulty || 2, weight: FREE_WEIGHT }));
+    const seen = p.freeDone[scenario.id] || 0;
+    const weight = FREE_WEIGHT * (seen ? REPLAY_WEIGHT : 1);
+    const changes = applyChanges(p, scaleEffects(evaluation.raw, { difficulty: scenario.difficulty || 2, weight }));
+    p.freeDone[scenario.id] = seen + 1;
     p.freeCount += 1;
     p.history.unshift({ kind: "free", id: scenario.id, title: scenario.title, category: scenario.category || "libera", difficulty: scenario.difficulty || 2, score: evaluation.score, grade: evaluation.grade, changes, date });
     p.history = p.history.slice(0, 60);
@@ -386,8 +459,8 @@
   function classFor(profile, scenarios = []) {
     const p = ensureProfile(profile);
     const score = total(p);
-    const done = Object.keys(p.completed);
     const byId = new Map(scenarios.map((s) => [s.id, s]));
+    const done = Object.keys(p.completed).filter((id) => !scenarios.length || byId.has(id));
     const hard = done.filter((id) => (byId.get(id) || {}).difficulty >= 4).length;
     const cats = new Set(done.map((id) => (byId.get(id) || {}).category).filter(Boolean));
     const allCats = Object.keys(CATEGORIES).every((c) => cats.has(c));
@@ -462,6 +535,9 @@
     normalize,
     wordCount,
     shuffle,
+    clean,
+    hasTerm,
+    countUnnegated,
     readSignals,
     evalPhrase,
     gradeFor,
@@ -471,6 +547,7 @@
     total,
     scaleEffects,
     applyChanges,
+    markStarted,
     recordExam,
     evalFree,
     recordFree,

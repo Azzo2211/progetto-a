@@ -16,13 +16,14 @@ const EXAMS = globalThis.ScenarioExams;
 const FREE = globalThis.ScenarioFree;
 
 let passed = 0;
+const failed = [];
 function test(name, fn) {
   try {
     fn();
     passed += 1;
   } catch (error) {
-    console.error(`FALLITO: ${name}`);
-    throw error;
+    failed.push(name);
+    console.error(`FALLITO: ${name}\n  ${error.message}`);
   }
 }
 
@@ -186,4 +187,51 @@ test("Risposta libera: dati validi, valutazione sensata", () => {
   assert.strictEqual(p.freeCount, 1);
 });
 
-console.log(`Tutti i test superati (${passed}).`);
+test("Frase: niente falsi allarmi su frasi normali", () => {
+  const s1 = E.readSignals("Tu sei un amico vero, scusami se insisto.");
+  assert.strictEqual(s1.accuse, 0, "'tu sei un amico' non e' un'accusa");
+  assert.strictEqual(s1.hedge, 1, "'scusami' conta una volta");
+  assert.ok(E.readSignals("Io, sinceramente, preferisco così.").self >= 1, "'Io,' con la virgola");
+  assert.ok(E.readSignals("Sei il solito egoista, colpa tua.").accuse >= 2);
+});
+
+test("Risposta libera: le negazioni non sono leve sporche", () => {
+  const sc = FREE.find((s) => s.traps.includes("accetto")) || FREE[0];
+  const r = E.evalFree({
+    observe: "Mi chiede di dire una bugia e di umiliare un collega: noto la pressione.",
+    say: "Non accetto e non mento: preferisco dirti chiaramente di no.",
+    planB: "Se insiste non urlo e non lo umilio: chiudo la conversazione e ne parlo con il responsabile."
+  }, sc);
+  assert.ok(r.parts.ethics >= 85, `etica ${r.parts.ethics}`);
+  assert.ok(!r.raw.etica || r.raw.etica > 0, "nessuna penalita' di etica");
+});
+
+test("Ripetizioni: rifare lo stesso esame non gonfia il profilo", () => {
+  const s = EXAMS[0];
+  const p = E.ensureProfile(null);
+  const phrase = E.evalPhrase(s.phrase.model, s.phrase.keys);
+  E.recordExam(p, s, bestChoices(s), phrase);
+  const after = E.total(p);
+  for (let i = 0; i < 30; i += 1) E.recordExam(p, s, bestChoices(s), phrase);
+  assert.strictEqual(E.total(p), after, "senza migliorare il record le ripetizioni non aggiungono");
+  // abbandonato e rifatto: conta come ripetizione (niente punti privati)
+  const q = E.ensureProfile(null);
+  E.markStarted(q, s.id);
+  const res = E.recordExam(q, s, bestChoices(s), phrase, { replay: Boolean(q.started[s.id]) });
+  assert.ok(res.replay && res.pp === 0);
+  assert.ok(!q.started[s.id], "il segno di inizio si toglie a fine esame");
+  // risposta libera ripetuta sulla stessa situazione: pesa meno
+  const f = FREE[0];
+  const answer = { observe: "Noto che chi guida la scena è una persona sola. Potrebbe voler testare la mia reazione.", say: "Ho notato le battute: ora basta, se vuoi parlarne facciamolo seriamente a parte.", planB: "Se continua, ne parlo in privato con lui e poi con chi organizza." };
+  const z = E.ensureProfile(null);
+  const g1 = Object.values(E.recordFree(z, f, E.evalFree(answer, f)).changes).reduce((a, b) => a + Math.abs(b), 0);
+  const g2 = Object.values(E.recordFree(z, f, E.evalFree(answer, f)).changes).reduce((a, b) => a + Math.abs(b), 0);
+  assert.ok(g2 < g1, `seconda volta ${g2} contro ${g1}`);
+});
+
+if (failed.length) {
+  console.error(`${failed.length} test falliti, ${passed} superati.`);
+  process.exitCode = 1;
+} else {
+  console.log(`Tutti i test superati (${passed}).`);
+}

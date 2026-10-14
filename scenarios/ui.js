@@ -167,7 +167,7 @@
     const rec = E.recommend(p, EXAMS);
     const cats = ["all", ...Object.keys(E.CATEGORIES)];
     const list = EXAMS.filter((s) => (ui.filterCat === "all" || s.category === ui.filterCat) && (ui.filterDiff === "all" || (ui.filterDiff === "base" ? s.difficulty <= 2 : ui.filterDiff === "mid" ? s.difficulty === 3 : s.difficulty >= 4)));
-    const done = Object.keys(p.completed).length;
+    const done = EXAMS.filter((s) => p.completed[s.id]).length;
     box.innerHTML = `
       ${rec.scenario ? `
       <article class="scen-hero">
@@ -209,6 +209,8 @@
   function startExam(id) {
     const scenario = EXAMS.find((s) => s.id === id);
     if (!scenario) return;
+    const p = profile();
+    ui.confirmLeave = false;
     ui.session = {
       scenario,
       step: "brief",
@@ -218,12 +220,19 @@
       picked: null,
       phrase: null,
       phraseText: "",
+      phraseError: false,
       record: null,
-      replay: Boolean(profile().completed[scenario.id])
+      // gia' completato, oppure iniziato e abbandonato: conta come ripetizione
+      replay: Boolean(p.completed[scenario.id] || p.started[scenario.id])
     };
-    ui.tab = "exams";
-    render();
+    ui.stepAt = Date.now();
+    setTab("exams");
     scrollTop();
+  }
+
+  function inProgress() {
+    const s = ui.session;
+    return Boolean(s && (s.step === "round" || s.step === "phrase") && s.choices.length > 0);
   }
 
   function scrollTop() {
@@ -254,7 +263,9 @@
     box.innerHTML = `
       <div class="scen-exam">
         <div class="scen-exam-bar">
-          <button type="button" class="ghost-action small" data-act="leave">Tutti gli esami</button>
+          ${ui.confirmLeave
+            ? `<span class="scen-leave-confirm">Uscire? L'esame resta incompleto e rifarlo conterà come ripetizione. <button type="button" class="ghost-action small" data-act="leave-yes">Esci</button> <button type="button" class="primary-action small" data-act="leave-no">Continua l'esame</button></span>`
+            : `<button type="button" class="ghost-action small" data-act="leave">Tutti gli esami</button>`}
           <span class="scen-exam-meta">${esc(catLabel(sc.category))} · ${esc(E.DIFFICULTY_LABELS[sc.difficulty])} ${pips(sc.difficulty)}${s.replay ? ` · <span class="scen-replay">ripetizione</span>` : ""}</span>
         </div>
         ${progressHtml(s)}
@@ -295,7 +306,11 @@
     const sc = s.scenario;
     const round = sc.rounds[s.round];
     const prev = s.choices[s.round - 1];
-    const escalated = s.round > 0 && prev && (prev.quality === "weak" || prev.quality === "bad") && round.escalation;
+    const prevOption = prev ? sc.rounds[s.round - 1].options[prev.index] : null;
+    // l'opzione scelta prima puo' avere un suo testo di peggioramento ("" = nessuno)
+    const escalated = s.round > 0 && prevOption
+      ? (typeof prevOption.escalation === "string" ? prevOption.escalation : (prev.quality === "weak" || prev.quality === "bad") ? round.escalation : "")
+      : "";
     const picked = s.picked;
     const letters = ["A", "B", "C", "D"];
     const options = s.order[s.round].map((index, pos) => {
@@ -314,7 +329,7 @@
       const last = s.round === sc.rounds.length - 1;
       const phraseNext = sc.phrase && sc.phrase.round === s.round;
       reveal = `
-        <div class="scen-reveal q-${o.quality}">
+        <div class="scen-reveal q-${o.quality}" role="status" aria-live="polite">
           <span class="scen-quality q-${o.quality}">${esc(q.label)}</span>
           <p class="scen-outcome">${prose(o.outcome)}</p>
           <p class="scen-why">${prose(o.why)}</p>
@@ -324,7 +339,7 @@
     return `
       <article class="scen-round">
         <span class="scen-kicker">Round ${s.round + 1} di ${sc.rounds.length}</span>
-        ${escalated ? `<p class="scen-escalation">${prose(round.escalation)}</p>` : ""}
+        ${escalated ? `<p class="scen-escalation">${prose(escalated)}</p>` : ""}
         <p class="scen-story">${prose(round.text)}</p>
         <h3 class="scen-prompt">${esc(round.prompt)}</h3>
         <div class="scen-options" role="group" aria-label="Scegli una mossa">${options}</div>
@@ -339,8 +354,9 @@
     return `
       <article class="scen-phrase">
         <span class="scen-kicker">La tua frase</span>
-        <h3 class="scen-prompt">${esc(ph.prompt)}</h3>
-        <textarea id="scenPhraseInput" rows="5" placeholder="Scrivi esattamente le parole che useresti." ${r ? "readonly" : "data-autofocus"}>${esc(s.phraseText)}</textarea>
+        <h3 class="scen-prompt" id="scenPhrasePrompt">${esc(ph.prompt)}</h3>
+        <textarea id="scenPhraseInput" rows="5" aria-labelledby="scenPhrasePrompt" placeholder="Scrivi esattamente le parole che useresti." ${r ? "readonly" : "data-autofocus"}>${esc(s.phraseText)}</textarea>
+        ${s.phraseError && !r ? `<p class="scen-error" role="alert">Scrivi la frase prima di valutarla, oppure usa "Salta".</p>` : ""}
         ${r ? `
           <div class="scen-phrase-result">
             <div class="scen-score-ring" style="--v:${r.score}"><strong>${r.score}</strong><span>/100</span></div>
@@ -358,7 +374,8 @@
 
   function finishExam() {
     const s = ui.session;
-    const record = E.recordExam(profile(), s.scenario, s.choices, s.phrase);
+    if (!s || s.record) return;
+    const record = E.recordExam(profile(), s.scenario, s.choices, s.phrase, { replay: s.replay });
     s.record = record;
     s.step = "debrief";
     save();
@@ -443,6 +460,11 @@
     if (!option) return;
     s.picked = { index };
     s.choices[s.round] = { round: s.round, index, quality: option.quality, effects: option.effects, text: option.text };
+    if (s.round === 0 && !s.replay) {
+      E.markStarted(profile(), s.scenario.id);
+      if (typeof saveState === "function") saveState();
+    }
+    ui.stepAt = Date.now();
     renderExam();
   }
 
@@ -473,6 +495,7 @@
         finishExam();
       }
     }
+    ui.stepAt = Date.now();
     renderExam();
     scrollTop();
   }
@@ -482,12 +505,18 @@
     if (!s) return;
     const input = $("scenPhraseInput");
     const text = input ? input.value : "";
-    if (skip || !text.trim()) {
+    if (skip) {
       s.phrase = null;
       s.phraseText = "";
       next();
       return;
     }
+    if (!text.trim()) {
+      s.phraseError = true;
+      renderExam();
+      return;
+    }
+    s.phraseError = false;
     s.phraseText = text;
     s.phrase = E.evalPhrase(text, s.scenario.phrase.keys);
     renderExam();
@@ -496,20 +525,27 @@
   /* ---------------------------------------------------- risposta libera */
 
   function pickFree(id) {
-    const pool = FREE.length ? FREE : [];
+    const pool = FREE;
+    if (!pool.length) {
+      ui.free = null;
+      return;
+    }
     let scenario = pool.find((s) => s.id === id);
     if (!scenario) {
       const others = pool.filter((s) => !ui.free || s.id !== ui.free.scenario.id);
       scenario = others[Math.floor(Math.random() * others.length)] || pool[0];
     }
-    ui.free = scenario ? { scenario, result: null, answers: { observe: "", say: "", planB: "" }, showModel: false } : null;
+    ui.free = scenario ? { scenario, result: null, answers: { observe: "", say: "", planB: "" }, showModel: false, recorded: null } : null;
     renderFree();
   }
 
   function renderFree() {
     const box = $("scenPanel-free");
     if (!box) return;
-    if (!ui.free) pickFree();
+    if (!ui.free && FREE.length) {
+      pickFree();
+      return;
+    }
     const f = ui.free;
     if (!f) {
       box.innerHTML = `<p class="scen-empty">Nessuno scenario disponibile.</p>`;
@@ -554,7 +590,7 @@
               <p><strong>Voto ${r.grade}</strong> · lettura ${r.parts.observe} · frase ${r.parts.say} · piano B ${r.parts.planB} · etica ${r.parts.ethics}</p>
               ${r.notes.filter((n) => n.part === "ethics").map((n) => `<p class="scen-notes-inline n-bad">${esc(n.text)}</p>`).join("")}
               <div class="scen-chips">${changeChips(r.changes)}</div>
-              <p class="scen-small">La risposta libera pesa meno sul profilo degli esami: la valutazione del testo è automatica e meno precisa delle scelte.</p>
+              <p class="scen-small">${r.again ? "Profilo già aggiornato con la prima valutazione: puoi migliorare il testo e rivalutarlo, ma conta solo la prima." : "La risposta libera pesa meno sul profilo degli esami: la valutazione del testo è automatica e meno precisa delle scelte."}</p>
             </div>
           </div>` : ""}
         </article>
@@ -587,11 +623,16 @@
       return;
     }
     const result = E.evalFree(f.answers, f.scenario);
-    const { changes } = E.recordFree(profile(), f.scenario, result);
-    f.result = { ...result, changes };
-    save();
+    // il profilo si aggiorna una volta sola per scenario caricato: le valutazioni
+    // successive mostrano il nuovo voto ma non spostano piu' le categorie
+    if (!f.recorded) {
+      f.recorded = E.recordFree(profile(), f.scenario, result).changes;
+      save();
+      renderClassChip();
+    }
+    f.result = { ...result, changes: f.recorded, again: f.result !== null || f.evaluated };
+    f.evaluated = true;
     renderFree();
-    renderClassChip();
   }
 
   /* -------------------------------------------------------------- profilo */
@@ -668,11 +709,14 @@
   }
 
   window.renderScenarioProfile = function renderScenarioProfile() {
+    if (!E || !$("scenarios")) return;
     renderClassChip();
     if (ui.tab === "profile") renderProfile();
   };
 
-  window.scenarioProfileSkills = profileSkills;
+  window.scenarioProfileSkills = function () {
+    return E ? profileSkills() : [];
+  };
 
   /* ---------------------------------------------------------- eventi */
 
@@ -684,6 +728,8 @@
       return;
     }
     const act = el.dataset.act;
+    // dopo un cambio di schermata ignora per un attimo i clic (doppio clic/tap)
+    if (["start", "next-rec", "next", "begin", "leave", "leave-yes"].includes(act) && Date.now() - (ui.stepAt || 0) < 300) return;
     if (act === "start") startExam(el.dataset.id);
     else if (act === "cat") {
       ui.filterCat = el.dataset.cat;
@@ -692,13 +738,28 @@
       ui.filterDiff = el.dataset.diff;
       renderHome();
     } else if (act === "begin" || act === "next") next();
-    else if (act === "pick") pick(Number(el.dataset.index));
+    else if (act === "pick") {
+      // un doppio clic su "Continua" non deve scegliere nel round successivo
+      if (event.detail > 1 || Date.now() - (ui.stepAt || 0) < 350) return;
+      pick(Number(el.dataset.index));
+    }
     else if (act === "phrase") evaluatePhrase(false);
     else if (act === "skip-phrase") evaluatePhrase(true);
     else if (act === "leave") {
+      if (inProgress()) {
+        ui.confirmLeave = true;
+        renderExam();
+        return;
+      }
       ui.session = null;
-      if (ui.tab !== "exams") setTab("exams");
-      else render();
+      setTab("exams");
+    } else if (act === "leave-yes") {
+      ui.confirmLeave = false;
+      ui.session = null;
+      setTab("exams");
+    } else if (act === "leave-no") {
+      ui.confirmLeave = false;
+      renderExam();
     } else if (act === "next-rec") {
       const rec = E.recommend(profile(), EXAMS);
       if (rec.scenario) startExam(rec.scenario.id);
@@ -716,6 +777,8 @@
   function onKey(event) {
     const s = ui.session;
     if (!s || s.step !== "round" || s.picked || ui.tab !== "exams") return;
+    if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing || event.repeat) return;
+    if (Date.now() - (ui.stepAt || 0) < 250) return;
     if (event.target && /input|textarea|select/i.test(event.target.tagName)) return;
     const page = $("scenarios");
     if (!page || !page.classList.contains("active-page")) return;
@@ -732,6 +795,12 @@
     page.addEventListener("click", onClick);
     page.addEventListener("change", (event) => {
       if (event.target.id === "scenFreeSelect") pickFree(event.target.value);
+    });
+    // il testo scritto resta anche cambiando scheda
+    page.addEventListener("input", (event) => {
+      const id = event.target.id || "";
+      if (id.startsWith("scenFree-") && ui.free) ui.free.answers[id.slice(9)] = event.target.value;
+      else if (id === "scenPhraseInput" && ui.session && !ui.session.phrase) ui.session.phraseText = event.target.value;
     });
     document.addEventListener("keydown", onKey);
     setTab("exams");
