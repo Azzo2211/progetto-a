@@ -14,6 +14,7 @@ const R = require(path.join(root, "chess", "rating.js"));
 const L = require(path.join(root, "chess", "lessons.js"));
 const Coach = require(path.join(root, "chess", "coach.js"));
 const Board = require(path.join(root, "chess", "board-view.js"));
+const Skills = require(path.join(root, "chess", "skills.js"));
 const puzzleData = require(path.join(root, "chess", "puzzles.json"));
 
 let passed = 0;
@@ -125,6 +126,25 @@ test("Ogni lezione ha teoria, punti chiave e mosse legali", () => {
   });
 });
 
+test("Posizioni delle lezioni legali (chi non muove non e' sotto scacco)", () => {
+  const legal = (fen) => {
+    const parts = fen.split(" ");
+    parts[1] = parts[1] === "w" ? "b" : "w";
+    parts[3] = "-";
+    let flipped;
+    try {
+      flipped = new Chess(parts.join(" "));
+    } catch (error) {
+      return true;
+    }
+    return !flipped.isCheck();
+  };
+  L.LESSONS.forEach((lesson) => {
+    if (lesson.example) assert.ok(legal(lesson.example.fen), `${lesson.id}: esempio`);
+    (lesson.exercises || []).forEach((ex, i) => assert.ok(legal(ex.fen), `${lesson.id}: esercizio ${i + 1}`));
+  });
+});
+
 test("Ogni lezione ha abbastanza esercizi nel database", () => {
   const puzzles = puzzleData.puzzles.map(L.parsePuzzleLine);
   L.LESSONS.filter((lesson) => lesson.practice).forEach((lesson) => {
@@ -178,6 +198,64 @@ test("Scacchiera: conversione posizioni", () => {
   assert.deepStrictEqual(fromArray, { a8: "r", e8: "k", e1: "K", h1: "R" });
   assert.deepStrictEqual(Board.squareToXY("c5"), { file: 2, rank: 4 });
   assert.strictEqual(Board.xyToSquare(7, 0), "h1");
+});
+
+/* --------------------------------------------------- profilo categorie */
+
+function fakeMove(i, side, quality, extra = {}) {
+  return { side, moveNumber: Math.floor(i / 2) + 1, san: "e4", quality, engineAnalysis: { ok: true }, winBefore: 50, winBest: 55, winSecond: 52, categories: [], timeSeconds: 10, ...extra };
+}
+
+test("Profilo: ogni errore ha la sua categoria", () => {
+  const moves = [
+    fakeMove(0, "Bianco", "blunder", { categories: ["hangingPiece"] }),
+    fakeMove(1, "Nero", "best"),
+    fakeMove(2, "Bianco", "mistake", { categories: ["missedThreat"] }),
+    fakeMove(3, "Nero", "blunder"),
+    fakeMove(4, "Bianco", "great", { winBest: 70, winSecond: 40 }),
+    fakeMove(5, "Nero", "good"),
+    fakeMove(6, "Bianco", "mistake", { categories: ["concentration"], timeSeconds: 2 })
+  ];
+  const events = Skills.gameEvents(moves, { color: "w", result: "loss", reason: "checkmate" });
+  const sum = (key) => events.filter((e) => e.category === key).reduce((t, e) => t + e.points, 0);
+  assert.ok(sum("concentration") < -8, "blunder + pezzo in presa");
+  assert.ok(events.some((e) => e.category === "threatVision" && e.points < 0), "minaccia non vista");
+  assert.ok(events.some((e) => e.category === "threatVision" && e.points > 0), "errore del bot punito");
+  assert.ok(events.some((e) => e.category === "calculation" && e.points > 0), "mossa grande");
+  assert.ok(events.some((e) => e.category === "impulseControl" && e.points < 0), "mossa impulsiva");
+  assert.ok(events.some((e) => e.category === "kingSafety" && e.label.includes("matto")), "matto subito");
+});
+
+test("Profilo: il totale e' la media e i punti dipendono dall'avversario", () => {
+  const base = Skills.createSkills();
+  assert.strictEqual(Skills.total(base), Skills.START_VALUE);
+  const good = [{ category: "calculation", points: 6, label: "x", moveNumber: 1 }];
+  const weakBot = Skills.applyGame(base, good, { botElo: 250 }).changes.calculation;
+  const strongBot = Skills.applyGame(base, good, { botElo: 1400 }).changes.calculation;
+  assert.ok(strongBot > weakBot && weakBot > 0, `${weakBot} ${strongBot}`);
+  const bad = [{ category: "concentration", points: -6, label: "x", moveNumber: 1 }];
+  const loseWeak = Skills.applyGame(base, bad, { botElo: 250 }).changes.concentration;
+  const loseStrong = Skills.applyGame(base, bad, { botElo: 1400 }).changes.concentration;
+  assert.ok(loseWeak < loseStrong && loseStrong < 0, `${loseWeak} ${loseStrong}`);
+  const many = Array(20).fill({ category: "strategy", points: 5, label: "x", moveNumber: 1 });
+  assert.ok(Skills.applyGame(base, many, { botElo: 3000 }).changes.strategy <= 12, "massimo 12 punti a partita");
+  const after = Skills.applyGame(base, good, { botElo: 1400 }).skills;
+  const avg = Math.round(Skills.CATEGORIES.reduce((t, c) => t + after[c.key], 0) / 6);
+  assert.strictEqual(Skills.total(after), avg);
+});
+
+test("Profilo: i vecchi valori casuali vengono azzerati", () => {
+  const old = { games: 3, concentration: 91, calculation: 86 };
+  const fresh = Skills.ensureSkills(old);
+  assert.strictEqual(fresh.concentration, Skills.START_VALUE);
+  assert.strictEqual(fresh.version, Skills.VERSION);
+});
+
+test("Profilo: fasce coerenti con i gradi", () => {
+  [[600, 45], [1000, 60], [1400, 70], [1800, 80], [2200, 90]].forEach(([elo, score]) => {
+    assert.strictEqual(Math.round(Skills.scoreForElo(elo)), score);
+    assert.strictEqual(Math.round(Skills.eloForScore(score)), elo);
+  });
 });
 
 console.log(`Tutti i test superati (${passed}).`);

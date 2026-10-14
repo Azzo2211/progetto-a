@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Metodo Integrale</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f7a6d'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-size='28' font-weight='700' text-anchor='middle' fill='%23ffffff'%3EMI%3C/text%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="styles.css?v=20261014-4" />
-    <link rel="stylesheet" href="chess/board-view.css?v=20261014-4" />
-    <link rel="stylesheet" href="chess/chess-ui.css?v=20261014-4" />
+    <link rel="stylesheet" href="styles.css?v=20261014-5" />
+    <link rel="stylesheet" href="chess/board-view.css?v=20261014-5" />
+    <link rel="stylesheet" href="chess/chess-ui.css?v=20261014-5" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
@@ -282,19 +282,24 @@
                 </div>
 
                 <section class="bot-picker" id="botPicker" aria-label="Scegli l'avversario">
-                  <div class="bot-picker-head">
-                    <div>
+                  <div class="bot-head">
+                    <div class="bot-portrait" id="botPortrait" aria-hidden="true">
+                      <img id="botPortraitImg" alt="">
+                      <span class="bot-portrait-grade" id="botPickGrade">E</span>
+                    </div>
+                    <div class="bot-head-copy">
                       <span class="section-kicker">Avversario</span>
                       <strong class="bot-picker-name" id="botPickName">Bot</strong>
+                      <span class="bot-picker-elo-line"><b id="botPickElo">400</b> Elo</span>
                       <span class="bot-picker-desc" id="botPickDesc"></span>
                     </div>
-                    <div class="bot-picker-elo">
-                      <button class="icon-button" id="botPrevBtn" type="button" aria-label="Bot piu' debole"><svg viewBox="0 0 24 24"><use href="#i-minus"/></svg></button>
-                      <span><strong id="botPickElo">400</strong><small>Elo</small></span>
+                    <div class="bot-stepper">
                       <button class="icon-button" id="botNextBtn" type="button" aria-label="Bot piu' forte"><svg viewBox="0 0 24 24"><use href="#i-plus"/></svg></button>
+                      <button class="icon-button" id="botPrevBtn" type="button" aria-label="Bot piu' debole"><svg viewBox="0 0 24 24"><use href="#i-minus"/></svg></button>
                     </div>
                   </div>
-                  <div class="bot-ladder" id="botLadder"></div>
+                  <div class="bot-board" id="botLadder" role="group" aria-label="Livelli dei bot: dal basso (piu' deboli) all'alto (piu' forti)"></div>
+                  <div class="bot-board-legend" id="botLegend"></div>
                   <p class="bot-picker-stats" id="botLevelText"></p>
                   <button class="primary-action wide-action" id="applyBotLevelBtn" type="button">Nuova partita</button>
                 </section>
@@ -747,16 +752,17 @@
     <script src="chess/engine.js?v=20261014"></script>
     <script src="chess/bot.js?v=20261014"></script>
     <script src="chess/review.js?v=20261014"></script>
-    <script src="chess/board-view.js?v=20261014-4"></script>
-    <script src="chess/rating.js?v=20261014-4"></script>
-    <script src="chess/lessons.js?v=20261014-4"></script>
-    <script src="chess/coach.js?v=20261014-4"></script>
-    <script src="chess/trainer.js?v=20261014-4"></script>
-    <script src="app.js?v=20261014-4"></script>
-    <script src="chess/chess-ui.js?v=20261014-4"></script>
-    <script src="chess/learn-ui.js?v=20261014-4"></script>
-    <script src="chess/grade-ui.js?v=20261014-4"></script>
-    <script src="cote-theme.js?v=20261014-4"></script>
+    <script src="chess/board-view.js?v=20261014-5"></script>
+    <script src="chess/rating.js?v=20261014-5"></script>
+    <script src="chess/skills.js?v=20261014-5"></script>
+    <script src="chess/lessons.js?v=20261014-5"></script>
+    <script src="chess/coach.js?v=20261014-5"></script>
+    <script src="chess/trainer.js?v=20261014-5"></script>
+    <script src="app.js?v=20261014-5"></script>
+    <script src="chess/chess-ui.js?v=20261014-5"></script>
+    <script src="chess/learn-ui.js?v=20261014-5"></script>
+    <script src="chess/grade-ui.js?v=20261014-5"></script>
+    <script src="cote-theme.js?v=20261014-5"></script>
     <script src="scenario-theme.js?v=20261014"></script>
   </body>
 </html>

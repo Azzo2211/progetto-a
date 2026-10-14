@@ -1192,6 +1192,10 @@ function renderAllModuleStatus() {
 }
 
 function renderModuleStatus(moduleKey) {
+  if (moduleKey === "chess" && window.renderChessProfile) {
+    renderChessProfile();
+    return;
+  }
   const skills = getModuleSkills(moduleKey);
   const score = getModuleScore(moduleKey);
   const radar = document.getElementById(`${moduleKey}ModuleRadar`);
@@ -1255,21 +1259,8 @@ function getModuleSkills(moduleKey) {
   const social = state.socialScores;
 
   const profiles = {
-    chess: state.chess.skills && state.chess.skills.games ? [
-      ["Concentrazione", state.chess.skills.concentration],
-      ["Calcolo", state.chess.skills.calculation],
-      ["Strategia", state.chess.skills.strategy],
-      ["Visione minacce", state.chess.skills.threatVision],
-      ["Sicurezza re", state.chess.skills.kingSafety],
-      ["Controllo impulso", state.chess.skills.impulseControl]
-    ] : [
-      ["Concentrazione", metric("lucidita") - patternCount("concentration") * 3],
-      ["Calcolo", metric("ragionamento") - patternCount("calculation") * 3],
-      ["Strategia", (metric("adattamento") + metric("ragionamento")) / 2],
-      ["Visione minacce", metric("rischio") - patternCount("hangingPiece") * 3],
-      ["Sicurezza re", metric("rischio") - patternCount("kingSafety") * 3],
-      ["Controllo impulso", metric("controllo") - patternCount("concentration") * 3]
-    ],
+    // Scacchi: categorie aggiornate dagli eventi di ogni partita (chess/skills.js).
+    chess: window.ChessSkills ? ChessSkills.CATEGORIES.map((category) => [category.label, ChessSkills.ensureSkills(state.chess.skills)[category.key]]) : [],
     scenarios: [
       ["Lettura contesto", social.context],
       ["Controllo emotivo", metric("controllo")],
@@ -1344,10 +1335,7 @@ function getModuleSkills(moduleKey) {
 }
 
 function getModuleScore(moduleKey) {
-  // Scacchi: il punteggio segue il grado certificato e l'Elo stimato (dati reali).
-  if (moduleKey === "chess" && window.ChessRating && window.chessCertifiedGrade && window.chessEstimatedElo) {
-    return ChessRating.moduleScore(chessCertifiedGrade(), chessEstimatedElo().elo);
-  }
+  // Il totale e' sempre la media delle categorie mostrate (anche per gli scacchi).
   const skills = getModuleSkills(moduleKey);
   return Math.round(averageArray(skills.map((skill) => skill.value)));
 }
@@ -2743,48 +2731,27 @@ function updateChessProfileFromReview(analysis, moves) {
   }
   if (window.addMistakesToBank) addMistakesToBank(moves, currentGame.id);
 
-  if (playerMoves.length >= 5) {
-    const gameSkills = computeChessGameSkills(analysis, playerMoves);
-    const previous = state.chess.skills || { games: 0 };
-    const weight = Math.min(1, playerMoves.length / 20);
-    const alpha = previous.games ? 0.35 * weight : 1;
-    const next = { games: (previous.games || 0) + 1 };
-    Object.entries(gameSkills).forEach(([key, value]) => {
-      const old = typeof previous[key] === "number" ? previous[key] : value;
-      next[key] = Math.round(old + (value - old) * alpha);
-    });
-    state.chess.skills = next;
+  // Profilo a categorie: ogni errore e ogni mossa buona ha una categoria.
+  if (playerMoves.length >= 5 && window.ChessSkills) {
+    const events = ChessSkills.gameEvents(moves, { color: "w", result: analysis.result, reason: currentGame.endReason });
+    const weight = currentGame.rated ? 1 : currentGame.assisted ? 0.5 : 0.7;
+    const applied = ChessSkills.applyGame(state.chess.skills, events, { botElo: analysis.botElo, weight, date: currentGame.date });
+    state.chess.skills = applied.skills;
+    currentGame.skillChanges = applied.changes;
+    state.chess.skillGames = (state.chess.skillGames || []).concat([{
+      gameId: currentGame.id,
+      date: currentGame.date,
+      botElo: analysis.botElo,
+      result: analysis.result,
+      rated: Boolean(currentGame.rated),
+      events: events.filter((event) => event.moveNumber !== null).map((event) => ({ category: event.category, points: event.points, label: event.label, moveNumber: event.moveNumber }))
+    }]).slice(-20);
   }
   saveState();
   renderDashboard();
   renderBotLevel();
   if (window.renderChessGradeChip) renderChessGradeChip();
   if (window.renderChessMentor) renderChessMentor();
-}
-
-// Valori dell'esagono scacchi per una singola partita (0-100).
-function computeChessGameSkills(analysis, playerMoves) {
-  const per40 = 40 / Math.max(playerMoves.length, 10);
-  const count = (pattern) => playerMoves.filter((move) => (move.categories || []).includes(pattern)).length * per40;
-  const quality = (key) => playerMoves.filter((move) => move.quality === key).length * per40;
-  const meanAccuracy = (list) => {
-    const values = list.map((move) => move.accuracyScore).filter((value) => typeof value === "number");
-    return values.length >= 3 ? values.reduce((sum, value) => sum + value, 0) / values.length : acc;
-  };
-  const open = playerMoves.filter((move) => move.winBefore >= 10 && move.winBefore <= 90);
-  const sharp = open.filter((move) => typeof move.winSecond === "number" && move.winBest - move.winSecond >= 8);
-  const quiet = open.filter((move) => !sharp.includes(move));
-  const competitive = competitiveAccuracy(playerMoves);
-  const acc = competitive !== null ? competitive : analysis.accuracy;
-  const skill = (value) => Math.round(clamp(value, 10, 99));
-  return {
-    concentration: skill(acc - 6 * count("hangingPiece") - 3 * quality("blunder")),
-    calculation: skill(meanAccuracy(sharp) - 5 * count("calculation")),
-    strategy: skill(meanAccuracy(quiet) - 4 * (count("noPlan") + count("development"))),
-    threatVision: skill(acc - 6 * count("missedThreat") - 4 * quality("missed")),
-    kingSafety: skill(0.5 * acc + 0.5 * (100 - 15 * count("kingSafety"))),
-    impulseControl: skill(acc - 8 * count("concentration"))
-  };
 }
 
 function setReviewProgress(message) {
@@ -2837,7 +2804,7 @@ function renderMoveReview(fromFinish = false, analysis = null) {
     return;
   }
   if (window.chessCoachBlocking && window.chessCoachBlocking()) return;
-  const gameAnalysis = analysis || buildGameAnalysis("partial");
+  const gameAnalysis = analysis || buildGameAnalysis(chessGameOver ? currentGame.result || "partial" : "partial", currentGame.endReason || null);
   renderGameReport(gameAnalysis);
   const statusMessage = getReviewStatusMessage(gameAnalysis.reviewStatus || currentGame.reviewStatus);
   const accuracyText = gameAnalysis.engineBased && typeof gameAnalysis.accuracy === "number" ? `${gameAnalysis.accuracy}%` : "--";
@@ -3354,6 +3321,15 @@ function renderChessCoachSummary(gameAnalysis) {
     actions.push({ label: "Vedi la mossa", onClick: () => { setChessTab("review"); selectReviewMove(currentGame.moves.indexOf(worst)); } });
   } else {
     parts.push("Nessun errore grave: continua cosi' e prova un bot piu' forte.");
+  }
+  if (currentGame.skillChanges && window.ChessSkills) {
+    const changed = ChessSkills.CATEGORIES
+      .map((category) => [category.label, currentGame.skillChanges[category.key] || 0])
+      .filter(([, delta]) => Math.abs(delta) >= 0.5)
+      .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+      .slice(0, 3)
+      .map(([label, delta]) => `${label} ${delta > 0 ? "+" : ""}${Math.round(delta)}`);
+    if (changed.length) parts.push(`Profilo: ${changed.join(", ")}.`);
   }
   if (window.coachSay) coachSay(parts.join(" "), actions);
   else box.textContent = parts.join(" ");

@@ -42,6 +42,46 @@
   const LESSONS = [
     /* ------------------------------------------------------------ grado D */
     {
+      id: "d-scacco",
+      grade: "D",
+      title: "Lo scacco: tre modi per pararlo",
+      summary: "Catturare, interporre o spostare il re.",
+      theory: [
+        "Quando il tuo re e' sotto scacco devi rispondere subito, e le risposte possibili sono solo tre: catturare il pezzo che da' scacco, mettere un pezzo in mezzo, spostare il re.",
+        "Conviene controllarle in quest'ordine. Catturare spesso vince materiale. Interporre va bene se il pezzo che metti in mezzo e' protetto. Spostare il re e' l'ultima scelta: scegli una casa sicura, lontana da altri scacchi.",
+        "Se lo scacco e' doppio (due pezzi danno scacco insieme) non puoi ne' catturare ne' interporre: l'unica risposta e' muovere il re."
+      ],
+      keyPoints: [
+        "Cattura, interponi, sposta il re: in quest'ordine",
+        "Il pezzo che interponi deve essere protetto",
+        "Scacco doppio: si muove solo il re"
+      ],
+      example: {
+        fen: "4k3/8/8/8/8/8/4q3/4K2R w K - 0 1",
+        steps: [
+          { text: "La donna nera in e2 da' scacco. Non e' protetta da nessuno: il re la puo' catturare.", marks: { e2: "bad" } },
+          { move: "e1e2", text: "Rxe2: la risposta migliore a uno scacco e' spesso catturare il pezzo che lo da'." }
+        ]
+      },
+      exercises: [
+        {
+          fen: "6k1/5ppp/8/8/1b6/8/5PPP/1N2K3 w - - 0 1",
+          prompt: "L'alfiere nero da' scacco. Paralo mettendo un pezzo in mezzo, protetto dal re.",
+          solution: ["b1d2"],
+          accept: ["b1d2"],
+          explanation: "Cd2: il cavallo blocca la diagonale ed e' protetto dal re."
+        },
+        {
+          fen: "4r1k1/8/8/8/1b6/8/5PPP/4K3 w - - 0 1",
+          prompt: "Scacco doppio di torre e alfiere. Qual e' l'unica risposta possibile?",
+          solution: ["e1d1"],
+          accept: ["e1d1", "e1f1"],
+          tolerance: 15,
+          explanation: "Con lo scacco doppio si puo' solo spostare il re: Rd1 o Rf1 sono le uniche case sicure (Rd1 e' un po' meglio)."
+        }
+      ]
+    },
+    {
       id: "d-pezzi-in-presa",
       grade: "D",
       title: "Pezzi in presa e valore dei pezzi",
@@ -163,6 +203,114 @@
       },
       exercises: [],
       practice: { themes: ["mateIn2"], min: 400, max: 900, count: 6, pass: 4 }
+    },
+
+    {
+      id: "d-scambi",
+      grade: "D",
+      title: "Gli scambi: quando conviene",
+      summary: "Conta attaccanti e difensori prima di catturare.",
+      theory: [
+        "Uno scambio e' una serie di catture sulla stessa casa. Prima di iniziarlo conta: quanti tuoi pezzi attaccano la casa e quanti pezzi avversari la difendono.",
+        "Se gli attaccanti sono di piu', alla fine l'ultimo a catturare sei tu. Ma conta anche il valore: inizia sempre con il pezzo che vale meno, cosi' se l'avversario riprende perdi poco.",
+        "Regola pratica: quando sei in vantaggio di materiale, scambia i pezzi (il vantaggio pesa di piu' con meno pezzi). Quando sei in svantaggio, evita gli scambi e cerca complicazioni."
+      ],
+      keyPoints: [
+        "Attaccanti contro difensori sulla stessa casa",
+        "Cattura prima con il pezzo che vale meno",
+        "In vantaggio scambia, in svantaggio evita"
+      ],
+      example: {
+        fen: "3r2k1/5ppp/8/3n4/8/2N5/5PPP/3R2K1 w - - 0 1",
+        steps: [
+          { text: "Il cavallo nero in d5 e' attaccato da due pezzi (cavallo e torre) e difeso da uno solo (la torre in d8).", arrows: [{ from: "c3", to: "d5", color: "green" }, { from: "d1", to: "d5", color: "green" }, { from: "d8", to: "d5", color: "red" }] },
+          { move: "c3d5", text: "Cxd5: si comincia con il pezzo che vale meno." },
+          { move: "d8d5", text: "Se il Nero riprende con la torre..." },
+          { move: "d1d5", text: "Txd5: il Bianco ha l'ultima parola. Due attaccanti contro un difensore = pezzo guadagnato." }
+        ]
+      },
+      exercises: [],
+      practice: { themes: ["hangingPiece", "fork"], min: 500, max: 1200, count: 6, pass: 4 }
+    },
+    {
+      id: "d-matto-donna",
+      grade: "D",
+      title: "Matto con re e donna",
+      summary: "Spingi il re al bordo e attento allo stallo.",
+      theory: [
+        "Con re e donna contro re solo si vince sempre, ma bisogna sapere come. La donna chiude il re avversario in una zona sempre piu' piccola, restando a distanza di salto di cavallo dal re nemico.",
+        "Quando il re avversario e' sul bordo, porta il tuo re vicino: la donna da sola non basta per dare matto, serve il re che copre le case di fuga.",
+        "Attenzione allo stallo: se il re avversario non ha mosse e non e' sotto scacco, la partita e' patta. Prima di ogni mossa di donna chiediti: il suo re avra' ancora una mossa?"
+      ],
+      keyPoints: [
+        "Donna a salto di cavallo dal re nemico per chiuderlo",
+        "Re al bordo, poi avvicina il tuo re",
+        "Controlla sempre di non dare stallo"
+      ],
+      example: {
+        fen: "7k/8/6K1/8/8/8/8/5Q2 w - - 0 1",
+        steps: [
+          { text: "Il re nero e' nell'angolo. Attenzione: Df7?? sarebbe stallo, il re nero non avrebbe mosse.", marks: { f7: "bad" } },
+          { move: "f1f8", text: "Df8#: la donna da' scacco sull'ottava traversa, il re bianco copre g7 e h7. Scacco matto." }
+        ]
+      },
+      exercises: [
+        {
+          fen: "6k1/8/6K1/8/8/8/8/Q7 w - - 0 1",
+          prompt: "Il tuo re copre le case davanti al re nero. Da' matto con la donna.",
+          solution: ["a1a8"],
+          explanation: "Da8#: la donna controlla l'ottava traversa, il re bianco copre f7, g7 e h7."
+        },
+        {
+          fen: "7k/8/4Q1K1/8/8/8/8/8 w - - 0 1",
+          prompt: "Matto in una mossa, ma attento a non dare stallo.",
+          solution: ["e6e8"],
+          explanation: "De8# (anche Dc8# va bene). Df7?? invece lascerebbe il re nero senza mosse e senza scacco: stallo, cioe' patta."
+        }
+      ],
+      practice: { themes: ["mateIn1"], min: 400, max: 900, count: 6, pass: 4 }
+    },
+    {
+      id: "d-matti-torri",
+      grade: "D",
+      title: "Matti con le torri",
+      summary: "La scala con due torri e il matto con re e torre.",
+      theory: [
+        "Con due torri si da' matto con la 'scala': una torre controlla una traversa, l'altra da' scacco sulla traversa successiva. A turno spingono il re fino al bordo.",
+        "Con re e torre contro re solo serve l'aiuto del re: la torre taglia il re avversario, il tuo re si mette di fronte (opposizione) e la torre da' scacco sul bordo.",
+        "In tutti questi finali ricorda: le torri vanno tenute lontane dal re avversario, cosi' non le puo' attaccare."
+      ],
+      keyPoints: [
+        "Due torri: una blocca, l'altra da' scacco",
+        "Re e torre: re di fronte al re, torre sul bordo",
+        "Torri lontane dal re nemico"
+      ],
+      example: {
+        fen: "8/8/3k4/R7/8/8/8/6KR w - - 0 1",
+        steps: [
+          { text: "La torre in a5 controlla la quinta traversa: il re nero non puo' scendere." },
+          { move: "h1h6", text: "Th6+: la seconda torre da' scacco sulla sesta traversa." },
+          { move: "d6e7", text: "Il re deve salire in settima." },
+          { move: "a5a7", text: "Ta7+: ora e' la prima torre a dare scacco, la seconda chiude la sesta." },
+          { move: "e7e8", text: "Il re arriva sul bordo." },
+          { move: "h6h8", text: "Th8#: la scala e' completa." }
+        ]
+      },
+      exercises: [
+        {
+          fen: "6k1/R7/8/8/8/8/8/1R4K1 w - - 0 1",
+          prompt: "Una torre controlla la settima traversa. Da' matto con l'altra.",
+          solution: ["b1b8"],
+          explanation: "Tb8#: la torre in a7 impedisce al re di scendere, quella in b8 da' scacco sul bordo."
+        },
+        {
+          fen: "6k1/8/6K1/8/8/8/8/R7 w - - 0 1",
+          prompt: "Il tuo re e' di fronte al re nero. Da' matto con la torre.",
+          solution: ["a1a8"],
+          explanation: "Ta8#: il re bianco copre f7, g7 e h7, la torre controlla tutta l'ottava traversa."
+        }
+      ],
+      practice: { themes: ["mateIn1"], min: 600, max: 1100, count: 6, pass: 4 }
     },
 
     /* ------------------------------------------------------------ grado C */
@@ -320,6 +468,153 @@
       ]
     },
 
+    {
+      id: "c-italiana",
+      grade: "C",
+      title: "Apertura: la Partita Italiana",
+      summary: "Un'apertura semplice e solida da giocare con il Bianco.",
+      theory: [
+        "La Partita Italiana nasce dopo 1.e4 e5 2.Cf3 Cc6 3.Ac4. L'alfiere punta su f7, la casa piu' debole del Nero all'inizio, e prepara l'arrocco veloce.",
+        "Il piano classico e' semplice: c3 e d3 (o d4) per costruire il centro, arrocco, torre in e1, poi il cavallo di b1 va in d2, f1 e g3 per partecipare all'attacco sul lato di re.",
+        "Non serve correre: nella Italiana lenta si vince con la posizione migliore dei pezzi. Evita di attaccare con la donna troppo presto."
+      ],
+      keyPoints: [
+        "1.e4 e5 2.Cf3 Cc6 3.Ac4: alfiere su f7",
+        "c3 e d3/d4, arrocco, Te1",
+        "Cavallo b1-d2-f1-g3 verso il re avversario"
+      ],
+      example: {
+        fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        steps: [
+          { text: "Vediamo le prime mosse della Partita Italiana lenta." },
+          { move: "e2e4", text: "1.e4: centro." },
+          { move: "e7e5", text: "1...e5." },
+          { move: "g1f3", text: "2.Cf3: attacca e5." },
+          { move: "b8c6", text: "2...Cc6: difende." },
+          { move: "f1c4", text: "3.Ac4: l'alfiere punta su f7." },
+          { move: "f8c5", text: "3...Ac5: il Nero fa lo stesso." },
+          { move: "c2c3", text: "4.c3: prepara d4 per prendere il centro." },
+          { move: "g8f6", text: "4...Cf6: sviluppo e attacco a e4." },
+          { move: "d2d3", text: "5.d3: difende e4, versione tranquilla." },
+          { move: "d7d6", text: "5...d6." },
+          { move: "e1g1", text: "6.O-O: re al sicuro." },
+          { move: "e8g8", text: "6...O-O." },
+          { move: "f1e1", text: "7.Te1: la torre sostiene il centro. Ora Cbd2-f1-g3 e il piano e' completo." }
+        ]
+      },
+      exercises: [
+        {
+          fen: "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4",
+          prompt: "Il Nero ha risposto con 3...Cf6 e attacca e4. Gioca una mossa sana.",
+          solution: ["d2d3"],
+          accept: ["d2d3", "b1c3", "d2d4", "e1g1"],
+          explanation: "d3 difende e4 con calma; anche Cc3, d4 o l'arrocco vanno bene. Cg5 sarebbe un attacco rischioso, non adatto per iniziare."
+        },
+        {
+          fen: "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/2P2N2/PP1P1PPP/RNBQK2R w KQkq - 1 5",
+          prompt: "Hai giocato c3: continua con il piano.",
+          solution: ["d2d4"],
+          accept: ["d2d4", "d2d3", "e1g1"],
+          explanation: "d4 e' il seguito naturale di c3 (centro); anche d3 o l'arrocco seguono il piano."
+        }
+      ]
+    },
+    {
+      id: "c-trappole",
+      grade: "C",
+      title: "Trappole d'apertura",
+      summary: "Il matto del barbiere e come difendersi.",
+      theory: [
+        "Molte partite tra principianti finiscono in poche mosse per lo stesso motivo: il punto f7 (f2 per il Bianco) e' difeso solo dal re all'inizio.",
+        "Il 'matto del barbiere' arriva con donna e alfiere che attaccano insieme f7. Per difendersi basta coprire f7 o bloccare l'attacco della donna: g6, De7 o Df6.",
+        "Se l'avversario esce presto con la donna, non spaventarti: sviluppa i pezzi attaccandola. Ogni volta che deve scappare tu guadagni tempo."
+      ],
+      keyPoints: [
+        "f7 e f2 sono i punti deboli all'inizio",
+        "Contro Dh5 + Ac4: g6, De7 o Df6",
+        "Attacca la donna uscita presto con i pezzi in sviluppo"
+      ],
+      example: {
+        fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        steps: [
+          { text: "Ecco come si prepara il matto del barbiere e come il Nero lo evita." },
+          { move: "e2e4", text: "1.e4." },
+          { move: "e7e5", text: "1...e5." },
+          { move: "f1c4", text: "2.Ac4: l'alfiere punta su f7." },
+          { move: "b8c6", text: "2...Cc6." },
+          { move: "d1h5", text: "3.Dh5: anche la donna attacca f7. Minaccia Dxf7 matto!", arrows: [{ from: "h5", to: "f7", color: "red" }, { from: "c4", to: "f7", color: "red" }] },
+          { move: "g7g6", text: "3...g6!: blocca la donna e la attacca." },
+          { move: "h5f3", text: "4.Df3: minaccia di nuovo f7." },
+          { move: "g8f6", text: "4...Cf6: difende e sviluppa. Il Nero sta bene e la donna bianca ha perso tempo." }
+        ]
+      },
+      exercises: [
+        {
+          fen: "r1bqkbnr/pppp1ppp/2n5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 3 3",
+          prompt: "Giochi con il Nero: la donna e l'alfiere minacciano matto in f7. Difenditi.",
+          solution: ["g7g6"],
+          accept: ["g7g6", "d8e7", "d8f6"],
+          explanation: "g6 blocca la donna e la attacca; anche De7 o Df6 difendono f7. Cf6?? invece perde subito: Dxf7#."
+        },
+        {
+          fen: "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+          prompt: "Il Nero ha attaccato la donna con 3...Cf6?? senza difendere f7. Punisci.",
+          solution: ["h5f7"],
+          explanation: "Dxf7#: la donna e' protetta dall'alfiere e il re non ha case libere."
+        }
+      ]
+    },
+    {
+      id: "c-forchette-avanzate",
+      grade: "C",
+      title: "Forchette di pedone e di donna",
+      summary: "Tutti i pezzi possono fare un attacco doppio.",
+      theory: [
+        "Non solo il cavallo: anche un pedone che avanza puo' attaccare due pezzi insieme, e un pedone vale meno di qualsiasi pezzo. La forchetta di pedone e' spesso decisiva.",
+        "La donna fa forchette in tutte le direzioni, ma attenzione: vale tanto, quindi la forchetta funziona solo se la casa su cui va non e' attaccata.",
+        "Per vedere le forchette guarda le coppie di pezzi avversari sulla stessa traversa, diagonale o a distanza di salto di cavallo, soprattutto se non sono difesi."
+      ],
+      keyPoints: [
+        "Il pedone fa forchette che costano poco",
+        "La donna: forchetta solo su una casa sicura",
+        "Cerca coppie di pezzi allineati o non difesi"
+      ],
+      example: {
+        fen: "4k3/8/2n1b3/8/3P4/8/8/4K3 w - - 0 1",
+        steps: [
+          { text: "Cavallo in c6 e alfiere in e6: c'e' una casa da cui un pedone li attacca entrambi.", marks: { d5: "hint" } },
+          { move: "d4d5", text: "d5!: il pedone attacca cavallo e alfiere. Il Nero ne salva uno solo.", arrows: [{ from: "d5", to: "c6", color: "red" }, { from: "d5", to: "e6", color: "red" }] }
+        ]
+      },
+      exercises: [
+        {
+          fen: "q3k3/8/8/1N6/8/8/PP6/4K3 w - - 0 1",
+          prompt: "Re in e8 e donna in a8: trova la forchetta.",
+          solution: ["b5c7"],
+          explanation: "Cc7+: scacco al re e attacco alla donna. Dopo la mossa del re prendi la donna."
+        }
+      ],
+      practice: { themes: ["fork"], min: 1000, max: 1600, count: 6, pass: 4 }
+    },
+    {
+      id: "c-deviazione",
+      grade: "C",
+      title: "Deviazione e difensore sovraccarico",
+      summary: "Togli di mezzo il pezzo che difende tutto.",
+      theory: [
+        "Un pezzo e' sovraccarico quando deve difendere due cose insieme. Se lo costringi a occuparsi di una, l'altra resta scoperta.",
+        "La deviazione e' la mossa (spesso un sacrificio o uno scacco) che allontana il difensore dalla casa importante. Funziona perche' l'avversario e' obbligato a rispondere.",
+        "Quando vedi un pezzo avversario che difende due cose, chiediti: posso attaccare una delle due in modo che sia costretto a muoversi?"
+      ],
+      keyPoints: [
+        "Un difensore, due compiti = sovraccarico",
+        "Devia il difensore con uno scacco o un sacrificio",
+        "Poi colpisci la cosa rimasta scoperta"
+      ],
+      exercises: [],
+      practice: { themes: ["sacrifice"], min: 1000, max: 1500, count: 6, pass: 4 }
+    },
+
     /* ------------------------------------------------------------ grado B */
     {
       id: "b-sacrifici",
@@ -435,6 +730,119 @@
       practice: { themes: ["trappedPiece", "pin"], min: 1300, max: 1900, count: 6, pass: 4 }
     },
 
+    {
+      id: "b-matti-tipici",
+      grade: "B",
+      title: "Matti tipici: affogato e corridoio",
+      summary: "Schemi di matto da riconoscere al volo.",
+      theory: [
+        "Molti matti si ripetono uguali. Conoscerli ti fa vedere la combinazione in un attimo. Il matto affogato: il re e' circondato dai suoi pezzi e un cavallo lo attacca senza che nessuno possa catturarlo.",
+        "Il 'matto di Philidor' unisce sacrificio e matto affogato: la donna si sacrifica in g8, la torre la cattura e chiude l'ultima casa del re, poi il cavallo da' matto in f7.",
+        "Il matto del corridoio funziona anche con piu' pezzi: se l'ultima traversa e' difesa una volta sola, un sacrificio sulla traversa elimina il difensore."
+      ],
+      keyPoints: [
+        "Affogato: re chiuso dai suoi pezzi + cavallo",
+        "Sacrificio in g8 per chiudere l'ultima casa",
+        "Corridoio: elimina l'unico difensore della traversa"
+      ],
+      example: {
+        fen: "r6k/6pp/7N/8/8/1Q6/8/6K1 w - - 0 1",
+        steps: [
+          { text: "Re nero in h8, pedoni in g7 e h7. La casa g8 e' coperta dal cavallo." },
+          { move: "b3g8", text: "Dg8+!!: sacrificio di donna. Il re non puo' prendere, la casa e' protetta dal cavallo.", arrows: [{ from: "h6", to: "g8", color: "green" }] },
+          { move: "a8g8", text: "Txg8 e' forzata: ora la torre chiude l'ultima casa del suo re." },
+          { move: "h6f7", text: "Cf7#: matto affogato." }
+        ]
+      },
+      exercises: [
+        {
+          fen: "6rk/6pp/8/6N1/8/8/8/6K1 w - - 0 1",
+          prompt: "Il re nero e' chiuso dai suoi pezzi. Trova il matto.",
+          solution: ["g5f7"],
+          explanation: "Cf7#: matto affogato. Torre e pedoni tolgono al re tutte le case."
+        }
+      ],
+      practice: { themes: ["mateIn2"], min: 1200, max: 1700, count: 6, pass: 4 }
+    },
+    {
+      id: "b-colonne",
+      grade: "B",
+      title: "Colonne aperte e torri in settima",
+      summary: "Dove mettere le torri nel mediogioco.",
+      theory: [
+        "Le torri hanno bisogno di colonne aperte (senza pedoni). Una torre su una colonna aperta controlla tutta la colonna e puo' entrare nel campo avversario.",
+        "La settima traversa (seconda per il Nero) e' il bersaglio: una torre li' attacca i pedoni dalla parte dove non sono protetti e chiude il re sul bordo.",
+        "Due torri sulla stessa colonna o in settima sono fortissime: si proteggono a vicenda e moltiplicano le minacce."
+      ],
+      keyPoints: [
+        "Torri sulle colonne aperte",
+        "La settima traversa e' il bersaglio",
+        "Torri raddoppiate si difendono a vicenda"
+      ],
+      example: {
+        fen: "2r3k1/1p3ppp/p7/8/8/P7/1P3PPP/3R1RK1 w - - 0 1",
+        steps: [
+          { text: "La colonna d e' aperta: nessun pedone la blocca." },
+          { move: "d1d7", text: "Td7: la torre entra in settima e attacca il pedone b7." },
+          { move: "c8b8", text: "Il Nero deve difendere b7." },
+          { move: "f1d1", text: "Tfd1: la seconda torre raddoppia sulla colonna aperta." },
+          { move: "g8f8", text: "Il Nero aspetta." },
+          { move: "d7d8", text: "Td8+: con due torri sulla colonna il Bianco forza gli scambi e resta piu' attivo." }
+        ]
+      },
+      exercises: [],
+      practice: { themes: ["endgame"], min: 1300, max: 1700, count: 6, pass: 4 }
+    },
+    {
+      id: "b-pedone-passato",
+      grade: "B",
+      title: "Il pedone passato",
+      summary: "Un pedone che nessuno puo' fermare.",
+      theory: [
+        "Un pedone e' passato quando nessun pedone avversario puo' fermarlo o catturarlo sulla sua strada verso la promozione. Nei finali vale quasi quanto un pezzo.",
+        "I pedoni passati vanno spinti, soprattutto quando il re avversario e' lontano. Un pedone passato 'esterno' (sul lato opposto) costringe il re avversario ad andare a fermarlo, lasciando liberi gli altri pedoni.",
+        "Per fermare un pedone passato avversario bloccalo con un pezzo, idealmente un cavallo, sulla casa davanti a lui."
+      ],
+      keyPoints: [
+        "I pedoni passati vanno spinti",
+        "Il passato esterno distrae il re avversario",
+        "Per fermarlo, blocca la casa davanti"
+      ],
+      example: {
+        fen: "8/8/5k2/7p/P7/5K1P/8/8 w - - 0 1",
+        steps: [
+          { text: "Il pedone a4 e' passato: nessun pedone nero puo' fermarlo. Il re nero e' lontano." },
+          { move: "a4a5", text: "a5: avanti subito." },
+          { move: "f6e6", text: "Il re nero corre verso il pedone." },
+          { move: "a5a6", text: "a6." },
+          { move: "e6d6", text: "Il re nero e' fuori dal quadrato del pedone." },
+          { move: "a6a7", text: "a7: non c'e' piu' modo di fermarlo." },
+          { move: "d6c7", text: "Troppo tardi." },
+          { move: "a7a8q", text: "a8=D: il pedone passato e' diventato donna." }
+        ]
+      },
+      exercises: [],
+      practice: { themes: ["endgame"], min: 1200, max: 1600, count: 6, pass: 4 }
+    },
+    {
+      id: "b-scoperte-avanzate",
+      grade: "B",
+      title: "Inchiodature e scoperte nel mediogioco",
+      summary: "Le linee nascoste dietro i pezzi.",
+      theory: [
+        "Nel mediogioco le inchiodature e gli attacchi di scoperta sono piu' nascosti: le linee sono piene di pezzi e una mossa puo' aprirne una all'improvviso.",
+        "Prima di muovere un pezzo che sta su una linea (colonna, traversa o diagonale) tra un tuo pezzo e uno avversario, chiediti cosa si apre. Vale anche al contrario: guarda cosa puo' aprire l'avversario.",
+        "Un pezzo inchiodato non difende davvero: se difende qualcosa, quella cosa e' piu' debole di quanto sembra."
+      ],
+      keyPoints: [
+        "Ogni mossa puo' aprire una linea",
+        "Il pezzo inchiodato non difende davvero",
+        "Controlla le linee di entrambi i colori"
+      ],
+      exercises: [],
+      practice: { themes: ["discoveredAttack", "pin"], min: 1400, max: 1900, count: 6, pass: 4 }
+    },
+
     /* ------------------------------------------------------------ grado A */
     {
       id: "a-finali-torre",
@@ -536,6 +944,72 @@
       practice: { themes: ["endgame"], min: 1800, max: 2200, count: 6, pass: 4 }
     },
 
+    {
+      id: "a-attacco-re",
+      grade: "A",
+      title: "Attacco al re arroccato",
+      summary: "Il sacrificio in h7 e quando funziona.",
+      theory: [
+        "Il re arroccato e' al sicuro solo finche' i pezzi che lo proteggono restano al loro posto. Senza il cavallo in f6 il punto h7 diventa debole.",
+        "Il 'regalo greco' (Axh7+) funziona quando ci sono tre condizioni: l'alfiere puo' prendere in h7, il cavallo puo' arrivare in g5, la donna puo' arrivare in h5. Se l'avversario puo' difendere facilmente g5 o h7, il sacrificio fallisce.",
+        "In ogni attacco conta i pezzi: se attacchi il re con piu' pezzi di quelli che lo difendono, di solito un sacrificio funziona. Se no, prima porta altri pezzi."
+      ],
+      keyPoints: [
+        "Senza cavallo in f6, h7 e' debole",
+        "Regalo greco: alfiere in h7, cavallo g5, donna h5",
+        "Attaccanti piu' dei difensori prima di sacrificare"
+      ],
+      example: {
+        fen: "rnbq1rk1/pppn1ppp/4p3/3pP3/1b1P4/2NB1N2/PPP2PPP/R1BQK2R w KQ - 4 7",
+        steps: [
+          { text: "Il cavallo nero e' stato cacciato da f6. L'alfiere in d3 punta su h7." },
+          { move: "d3h7", text: "Axh7+!: il regalo greco." },
+          { move: "g8h7", text: "Kxh7." },
+          { move: "f3g5", text: "Cg5+: il cavallo arriva con scacco." },
+          { move: "h7g8", text: "Il re torna in g8." },
+          { move: "d1h5", text: "Dh5: minaccia Dh7 matto. Il Nero deve dare materiale per difendersi.", arrows: [{ from: "h5", to: "h7", color: "red" }] }
+        ]
+      },
+      exercises: [],
+      practice: { themes: ["mateIn3", "sacrifice"], min: 1600, max: 2000, count: 6, pass: 4 }
+    },
+    {
+      id: "a-risorse-difensive",
+      grade: "A",
+      title: "Risorse difensive: stallo e scacco perpetuo",
+      summary: "Salvare partite che sembrano perse.",
+      theory: [
+        "Anche in posizioni perse esistono risorse: lo scacco perpetuo (dare scacco all'infinito) e lo stallo (rimanere senza mosse legali senza essere sotto scacco) portano alla patta.",
+        "Quando sei in svantaggio cerca di semplificare verso finali di patta conosciuti, attiva il re e crea problemi all'avversario con minacce concrete.",
+        "Quando sei in vantaggio, al contrario, controlla sempre che l'avversario non abbia scacchi perpetui o stalli a disposizione."
+      ],
+      keyPoints: [
+        "Scacco perpetuo e stallo = patta",
+        "In svantaggio crea problemi, non aspettare",
+        "In vantaggio controlla le risorse dell'avversario"
+      ],
+      exercises: [],
+      practice: { themes: ["defensiveMove"], min: 1600, max: 2100, count: 6, pass: 4 }
+    },
+    {
+      id: "a-finali-complessi",
+      grade: "A",
+      title: "Finali con piu' pezzi",
+      summary: "Attivita', pedoni passati e il re al centro.",
+      theory: [
+        "Nei finali con piu' pezzi il principio e' l'attivita': un pezzo attivo vale piu' di un pedone in piu' con pezzi passivi.",
+        "Crea pedoni passati dove sei in maggioranza, porta il re al centro e scambia i pezzi quando il finale che resta e' vinto.",
+        "Prima di ogni scambio immagina il finale che resta: e' vinto, patto o perso?"
+      ],
+      keyPoints: [
+        "Attivita' dei pezzi prima di tutto",
+        "Crea pedoni passati con la maggioranza",
+        "Prima di scambiare valuta il finale che resta"
+      ],
+      exercises: [],
+      practice: { themes: ["endgame"], min: 1900, max: 2300, count: 6, pass: 4 }
+    },
+
     /* ------------------------------------------------------------ grado S */
     {
       id: "s-matti-profondi",
@@ -604,6 +1078,57 @@
       ],
       exercises: [],
       practice: { themes: ["endgame"], min: 2200, max: 2600, count: 6, pass: 4 }
+    },
+    {
+      id: "s-scacchi-doppi",
+      grade: "S",
+      title: "Scacchi doppi e scoperte d'elite",
+      summary: "Le combinazioni con le linee nascoste.",
+      theory: [
+        "Allo scacco doppio non c'e' difesa se non muovere il re: per questo nelle combinazioni dei maestri prepara spesso il matto o la vincita di un pezzo.",
+        "Allenati a vedere le batterie (due pezzi a lunga gittata sulla stessa linea) e i pezzi che le coprono: quando il pezzo davanti si muove con minaccia, nasce l'attacco doppio."
+      ],
+      keyPoints: [
+        "Scacco doppio: solo il re puo' muoversi",
+        "Cerca le batterie nascoste",
+        "Il pezzo davanti deve muovere con una minaccia"
+      ],
+      exercises: [],
+      practice: { themes: ["doubleCheck", "discoveredAttack"], min: 2000, max: 2600, count: 6, pass: 4 }
+    },
+    {
+      id: "s-sacrifici-profondi",
+      grade: "S",
+      title: "Sacrifici profondi",
+      summary: "Dare materiale per l'iniziativa.",
+      theory: [
+        "I sacrifici dei giocatori di vertice non sempre portano a un matto immediato: a volte danno l'iniziativa, linee aperte o un re avversario senza difesa per molte mosse.",
+        "Per decidere se sacrificare calcola le varianti forzanti e valuta la posizione finale: quanti pezzi attaccano, quanti difendono, quanto tempo serve all'avversario per riorganizzarsi."
+      ],
+      keyPoints: [
+        "Sacrificio per iniziativa e linee",
+        "Calcola le varianti forzanti",
+        "Valuta la posizione finale, non solo il materiale"
+      ],
+      exercises: [],
+      practice: { themes: ["sacrifice"], min: 2400, max: 2600, count: 6, pass: 4 }
+    },
+    {
+      id: "s-matti-cinque",
+      grade: "S",
+      title: "Matti in cinque mosse",
+      summary: "Il calcolo piu' lungo.",
+      theory: [
+        "I matti in cinque richiedono di tenere a mente una posizione che cambia molto. Il metodo e' sempre lo stesso: mosse forzanti, tutte le risposte, posizione finale.",
+        "Quando ti perdi, torna alla posizione di partenza e ricalcola una variante sola fino in fondo invece di saltare da un'idea all'altra."
+      ],
+      keyPoints: [
+        "Solo mosse forzanti",
+        "Una variante alla volta, fino in fondo",
+        "Se ti perdi, riparti dalla posizione iniziale"
+      ],
+      exercises: [],
+      practice: { themes: ["mateIn5", "mateIn4"], min: 2200, max: 2600, count: 6, pass: 4 }
     }
   ];
 

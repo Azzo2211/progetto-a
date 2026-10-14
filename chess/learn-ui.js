@@ -188,7 +188,7 @@
       if (s) s.ratingRecorded = true;
       if (res.counted) ratingNote = ` Rating esercizi ${res.profile.puzzle.rating} (${res.change >= 0 ? "+" : ""}${res.change}).`;
     }
-    if (session && session.kind === "lesson") {
+    if (session) {
       // Un risultato per esercizio: il primo tentativo decide "risolto",
       // un nuovo tentativo puo' solo completare la linea.
       const previous = session.results[session.index];
@@ -216,10 +216,8 @@
 
   function go(next) {
     screen = next;
-    if (!["lesson", "puzzle", "game"].includes(next.name)) {
-      if (trainer) trainer.stop();
-      session = null;
-    }
+    if (trainer) trainer.stop();
+    session = null;
     render();
     if (window.renderBoard) renderBoard({ animate: false });
   }
@@ -237,6 +235,7 @@
     if (screen.name === "lesson") return renderLesson(root);
     if (screen.name === "puzzle") return renderPuzzleScreen(root);
     if (screen.name === "game") return renderGameScreen(root);
+    if (screen.name === "weakness") return renderWeakness(root);
     return renderHome(root);
   }
 
@@ -287,6 +286,7 @@
           <span>${bank.length ? `${(state.chess.mistakeBank || []).length} posizioni dove hai sbagliato` : "Analizza una partita: gli errori diventano esercizi"}</span>
         </button>
       </section>
+      ${weaknessSection()}
       ${bank.length ? `<section class="learn-mistakes" id="learnMistakes" hidden>
         ${bank.map((item, i) => `<button type="button" class="mistake-item" data-mistake="${(state.chess.mistakeBank || []).length - 1 - i}"><strong>${esc(item.title)}</strong><span>${esc(item.subtitle)}</span></button>`).join("")}
       </section>` : ""}
@@ -327,7 +327,181 @@
       const item = (state.chess.mistakeBank || [])[Number(b.dataset.mistake)];
       if (item) startGameExercise(item.exercise);
     }));
+    root.querySelectorAll("[data-weak]").forEach((b) => b.addEventListener("click", () => go({ name: "weakness", category: b.dataset.weak })));
     renderChrome();
+  }
+
+  /* -------------------------------------------------------- reparto errori */
+
+  // Categoria di una posizione sbagliata salvata (anche per quelle vecchie senza campo).
+  function bankCategory(item) {
+    if (item.category) return item.category;
+    const S = window.ChessSkills;
+    if (item.pattern && S && S.PATTERN_CATEGORY[item.pattern]) return S.PATTERN_CATEGORY[item.pattern];
+    const title = String(item.title || "").toLowerCase();
+    if (title.includes("mancata")) return "threatVision";
+    if (title.includes("blunder")) return "concentration";
+    return "calculation";
+  }
+
+  // Errori per categoria: partite analizzate di recente (registro eventi),
+  // oppure i pattern delle partite precedenti se non ci sono ancora eventi.
+  function weaknessStats() {
+    const S = window.ChessSkills;
+    const games = state.chess.skillGames || [];
+    const stats = Object.fromEntries(S.CATEGORIES.map((c) => [c.key, { errors: 0, labels: {}, recent: [], historic: 0 }]));
+    games.forEach((game) => {
+      (game.events || []).forEach((event) => {
+        if (event.points >= 0 || !stats[event.category]) return;
+        const entry = stats[event.category];
+        entry.errors += 1;
+        entry.labels[event.label] = (entry.labels[event.label] || 0) + 1;
+        entry.recent.push({ label: event.label, moveNumber: event.moveNumber, date: game.date, botElo: game.botElo });
+      });
+    });
+    Object.entries(state.mistakeCounts || {}).forEach(([pattern, count]) => {
+      const key = S.PATTERN_CATEGORY[pattern];
+      if (key && stats[key]) stats[key].historic += count;
+    });
+    return { stats, games: games.length };
+  }
+
+  function weaknessSection() {
+    const S = window.ChessSkills;
+    if (!S) return "";
+    const skills = S.ensureSkills(state.chess.skills);
+    const { stats, games } = weaknessStats();
+    const changes = skills.lastGame ? skills.lastGame.changes || {} : {};
+    const order = S.CATEGORIES.slice().sort((a, b) => (stats[b.key].errors + stats[b.key].historic * 0.3) - (stats[a.key].errors + stats[a.key].historic * 0.3) || skills[a.key] - skills[b.key]);
+    const worst = (stats[order[0].key].errors || stats[order[0].key].historic) ? order[0].key : null;
+    return `<section class="weak-dept">
+      <div class="weak-head">
+        <strong>Reparto errori</strong>
+        <span>${games ? `${games === 1 ? "Dalla tua ultima partita analizzata" : `Dalle tue ultime ${games} partite analizzate`}. Apri una categoria per allenarla.` : "Le 6 categorie del tuo profilo. Analizza le partite: qui vedrai cosa sbagli di piu'."}</span>
+      </div>
+      <div class="weak-grid">
+        ${order.map((c) => {
+          const st = stats[c.key];
+          const value = Math.round(skills[c.key]);
+          const change = changes[c.key] || 0;
+          const errorsText = st.errors ? `${st.errors} ${st.errors === 1 ? "errore recente" : "errori recenti"}` : st.historic ? `${st.historic} errori in passato` : "nessun errore registrato";
+          return `<button type="button" class="weak-card${c.key === worst ? " is-worst" : ""}" data-weak="${c.key}">
+            <span class="weak-name">${esc(c.label)}${c.key === worst ? `<em>da allenare</em>` : ""}</span>
+            <span class="weak-value"><b>${value}</b>${change ? `<i class="skill-change ${change > 0 ? "up" : "down"}">${change > 0 ? "+" : ""}${Math.round(change)}</i>` : ""}</span>
+            <span class="weak-errors">${errorsText}</span>
+            <span class="mini-track"><span class="mini-fill" style="width:${value}%"></span></span>
+          </button>`;
+        }).join("")}
+      </div>
+    </section>`;
+  }
+
+  function renderWeakness(root) {
+    const S = window.ChessSkills;
+    const category = S.BY_KEY[screen.category];
+    if (!category) return go({ name: "home" });
+    const skills = S.ensureSkills(state.chess.skills);
+    const { stats } = weaknessStats();
+    const st = stats[category.key];
+    const change = skills.lastGame && skills.lastGame.changes ? skills.lastGame.changes[category.key] || 0 : 0;
+    const labels = Object.entries(st.labels).sort((a, b) => b[1] - a[1]);
+    const bank = (state.chess.mistakeBank || []).map((item, index) => ({ item, index })).filter(({ item }) => bankCategory(item) === category.key).reverse();
+    const lessons = (category.lessons || []).map((id) => L.byId(id)).filter(Boolean);
+    const nextLesson = lessons.find((lesson) => !lessonProgress(lesson.id).completed);
+    const themes = category.themes.map((th) => L.THEME_LABELS[th]).filter(Boolean).join(", ");
+    root.innerHTML = `
+      <div class="lesson-top">
+        <button class="text-button" type="button" data-back>&larr; Lezioni</button>
+        <span class="grade-pill">Reparto errori</span>
+      </div>
+      <h2 class="lesson-title">${esc(category.label)}</h2>
+      <p class="learn-note">${esc(category.text)}</p>
+      <div class="puzzle-stats">
+        <div><span>Valore</span><strong>${Math.round(skills[category.key])}</strong><small>${change ? `${change > 0 ? "+" : ""}${Math.round(change)} nell'ultima partita` : "su 100"}</small></div>
+        <div><span>Errori recenti</span><strong>${st.errors}</strong><small>ultime partite analizzate</small></div>
+        <div><span>Posizioni tue</span><strong>${bank.length}</strong><small>da rigiocare</small></div>
+      </div>
+      <section class="weak-section">
+        <strong>Cosa sbagli</strong>
+        ${labels.length ? `<ul class="weak-list">${labels.map(([label, count]) => `<li><span>${esc(label)}</span><b>&times;${count}</b></li>`).join("")}</ul>
+          <p class="learn-note">Ultimi casi: ${[...new Map(st.recent.slice().reverse().map((r) => [`${r.date}-${r.moveNumber}`, r])).values()].slice(0, 4).map((r) => `mossa ${r.moveNumber} (bot ${r.botElo})`).join(", ")}.</p>`
+          : `<p class="learn-note">${st.historic ? `Nelle partite precedenti questo tipo di errore e' comparso ${st.historic} volte. Gioca e analizza una partita per vedere il dettaglio.` : "Nessun errore registrato in questa categoria. Continua cosi'."}</p>`}
+      </section>
+      ${bank.length ? `<section class="weak-section">
+        <strong>Le tue posizioni da rigiocare</strong>
+        <div class="learn-mistakes">${bank.slice(0, 8).map(({ item, index }) => `<button type="button" class="mistake-item" data-mistake="${index}"><strong>${esc(item.title)}</strong><span>${esc(item.subtitle)}</span></button>`).join("")}</div>
+      </section>` : ""}
+      <section class="weak-section">
+        <strong>Allenamento mirato</strong>
+        <p class="learn-note">6 esercizi sui temi di questa categoria (${esc(themes)}), scelti vicino al tuo rating esercizi.</p>
+        <section class="exercise-box">
+          <div class="exercise-dots" id="exerciseDots"></div>
+          <p class="trainer-feedback" id="trainerFeedback" data-tone="info"></p>
+          <div class="exercise-actions" id="exerciseActions"></div>
+        </section>
+      </section>
+      ${lessons.length ? `<section class="weak-section">
+        <strong>Lezioni per questa categoria</strong>
+        <div class="course-lessons">${lessons.map((lesson) => {
+          const p = lessonProgress(lesson.id);
+          return `<button type="button" class="lesson-card${p.completed ? " done" : ""}${nextLesson && lesson.id === nextLesson.id ? " is-next" : ""}" data-lesson="${lesson.id}">
+            <span class="lesson-status">${p.completed ? `<svg viewBox="0 0 24 24"><use href="#i-check"/></svg>` : ""}</span>
+            <strong>${esc(lesson.title)}</strong>
+            <span>Grado ${lesson.grade} · ${esc(lesson.summary)}</span>
+          </button>`;
+        }).join("")}</div>
+      </section>` : ""}`;
+    root.querySelector("[data-back]").addEventListener("click", () => go({ name: "home" }));
+    root.querySelectorAll("[data-lesson]").forEach((b) => b.addEventListener("click", () => openLesson(b.dataset.lesson)));
+    root.querySelectorAll("[data-mistake]").forEach((b) => b.addEventListener("click", () => {
+      const item = (state.chess.mistakeBank || [])[Number(b.dataset.mistake)];
+      if (item) startGameExercise(item.exercise, { name: "weakness", category: category.key });
+    }));
+    renderExerciseDots();
+    renderExerciseButtons(trainer && trainer.active && trainer.active.finished);
+    if (session && session.done) setFeedback(session.summary || "", "info");
+    renderChrome();
+  }
+
+  async function startWeaknessTraining() {
+    const S = window.ChessSkills;
+    const category = S.BY_KEY[screen.category];
+    if (!category) return;
+    ensureTrainer();
+    setFeedback("Preparo gli esercizi...", "info");
+    let all;
+    try {
+      all = await loadPuzzles();
+    } catch (error) {
+      setFeedback("Esercizi non disponibili: apri il sito da http://localhost:8765 (serve il server locale).", "bad");
+      return;
+    }
+    const profile = window.chessRatingProfile();
+    const target = profile.puzzle.rating;
+    const seen = profile.puzzle.seen || {};
+    let width = 200;
+    let pool = [];
+    while (pool.length < 6 && width < 2400) {
+      pool = all.filter((pz) => Math.abs(pz.rating - target) <= width && !(pz.id in seen) && category.themes.some((th) => pz.themes.includes(th)));
+      width *= 1.5;
+    }
+    if (!pool.length) pool = all.filter((pz) => category.themes.some((th) => pz.themes.includes(th)));
+    const queue = seededShuffle(pool, `${category.key}-${Date.now()}`).slice(0, 6).map(puzzleExercise);
+    session = { kind: "weakness", category: category.key, queue, index: 0, results: [], done: false };
+    render();
+    trainer.start(queue[0]);
+    renderExerciseDots();
+    showBoardOnMobile();
+  }
+
+  function finishWeaknessSession() {
+    const solved = session.results.filter((r) => r && r.solved).length;
+    session.done = true;
+    const label = window.ChessSkills.BY_KEY[session.category].label;
+    session.summary = `Allenamento ${label}: ${solved} esercizi su ${session.queue.length} risolti al primo tentativo. ${solved >= 4 ? "Ottimo lavoro." : "Rifai un giro: la ripetizione e' il modo piu' veloce per correggere un errore."}`;
+    setFeedback(session.summary, solved >= 4 ? "good" : "info");
+    renderExerciseDots();
+    renderExerciseButtons(true);
   }
 
   /* -------------------------------------------------------------- lezione */
@@ -416,8 +590,7 @@
   function renderExerciseDots() {
     const box = el("exerciseDots");
     if (!box) return;
-    const lesson = screen.lesson;
-    if (!session || !lesson) {
+    if (!session) {
       box.innerHTML = "";
       return;
     }
@@ -433,7 +606,11 @@
     if (!box) return;
     const inExercise = trainer && trainer.active;
     let html = "";
-    if (screen.name === "lesson" && !session) {
+    if (screen.name === "weakness" && !session) {
+      html = `<button class="primary-action" type="button" data-act="weak-start">Inizia 6 esercizi</button>`;
+    } else if (screen.name === "weakness" && session && session.done) {
+      html = `<button class="primary-action" type="button" data-act="weak-start">Altri 6 esercizi</button><button class="ghost-action" type="button" data-act="home">Torna alle lezioni</button>`;
+    } else if (screen.name === "lesson" && !session) {
       html = `<button class="primary-action" type="button" data-act="start">Inizia gli esercizi</button>`;
     } else if (screen.name === "lesson" && session && session.done) {
       html = `<button class="primary-action" type="button" data-act="restart">Nuovi esercizi</button><button class="ghost-action" type="button" data-act="home">Torna alle lezioni</button>`;
@@ -454,6 +631,7 @@
       renderExerciseButtons(false);
     } else if (act === "next") nextExercise();
     else if (act === "start" || act === "restart") startLessonExercises();
+    else if (act === "weak-start") startWeaknessTraining();
     else if (act === "home") go({ name: "home" });
   }
 
@@ -490,7 +668,7 @@
     if (screen.name === "game") return nextGameExercise();
     if (!session) return;
     session.index += 1;
-    if (session.index >= session.queue.length) return finishLessonSession();
+    if (session.index >= session.queue.length) return session.kind === "weakness" ? finishWeaknessSession() : finishLessonSession();
     trainer.start(session.queue[session.index]);
     renderExerciseDots();
     renderExerciseButtons(false);
@@ -596,9 +774,10 @@
 
   /* ------------------------------------------------ errori delle partite */
 
-  function startGameExercise(exercise) {
+  function startGameExercise(exercise, returnTo = null) {
     ensureTrainer();
-    screen = { name: "game", exercise };
+    if (trainer) trainer.stop();
+    screen = { name: "game", exercise, returnTo };
     session = null;
     render();
     trainer.start({ ...exercise, source: "game" });
@@ -607,19 +786,22 @@
   }
 
   function nextGameExercise() {
-    const bank = state.chess.mistakeBank || [];
-    if (!bank.length) return go({ name: "home" });
+    const returnTo = screen.returnTo;
+    const all = state.chess.mistakeBank || [];
+    // Dal reparto errori si resta nella stessa categoria.
+    const bank = returnTo && returnTo.name === "weakness" ? all.filter((item) => bankCategory(item) === returnTo.category) : all;
+    if (!bank.length) return go(returnTo || { name: "home" });
     const currentId = screen.exercise && screen.exercise.id;
     const index = bank.findIndex((item) => item.exercise.id === currentId);
     const next = bank[(index + 1 + bank.length) % bank.length] || bank[0];
-    startGameExercise(next.exercise);
+    startGameExercise(next.exercise, returnTo);
   }
 
   function renderGameScreen(root) {
     const ex = screen.exercise;
     root.innerHTML = `
       <div class="lesson-top">
-        <button class="text-button" type="button" data-back>&larr; Lezioni</button>
+        <button class="text-button" type="button" data-back>&larr; ${screen.returnTo ? "Reparto errori" : "Lezioni"}</button>
         <span class="grade-pill">Dalle tue partite</span>
       </div>
       <h2 class="lesson-title">Rigioca il momento critico</h2>
@@ -628,7 +810,7 @@
         <p class="trainer-feedback" id="trainerFeedback" data-tone="info"></p>
         <div class="exercise-actions" id="exerciseActions"></div>
       </section>`;
-    root.querySelector("[data-back]").addEventListener("click", () => go({ name: "home" }));
+    root.querySelector("[data-back]").addEventListener("click", () => go(screen.returnTo || { name: "home" }));
     renderExerciseButtons(trainer.active && trainer.active.finished);
     renderChrome();
   }
@@ -641,7 +823,13 @@
       if (!move || move.side !== "Bianco" || !["mistake", "blunder", "missed"].includes(move.quality) || !move.bestMoveUci || !move.fenBefore) return;
       const id = `game-${gameId}-${index}`;
       if (bank.some((item) => item.exercise.id === id)) return;
+      const S = window.ChessSkills;
+      const category = move.pattern && S && S.PATTERN_CATEGORY[move.pattern]
+        ? S.PATTERN_CATEGORY[move.pattern]
+        : move.quality === "missed" ? "threatVision" : move.quality === "blunder" ? "concentration" : "calculation";
       bank.push({
+        category,
+        pattern: move.pattern || null,
         title: `Mossa ${move.moveNumber}: ${move.classification || "errore"}`,
         subtitle: `Hai giocato ${ChessAnalysis.figurine(move.san)}${move.pattern && typeof mistakeLabels !== "undefined" ? ` · ${mistakeLabels[move.pattern]}` : ""}`,
         date: new Date().toISOString(),

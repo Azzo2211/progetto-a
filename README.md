@@ -25,10 +25,11 @@ Poi apri **http://localhost:8765** (non aprire `index.html` con doppio click: St
 | `chess/board-view.js` | Scacchiera: pezzi animati, trascinamento, frecce, promozione, temi di colore, suoni. |
 | `chess/chess-ui.js` | Pagina scacchi: schede, scelta del bot, barre dei giocatori, coach, suggerimenti, fine partita. |
 | `chess/coach.js` | Coach in allenamento: pezzi in presa, matti in una, minacce del bot, consigli d'apertura. |
-| `chess/lessons.js` | Percorso di lezioni per grado (teoria, esempi guidati, esercizi). |
+| `chess/lessons.js` | 40 lezioni per grado (teoria, esempi guidati, esercizi). |
 | `chess/trainer.js` | Esercizi sulla scacchiera principale (lezioni, puzzle, errori delle tue partite). |
 | `chess/learn-ui.js` / `chess/grade-ui.js` | Schede Lezioni e Grado. |
 | `chess/rating.js` | Rating Glicko contro i bot e sugli esercizi, requisiti dei gradi E-S. |
+| `chess/skills.js` | Profilo di gioco a 6 categorie: eventi per mossa (errori e mosse buone) e aggiornamento dopo ogni partita. |
 | `chess/puzzles.json` | 4.070 esercizi dal database Lichess (CC0), da 400 a 2600 di rating. |
 | `assets/pieces/` | Set di pezzi di lichess.org (licenze in `assets/pieces/LICENSE.md`). |
 | `app.js` | Logica della partita, revisione e quadro. |
@@ -49,7 +50,21 @@ Il grado non e' una stima a occhio: e' **certificato** solo quando tutti i requi
 | A | 1800+ | 20 | 2000 (75) | 1800 | 81% |
 | S | 2200+ | 25 | 2400 (100) | 2200 | 85% |
 
-Il punteggio scacchi nel quadro segue il grado certificato.
+Per certificare un grado serve anche il **profilo di gioco** (D 45, C 60, B 70, A 80, S 90).
+
+### Profilo di gioco (6 categorie)
+Ogni mossa analizzata da Stockfish genera eventi con una categoria e dei punti:
+
+| Categoria | Toglie punti | Aggiunge punti |
+|---|---|---|
+| Concentrazione | blunder, pezzo lasciato in presa | 10 mosse di fila senza errori |
+| Calcolo | variante calcolata male, errori in posizioni critiche | mosse brillanti e "grandi", migliore in posizione critica |
+| Strategia | sviluppo lento, mosse senza piano, errori nel finale, imprecisioni | mosse precise in posizioni tranquille |
+| Visione minacce | minaccia non vista, occasione mancata | punire l'errore del bot |
+| Sicurezza re | re esposto, scacco matto subito | arrocco entro la decima mossa |
+| Controllo impulso | errori giocati in meno di 5 secondi | pensare almeno 8 secondi nei momenti critici |
+
+Vittoria +1,5, patta +0,5, sconfitta -1 a tutte. I punti valgono di piu' contro bot forti e di meno contro bot deboli; massimo 12 punti per categoria a partita; le partite di allenamento contano meno. Il totale e' la media delle 6 categorie (anche nel quadro). La scheda Lezioni ha un **reparto errori** per categoria con le tue posizioni sbagliate, esercizi mirati e le lezioni collegate.
 
 ### Come gioca il bot
 Stockfish trova le mosse migliori e le valuta. Per ogni mossa il bot decide, con probabilità fissate per il suo livello, se giocare bene oppure commettere un'imprecisione, un errore o un blunder: l'errore viene scelto tra le mosse che perdono proprio quella quota di probabilità di vittoria. Le frequenze sono calibrate facendo giocare i bot tra loro e misurando la precisione con la stessa formula della revisione (`tools/calibrate.js`). I livelli 18 e 19 giocano a piena forza.

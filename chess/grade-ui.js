@@ -30,7 +30,7 @@
     const estGrade = est.elo ? R.gradeForElo(est.elo) : null;
     const index = R.gradeIndex(grade.key);
     const next = R.GRADES[index + 1] || null;
-    const reqs = next ? R.requirementsFor(next.key, profile, { lessonsDone: window.chessLessonsDone }) : [];
+    const reqs = next ? R.requirementsFor(next.key, profile, { lessonsDone: window.chessLessonsDone, profileScore: window.chessProfileScore ? window.chessProfileScore() : null }) : [];
     const acc = R.averageAccuracy(profile, 5);
     const gameHistory = profile.game.history.map((h) => h.rating);
     const puzzleHistory = profile.puzzle.history.map((h) => h.rating);
@@ -100,6 +100,64 @@
         <div><strong>Rating esercizi</strong>${sparkline(puzzleHistory)}</div>
       </section>`;
   }
+
+  /* -------------------------------------------------- profilo di gioco */
+
+  // Le 6 categorie: valore, variazione dell'ultima partita ed eventi che l'hanno causata.
+  function renderChessProfile() {
+    const S = window.ChessSkills;
+    const radar = document.getElementById("chessModuleRadar");
+    const metrics = document.getElementById("chessModuleMetrics");
+    const eventsBox = document.getElementById("chessPatternBox");
+    const howBox = document.getElementById("chessTrainingBox");
+    if (!S || !metrics) return;
+    const skills = S.ensureSkills(state.chess.skills);
+    const last = skills.lastGame;
+    const values = S.CATEGORIES.map((c) => ({ key: c.key, label: c.label, value: Math.round(skills[c.key]) }));
+    const totalValue = S.total(skills);
+    if (radar && typeof buildRadarMarkup === "function") radar.innerHTML = buildRadarMarkup(values, 280, 140, 122, false);
+    const fmt = (n) => `${n > 0 ? "+" : ""}${Number.isInteger(n) ? n : n.toFixed(1)}`;
+    metrics.classList.add("module-skill-panel");
+    metrics.innerHTML = `
+      <div class="module-score-card">
+        <span>Totale <small>media delle 6 categorie</small></span>
+        <strong>${totalValue}</strong>
+        <em>Rango ${typeof rankFromScore === "function" ? rankFromScore(totalValue) : ""}</em>
+      </div>
+      <div class="skill-rows">
+        ${S.CATEGORIES.map((c) => {
+          const value = Math.round(skills[c.key]);
+          const change = last && last.changes ? last.changes[c.key] || 0 : 0;
+          return `<div class="skill-row" title="${esc(c.text)}">
+            <span class="skill-name">${esc(c.label)}</span>
+            <span class="skill-change ${change > 0 ? "up" : change < 0 ? "down" : ""}">${last ? fmt(change) : ""}</span>
+            <strong>${value}</strong>
+            <div class="mini-track"><div class="mini-fill" style="width:${value}%"></div></div>
+          </div>`;
+        }).join("")}
+      </div>`;
+    if (eventsBox) {
+      if (!last || !last.log || !last.log.length) {
+        eventsBox.innerHTML = `<strong>Ultima partita</strong><p>Finisci e analizza una partita: qui vedrai ogni errore e ogni mossa buona con la sua categoria.</p>`;
+      } else {
+        const important = last.log.filter((e) => Math.abs(e.scaled) >= 0.5).sort((a, b) => Math.abs(b.scaled) - Math.abs(a.scaled)).slice(0, 10);
+        eventsBox.innerHTML = `<strong>Cosa ha cambiato l'ultima partita${last.botElo ? ` (bot ${last.botElo})` : ""}</strong>
+          <ul class="skill-events">${important.map((e) => `<li class="${e.scaled >= 0 ? "up" : "down"}">
+            <span>${e.moveNumber ? `Mossa ${e.moveNumber}${e.san ? ` (${esc(e.san)})` : ""}: ` : ""}${esc(e.label)}</span>
+            <b>${esc(S.BY_KEY[e.category].label)} ${fmt(e.scaled)}</b>
+          </li>`).join("")}</ul>`;
+      }
+    }
+    if (howBox) {
+      const sorted = S.CATEGORIES.slice().sort((a, b) => skills[a.key] - skills[b.key]);
+      const spread = skills[sorted[sorted.length - 1].key] - skills[sorted[0].key];
+      const weakest = spread >= 2 ? sorted[0] : null;
+      howBox.innerHTML = `<strong>Come si calcola</strong>
+        <p>Ogni mossa analizzata da Stockfish puo' togliere o dare punti a una categoria: per esempio un pezzo lasciato in presa toglie punti a Concentrazione, una mossa "grande" li aggiunge a Calcolo. Vittorie e sconfitte contano per tutte. I punti valgono di piu' contro bot forti e di meno contro bot deboli; le partite di allenamento contano meno di quelle valutate.</p>
+        ${weakest ? `<p>Punto debole adesso: <b>${esc(weakest.label)}</b>. Lo alleni nel reparto errori della scheda Lezioni.</p>` : `<p>Tutte le categorie partono da ${S.START_VALUE}: si muovono dalla prima partita analizzata.</p>`}`;
+    }
+  }
+  window.renderChessProfile = renderChessProfile;
 
   window.ChessGrade = { render };
 })();

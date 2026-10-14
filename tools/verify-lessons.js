@@ -59,6 +59,11 @@ async function main() {
           const legal = chess.moves().length;
           const res = await engine.analyse(fen, { depth: DEPTH, multipv: Math.min(8, legal) });
           const best = res.lines[0];
+          if (!best) {
+            report(`esercizio ${n + 1}: Stockfish non trova mosse (${res.error || "posizione illegale?"})`);
+            break;
+          }
+          const tolerance = typeof ex.tolerance === "number" ? ex.tolerance : TOLERANCE;
           const scoreOf = (move) => {
             const line = res.lines.find((l) => l.pv[0] === move);
             return line ? line.score : null;
@@ -67,7 +72,7 @@ async function main() {
             const s = scoreOf(move);
             if (!s) return report(`esercizio ${n + 1}: ${label} ${move} non tra le prime ${res.lines.length} di Stockfish (migliore ${best.pv[0]} ${JSON.stringify(best.score)})`);
             const loss = win(best.score) - win(s);
-            if (loss > TOLERANCE) report(`esercizio ${n + 1}: ${label} ${move} perde ${loss.toFixed(1)} punti (migliore ${best.pv[0]})`);
+            if (loss > tolerance) report(`esercizio ${n + 1}: ${label} ${move} perde ${loss.toFixed(1)} punti (migliore ${best.pv[0]})`);
           };
           check(uci, "soluzione");
           if (i === 0 && ex.accept) ex.accept.forEach((move) => check(move, "accettata"));

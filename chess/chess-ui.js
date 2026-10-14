@@ -371,6 +371,7 @@
     if (tab === "learn" && window.ChessLearn) window.ChessLearn.onShow();
     if (tab === "grade" && window.ChessGrade) window.ChessGrade.render();
     if (tab === "play" && reviewBoard && !chessGameOver) exitReviewMode();
+    if (tab === "play") requestAnimationFrame(() => placeBotCursor(false));
     renderBoard({ animate: false });
   }
   window.chessCurrentTab = () => currentTab;
@@ -597,27 +598,82 @@
 
   /* ---------------------------------------------------------- avversario */
 
+  // Pezzo che rappresenta un bot: cresce con il grado (pedone E ... re S).
+  const GRADE_PIECE = { E: "P", D: "N", C: "B", B: "R", A: "Q", S: "K" };
+  const BOARD_COLS = 8;
+
+  function botGrade(bot) {
+    return window.ChessRating.gradeForElo(bot.estimatedElo);
+  }
+
+  function botPieceUrl(bot, color = "b") {
+    return `assets/pieces/${ui().pieceSet}/${color}${GRADE_PIECE[botGrade(bot).key]}.svg`;
+  }
+
+  /*
+   * La scelta del bot e' una piccola scacchiera 8x3: si sale dal basso
+   * (bot piu' deboli) verso l'alto (piu' forti), come i pedoni verso la
+   * promozione. Ogni casa ha il pezzo del grado del bot e l'Elo come coordinata.
+   */
   function renderBotPicker() {
-    const ladder = document.getElementById("botLadder");
-    if (!ladder) return;
+    const boardEl = document.getElementById("botLadder");
+    if (!boardEl) return;
     const level = getActiveBotLevel(state.chess.botLevel);
     const config = getBotLevelConfig(level);
-    const grades = window.ChessRating.GRADES;
-    const groups = grades.map((grade) => ({
-      grade,
-      bots: botLevels.filter((bot) => window.ChessRating.gradeForElo(bot.estimatedElo).key === grade.key)
-    })).filter((group) => group.bots.length);
+    const bot = botLevels.find((item) => item.level === level) || botLevels[0];
+    const theme = Kit.BOARD_THEMES[ui().theme] || Kit.BOARD_THEMES.accademia;
     const est = estimatedElo().elo;
-    const suggested = est ? botLevels.reduce((best, bot) => (Math.abs(bot.estimatedElo - est) < Math.abs(best.estimatedElo - est) ? bot : best), botLevels[0]).level : null;
-    ladder.innerHTML = groups.map(({ grade, bots }) => `
-      <div class="ladder-group">
-        <span class="ladder-grade grade-${grade.key}" title="${grade.name}">${grade.key}</span>
-        <div class="ladder-chips">${bots.map((bot) => {
-          const stats = getLevelStats(bot.level);
-          const beaten = stats.wins > 0;
-          return `<button type="button" class="ladder-chip${bot.level === level ? " active" : ""}${beaten ? " beaten" : ""}${bot.level === suggested ? " suggested" : ""}" data-bot-level="${bot.level}" aria-pressed="${bot.level === level}" title="${bot.name}">${bot.estimatedElo}</button>`;
-        }).join("")}</div>
-      </div>`).join("");
+    const suggested = est ? botLevels.reduce((best, item) => (Math.abs(item.estimatedElo - est) < Math.abs(best.estimatedElo - est) ? item : best), botLevels[0]).level : null;
+    const rows = Math.ceil(botLevels.length / BOARD_COLS);
+    const squares = [];
+    for (let row = rows - 1; row >= 0; row -= 1) {
+      for (let col = 0; col < BOARD_COLS; col += 1) {
+        const index = row * BOARD_COLS + col;
+        const item = botLevels[index];
+        const visualRow = rows - 1 - row;
+        // come su una vera scacchiera, la casa in basso a sinistra e' scura
+        const light = (visualRow + col) % 2 !== (rows - 1) % 2;
+        if (!item) {
+          squares.push(`<span class="bot-sq ${light ? "light" : "dark"} empty" aria-hidden="true"></span>`);
+          continue;
+        }
+        const grade = botGrade(item);
+        const previous = botLevels[index - 1];
+        const firstOfGrade = !previous || botGrade(previous).key !== grade.key;
+        const stats = getLevelStats(item.level);
+        const classes = ["bot-sq", light ? "light" : "dark"];
+        if (item.level === level) classes.push("selected");
+        if (item.level === suggested) classes.push("suggested");
+        squares.push(`<button type="button" class="${classes.join(" ")}" data-bot-level="${item.level}" aria-pressed="${item.level === level}" aria-label="${item.name}, ${item.estimatedElo} Elo, grado ${grade.key}${stats.wins ? ", gia' battuto" : ""}" title="${item.name} · ${item.estimatedElo} Elo">
+          ${firstOfGrade ? `<span class="bot-sq-grade grade-${grade.key}">${grade.key}</span>` : ""}
+          <img src="${botPieceUrl(item)}" alt="" draggable="false">
+          <span class="bot-sq-elo">${item.estimatedElo}</span>
+          ${stats.wins ? `<span class="bot-sq-won" title="Battuto">\u2713</span>` : ""}
+        </button>`);
+      }
+    }
+    boardEl.style.setProperty("--bot-light", theme.light);
+    boardEl.style.setProperty("--bot-dark", theme.dark);
+    boardEl.style.setProperty("--bot-coord-light", theme.coordLight);
+    boardEl.style.setProperty("--bot-coord-dark", theme.coordDark);
+    boardEl.innerHTML = `${squares.join("")}<span class="bot-cursor" aria-hidden="true"></span>`;
+    placeBotCursor(false);
+
+    const legend = document.getElementById("botLegend");
+    if (legend) {
+      legend.innerHTML = Object.entries(GRADE_PIECE).map(([key, piece]) => `<span><img src="assets/pieces/${ui().pieceSet}/b${piece}.svg" alt="">${key}</span>`).join("") + `<span class="legend-note">dal basso verso l'alto: piu' forte</span>`;
+    }
+
+    const portrait = document.getElementById("botPortrait");
+    portrait.style.setProperty("--bot-light", theme.light);
+    portrait.style.setProperty("--bot-dark", theme.dark);
+    const img = document.getElementById("botPortraitImg");
+    const url = botPieceUrl(bot);
+    if (img.getAttribute("src") !== url) img.setAttribute("src", url);
+    const grade = botGrade(bot);
+    const gradeTag = document.getElementById("botPickGrade");
+    gradeTag.textContent = grade.key;
+    gradeTag.className = `bot-portrait-grade grade-${grade.key}`;
     document.getElementById("botPickName").textContent = config.name;
     document.getElementById("botPickElo").textContent = config.elo;
     document.getElementById("botPickDesc").textContent = config.description;
@@ -625,7 +681,7 @@
     const avg = stats.accuracyGames ? Math.round(stats.accuracySum / stats.accuracyGames) : null;
     const record = stats.games ? `Contro questo bot: ${stats.wins} vinte, ${stats.draws} patte, ${stats.losses} perse${avg !== null ? `, precisione media ${avg}%` : ""}.` : "Non hai ancora giocato contro questo bot.";
     const engine = isStockfishEngineEnabled() ? "" : ` Motore: ${getEngineStatusText()}.`;
-    const hint = suggested === level ? " Avversario adatto al tuo livello." : suggested ? ` Consigliato per te: ${getBotLevelConfig(suggested).elo}.` : "";
+    const hint = suggested === level ? " Avversario adatto al tuo livello." : suggested ? ` Consigliato per te: ${getBotLevelConfig(suggested).elo} (casa con il bordo blu).` : "";
     document.getElementById("botLevelText").textContent = `${record}${hint}${engine}`;
     document.getElementById("botPrevBtn").disabled = level <= 1;
     document.getElementById("botNextBtn").disabled = level >= getMaxBotLevel();
@@ -633,8 +689,36 @@
   }
   window.renderBotPicker = renderBotPicker;
 
+  // Il segnaposto dorato scivola sulla casa scelta, come un pezzo che muove.
+  function placeBotCursor(animate) {
+    const boardEl = document.getElementById("botLadder");
+    const cursor = boardEl && boardEl.querySelector(".bot-cursor");
+    const selected = boardEl && boardEl.querySelector(".bot-sq.selected");
+    if (!cursor || !selected) return;
+    if (!animate) cursor.classList.add("no-anim");
+    cursor.style.width = `${selected.offsetWidth}px`;
+    cursor.style.height = `${selected.offsetHeight}px`;
+    cursor.style.transform = `translate(${selected.offsetLeft}px, ${selected.offsetTop}px)`;
+    if (!animate) {
+      void cursor.offsetWidth;
+      cursor.classList.remove("no-anim");
+    }
+  }
+
+  function prefersReducedMotion() {
+    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
   function pickBot(level) {
-    state.chess.botLevel = getActiveBotLevel(level);
+    const next = getActiveBotLevel(level);
+    const previousLevel = getActiveBotLevel(state.chess.botLevel);
+    if (next === previousLevel) return;
+    const boardEl = document.getElementById("botLadder");
+    const fromTile = boardEl && boardEl.querySelector(`[data-bot-level="${next}"] img`);
+    const fromRect = fromTile ? fromTile.getBoundingClientRect() : null;
+    const cursor = boardEl && boardEl.querySelector(".bot-cursor");
+    const cursorStart = cursor ? cursor.style.transform : null;
+    state.chess.botLevel = next;
     saveState();
     // Senza mosse giocate cambiamo subito avversario.
     if (!getSafeChessMoves().length) {
@@ -642,6 +726,32 @@
       renderBoard({ animate: false });
     }
     renderBotPicker();
+    Kit.Sound.play("move");
+    if (prefersReducedMotion()) return;
+    // Il cursore parte dalla casa vecchia e scivola sulla nuova.
+    const newCursor = boardEl && boardEl.querySelector(".bot-cursor");
+    if (newCursor && cursorStart) {
+      const target = newCursor.style.transform;
+      newCursor.classList.add("no-anim");
+      newCursor.style.transform = cursorStart;
+      void newCursor.offsetWidth;
+      newCursor.classList.remove("no-anim");
+      newCursor.style.transform = target;
+    }
+    // Il pezzo "vola" dalla casa scelta alla scheda dell'avversario.
+    const img = document.getElementById("botPortraitImg");
+    if (img && fromRect && img.animate) {
+      const toRect = img.getBoundingClientRect();
+      if (toRect.width) {
+        const dx = fromRect.left + fromRect.width / 2 - (toRect.left + toRect.width / 2);
+        const dy = fromRect.top + fromRect.height / 2 - (toRect.top + toRect.height / 2);
+        const scale = fromRect.width / toRect.width;
+        img.animate([
+          { transform: `translate(${dx}px, ${dy}px) scale(${scale})`, filter: "drop-shadow(0 10px 12px rgba(0,0,0,.45))" },
+          { transform: "translate(0, 0) scale(1)", filter: "drop-shadow(0 4px 6px rgba(0,0,0,.35))" }
+        ], { duration: 340, easing: "cubic-bezier(0.22, 0.72, 0.28, 1)" });
+      }
+    }
   }
 
   function startNewGame() {
@@ -716,8 +826,13 @@
   }
   window.chessLessonsDone = lessonsDone;
 
+  function profileScore() {
+    return window.ChessSkills ? window.ChessSkills.total(state.chess.skills) : null;
+  }
+  window.chessProfileScore = profileScore;
+
   function certifiedGrade() {
-    return window.ChessRating.certifiedGrade(ratingProfile(), { lessonsDone });
+    return window.ChessRating.certifiedGrade(ratingProfile(), { lessonsDone, profileScore: profileScore() });
   }
   window.chessCertifiedGrade = certifiedGrade;
 
@@ -829,6 +944,7 @@
     getBoardView().setOptions({ theme: settings.theme, pieceSet: settings.pieceSet, coordinates: settings.coords });
     Kit.Sound.enabled = settings.sound !== false;
     renderSettings();
+    renderBotPicker();
     renderBoard({ animate: false });
   }
 
@@ -899,6 +1015,7 @@
       });
     });
     document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", () => placeBotCursor(false));
     // Preload dei pezzi del set scelto (evita lo sfarfallio alla prima mossa).
     ["K", "Q", "R", "B", "N", "P"].forEach((p) => ["w", "b"].forEach((c) => {
       const img = new Image();

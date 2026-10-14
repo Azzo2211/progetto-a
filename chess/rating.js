@@ -42,19 +42,19 @@
     { key: "E", name: "Principiante", min: 0, max: 599, scoreMin: 20, scoreMax: 44,
       meaning: "Conosci le regole e stai imparando a non lasciare pezzi in presa." },
     { key: "D", name: "Base", min: 600, max: 999, scoreMin: 45, scoreMax: 59,
-      games: 5, puzzle: 800, puzzles: 15, beatElo: 550, accuracy: 60,
+      games: 5, puzzle: 800, puzzles: 15, beatElo: 550, accuracy: 60, profile: 45,
       meaning: "Vedi catture e matti semplici, eviti la maggior parte dei pezzi regalati." },
     { key: "C", name: "Intermedio", min: 1000, max: 1399, scoreMin: 60, scoreMax: 69,
-      games: 10, puzzle: 1200, puzzles: 30, beatElo: 1000, accuracy: 70,
+      games: 10, puzzle: 1200, puzzles: 30, beatElo: 1000, accuracy: 70, profile: 60,
       meaning: "Usi forchette, inchiodature e principi d'apertura; sbagli ancora nei momenti tattici." },
     { key: "B", name: "Giocatore da club", min: 1400, max: 1799, scoreMin: 70, scoreMax: 79,
-      games: 15, puzzle: 1600, puzzles: 50, beatElo: 1450, accuracy: 76,
+      games: 15, puzzle: 1600, puzzles: 50, beatElo: 1450, accuracy: 76, profile: 70,
       meaning: "Hai piani coerenti, conosci i finali base e calcoli varianti di 2-3 mosse." },
     { key: "A", name: "Avanzato", min: 1800, max: 2199, scoreMin: 80, scoreMax: 89,
-      games: 20, puzzle: 2000, puzzles: 75, beatElo: 1800, accuracy: 81,
+      games: 20, puzzle: 2000, puzzles: 75, beatElo: 1800, accuracy: 81, profile: 80,
       meaning: "Giochi con precisione, sfrutti i vantaggi piccoli e difendi le posizioni difficili." },
     { key: "S", name: "Maestro", min: 2200, max: 3600, scoreMin: 90, scoreMax: 99,
-      games: 25, puzzle: 2400, puzzles: 100, beatElo: 2200, accuracy: 85,
+      games: 25, puzzle: 2400, puzzles: 100, beatElo: 2200, accuracy: 85, profile: 90,
       meaning: "Livello da candidato maestro: calcolo profondo e quasi nessun errore non forzato." }
   ];
 
@@ -181,7 +181,7 @@
    * Requisiti di un grado con stato e avanzamento (0-1).
    * lessonsDone(gradeKey) -> { done, total }.
    */
-  function requirementsFor(gradeKey, profile, { lessonsDone = () => ({ done: 0, total: 0 }) } = {}) {
+  function requirementsFor(gradeKey, profile, { lessonsDone = () => ({ done: 0, total: 0 }), profileScore = null } = {}) {
     const grade = GRADES[gradeIndex(gradeKey)];
     const p = ensureProfile(profile);
     if (!grade.games) return [];
@@ -224,6 +224,13 @@
         value: acc !== null ? `${acc}% su ${Math.min(accGames, 5)}` : "--",
         progress: acc !== null ? (acc / grade.accuracy) * Math.min(1, accGames / 5) : 0,
         met: acc !== null && accGames >= Math.min(5, grade.games) && acc >= grade.accuracy
+      },
+      {
+        key: "profile",
+        label: `Profilo di gioco almeno ${grade.profile} (media delle 6 categorie)`,
+        value: typeof profileScore === "number" ? String(Math.round(profileScore)) : "--",
+        progress: typeof profileScore === "number" ? profileScore / grade.profile : 0,
+        met: typeof profileScore !== "number" || profileScore >= grade.profile
       },
       {
         key: "lessons",
