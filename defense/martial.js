@@ -314,7 +314,7 @@
    * La rotazione avanza: dopo la prova si riparte da "impara" (se l'utente sale, del livello nuovo).
    * Restituisce la voce di storico con la raccomandazione (salire solo dopo una prova all'80%).
    */
-  function finishSession(lab, exercises, now = Date.now(), { count = 3, test = false } = {}) {
+  function finishSession(lab, exercises, now = Date.now(), { count = 3, test = false, scored = null } = {}) {
     const c = lab.current;
     if (!c) return null;
     const results = {};
@@ -322,6 +322,11 @@
     const done = Object.values(results).filter((v) => v === 1).length;
     const total = exercises.length;
     const entry = { t: now, week: c.week, day: c.day, disc: c.disc, level: c.level, session: c.session, test: !!test, done, total, results, levelUp: null, minutes: clamp(Math.round((now - c.startedAt) / 60000), 1, 150) };
+    // il voto della prova conta solo gli esercizi della sessione (non riscaldamento e defaticamento)
+    if (Array.isArray(scored) && scored.length) {
+      const ids = scored.filter((id) => id in results);
+      entry.score = { done: ids.filter((id) => results[id] === 1).length, total: ids.length };
+    }
     lab.sessions.push(entry);
     if (lab.sessions.length > 500) lab.sessions = lab.sessions.slice(-500);
     lab.current = null;
@@ -335,15 +340,26 @@
     return withAdvice(entry);
   }
 
+  // Voto per il consiglio: gli esercizi della sessione se ci sono, altrimenti tutti.
+  function scoreOf(s) {
+    return s.score && num(s.score.total) && s.score.total > 0 ? s.score : { done: s.done, total: s.total };
+  }
+
+  function passed(s) {
+    const sc = scoreOf(s);
+    return s.test !== false && sc.total > 0 && sc.done / sc.total >= RECOMMEND;
+  }
+
   function withAdvice(s) {
     const test = s.test !== false; // gli allenamenti della versione 1 erano tutti "prove"
-    return Object.assign({ recommend: test && s.total > 0 && s.done / s.total >= RECOMMEND, atMax: s.level >= MAX_LEVEL, isTest: test }, s);
+    const sc = scoreOf(s);
+    return Object.assign({ recommend: passed(s), atMax: s.level >= MAX_LEVEL, isTest: test, scoreDone: sc.done, scoreTotal: sc.total }, s);
   }
 
   // La scelta dell'utente dopo l'allenamento: salire (true) o restare (false).
   // Si sale dal livello dell'allenamento fatto; se nel frattempo il livello e' cambiato a mano, non si tocca.
-  function chooseLevel(lab, up, now = Date.now()) {
-    const s = lab.sessions[lab.sessions.length - 1];
+  function chooseLevel(lab, up, now = Date.now(), entry = null) {
+    const s = entry || lab.sessions[lab.sessions.length - 1];
     if (!s || s.levelUp !== null) return false;
     s.levelUp = !!up;
     if (!up) return true;
@@ -367,6 +383,18 @@
     return withAdvice(s);
   }
 
+  // Ultima prova superata di uno stile senza ancora la scelta (e nessun allenamento dopo):
+  // l'offerta di salire resta finche' non decidi, senza scadenza.
+  function offerFor(lab, disc) {
+    for (let i = lab.sessions.length - 1; i >= 0; i -= 1) {
+      const s = lab.sessions[i];
+      if (s.disc !== disc) continue;
+      if (s.test === true && s.levelUp === null && s.level === levelOf(lab, disc) && passed(s) && !(s.level >= MAX_LEVEL && lab.mastered[disc])) return withAdvice(s);
+      return null;
+    }
+    return null;
+  }
+
   // Cambio di livello a mano (dalla scheda dello stile): anche per tornare indietro.
   function setLevel(lab, disc, level, now = Date.now()) {
     const from = levelOf(lab, disc);
@@ -375,6 +403,8 @@
     lab.levels[disc] = to;
     lab.steps[disc] = 0;
     if (to < MAX_LEVEL) delete lab.mastered[disc];
+    // una scelta di livello ancora in sospeso per questo stile non ha piu' senso
+    lab.sessions.forEach((s) => { if (s.disc === disc && s.levelUp === null) s.levelUp = false; });
     lab.history.push({ t: now, disc, from, to, manual: true });
     return true;
   }
@@ -389,7 +419,7 @@
       per[d.id] = {
         level: levelOf(lab, d.id),
         step: stepOf(lab, d.id),
-        tests: list.filter((s) => s.test === true && s.total > 0 && s.done / s.total >= RECOMMEND).length,
+        tests: list.filter((s) => s.test === true && passed(s)).length,
         copy: copyPercent(lab, d.id),
         sessions: list.length,
         rate: total ? Math.round((done / total) * 100) : null,
@@ -460,7 +490,7 @@
     weekKey, dayIndex, weekStart, addWeeks, dayTime, dayKeyOf,
     ensure, levelOf, stepOf, copyPercent,
     planWeek, previewWeek, replanWeek, setDay, setTrainDays, setPool, dayStatus, sessionsOn, weekProgress, today, isStale, resumeToday,
-    startSession, setResult, finishSession, chooseLevel, pendingChoice, setLevel,
+    startSession, setResult, finishSession, chooseLevel, pendingChoice, offerFor, setLevel,
     stats, profileExtras, exerciseSeconds, sessionMinutes
   };
 });

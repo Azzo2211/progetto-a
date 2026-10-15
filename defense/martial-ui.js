@@ -40,8 +40,10 @@
     timer: null,      // timer dell'esercizio corrente
     renderedAt: 0,
     exFor: null,      // allenamento per cui ui.ex e' gia' stato posizionato
-    pick: {},         // sessione scelta a mano oggi, per stile
-    guard: {}         // ultimo clic per gruppo di azioni (contro i doppi clic)
+    pick: {},         // sessione scelta a mano oggi, per stile: { key: giorno, idx }
+    swapOpen: false,  // riquadro "un altro stile oggi" aperto
+    swapAt: 0,        // ultimo cambio di schermata (contro i doppi clic)
+    timerAt: 0        // ultimo comando del timer
   };
 
   const $ = (id) => document.getElementById(id);
@@ -124,7 +126,13 @@
   /* -------------------------------------------------------------- dati */
   function levelData(disc, level) {
     const d = BY.get(disc);
-    return d ? d.levels[clamp(level, 1, d.levels.length) - 1] : null;
+    const lv = d && d.levels && d.levels.length ? d.levels[clamp(level, 1, d.levels.length) - 1] : null;
+    return lv && Array.isArray(lv.sessions) && lv.sessions.length ? lv : null;
+  }
+
+  function pickOf(disc, key, n) {
+    const p = ui.pick[disc];
+    return p && p.key === key ? clamp(p.idx, 0, n - 1) : null;
   }
 
   // Esercizi di una sessione: riscaldamento del livello, la sessione, defaticamento.
@@ -214,7 +222,7 @@
   function styleChips(l, act, { current = null, rest = false, daykey = "" } = {}) {
     const inPool = DISC.filter((d) => l.pool.includes(d.id));
     const others = DISC.filter((d) => !l.pool.includes(d.id));
-    const chip = (d) => `<button type="button" class="ma-chip" style="--ma-c:${d.color}" data-mact="${act}" data-disc="${d.id}" ${daykey ? `data-daykey="${daykey}"` : ""} aria-pressed="${d.id === current}"><strong>${esc(d.short || d.name)}</strong><span>Lv ${M.levelOf(l, d.id)}</span></button>`;
+    const chip = (d) => `<button type="button" class="ma-chip" style="--ma-c:${d.color}" data-mact="${act}" data-disc="${d.id}" ${daykey ? `data-daykey="${daykey}"` : ""} aria-pressed="${d.id === current}" aria-label="${esc(d.name)}, livello ${M.levelOf(l, d.id)}"><strong>${esc(d.short || d.name)}</strong><span>Lv ${M.levelOf(l, d.id)}</span></button>`;
     return `<div class="ma-chips">${inPool.map(chip).join("")}${others.map(chip).join("")}${rest ? `<button type="button" class="ma-chip rest" data-mact="${act}" data-disc="" aria-pressed="${!current}"><strong>Riposo</strong><span>niente oggi</span></button>` : ""}</div>`;
   }
 
@@ -230,7 +238,11 @@
     // dopo una ricarica: ritrova il riepilogo dell'ultima prova se manca la scelta del livello
     if (!ui.summary && !l.current) { const pend = M.pendingChoice(l); if (pend) ui.summary = pend; }
     if (ui.summary && !BY.get(ui.summary.disc)) ui.summary = null;
-    if (l.current && !curLevel(l)) l.current = null;
+    if (l.current) {
+      const lv = curLevel(l);
+      if (!lv) l.current = null;
+      else l.current.session = clamp(l.current.session, 0, lv.sessions.length - 1);
+    }
     if (ui.view === "today") body = l.current ? (M.isStale(l) ? staleView(l) : sessionView(l)) : ui.summary ? summaryView(l) : todayView(l);
     else if (ui.view === "week") body = weekView(l);
     else if (ui.view === "styles") body = stylesView(l);
@@ -288,20 +300,22 @@
           <article class="ma-today rest">
             <span class="def-kicker">Oggi · ${esc(dayLabel(now))}</span>
             <h2 data-focus-title>Giorno di riposo</h2>
-            <p>Il corpo impara anche quando recupera. Se vuoi muoverti, fai 10 minuti leggeri di mobilità oppure scegli uno stile qui sotto: l'allenamento parte subito.</p>
+            <p>Il corpo impara anche quando recupera. Se vuoi muoverti, fai 10 minuti leggeri di mobilità oppure scegli uno stile qui sotto: oggi diventa un giorno di quello stile e scegli tu la sessione.</p>
             <h3 class="ma-mini">Allenati comunque con</h3>
-            ${styleChips(l, "start", { daykey: t.key })}
+            ${styleChips(l, "today-swap", { current: null })}
           </article>
           ${strip}
         </div>`;
     }
     const d = BY.get(t.disc);
-    if (!d) return `<div class="ma-body"><p class="def-note">Lo stile previsto oggi non esiste più: sceglilo dal calendario.</p>${strip}</div>`;
-    const level = M.levelOf(l, t.disc);
-    const lv = levelData(t.disc, level);
+    const level = d ? M.levelOf(l, t.disc) : 1;
+    const lv = d ? levelData(t.disc, level) : null;
+    if (!d || !lv) return `<div class="ma-body"><p class="def-note">Lo stile previsto oggi non è disponibile: scegline un altro.</p>${styleChips(l, "today-swap", { current: null, rest: true })}${strip}</div>`;
     const n = lv.sessions.length;
     const next = M.stepOf(l, t.disc, n);
-    const idx = ui.pick[t.disc] != null ? clamp(ui.pick[t.disc], 0, n - 1) : next;
+    const picked = pickOf(t.disc, t.key, n);
+    const idx = picked != null ? picked : next;
+    const offer = M.offerFor(l, t.disc);
     const s = sessionOf(lv, idx);
     const list = listOf(lv, idx);
     const last = t.sessions[t.sessions.length - 1];
@@ -315,6 +329,7 @@
             <h2 data-focus-title>${esc(d.name)} <span class="ma-lv">Livello ${level}: ${esc(lv.title)}</span></h2>
             <p class="ma-tagline">${esc(d.tagline)}</p>
             ${lookLine(d.id)}
+            ${offer ? `<div class="ma-offer"><p>Hai superato la prova del livello ${offer.level} (${offer.scoreDone}/${offer.scoreTotal}). ${offer.atMax ? "Vuoi dichiarare lo stile copiato al 100%?" : `Vuoi salire al livello ${offer.level + 1}?`}</p><div class="def-row"><button type="button" class="def-primary" data-mact="offer" data-disc="${d.id}" data-up="1">${offer.atMax ? "Copiato al 100%" : `Sali al livello ${offer.level + 1}`}</button><button type="button" class="def-ghost" data-mact="offer" data-disc="${d.id}" data-up="0">Resto qui</button></div></div>` : ""}
             ${picker}
             <h3 class="ma-lv-title">${esc(s.title)}</h3>
             <p>${prose(s.focus)}</p>
@@ -330,7 +345,7 @@
           </div>
         </article>
         ${doneToday ? "" : `
-        <details class="ma-swapbox">
+        <details class="ma-swapbox"${ui.swapOpen ? " open" : ""}>
           <summary>Oggi preferisci un altro stile?</summary>
           <p class="def-note">Tocca uno stile: oggi diventa quello (il calendario si aggiorna da solo).</p>
           ${styleChips(l, "today-swap", { current: t.disc, rest: true })}
@@ -442,7 +457,7 @@
       sides.forEach((side, si) => {
         if (d.work != null) out.push({ type: "work", secs: d.work, set: s, side, task });
         else out.push({ type: "reps", reps: d.reps, set: s, side, task });
-        if (si === 0 && sides.length > 1) out.push({ type: "switch", secs: 5, set: s, side: "cambia lato" });
+        if (si === 0 && sides.length > 1) out.push({ type: "switch", secs: 5, set: s, side: "cambia lato", task });
       });
       if (s < sets && d.rest) out.push({ type: "rest", secs: d.rest, set: s, task: Array.isArray(d.tasks) ? d.tasks[s] || "" : "" });
     }
@@ -499,7 +514,7 @@
       }
     }
     if (task) {
-      const text = t.finished ? "" : p.type === "rest" && p.task ? `Prossimo round: ${p.task}` : p.task || "";
+      const text = t.finished ? "" : p.type === "rest" && p.task ? `${t.rounds ? "Prossimo round" : "Prossima serie"}: ${p.task}` : p.task || "";
       if (task.textContent !== text) task.textContent = text;
       task.hidden = !text;
     }
@@ -542,7 +557,7 @@
     t.nextSignal = performance.now() + 2500 + Math.random() * 3000;
     if (p.type === "work" && fresh) {
       beep(880, 120);
-      if (p.task) speak(`${t.rounds ? "Round" : "Serie"} ${p.set}. ${p.task}`);
+      if (p.task) speak(`${t.rounds ? "Round" : "Serie"} ${p.set}${p.side ? `, ${p.side}` : ""}. ${p.task}`);
       else speak(p.side ? `Via, ${p.side}` : "Via");
     }
     clearInterval(t.tick);
@@ -601,7 +616,7 @@
     const p = t.phases[t.i];
     t.left = p.secs || 0;
     const unit = t.rounds ? "Round" : "Serie";
-    if (p.type === "rest") { beep(523, 260, 0.07); speak(p.task ? `Recupero. Poi: ${p.task}` : "Recupero"); announce(`Recupero ${p.secs} secondi${p.task ? `. Prossimo round: ${p.task}` : ""}`); }
+    if (p.type === "rest") { beep(523, 260, 0.07); speak(p.task ? `Recupero. Poi: ${p.task}` : "Recupero"); announce(`Recupero ${p.secs} secondi${p.task ? `. ${t.rounds ? "Prossimo round" : "Prossima serie"}: ${p.task}` : ""}`); }
     if (p.type === "switch") { beep(660, 160, 0.06); speak("Cambia lato"); announce("Cambia lato"); }
     if (p.type === "work" || p.type === "reps") announce(`${unit} ${p.set} di ${t.sets}${p.side ? `, ${p.side}` : ""}${p.task ? `: ${p.task}` : ""}`);
     if (p.secs && (auto || p.type !== "work")) timerStart();
@@ -620,21 +635,27 @@
     const s = ui.summary;
     const d = BY.get(s.disc);
     const lv = levelData(s.disc, s.level);
-    const sess = s.session != null ? sessionOf(lv, s.session) : null;
-    const list = s.session != null ? listOf(lv, s.session) : [];
+    const sess = s.session != null && lv ? sessionOf(lv, s.session) : null;
+    const list = s.session != null && lv ? listOf(lv, s.session) : [];
     const choice = s.levelUp;
     const nextLv = Math.min(M.MAX_LEVEL, s.level + 1);
     const alreadyMastered = s.atMax && l.mastered[s.disc];
-    const nextIdx = M.stepOf(l, s.disc, lv.sessions.length);
-    const nextSess = sessionOf(lv, nextIdx);
+    const curLv = levelData(s.disc, M.levelOf(l, s.disc)) || lv;
+    const nextIdx = M.stepOf(l, s.disc, curLv ? curLv.sessions.length : 3);
+    const nextSess = sessionOf(curLv, nextIdx) || { type: "", title: "" };
+    const changed = M.levelOf(l, s.disc) !== s.level;
     let decide;
-    if ((choice === null || choice === undefined) && alreadyMastered) {
+    if ((choice === null || choice === undefined) && changed) {
+      decide = `
+        <p class="ma-reco up">Nel frattempo hai portato ${esc(d.name)} al livello ${M.levelOf(l, s.disc)}: la prossima volta parti da lì.</p>
+        <div class="def-row"><button type="button" class="def-primary" data-mact="close-summary">Torna a oggi</button></div>`;
+    } else if ((choice === null || choice === undefined) && alreadyMastered) {
       decide = `
         <p class="ma-reco up">Questo stile l'hai già copiato al 100%: ripeterlo lo mantiene pulito.</p>
         <div class="def-row"><button type="button" class="def-primary" data-mact="level" data-up="0">Fatto</button></div>`;
     } else if ((choice === null || choice === undefined) && s.isTest) {
       decide = `
-        <p class="ma-reco ${s.recommend ? "up" : "stay"}">${s.recommend ? `Prova superata: ${s.done} su ${s.total}. ${s.atMax ? "Puoi dichiarare lo stile copiato al 100%." : `Ti consiglio di salire al livello ${nextLv}.`}` : `Prova: ${s.done} su ${s.total}. Per superarla ne servono almeno ${Math.ceil(s.total * M.RECOMMEND)}. Ti consiglio di restare al livello ${s.level}, ripassare con le sessioni Impara e Ripeti e rifarla: decidi tu.`}</p>
+        <p class="ma-reco ${s.recommend ? "up" : "stay"}">${s.recommend ? `Prova superata: ${s.scoreDone} esercizi d'esame su ${s.scoreTotal}. ${s.atMax ? "Puoi dichiarare lo stile copiato al 100%." : `Ti consiglio di salire al livello ${nextLv}.`}` : `Prova: ${s.scoreDone} esercizi d'esame su ${s.scoreTotal}. Per superarla ne servono almeno ${Math.ceil(s.scoreTotal * M.RECOMMEND)}. Ti consiglio di restare al livello ${s.level}, ripassare con le sessioni Impara e Ripeti e rifarla: decidi tu.`}</p>
         <div class="def-row">
           <button type="button" class="def-${s.recommend ? "primary" : "ghost"}" data-mact="level" data-up="1">${s.atMax ? "Stile copiato al 100%" : `Sali al livello ${nextLv}`}</button>
           <button type="button" class="def-${s.recommend ? "ghost" : "primary"}" data-mact="level" data-up="0">${s.atMax ? "Continua a ripeterlo" : `Resta al livello ${s.level}`}</button>
@@ -751,7 +772,7 @@
   function styleDetail(l, d, p) {
     const levels = d.levels.map((lv) => {
       const cls = lv.level === p.level ? "now" : lv.level < p.level || (lv.level === p.level && l.mastered[d.id]) ? "past" : "";
-      const sess = lv.sessions.map((s, i) => {
+      const sess = (lv.sessions || []).map((s, i) => {
         const list = listOf(lv, i);
         return `<details class="ma-lvl-sess"${lv.level === p.level && i === p.step ? " open" : ""}>
           <summary><span class="ma-sess-n">${i + 1}</span><strong>${esc(TYPE[s.type] || s.type)}: ${esc(s.title)}</strong><em>${plural(list.length, "esercizio", "esercizi")} · circa ${M.sessionMinutes(list)} min${lv.level === p.level && i === p.step ? " · la prossima" : ""}</em></summary>
@@ -761,7 +782,7 @@
       }).join("");
       return `
       <li class="${cls}">
-        <div class="ma-lvl-head"><span class="ma-lvl-n">${lv.level}</span><div><strong>${esc(lv.title)}</strong><p>${prose(lv.goal)}</p></div></div>
+        <div class="ma-lvl-head"><span class="ma-lvl-n">${lv.level}</span><div><strong>${esc(lv.title)}</strong><p>${prose(lv.goal || "")}</p></div></div>
         ${lv.techniques && lv.techniques.length ? `<ul class="ma-tech">${lv.techniques.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
         <div class="ma-lvl-sessions">${sess}</div>
       </li>`;
@@ -873,10 +894,13 @@
     stopTimer();
     const l = lab();
     const lv = levelData(disc, M.levelOf(l, disc));
+    if (!lv) return;
     const n = lv.sessions.length;
     const idx = Number.isInteger(session) ? clamp(session, 0, n - 1) : M.stepOf(l, disc, n);
     M.startSession(l, disc, { session: idx });
     delete ui.pick[disc];
+    ui.swapOpen = false;
+    ui.swapAt = Date.now();
     ui.exFor = null;
     ui.summary = null;
     ui.view = "today";
@@ -915,18 +939,19 @@
     return !!b;
   }
 
-  // Contro i doppi clic: un'azione dello stesso gruppo vale solo se sono passati almeno 350 ms
-  // dall'ultima (un doppio clic arriva in 100-250 ms; un tocco voluto sul nuovo esercizio dopo).
-  const GROUPS = {
-    flow: ["result", "finish", "level", "start", "cancel", "resume", "discard", "today-swap", "set-level", "pick-session"],
-    timer: ["timer-start", "timer-pause", "timer-skip", "timer-done"]
-  };
+  // Contro i doppi clic: dopo un cambio di schermata (inizio, esito che passa all'esercizio dopo,
+  // fine, scelta del livello...) per 350 ms le azioni che cambiano schermata non valgono: il secondo
+  // clic di un doppio clic cadrebbe sul pulsante nuovo. Le scelte immediate (sessione, stile di oggi,
+  // livello) non sono mai bloccate. Il timer ha la sua finestra (avvia/pausa si alternano).
+  const FLOW = ["result", "finish", "level", "offer", "start", "cancel", "resume", "discard", "close-summary"];
+  const TIMER = ["timer-start", "timer-pause", "timer-skip", "timer-done"];
   function tooSoon(act) {
-    const group = Object.keys(GROUPS).find((g) => GROUPS[g].includes(act));
-    if (!group) return false;
     const now = Date.now();
-    if (now - (ui.guard[group] || 0) < 350) return true;
-    ui.guard[group] = now;
+    if (FLOW.includes(act)) return now - ui.swapAt < 350;
+    if (TIMER.includes(act)) {
+      if (now - ui.timerAt < 350) return true;
+      ui.timerAt = now;
+    }
     return false;
   }
 
@@ -945,33 +970,40 @@
         break;
       case "start":
         if (staleDay(el)) break;
-        if (el.dataset.confirm && !confirmTwice(el, "Conferma: chiudi quello in corso", el.textContent)) { ui.guard.flow = 0; break; }
+        if (el.dataset.confirm && !confirmTwice(el, "Conferma: chiudi quello in corso", el.textContent)) break;
         startDisc(el.dataset.disc, el.dataset.session != null ? Number(el.dataset.session) : undefined);
         break;
-      case "pick-session":
-        ui.pick[el.dataset.disc] = Number(el.dataset.index);
+      case "pick-session": {
+        const idx = Number(el.dataset.index);
+        ui.pick[el.dataset.disc] = { key: M.dayKeyOf(Date.now()), idx };
         render(false);
-        focusAct(`[data-mact="pick-session"][data-index="${el.dataset.index}"]`);
-        announce(`Sessione ${Number(el.dataset.index) + 1} scelta`);
+        focusAct(`[data-mact="pick-session"][data-index="${idx}"]`);
+        const lv = levelData(el.dataset.disc, M.levelOf(l, el.dataset.disc));
+        const s = sessionOf(lv, idx);
+        announce(`Sessione ${idx + 1} scelta: ${s ? `${TYPE[s.type] || s.type}, ${s.title}` : ""}`);
         break;
+      }
       case "today-swap": {
         const t = M.today(l, DISC);
         const disc = el.dataset.disc || null;
         M.setDay(l, t.week, t.day, disc, DISC);
+        ui.swapOpen = !!$("defPanel-martial").querySelector(".ma-swapbox[open]");
         save();
         render(false);
-        announce(disc ? `Oggi: ${BY.get(disc).name}` : "Oggi riposo");
-        focusHeading($("defPanel-martial").querySelector(".ma-body"));
+        announce(disc ? `Oggi: ${BY.get(disc).name}, livello ${M.levelOf(l, disc)}` : "Oggi riposo");
+        focusAct(`[data-mact="today-swap"][data-disc="${disc || ""}"]`) || focusHeading($("defPanel-martial").querySelector(".ma-body"));
         break;
       }
       case "resume":
         M.resumeToday(l);
+        ui.swapAt = Date.now();
         ui.exFor = null;
         save();
         render(true);
         break;
       case "discard":
         stopTimer();
+        ui.swapAt = Date.now();
         l.current = null;
         save();
         render(true);
@@ -995,7 +1027,7 @@
         const n = list.length;
         let next = -1;
         for (let k = 1; k < n; k += 1) { const i = (ui.ex + k) % n; if (l.current.results[list[i].id] === undefined) { next = i; break; } }
-        if (next >= 0) { ui.ex = next; stopTimer(); render(true); scrollTop(); } else { render(false); focusAct('[data-mact="finish"]'); }
+        if (next >= 0) { ui.ex = next; ui.swapAt = Date.now(); stopTimer(); render(true); scrollTop(); } else { render(false); focusAct('[data-mact="finish"]'); }
         break;
       }
       case "finish": {
@@ -1004,7 +1036,8 @@
         const s = sessionOf(lv, l.current.session);
         const list = curList(l);
         stopTimer();
-        ui.summary = M.finishSession(l, list, Date.now(), { count: lv.sessions.length, test: s.type === "prova" });
+        ui.summary = M.finishSession(l, list, Date.now(), { count: lv.sessions.length, test: s.type === "prova", scored: s.exercises.map((e) => e.id) });
+        ui.swapAt = Date.now();
         save();
         render(true);
         scrollTop();
@@ -1012,18 +1045,39 @@
         break;
       }
       case "level": {
+        const s = ui.summary;
         const up = el.dataset.up === "1";
-        if (!ui.summary || (!ui.summary.isTest && !up)) {
-          // sessione normale e "Va bene": nessun cambio, si annota solo la scelta
-          M.chooseLevel(l, false);
-          if (ui.summary) ui.summary.levelUp = false;
-        } else {
-          M.chooseLevel(l, up);
-          ui.summary.levelUp = up;
-        }
+        if (!s) break;
+        M.chooseLevel(l, up);
+        s.levelUp = up;
+        ui.swapAt = Date.now();
         save();
-        if (ui.summary && ui.summary.atMax && l.mastered[ui.summary.disc] && !up) ui.summary = null;
+        const lvNow = levelData(s.disc, M.levelOf(l, s.disc));
+        const n = M.stepOf(l, s.disc, lvNow ? lvNow.sessions.length : 3);
+        const ns = sessionOf(lvNow, n);
+        const nextText = ns ? `la prossima volta di ${BY.get(s.disc).name}: sessione ${n + 1}, ${TYPE[ns.type] || ""}` : "";
+        if (up) {
+          // salire merita una conferma a schermo
+          render(true);
+          announce(s.atMax ? `${BY.get(s.disc).name}: stile copiato al 100%` : `Livello ${s.level + 1} sbloccato`);
+        } else {
+          // "Va bene" / "Resta": si torna subito a Oggi
+          ui.summary = null;
+          render(true);
+          announce(s.isTest ? `Resti al livello ${s.level}: ${nextText}` : `Fatto: ${nextText}`);
+        }
+        break;
+      }
+      case "offer": {
+        const offer = M.offerFor(l, el.dataset.disc);
+        if (!offer) { render(false); break; }
+        const entry = l.sessions.find((x) => x.t === offer.t && x.disc === offer.disc);
+        const up = el.dataset.up === "1";
+        M.chooseLevel(l, up, Date.now(), entry);
+        ui.swapAt = Date.now();
+        save();
         render(true);
+        announce(up ? (offer.atMax ? "Stile copiato al 100%" : `Livello ${offer.level + 1}: si parte dalla sessione Impara`) : `Resti al livello ${offer.level}`);
         break;
       }
       case "close-summary":
@@ -1031,8 +1085,9 @@
         render(true);
         break;
       case "cancel":
-        if (!confirmTwice(el, "Conferma: annulla", "Annulla")) { ui.guard.flow = 0; break; }
+        if (!confirmTwice(el, "Conferma: annulla", "Annulla")) break;
         stopTimer();
+        ui.swapAt = Date.now();
         l.current = null;
         save();
         render(true);
@@ -1093,6 +1148,7 @@
         const level = Number(el.dataset.level);
         const changed = M.setLevel(l, el.dataset.disc, level);
         if (changed) delete ui.pick[el.dataset.disc];
+        if (changed && ui.summary && ui.summary.disc === el.dataset.disc) ui.summary = null;
         save();
         render(false);
         focusAct(`[data-mact="set-level"][data-level="${level}"]`);

@@ -161,6 +161,44 @@ test("Allenamento: impara, ripeti, prova; consiglio solo dopo la prova, decide l
   assert.strictEqual(M.stats(lab, DISC, WED + 3 * DAY).per.boxe.tests, 1, "prove superate");
 });
 
+test("Prova: voto solo sugli esercizi della sessione, offerta di salire senza scadenza", () => {
+  const lab = M.ensure(null, DISC, START);
+  // 2 esercizi del livello (riscaldamento, defaticamento) + 5 della prova
+  const list = [{ id: "boxe-1-r" }, ...exOf("boxe", 1, 2), { id: "boxe-1-d" }];
+  M.startSession(lab, "boxe", { now: WED, session: 2 });
+  list.forEach((e, i) => M.setResult(lab, e.id, i !== 2 && i !== 3)); // sbaglia 2 esercizi della prova su 5
+  const s = M.finishSession(lab, list, WED + 1000, { count: 3, test: true, scored: exOf("boxe", 1, 2).map((e) => e.id) });
+  assert.strictEqual(s.done, 5);
+  assert.strictEqual(s.total, 7);
+  assert.strictEqual(s.scoreDone, 3);
+  assert.strictEqual(s.scoreTotal, 5);
+  assert.strictEqual(s.recommend, false, "3 su 5 della prova: non superata anche se 5 su 7 in tutto");
+  assert.strictEqual(M.offerFor(lab, "boxe"), null);
+  // prova superata, nessuna scelta: l'offerta resta anche giorni dopo
+  M.startSession(lab, "boxe", { now: WED + DAY, session: 2 });
+  list.forEach((e) => M.setResult(lab, e.id, true));
+  M.finishSession(lab, list, WED + DAY + 1000, { count: 3, test: true, scored: exOf("boxe", 1, 2).map((e) => e.id) });
+  assert.strictEqual(M.pendingChoice(lab, WED + 5 * DAY), null, "il riepilogo scade dopo 12 ore");
+  const offer = M.offerFor(lab, "boxe");
+  assert.ok(offer && offer.recommend, "ma l'offerta di salire resta");
+  // un altro stile nel frattempo non la toglie; scegliere chiude l'offerta
+  M.startSession(lab, "karate", { now: WED + 2 * DAY });
+  M.finishSession(lab, exOf("karate", 1), WED + 2 * DAY + 1000, { count: 3 });
+  assert.ok(M.offerFor(lab, "boxe"));
+  const entry = lab.sessions.find((x) => x.t === offer.t);
+  M.chooseLevel(lab, true, WED + 3 * DAY, entry);
+  assert.strictEqual(M.levelOf(lab, "boxe"), 2);
+  assert.strictEqual(M.offerFor(lab, "boxe"), null);
+  // cambio di livello a mano: la scelta in sospeso si chiude
+  M.startSession(lab, "lotta", { now: WED + 4 * DAY, session: 2 });
+  exOf("lotta", 1, 2).forEach((e) => M.setResult(lab, e.id, true));
+  M.finishSession(lab, exOf("lotta", 1, 2), WED + 4 * DAY + 1000, TEST);
+  assert.ok(M.pendingChoice(lab, WED + 4 * DAY + 2000));
+  M.setLevel(lab, "lotta", 3, WED + 4 * DAY + 3000);
+  assert.strictEqual(M.pendingChoice(lab, WED + 4 * DAY + 4000), null);
+  assert.strictEqual(M.offerFor(lab, "lotta"), null);
+});
+
 test("Sessioni: salire dopo una sessione normale, cambio di livello a mano, sessione scelta", () => {
   const lab = M.ensure(null, DISC, START);
   M.startSession(lab, "karate", { now: WED });
