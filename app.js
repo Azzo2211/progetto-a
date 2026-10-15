@@ -1117,7 +1117,7 @@ function dashboardTrend(moduleKey, average) {
       return studied ? `${studied}/${cards.length} schede studiate · ${due ? `${due} da ripassare oggi` : "nessun ripasso oggi"}` : "Biblioteca nuova · leggi la prima scheda";
     })() : "Biblioteca nuova · leggi la prima scheda",
     planning: state.planScores.length ? `${state.planScores.length} piani · media ${Math.round(averageArray(state.planScores))}` : "Base iniziale · scrivi un piano",
-    defense: window.defenseTrend ? (() => { try { return window.defenseTrend(); } catch (error) { return "Fase 1 · inizia la prima sessione"; } })() : "Fase 1 · inizia la prima sessione",
+    defense: window.defenseTrend ? (() => { try { return window.defenseTrend(); } catch (error) { return "Livello 1 · inizia il primo allenamento"; } })() : "Livello 1 · inizia il primo allenamento",
     logic: state.logicAttempts ? `${state.logicSolved}/${state.logicAttempts} corretti · media ${average}` : "Base iniziale · risolvi un indovinello",
     memory: state.memory.attempts ? `Livello ${state.memory.level} · ${state.memory.correct}/${state.memory.attempts} prove forti` : `Livello ${state.memory.level} · base iniziale`,
     influence: state.influence.attempts ? `${state.influence.attempts} analisi · media ${state.influence.average}` : "Base iniziale · prova una tattica",
@@ -1194,7 +1194,7 @@ function trainingForPattern(moduleKey, key) {
   if (moduleKey === "chess") return mistakeDrills[key] || "Drill: rivedi 5 mosse e scrivi piano, minaccia, rischio.";
   if (moduleKey === "memory") return "Allenamento: usa chunking da 3 elementi, poi richiamo attivo dopo 20 secondi.";
   if (moduleKey === "scenarios") return "Allenamento: prima i fatti, poi una frase breve senza accuse, poi il piano B.";
-  if (moduleKey === "defense") return "Allenamento: la prossima sessione del programma, poi una prova di riflessi e un turno di situazioni.";
+  if (moduleKey === "defense") return "Allenamento: il giorno del piano marziale, poi una prova di riflessi o un turno di situazioni.";
   if (moduleKey === "influence") return "Allenamento: riscrivi la leva rendendo chiari costi, confini e possibilita' di dire no.";
   if (moduleKey === "culture") return "Allenamento: fai i ripassi del giorno e spiega ogni scheda con parole tue.";
   if (moduleKey === "planning") return "Allenamento: aggiungi metrica, soglia di rischio e revisione a 72 ore.";

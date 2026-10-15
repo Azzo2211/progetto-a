@@ -13,6 +13,8 @@ const E = require(path.join(root, "defense", "engine.js"));
 require(path.join(root, "defense", "program.js"));
 require(path.join(root, "defense", "situations.js"));
 require(path.join(root, "defense", "scenes.js"));
+require(path.join(root, "defense", "training.js"));
+const TR = globalThis.DefenseTraining;
 const P = globalThis.DefenseProgram;
 const SITS = globalThis.DefenseSituations;
 const SCENES = globalThis.DefenseScenes;
@@ -315,6 +317,111 @@ test("Dati rovinati o di un'altra versione: si tengono i dati buoni", () => {
   assert.deepStrictEqual(lab.days, ["2026-10-14"]);
   const p = E.profile(lab, P.sessions, T0);
   Object.values(p).forEach((v) => assert.ok(Number.isFinite(v), "niente NaN"));
+});
+
+
+// ---------- Allenamento marziale a livelli ----------
+test("Allenamento: 4 livelli, 5 giorni, giorno 1 = boxe, id unici, versione facile sempre presente", () => {
+  assert.strictEqual(TR.LEVELS.length, E.TRAIN_LEVELS);
+  assert.strictEqual(TR.DAYS.length, E.TRAIN_DAYS);
+  assert.strictEqual(TR.DAYS[0].key, "boxe");
+  const ids = new Set();
+  TR.LEVELS.forEach((lv) => {
+    assert.strictEqual(lv.days.length, E.TRAIN_DAYS, `livello ${lv.n}`);
+    lv.days.forEach((list) => {
+      assert.ok(list.length >= 4);
+      list.forEach((e) => {
+        assert.ok(e.id && e.name && e.dose && e.how && e.easy, `esercizio incompleto ${e.id}`);
+        assert.ok(!ids.has(e.id), `id doppio ${e.id}`);
+        ids.add(e.id);
+      });
+    });
+  });
+  assert.ok(TR.LEVELS.some((lv) => lv.days.some((list) => list.some((e) => e.flex))), "ci sono esercizi di flessibilita'");
+  assert.ok(TR.LEVELS[0].days[1].filter((e) => e.flex).length >= 2, "giorno mobilita' con esercizi flex");
+});
+
+test("Allenamento: segni gli esercizi, il secondo tocco annulla, un giorno chiuso non si cambia", () => {
+  const lab = E.ensureLab({});
+  const lv = TR.LEVELS[0];
+  assert.strictEqual(E.recordTrainingExercise(lab, lv, "nonesiste", "done", T0), false);
+  assert.strictEqual(E.recordTrainingExercise(lab, lv, lv.days[0][0].id, "boh", T0), false);
+  assert.ok(E.recordTrainingExercise(lab, lv, lv.days[0][0].id, "done", T0));
+  assert.strictEqual(E.trainingDayProgress(lab, lv, 0).marked, 1);
+  E.recordTrainingExercise(lab, lv, lv.days[0][0].id, "done", T0);
+  assert.strictEqual(E.trainingDayProgress(lab, lv, 0).marked, 0, "secondo tocco annulla");
+  assert.deepStrictEqual(E.finishTrainingDay(lab, lv, 0, T0), { ok: false, reason: "few" });
+  lv.days[0].forEach((e) => E.recordTrainingExercise(lab, lv, e.id, "done", T0));
+  assert.ok(E.finishTrainingDay(lab, lv, 0, T0).ok);
+  assert.strictEqual(E.finishTrainingDay(lab, lv, 0, T0).reason, "closed");
+  assert.strictEqual(E.recordTrainingExercise(lab, lv, lv.days[0][0].id, "fail", T0), false, "giorno chiuso");
+  assert.ok(lab.days.length === 1 && lab.log.some((e) => e.kind === "train"));
+});
+
+test("Allenamento: serve almeno il 70% segnato per chiudere un giorno", () => {
+  const lab = E.ensureLab({});
+  const lv = TR.LEVELS[0];
+  const list = lv.days[2];
+  const need = Math.ceil(list.length * E.TRAIN_MIN);
+  list.slice(0, need - 1).forEach((e) => E.recordTrainingExercise(lab, lv, e.id, "alt", T0));
+  assert.strictEqual(E.finishTrainingDay(lab, lv, 2, T0).ok, false);
+  E.recordTrainingExercise(lab, lv, list[need - 1].id, "fail", T0);
+  assert.ok(E.finishTrainingDay(lab, lv, 2, T0).ok);
+});
+
+function doWeek(lab, lv, result) {
+  lv.days.forEach((list, i) => {
+    list.forEach((e) => E.recordTrainingExercise(lab, lv, e.id, result, T0 + i * DAY));
+    E.finishTrainingDay(lab, lv, i, T0 + i * DAY);
+  });
+}
+
+test("Allenamento: a fine settimana scegli tu; il consiglio segue il punteggio ma non obbliga", () => {
+  const lab = E.ensureLab({});
+  const lv = TR.LEVELS[0];
+  assert.strictEqual(E.chooseTrainingNext(lab, lv, "up", T0), false, "settimana non finita");
+  doWeek(lab, lv, "done");
+  const w = E.trainingWeek(lab, lv);
+  assert.ok(w.complete && w.score === 100 && w.advice === "up");
+  assert.strictEqual(E.chooseTrainingNext(lab, lv, "boh", T0), false);
+  assert.ok(E.chooseTrainingNext(lab, lv, "stay", T0), "puoi restare anche se andava benissimo");
+  assert.strictEqual(lab.training.level, 1);
+  assert.strictEqual(lab.training.week, 2);
+  assert.deepStrictEqual(lab.training.results, {});
+  doWeek(lab, lv, "done");
+  assert.ok(E.chooseTrainingNext(lab, lv, "up", T0));
+  assert.strictEqual(lab.training.level, 2);
+  assert.strictEqual(lab.training.history.length, 2);
+});
+
+test("Allenamento: settimana dura consiglia di scendere, il livello resta tra 1 e 4", () => {
+  const lab = E.ensureLab({});
+  const lv = TR.LEVELS[0];
+  doWeek(lab, lv, "fail");
+  assert.strictEqual(E.trainingWeek(lab, lv).advice, "down");
+  assert.ok(E.chooseTrainingNext(lab, lv, "down", T0));
+  assert.strictEqual(lab.training.level, 1, "non scende sotto 1");
+  lab.training.level = E.TRAIN_LEVELS;
+  const top = TR.LEVELS[E.TRAIN_LEVELS - 1];
+  doWeek(lab, top, "done");
+  assert.ok(E.chooseTrainingNext(lab, top, "up", T0));
+  assert.strictEqual(lab.training.level, E.TRAIN_LEVELS, "non supera 4");
+});
+
+test("Allenamento: dati rovinati ripuliti; allenarsi alza Tecnica e Costanza ma non da' punti a vuoto", () => {
+  const lab = E.ensureLab({ training: { level: 99, week: "x", results: { a: { r: "boh", t: 1 }, b: { r: "done", t: 5 } }, days: { 1: "no" }, history: [null] } });
+  assert.strictEqual(lab.training.level, E.TRAIN_LEVELS);
+  assert.strictEqual(lab.training.week, 1);
+  assert.deepStrictEqual(Object.keys(lab.training.results), ["b"]);
+  assert.deepStrictEqual(lab.training.days, {});
+  const empty = E.profile(E.ensureLab({}), P.sessions, T0);
+  const worked = E.ensureLab({});
+  doWeek(worked, TR.LEVELS[0], "done");
+  const p = E.profile(worked, P.sessions, T0 + 4 * DAY);
+  assert.ok(p.tecnica > empty.tecnica && p.costanza > empty.costanza);
+  const late = E.profile(worked, P.sessions, T0 + 60 * DAY);
+  assert.ok(late.tecnica < p.tecnica, "calo se smetti");
+  Object.values(p).forEach((v) => assert.ok(Number.isFinite(v)));
 });
 
 console.log(`${passed} test superati${failed.length ? `, ${failed.length} falliti` : ""}`);

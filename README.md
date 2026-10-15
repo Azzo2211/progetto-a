@@ -115,10 +115,13 @@ La pagina Difesa (cartella `defense/`) parte da un principio: prima si evita, po
 | File | Cosa fa |
 |---|---|
 | `defense/program.js` | 17 tecniche (postura a mani aperte, guardia, passi, distanza, parate, coperture, liberazioni dalle prese, caduta, rialzarsi, sequenza di uscita) con passi, punti chiave, errori comuni, come allenarle da soli o con un partner; riscaldamento; 12 sessioni in 4 fasi. |
+| `defense/training.js` | Piano di arti marziali a 4 livelli (Basi, Combinazioni, Ritmo, Stile Johan), ispirato a Lookism e a Johan Seong: ogni livello ha 5 allenamenti (boxe, mobilità e core, calci e ginocchia, schivate e prese, copia e rendi tuo). Ogni esercizio ha dose, come farlo e una versione facile; quelli che chiedono flessibilità sono segnati con F. |
 | `defense/situations.js` | 36 situazioni decisionali in 6 aree (prevenzione, confini e calma, uscire, oggetti e rapine, la legge, il dopo). Ogni opzione ha un voto e una nota; le note legali citano le fonti. |
 | `defense/figure.js`, `defense/scenes.js` | Manichino SVG con cinematica inversa: ogni tecnica ha i suoi fotogrammi animati (tu in ambra, il partner in grigio). Anteprima di tutte le pose: `tools/defense/preview.html`. |
 | `defense/engine.js` | Sblocco delle sessioni, prove di riflessi, ripasso delle situazioni, profilo. Senza DOM, testato in `tests/defense.test.js`. |
 | `defense/ui.js`, `defense/defense.css` | La pagina: Programma, Riflessi, Situazioni, Profilo. |
+
+**Allenamento (scheda iniziale)**: 5 allenamenti a settimana, uno di boxe, nell'ordine che preferisci. Per ogni esercizio segni *Fatto*, *Versione facile* o *Non riuscito* (un secondo tocco annulla). Un giorno si chiude quando hai segnato almeno il 70% degli esercizi. A settimana finita l'app mostra il punteggio e un consiglio (sopra 80% sali, sotto 45% scendi), ma **scegli tu**: sali, ripeti o torna indietro. I giorni chiusi contano per Costanza e Tecnica nel profilo; la Tecnica cala se smetti per più di 10 giorni.
 
 **Sessione guidata**: riscaldamento a tempo, le tecniche della sessione (figura animata con i fotogrammi da scorrere), alcuni round in cui l'app chiama i comandi ad alta voce (voce e suoni si possono spegnere), autovalutazione finale (Sì / A volte / No). Una sessione conta solo se fai davvero almeno il 70% dei round (chiuderli prima non vale); la successiva si sblocca con un'autovalutazione almeno del 40%. Le cadute non vengono mai chiamate nei round.
 

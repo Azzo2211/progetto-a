@@ -12,6 +12,7 @@
   const E = window.DefenseEngine;
   const P = window.DefenseProgram || { techniques: [], warmup: [], sessions: [] };
   const SITS = window.DefenseSituations || [];
+  const T = window.DefenseTraining || { JOHAN: {}, DAYS: [], LEVELS: [], SAFETY: [], WARMUP: "", COOLDOWN: "" };
   const F = window.DefenseFigure;
   const SC = window.DefenseScenes || {};
   const TECH = new Map(P.techniques.map((t) => [t.id, t]));
@@ -21,7 +22,8 @@
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const ui = {
-    tab: "program",
+    tab: "train",
+    trainDay: null,    // indice del giorno aperto nella scheda Allenamento (null = panoramica)
     view: null,        // { type: "technique", id } | { type: "session" }
     run: null,         // sessione in corso
     test: null,        // prova di riflessi in corso
@@ -150,7 +152,7 @@
     const value = profileTotal();
     chip.innerHTML = `
       <span class="def-chip-phase">Fase ${phase.n}</span>
-      <span class="def-chip-text"><strong>${esc(phase.title)}</strong><em>${done}/${P.sessions.length} sessioni · profilo ${value}</em></span>`;
+      <span class="def-chip-text"><strong>${esc(phase.title)}</strong><em>${done}/${P.sessions.length} sessioni · allenamento livello ${l.training.level} · profilo ${value}</em></span>`;
   }
 
   function setTab(tab) {
@@ -184,10 +186,137 @@
   function render() {
     renderChip();
     destroyFigs();
-    if (ui.tab === "program") renderProgram();
+    if (ui.tab === "train") renderTraining();
+    else if (ui.tab === "program") renderProgram();
     else if (ui.tab === "reflex") renderReflex();
     else if (ui.tab === "situ") renderSitu();
     else renderProfile();
+  }
+
+  /* --------------------------------------------------------- allenamento */
+
+  const num = (v) => typeof v === "number" && Number.isFinite(v);
+  const RESULT_LABEL = { done: "Fatto", alt: "Versione facile", fail: "Non riuscito" };
+
+  function trainLevel() {
+    return T.LEVELS[lab().training.level - 1] || T.LEVELS[0];
+  }
+
+  function renderTraining(focusSel) {
+    const box = $("defPanel-train");
+    if (!box || !T.LEVELS.length) return;
+    const level = trainLevel();
+    if (ui.trainDay != null) { renderTrainingDay(box, level, focusSel); return; }
+    const l = lab();
+    const week = E.trainingWeek(l, level);
+    const dayCards = T.DAYS.map((d, i) => {
+      const p = E.trainingDayProgress(l, level, i);
+      const status = p.closed ? "done" : p.marked ? "part" : "open";
+      const label = p.closed ? "fatto" : p.marked ? `${p.marked}/${p.total} segnati` : `${p.total} esercizi`;
+      return `
+        <li class="def-tday ${status}">
+          <button type="button" data-act="train-day" data-day="${i}">
+            <span class="def-node-num">${d.n}</span>
+            <span class="def-node-text"><strong>${esc(d.title)}</strong><em>${esc(d.sub)} · ${label}</em></span>
+          </button>
+        </li>`;
+    }).join("");
+    const adviceText = { up: "è andata molto bene: puoi salire", stay: "ripetere il livello ti fa consolidare", down: "è stata dura: tornare indietro non è un fallimento" }[week.advice];
+    const levelButtons = week.complete ? `
+      <article class="def-pcard def-weekend">
+        <span class="def-kicker">Settimana chiusa · ${week.score}%</span>
+        <h3>Cosa fai adesso?</h3>
+        <p>Consiglio dell'app: ${esc(adviceText)}. La scelta è tua.</p>
+        <div class="def-choice-row">
+          ${l.training.level < E.TRAIN_LEVELS ? `<button class="def-primary" type="button" data-act="train-choose" data-c="up">Sali al livello ${l.training.level + 1}</button>` : ""}
+          <button class="def-ghost" type="button" data-act="train-choose" data-c="stay">Ripeti il livello ${l.training.level}</button>
+          ${l.training.level > 1 ? `<button class="def-ghost" type="button" data-act="train-choose" data-c="down">Torna al livello ${l.training.level - 1}</button>` : ""}
+        </div>
+      </article>` : "";
+    const lvTabs = T.LEVELS.map((lv) => `<span class="def-lvl ${lv.n === l.training.level ? "on" : lv.n < l.training.level ? "past" : ""}">${lv.n}</span>`).join("");
+    box.innerHTML = `
+      <article class="def-hero today def-johan">
+        <div class="def-hero-main">
+          <span class="def-kicker">Con ${esc(T.JOHAN.name)} · settimana ${l.training.week}</span>
+          <h2>Livello ${level.n} · ${esc(level.title)}</h2>
+          <p>${prose(level.goal)}</p>
+          <p class="def-note">${prose(T.JOHAN.idea)}</p>
+          <div class="def-hero-meta"><span>5 allenamenti a settimana</span><span>${week.closedDays}/5 fatti</span><span>un giorno di boxe</span></div>
+        </div>
+        <div class="def-hero-side"><div class="def-lvls" aria-label="Livello ${level.n} di ${T.LEVELS.length}">${lvTabs}</div></div>
+      </article>
+      ${levelButtons}
+      <h3 class="def-section-title">La settimana</h3>
+      <p class="def-section-sub">Un giorno alla volta, nell'ordine che vuoi. Segni cosa ti è riuscito: l'app non decide per te, ti consiglia soltanto.</p>
+      <ol class="def-tdays">${dayCards}</ol>
+      <article class="def-pcard"><h3>Prima di cominciare</h3><ul class="def-plist">${T.SAFETY.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></article>
+      <p class="def-disclaimer">${prose(T.JOHAN.note)}</p>`;
+  }
+
+  function renderTrainingDay(box, level, focusSel) {
+    const l = lab();
+    const i = ui.trainDay;
+    const day = T.DAYS[i];
+    const list = level.days[i] || [];
+    const p = E.trainingDayProgress(l, level, i);
+    const items = list.map((e) => {
+      const r = l.training.results[e.id];
+      const buttons = ["done", "alt", "fail"].map((k) => `
+        <button type="button" class="def-mark ${k} ${r && r.r === k ? "on" : ""}" data-act="train-mark" data-id="${esc(e.id)}" data-r="${k}" aria-pressed="${r && r.r === k ? "true" : "false"}" ${p.closed ? "disabled" : ""}>${RESULT_LABEL[k]}</button>`).join("");
+      return `
+        <li class="def-ex ${r ? "marked " + r.r : ""}">
+          <div class="def-ex-head"><h4>${esc(e.name)}</h4>${e.flex ? '<span class="def-flex" title="Chiede flessibilità">F · flessibilità</span>' : ""}<span class="def-dose">${esc(e.dose)}</span></div>
+          <p>${prose(e.how)}</p>
+          <p class="def-easy"><strong>Versione facile:</strong> ${prose(e.easy)}</p>
+          <div class="def-marks" role="group" aria-label="Com'è andata: ${esc(e.name)}">${buttons}</div>
+        </li>`;
+    }).join("");
+    box.innerHTML = `
+      <button class="def-ghost def-back" type="button" data-act="train-back">← La settimana</button>
+      <header class="def-day-head">
+        <span class="def-kicker">Livello ${level.n} · giorno ${day.n} di 5</span>
+        <h2 tabindex="-1" id="defTrainTitle">${esc(day.title)}</h2>
+        <p>${esc(day.sub)}</p>
+      </header>
+      <p class="def-note">${prose(T.WARMUP)}</p>
+      <ol class="def-exlist">${items}</ol>
+      <p class="def-note">${prose(T.COOLDOWN)}</p>
+      <div class="def-finish">
+        <span>${p.marked}/${p.total} segnati${p.ready ? "" : ` · ne servono almeno ${Math.ceil(p.total * E.TRAIN_MIN)}`}</span>
+        <button class="def-primary" type="button" data-act="train-finish" ${p.closed || !p.ready ? "disabled" : ""}>${p.closed ? "Allenamento chiuso" : "Chiudi l'allenamento"}</button>
+      </div>`;
+    if (focusSel) { const el = box.querySelector(focusSel); if (el) el.focus({ preventScroll: true }); }
+    else focusHeading(box);
+  }
+
+  function trainMark(id, r) {
+    const level = trainLevel();
+    if (!E.recordTrainingExercise(lab(), level, id, r)) return;
+    save();
+    renderTraining(`[data-act="train-mark"][data-id="${id}"][data-r="${r}"]`);
+  }
+
+  function trainFinish() {
+    const level = trainLevel();
+    const res = E.finishTrainingDay(lab(), level, ui.trainDay);
+    if (!res.ok) return;
+    save();
+    announce("Allenamento chiuso");
+    ui.trainDay = null;
+    renderChip();
+    renderTraining();
+    scrollToEl($("defPanel-train"));
+  }
+
+  function trainChoose(c) {
+    const level = trainLevel();
+    if (!E.chooseTrainingNext(lab(), level, c)) return;
+    save();
+    announce(c === "up" ? "Nuovo livello" : c === "down" ? "Livello precedente" : "Stesso livello");
+    ui.trainDay = null;
+    renderChip();
+    renderTraining();
+    scrollToEl($("defPanel-train"));
   }
 
   /* ----------------------------------------------------------- programma */
@@ -1305,6 +1434,7 @@
       const when = new Date(e.t).toLocaleDateString("it-IT", { day: "numeric", month: "short" });
       const what = e.kind === "session" ? `Sessione ${esc(e.id.replace("s", ""))} · ${e.q}%`
         : e.kind === "session-partial" ? `Sessione ${esc(String(e.id || "").replace("s", ""))} · incompleta`
+        : e.kind === "train" ? `Allenamento ${esc(String(e.id || "").replace(/^L(\d+)D(\d+)$/, "livello $1, giorno $2"))}${num(e.q) ? ` · ${e.q}%` : ""}`
         : e.kind === "reflex" ? `Prova ${esc(TESTS[e.test] ? TESTS[e.test].title : e.test)}${e.ok === false ? " · non valida" : ""}`
         : `${esc((SIT.get(e.id) || {}).title || e.id)} · ${e.to ? "tempo scaduto" : e.s === 2 ? "migliore" : e.s === 1 ? "accettabile" : "da evitare"}${e.c === false ? " · pratica" : ""}`;
       return `<li><em>${esc(when)}</em><span>${what}</span></li>`;
@@ -1347,8 +1477,8 @@
     const done = P.sessions.filter((s) => E.sessionState(l, s.id).done > 0).length;
     const phase = Math.min(E.PHASES.length, E.currentPhase(l, P.sessions));
     const sem = l.reflex.semaforo[l.reflex.semaforo.length - 1];
-    if (!done && !sem && !l.log.length) return "Fase 1 · inizia la prima sessione";
-    return `Fase ${phase} · ${done}/${P.sessions.length} sessioni${sem && sem.median != null ? ` · semaforo ${sem.median} ms` : ""}`;
+    if (!done && !sem && !l.log.length) return "Livello 1 · inizia il primo allenamento";
+    return `Livello ${l.training.level} · Fase ${phase} · ${done}/${P.sessions.length} sessioni${sem && sem.median != null ? ` · semaforo ${sem.median} ms` : ""}`;
   };
 
   /* --------------------------------------------------------------- eventi */
@@ -1363,6 +1493,19 @@
     if (event.detail === 0 && Date.now() - (ui.renderedAt || 0) < 700 && ["situ-pick", "situ-next", "situ-reveal", "test-start", "save-session", "start-session"].includes(act)) return;
     if (act !== "situ-pick" && act !== "check" && act !== "frame" && act !== "practice") ui.stepAt = Date.now();
     switch (act) {
+      case "train-day":
+        ui.trainDay = Number(el.dataset.day);
+        renderTraining();
+        scrollToEl($("defPanel-train"));
+        break;
+      case "train-back":
+        ui.trainDay = null;
+        renderTraining();
+        scrollToEl($("defPanel-train"));
+        break;
+      case "train-mark": trainMark(el.dataset.id, el.dataset.r); break;
+      case "train-finish": trainFinish(); break;
+      case "train-choose": trainChoose(el.dataset.c); break;
       case "tech":
         if (ui.run) return;
         stopEverything();
@@ -1593,6 +1736,6 @@
     if ("speechSynthesis" in window) {
       try { window.speechSynthesis.onvoiceschanged = () => { itVoice = null; }; } catch (e) { /* niente */ }
     }
-    setTab("program");
+    setTab("train");
   });
 })();

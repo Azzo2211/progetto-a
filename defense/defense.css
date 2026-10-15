@@ -633,6 +633,54 @@
   .def-tabs button { padding: 9px 6px; }
 }
 
+/* ---------- Allenamento: settimana, giorni, esercizi ---------- */
+.def-tdays { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.def-tday button {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; text-align: left;
+  border: 1px solid var(--d-line); border-radius: 12px; background: var(--d-panel); color: inherit; cursor: pointer;
+}
+.def-tday button:hover { border-color: var(--d-line-strong); }
+.def-tday.done .def-node-num { background: var(--d-amber); border-color: var(--d-amber); color: #1d1406; }
+.def-tday.part .def-node-num, .def-tday.open .def-node-num { border-color: var(--d-amber); color: var(--d-amber); }
+.def-lvls { display: flex; gap: 6px; }
+.def-lvl { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--d-line-strong); color: var(--d-faint); font-weight: 700; }
+.def-lvl.past { border-color: var(--d-amber); color: var(--d-amber); }
+.def-lvl.on { background: var(--d-amber); border-color: var(--d-amber); color: #1d1406; }
+.def-weekend { margin: 0 0 14px; border-color: rgba(240, 169, 58, 0.45); }
+.def-weekend p { color: var(--d-muted); margin: 0 0 12px; }
+.def-choice-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.def-back { margin-bottom: 12px; }
+.def-day-head h2 { margin: 0 0 4px; font-size: clamp(1.3rem, 2vw, 1.7rem); font-stretch: var(--d-cond); font-weight: 760; }
+.def-day-head p { margin: 0; color: var(--d-muted); }
+.def-exlist { list-style: none; margin: 14px 0; padding: 0; display: grid; gap: 10px; }
+.def-ex { padding: 14px 16px; border: 1px solid var(--d-line); border-radius: 14px; background: var(--d-panel); }
+.def-ex.marked.done { border-color: rgba(60, 207, 126, 0.45); }
+.def-ex.marked.alt { border-color: rgba(240, 169, 58, 0.5); }
+.def-ex.marked.fail { border-color: rgba(255, 91, 95, 0.4); }
+.def-ex-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+.def-ex-head h4 { margin: 0; font-size: 1rem; font-weight: 700; }
+.def-dose { margin-left: auto; color: var(--d-amber); font-size: 0.85rem; font-weight: 650; }
+.def-flex { font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--d-rest); color: var(--d-rest); }
+.def-ex p { margin: 8px 0 0; color: var(--d-muted); font-size: 0.9rem; }
+.def-easy { color: var(--d-faint); }
+.def-easy strong { color: var(--d-muted); font-weight: 650; }
+.def-marks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.def-mark {
+  padding: 8px 14px; border-radius: 999px; border: 1px solid var(--d-line-strong); background: transparent;
+  color: var(--d-ink); font: inherit; font-size: 0.85rem; cursor: pointer; min-height: 40px;
+}
+.def-mark:hover:not(:disabled) { background: rgba(255, 255, 255, 0.06); }
+.def-mark:disabled { opacity: 0.55; cursor: default; }
+.def-mark.on.done { background: var(--d-go); border-color: var(--d-go); color: #08210f; font-weight: 700; }
+.def-mark.on.alt { background: var(--d-amber); border-color: var(--d-amber); color: #1d1406; font-weight: 700; }
+.def-mark.on.fail { background: var(--d-stop); border-color: var(--d-stop); color: #2a0608; font-weight: 700; }
+.def-finish { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; color: var(--d-muted); }
+@media (max-width: 560px) {
+  .def-dose { margin-left: 0; }
+  .def-mark { flex: 1 1 auto; text-align: center; }
+  .def-finish .def-primary { width: 100%; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .def-call.pop strong { animation: none; }
   .def-clockbar i, .def-test-progress i { transition: none; }

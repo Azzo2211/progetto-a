@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="chess/chess-ui.css?v=20261014-11" />
     <link rel="stylesheet" href="scenarios/scenarios.css?v=20261014-11" />
     <link rel="stylesheet" href="culture/culture.css?v=20261014-11" />
-    <link rel="stylesheet" href="defense/defense.css?v=20261014-11" />
+    <link rel="stylesheet" href="defense/defense.css?v=20261015-1" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
@@ -515,12 +515,14 @@
             <button class="def-chip" id="defChip" type="button" title="Apri il profilo difesa"></button>
           </div>
           <div class="def-tabs" role="tablist" aria-label="Sezioni della difesa">
-            <button type="button" role="tab" id="defTab-program" data-def-tab="program" aria-controls="defPanel-program" aria-selected="true">Programma</button>
+            <button type="button" role="tab" id="defTab-train" data-def-tab="train" aria-controls="defPanel-train" aria-selected="true">Allenamento</button>
+            <button type="button" role="tab" id="defTab-program" data-def-tab="program" aria-controls="defPanel-program" aria-selected="false" tabindex="-1">Difesa</button>
             <button type="button" role="tab" id="defTab-reflex" data-def-tab="reflex" aria-controls="defPanel-reflex" aria-selected="false" tabindex="-1">Riflessi</button>
             <button type="button" role="tab" id="defTab-situ" data-def-tab="situ" aria-controls="defPanel-situ" aria-selected="false" tabindex="-1">Situazioni</button>
             <button type="button" role="tab" id="defTab-profile" data-def-tab="profile" aria-controls="defPanel-profile" aria-selected="false" tabindex="-1">Profilo</button>
           </div>
-          <div class="def-panel" id="defPanel-program" role="tabpanel" aria-labelledby="defTab-program"></div>
+          <div class="def-panel" id="defPanel-train" role="tabpanel" aria-labelledby="defTab-train"></div>
+          <div class="def-panel" id="defPanel-program" role="tabpanel" aria-labelledby="defTab-program" hidden></div>
           <div class="def-panel" id="defPanel-reflex" role="tabpanel" aria-labelledby="defTab-reflex" hidden></div>
           <div class="def-panel" id="defPanel-situ" role="tabpanel" aria-labelledby="defTab-situ" hidden></div>
           <div class="def-panel" id="defPanel-profile" role="tabpanel" aria-labelledby="defTab-profile" hidden></div>
@@ -694,8 +696,9 @@
     <script src="scenarios/free.js?v=20261014-11"></script>
     <script src="culture/engine.js?v=20261014-11"></script>
     <script src="culture/cards.js?v=20261014-11"></script>
-    <script src="defense/engine.js?v=20261014-11"></script>
+    <script src="defense/engine.js?v=20261015-1"></script>
     <script src="defense/program.js?v=20261014-11"></script>
+    <script src="defense/training.js?v=20261015-1"></script>
     <script src="defense/situations.js?v=20261014-11"></script>
     <script src="defense/figure.js?v=20261014-11"></script>
     <script src="defense/scenes.js?v=20261014-11"></script>
@@ -706,6 +709,6 @@
     <script src="cote-theme.js?v=20261014-11"></script>
     <script src="scenarios/ui.js?v=20261014-11"></script>
     <script src="culture/ui.js?v=20261014-11"></script>
-    <script src="defense/ui.js?v=20261014-11"></script>
+    <script src="defense/ui.js?v=20261015-1"></script>
   </body>
 </html>

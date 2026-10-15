@@ -132,11 +132,125 @@
       if (!num(st.box)) st.box = 1;
       if (!num(st.due)) st.due = 0;
     });
+    lab.training = ensureTraining(lab.training);
     lab.days = Array.isArray(lab.days) ? lab.days.filter((d) => typeof d === "string") : [];
     lab.log = Array.isArray(lab.log) ? lab.log.filter((e) => isObj(e) && num(e.t) && typeof e.kind === "string"
       && (e.kind !== "session" || typeof e.id === "string")
       && (e.kind !== "situ" || (typeof e.id === "string" && num(e.s)))) : [];
     return lab;
+  }
+
+  // ---------- Allenamento (piano di arti marziali a livelli) ----------
+  const TRAIN_LEVELS = 4;
+  const TRAIN_DAYS = 5;
+  const TRAIN_MIN = 0.7;          // quota di esercizi da segnare perche' il giorno conti
+  const TRAIN_RESULTS = ["done", "alt", "fail"];
+  const TRAIN_WEIGHT = { done: 1, alt: 0.6, fail: 0.15 };
+
+  function ensureTraining(raw) {
+    const t = isObj(raw) ? raw : {};
+    t.level = num(t.level) ? clamp(Math.round(t.level), 1, TRAIN_LEVELS) : 1;
+    t.week = num(t.week) ? Math.max(1, Math.round(t.week)) : 1;
+    if (!isObj(t.results)) t.results = {};
+    Object.keys(t.results).forEach((id) => {
+      const r = t.results[id];
+      if (!isObj(r) || !TRAIN_RESULTS.includes(r.r) || !num(r.t)) delete t.results[id];
+    });
+    if (!isObj(t.days)) t.days = {};
+    Object.keys(t.days).forEach((d) => {
+      if (!isObj(t.days[d]) || !num(t.days[d].t)) delete t.days[d];
+    });
+    t.history = Array.isArray(t.history) ? t.history.filter((h) => isObj(h) && num(h.t) && num(h.level) && num(h.score)) : [];
+    if (t.history.length > 60) t.history = t.history.slice(-60);
+    return t;
+  }
+
+  function trainingDay(level, dayIndex) {
+    return (level && level.days && level.days[dayIndex]) || [];
+  }
+
+  // quanti esercizi del giorno sono stati segnati e con che esito
+  function trainingDayProgress(lab, level, dayIndex) {
+    const t = ensureLab(lab).training;
+    const list = trainingDay(level, dayIndex);
+    const counts = { done: 0, alt: 0, fail: 0, open: 0 };
+    list.forEach((e) => {
+      const r = t.results[e.id];
+      if (r) counts[r.r] += 1; else counts.open += 1;
+    });
+    const marked = list.length - counts.open;
+    const closed = !!t.days[String(dayIndex + 1)];
+    return { total: list.length, marked, counts, closed, ready: list.length > 0 && marked / list.length >= TRAIN_MIN };
+  }
+
+  function recordTrainingExercise(lab, level, exerciseId, result, now = Date.now()) {
+    lab = ensureLab(lab);
+    if (!TRAIN_RESULTS.includes(result)) return false;
+    const known = (level.days || []).some((list) => list.some((e) => e.id === exerciseId));
+    if (!known) return false;
+    const idx = level.days.findIndex((list) => list.some((e) => e.id === exerciseId));
+    if (lab.training.days[String(idx + 1)]) return false;    // giorno chiuso: non si cambia
+    const current = lab.training.results[exerciseId];
+    if (current && current.r === result) delete lab.training.results[exerciseId];  // secondo tocco: annulla
+    else lab.training.results[exerciseId] = { r: result, t: now };
+    return true;
+  }
+
+  function finishTrainingDay(lab, level, dayIndex, now = Date.now()) {
+    lab = ensureLab(lab);
+    const p = trainingDayProgress(lab, level, dayIndex);
+    if (p.closed || !p.ready) return { ok: false, reason: p.closed ? "closed" : "few" };
+    const t = lab.training;
+    const done = p.counts.done + p.counts.alt * TRAIN_WEIGHT.alt + p.counts.fail * TRAIN_WEIGHT.fail;
+    t.days[String(dayIndex + 1)] = { t: now, score: Math.round((done / Math.max(1, p.total)) * 100) };
+    markDay(lab, now);
+    addLog(lab, { kind: "train", id: `L${t.level}D${dayIndex + 1}`, t: now, q: t.days[String(dayIndex + 1)].score });
+    return { ok: true };
+  }
+
+  function trainingWeek(lab, level) {
+    const t = ensureLab(lab).training;
+    const closedDays = Object.keys(t.days).length;
+    const total = (level.days || []).reduce((n, list) => n + list.length, 0);
+    let weighted = 0;
+    let marked = 0;
+    let flexTried = 0;
+    let flexTotal = 0;
+    (level.days || []).forEach((list) => list.forEach((e) => {
+      if (e.flex) flexTotal += 1;
+      const r = t.results[e.id];
+      if (r) { marked += 1; weighted += TRAIN_WEIGHT[r.r]; if (e.flex && r.r !== "fail") flexTried += 1; }
+    }));
+    const score = total ? Math.round((weighted / total) * 100) : 0;
+    const complete = closedDays >= TRAIN_DAYS;
+    let advice = "stay";
+    if (complete) advice = score >= 80 ? "up" : score < 45 ? "down" : "stay";
+    return { closedDays, total, marked, score, complete, advice, flexTried, flexTotal };
+  }
+
+  // La scelta e' tua: il consiglio e' solo un consiglio.
+  function chooseTrainingNext(lab, level, choice, now = Date.now()) {
+    lab = ensureLab(lab);
+    const w = trainingWeek(lab, level);
+    if (!w.complete || !["up", "stay", "down"].includes(choice)) return false;
+    const t = lab.training;
+    const from = t.level;
+    let to = from;
+    if (choice === "up") to = Math.min(TRAIN_LEVELS, from + 1);
+    if (choice === "down") to = Math.max(1, from - 1);
+    t.history.push({ t: now, level: from, score: w.score, week: t.week, choice, to });
+    t.level = to;
+    t.week += 1;
+    t.results = {};
+    t.days = {};
+    return true;
+  }
+
+  function trainingStats(lab, now = Date.now()) {
+    const t = ensureLab(lab).training;
+    const done = lab.log.filter((e) => e.kind === "train");
+    const last = done.length ? done[done.length - 1].t : 0;
+    return { sessions: done.length, weeks: t.history.length, level: t.level, last, idle: last ? Math.max(0, (now - last) / DAY) : 0 };
   }
 
   function markDay(lab, now) {
@@ -467,6 +581,19 @@
     const sessions28 = new Set(lab.log.filter((e) => e.kind === "session" && e.t >= addDays(now, -27)).map((e) => dayKey(e.t))).size;
     const costanza = activeDays || sessions28 ? Math.min(80, activeDays * 8) + 20 * Math.min(1, sessions28 / 8) : 0;
 
+    // Allenamento marziale: livello raggiunto, giorni fatti e qualita' dichiarata
+    const tr = lab.training;
+    const trainLog = lab.log.filter((e) => e.kind === "train");
+    if (trainLog.length) {
+      const recent = trainLog.slice(-10);
+      const q = recent.reduce((a, e) => a + (num(e.q) ? e.q : 0), 0) / recent.length / 100;
+      const maxLevel = Math.max(tr.level, ...tr.history.map((h) => h.to || h.level));
+      const lastTrain = trainLog[trainLog.length - 1].t;
+      const trainIdle = Math.min(25, Math.max(0, (now - lastTrain) / DAY - 10));
+      const trainTecnica = 10 + (maxLevel - 1) * 14 + Math.min(1, trainLog.length / 25) * 28 + q * 20 - trainIdle;
+      tecnica = states.length ? (tecnica + trainTecnica) / 2 : trainTecnica;
+    }
+
     tecnica = clamp(tecnica, 0, 100);
     return {
       prevenzione: round(clamp(prevenzione, 0, 100)),
@@ -516,6 +643,8 @@
     VERSION, DAY, MIN_RT, GO_WINDOW, PHASES, CATEGORIES, DIMENSIONS, DIRECTIONS, SITU_INTERVALS,
     dayKey, addDays, endOfDay, median, rng, shuffle,
     ensureLab, markDay,
+    TRAIN_LEVELS, TRAIN_DAYS, TRAIN_MIN, TRAIN_RESULTS, ensureTraining,
+    trainingDayProgress, recordTrainingExercise, finishTrainingDay, trainingWeek, chooseTrainingNext, trainingStats,
     PASS, MIN_ROUNDS, roundsNeeded,
     sessionState, isUnlocked, nextSessionIndex, phaseProgress, currentPhase, recordSession,
     planSemaforo, planDirezione, planPeriferica, nextFlash,
