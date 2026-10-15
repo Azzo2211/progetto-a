@@ -108,6 +108,16 @@ La pagina Cultura (cartella `culture/`) è una biblioteca di schede brevi da cap
 
 **Profilo (6 categorie, calcolato dalle risposte)**: Comprensione, Collegamenti e Applicazione = percentuale di risposte giuste a quel tipo di domanda (con una partenza prudente al 35%); Memoria = risposte giuste nei ripassi, cala se lasci scadere i ripassi da più di una settimana; Ampiezza = schede consolidate e aree coperte; Costanza = ripassi fatti in tempo e giorni di studio nelle ultime due settimane. Rifare la verifica di una scheda già studiata non cambia le statistiche.
 
+## Sul telefono (app installabile)
+
+Il sito è una web app installabile (`manifest.webmanifest`, icone in `icons/`, `sw.js` per usarla anche senza rete).
+
+1. Pubblicazione con GitHub Pages: nel repository, Settings → Pages → "Deploy from a branch" → `main` e cartella `/ (root)` → Save. Dopo un minuto il sito è su https://azzo2211.github.io/progetto-a/ e si aggiorna da solo a ogni push su `main`.
+2. Sul telefono apri quell'indirizzo e installa: su Android con Chrome, menu ⋮ → "Installa app" (o "Aggiungi a schermata Home"); su iPhone con Safari, Condividi → "Aggiungi alla schermata Home".
+3. I dati restano nel dispositivo. Per portare i progressi dal computer al telefono: Quadro → "I tuoi dati" → "Esporta i dati" sul computer, poi "Importa da file" sul telefono.
+
+Il service worker usa prima la rete: con internet carichi sempre l'ultima versione, senza internet la copia dell'ultima visita.
+
 ## Modulo difesa: arti marziali "metodo Johan Seong"
 
 La scheda **Arti marziali** è la parte principale della pagina Difesa. Il tema è Johan Seong di Lookism, che copia una tecnica dopo averla vista una volta: qui diventa un metodo reale in quattro passi (osserva, copia, ripeti, fallo tuo). I riferimenti al webtoon sono solo testi con fatti verificati, niente immagini dei personaggi.

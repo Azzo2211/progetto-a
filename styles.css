@@ -2196,3 +2196,12 @@ input:focus {
     flex-wrap: wrap;
   }
 }
+
+/* I tuoi dati: esporta e importa i progressi tra dispositivi */
+.data-card { margin-top: 18px; }
+.data-card p { max-width: 70ch; }
+.data-actions, .data-confirm { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.data-confirm { padding: 12px; border-radius: var(--radius); background: var(--surface-soft); }
+.data-status { min-height: 1.2em; margin: 10px 0 0; font-size: 0.9rem; }
+.data-status.ok { color: var(--teal-dark); }
+.data-status.bad { color: #b3261e; }

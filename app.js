@@ -484,6 +484,8 @@ let currentInfluence = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   maybeRedirectFileChessToLocalServer();
+  registerServiceWorker();
+  bindDataTransfer();
   bindNavigation();
   bindControls();
   renderAestheticChecklist();
@@ -564,6 +566,113 @@ function mergeDefaults(defaults, saved) {
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// App sul telefono: il service worker fa funzionare il sito anche senza rete (vedi sw.js).
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator) || !/^https?:$/.test(window.location.protocol)) return;
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
+
+/*
+ * I tuoi dati: i progressi stanno nel browser di ogni dispositivo. Per portarli dal computer
+ * al telefono (o fare una copia) si esportano in un file e si importano sull'altro dispositivo.
+ */
+const DATA_FILE_APP = "metodo-integrale";
+let pendingImport = null;
+
+function dataStatus(text, kind = "") {
+  const el = document.getElementById("dataStatus");
+  if (!el) return;
+  el.textContent = text;
+  el.className = `data-status ${kind}`;
+}
+
+async function exportData() {
+  saveState();
+  const today = new Date();
+  const stamp = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const payload = { app: DATA_FILE_APP, version: 1, exportedAt: today.toISOString(), state: JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") };
+  const name = `metodo-integrale-${stamp}.json`;
+  const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+  // sul telefono si apre il menu Condividi (salva su File, Drive, invia a te stesso); sul computer si scarica
+  const coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+  if (coarse && typeof File === "function" && navigator.canShare) {
+    const file = new File([blob], name, { type: "application/json" });
+    if (navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: "Dati Metodo Integrale" });
+        dataStatus(`File ${name} condiviso. Sull'altro dispositivo usa "Importa da file".`, "ok");
+        return;
+      } catch (error) {
+        if (error && error.name === "AbortError") return;
+      }
+    }
+  }
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = name;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(link.href), 5000);
+  dataStatus(`File ${name} scaricato. Sull'altro dispositivo usa "Importa da file".`, "ok");
+}
+
+function readImportFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data = null;
+    try { data = JSON.parse(String(reader.result)); } catch (error) { data = null; }
+    const incoming = data && data.app === DATA_FILE_APP && data.state ? data.state : data;
+    const valid = incoming && typeof incoming === "object" && !Array.isArray(incoming)
+      && Object.keys(defaultState).some((key) => key in incoming);
+    if (!valid) {
+      pendingImport = null;
+      showImportConfirm(false);
+      dataStatus("Questo file non contiene dati di Metodo Integrale: scegli il file esportato dall'app.", "bad");
+      return;
+    }
+    pendingImport = incoming;
+    const when = data && data.exportedAt ? new Date(data.exportedAt).toLocaleString("it-IT", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : "data sconosciuta";
+    dataStatus(`File esportato il ${when}. Sostituisce tutti i dati di questo dispositivo.`, "");
+    showImportConfirm(true);
+  };
+  reader.onerror = () => dataStatus("Non riesco a leggere il file.", "bad");
+  reader.readAsText(file);
+}
+
+function showImportConfirm(show) {
+  const box = document.getElementById("importConfirm");
+  if (box) box.hidden = !show;
+  if (show) {
+    const yes = document.getElementById("importYesBtn");
+    if (yes) yes.focus();
+  }
+}
+
+function applyImport() {
+  if (!pendingImport) return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pendingImport));
+  pendingImport = null;
+  dataStatus("Dati importati: ricarico l'app.", "ok");
+  setTimeout(() => window.location.reload(), 400);
+}
+
+function bindDataTransfer() {
+  const exportBtn = document.getElementById("exportDataBtn");
+  const importBtn = document.getElementById("importDataBtn");
+  const input = document.getElementById("importDataInput");
+  if (exportBtn) exportBtn.addEventListener("click", () => { exportData(); });
+  if (importBtn && input) importBtn.addEventListener("click", () => { input.value = ""; input.click(); });
+  if (input) input.addEventListener("change", () => readImportFile(input.files && input.files[0]));
+  const yes = document.getElementById("importYesBtn");
+  const no = document.getElementById("importNoBtn");
+  if (yes) yes.addEventListener("click", applyImport);
+  if (no) no.addEventListener("click", () => { pendingImport = null; showImportConfirm(false); dataStatus("Importazione annullata: i dati di questo dispositivo non sono cambiati."); });
 }
 
 function supabaseHeaders(extra = {}) {
