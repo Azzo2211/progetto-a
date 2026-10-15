@@ -865,7 +865,7 @@ window.MartialDisciplines = [
             "kind": "condizionamento",
             "how": "Chiudi con raffiche brevi di pugni dritti alla massima velocità mantenendo la tecnica: alleni la capacità di accelerare a fine incontro.",
             "steps": [
-              "20 secondi di uno-due velocissimi, nell'aria o leggeri al sacco, restando in guardia.",
+              "20 secondi di uno-due velocissimi, nell'aria o leggeri al sacco (con bende e guantoni), restando in guardia.",
               "Recupero di 20 secondi camminando e respirando, poi ripeti."
             ],
             "cues": [
@@ -1675,7 +1675,7 @@ window.MartialDisciplines = [
             "easier": "Usa un appoggio più basso, come un gradino, e riduci l'ampiezza delle posizioni.",
             "dose": {
               "sets": 2,
-              "work": 45,
+              "work": 60,
               "rest": 15,
               "perSide": true
             },
@@ -1804,7 +1804,7 @@ window.MartialDisciplines = [
             "id": "taekwondo-1-1",
             "name": "Saltelli e slanci dinamici",
             "kind": "riscaldamento",
-            "how": "Scaldi caviglie, ginocchia e anche prima di ogni calcio. Gli slanci dinamici preparano i posteriori in movimento: prima si fa la mobilità dinamica, mai lo stretching statico.",
+            "how": "Scaldi caviglie, ginocchia e anche prima di ogni calcio. Gli slanci dinamici preparano i posteriori in movimento: prima dei calci solo mobilità dinamica, lo stretching statico va a fine seduta.",
             "steps": [
               "1 minuto di saltelli leggeri sulle punte, poi rotazioni di caviglie, ginocchia e anche, 10 per verso.",
               "Mano al muro: slanci avanti-indietro con la gamba quasi tesa, 10 per gamba, con ampiezza che cresce piano.",
@@ -1885,7 +1885,7 @@ window.MartialDisciplines = [
               "Non bloccare di scatto il ginocchio"
             ],
             "success": "Riuscito se: fai 8 calci per lato in 4 tempi puliti allo specchio, senza perdere l'equilibrio né inclinare il busto indietro.",
-            "easier": "Calcia all'altezza della tibia, con entrambe le mani sullo schienale e la sedia davanti a te.",
+            "easier": "Calcia all'altezza della tibia, una mano sulla sedia al tuo fianco, fermandoti 1 secondo in ogni tempo.",
             "dose": {
               "sets": 3,
               "reps": 8,
@@ -1981,7 +1981,8 @@ window.MartialDisciplines = [
             ],
             "cues": [
               "Il tallone d'appoggio guarda il bersaglio",
-              "Ginocchio, anca e piede sulla stessa linea"
+              "Ginocchio, anca e piede sulla stessa linea",
+              "Perno su pavimento asciutto, mai sul tappetino aderente"
             ],
             "success": "Riuscito se: 8 volte per lato tieni il caricamento laterale 2 secondi con il perno completo, senza appoggiarti di peso alla sedia.",
             "easier": "Ginocchio più basso, a metà coscia, e rotazione del piede d'appoggio di 90 gradi invece che completa.",
@@ -2026,13 +2027,14 @@ window.MartialDisciplines = [
             "steps": [
               "Dalla guardia, ap chagi basso con la gamba dietro e appoggia il piede avanti: ora sei in guardia invertita.",
               "Subito dollyo chagi con la nuova gamba dietro, all'altezza della coscia.",
-              "Torna in guardia, respira e ripeti. Alterna la guardia di partenza a ogni serie."
+              "Torna in guardia, respira e ripeti: 6 abbinamenti in una guardia, poi 6 nell'altra."
             ],
             "cues": [
               "Appoggio leggero tra i due calci",
               "Mani alte per tutta la sequenza"
             ],
             "success": "Riuscito se: fai 6 abbinamenti per guardia, fluidi allo specchio, senza pause tra il primo e il secondo calcio.",
+            "easier": "Fermati un istante in guardia tra i due calci e tienili all'altezza del ginocchio.",
             "dose": {
               "sets": 4,
               "reps": 6,
@@ -2194,7 +2196,7 @@ window.MartialDisciplines = [
             "how": "Il sacco ti dà il contatto: capisci distanza e superficie d'impatto. Ap chagi a spinta e dollyo chagi bassi, al 50% della forza: prima la precisione, poi la potenza.",
             "steps": [
               "Bende e guantoni. Mettiti alla distanza giusta: a gamba distesa il piede tocca il sacco.",
-              "Alterna 5 ap chagi (spingi con avampiede o pianta) e 5 dollyo chagi all'altezza della coscia, poi cambia gamba.",
+              "Alterna 5 ap chagi (spingi con la pianta o l'avampiede, dita tirate indietro) e 5 dollyo chagi all'altezza della coscia, poi cambia gamba.",
               "Senza sacco: stessi calci a vuoto davanti allo specchio, fermandoti sul punto d'impatto."
             ],
             "cues": [
@@ -2302,6 +2304,7 @@ window.MartialDisciplines = [
               "Busto dritto, mani alte"
             ],
             "success": "Riuscito se: 8 calci per lato allo specchio con spinta dritta all'altezza della pancia o più bassa e ritorno in guardia stabile.",
+            "easier": "Senza passo di avvicinamento, all'altezza della coscia, con una mano sulla sedia.",
             "dose": {
               "sets": 3,
               "reps": 8,
@@ -2466,7 +2469,8 @@ window.MartialDisciplines = [
             "steps": [
               "Dalla guardia, perno sul piede avanti e gira la schiena al bersaglio, guardando oltre la spalla.",
               "Ginocchio al petto, poi spinta del tallone in linea retta all'altezza della coscia o della cintura.",
-              "Richiama e appoggia avanti in guardia. Le prime 4 ripetizioni partile già di spalle."
+              "Richiama e appoggia avanti in guardia. Le prime 4 ripetizioni partile già di spalle.",
+              "Prima di iniziare libera lo spazio: nessun mobile o spigolo nel raggio della gamba."
             ],
             "cues": [
               "Prima la testa, poi il corpo",
@@ -2565,11 +2569,12 @@ window.MartialDisciplines = [
             "steps": [
               "Dalla guardia, gira la testa e guarda il bersaglio oltre la spalla posteriore.",
               "Ruota sull'avampiede della gamba avanti finché sei di spalle, poi completa il giro e torna in guardia.",
-              "Metà ripetizioni in un verso e metà nell'altro; aumenta la velocità solo se resti stabile."
+              "8 giri in un verso, poi 8 nell'altro; aumenta la velocità solo se resti stabile."
             ],
             "cues": [
               "Testa prima, corpo dopo",
-              "Ginocchia morbide"
+              "Ginocchia morbide",
+              "Gira su pavimento asciutto, mai sul tappetino aderente"
             ],
             "success": "Riuscito se: fai 8 giri per verso fermandoti ogni volta in guardia, senza passi di recupero.",
             "easier": "Gira solo fino a trovarti di spalle (mezzo giro) e torna indietro.",
@@ -2594,9 +2599,11 @@ window.MartialDisciplines = [
             ],
             "cues": [
               "L'arco è orizzontale",
-              "Prima la distensione, poi l'aggancio"
+              "Prima la distensione, poi l'aggancio",
+              "Ginocchio mai bloccato in estensione"
             ],
             "success": "Riuscito se: 8 agganci per lato con arco orizzontale e tallone che chiude deciso, senza appoggiarti di peso alla sedia.",
+            "easier": "Due mani sulla sedia, all'altezza del ginocchio, in due tempi: prima distendi, poi aggancia.",
             "dose": {
               "sets": 2,
               "reps": 8,
@@ -2614,11 +2621,13 @@ window.MartialDisciplines = [
             "steps": [
               "Dalla guardia, la testa gira e fai perno sull'avampiede della gamba avanti.",
               "Distendi la gamba posteriore poco a lato del bersaglio, all'altezza della coscia, e aggancia con il tallone.",
-              "Completa il giro e atterra in guardia. Le prime ripetizioni a mezza velocità."
+              "Completa il giro e atterra in guardia. Le prime ripetizioni a mezza velocità.",
+              "Prima di iniziare libera lo spazio: nessun mobile o spigolo nel raggio della gamba."
             ],
             "cues": [
               "Testa, perno, distensione, aggancio",
-              "Atterra fermo in guardia, mai a metà giro"
+              "Atterra fermo in guardia, mai a metà giro",
+              "Ginocchio mai bloccato in estensione"
             ],
             "success": "Riuscito se: 6 calci girati per lato all'altezza della coscia, atterrando in guardia ogni volta senza passi di recupero.",
             "easier": "Parti già di spalle con una mano sulla sedia e fai solo l'aggancio all'altezza del ginocchio, senza giro.",
@@ -2660,8 +2669,8 @@ window.MartialDisciplines = [
             "how": "La routine completa con una novità: il contrai-rilassa leggero sui posteriori. Premi piano il tallone a terra 5 secondi, rilassi e respiri: la nuova posizione non si forza mai.",
             "steps": [
               "Mezza spaccata in ginocchio: 20 secondi, poi premi il tallone a terra al 30% per 5 secondi, rilassa e tieni altri 20 secondi. Per lato.",
-              "Affondo basso, 30 secondi per lato; farfalla, 30 secondi.",
-              "Gambe divaricate da seduto, 30 secondi, schiena dritta."
+              "Affondo basso con il ginocchio dietro sul tappetino, 30 secondi per lato.",
+              "Farfalla o gambe divaricate da seduto, 30 secondi, schiena dritta."
             ],
             "cues": [
               "Contrazione leggera, mai al massimo",
@@ -2706,7 +2715,7 @@ window.MartialDisciplines = [
             "how": "Il riscaldamento tradizionale del dojo: articolazioni dalla testa ai piedi, poi un po' di movimento. Prepara polsi, ginocchia e anche, che nel karate lavorano tanto.",
             "steps": [
               "Rotazioni lente di collo, spalle, polsi, anche, ginocchia e caviglie, 8 per verso.",
-              "1 minuto di saltelli leggeri, poi slanci avanti-indietro al muro, 10 per gamba.",
+              "30 secondi di saltelli leggeri, poi slanci avanti-indietro al muro, 10 per gamba.",
               "10 squat lenti e 10 rotazioni del busto."
             ],
             "cues": [
@@ -2716,7 +2725,7 @@ window.MartialDisciplines = [
             "success": "Riuscito se: completi i due giri senza dolore articolare e con il respiro tranquillo.",
             "dose": {
               "sets": 2,
-              "work": 120,
+              "work": 180,
               "rest": 20
             },
             "video": "karate junbi undo warm up"
@@ -2755,7 +2764,8 @@ window.MartialDisciplines = [
             ],
             "cues": [
               "L'hikite torna veloce come il pugno",
-              "Spalle basse, polso dritto"
+              "Spalle basse, polso dritto",
+              "Non bloccare il gomito di scatto"
             ],
             "success": "Riuscito se: fai 20 pugni allo specchio con polso dritto, spalle ferme e pugno che arriva sulla linea centrale ogni volta.",
             "dose": {
@@ -2845,7 +2855,7 @@ window.MartialDisciplines = [
             "kind": "riscaldamento",
             "how": "Mobilità dinamica per le anche prima del primo calcio: rotazioni articolari, slanci e cerchi. Lo stretching statico lo fai dopo, a fine seduta.",
             "steps": [
-              "Rotazioni articolari dalla testa alle caviglie, 8 per verso, e 1 minuto di saltelli.",
+              "Rotazioni articolari dalla testa alle caviglie, 8 per verso, e 30 secondi di saltelli.",
               "Slanci avanti-indietro e laterali al muro, 10 per gamba, con ampiezza che cresce.",
               "Cerchi dell'anca in piedi: ginocchio su, aprilo di lato e appoggia, 8 per gamba e per verso."
             ],
@@ -2856,7 +2866,7 @@ window.MartialDisciplines = [
             "success": "Riuscito se: finisci il riscaldamento senza dolore, con gli slanci finali più ampi dei primi.",
             "dose": {
               "sets": 2,
-              "work": 150,
+              "work": 180,
               "rest": 20
             },
             "video": "karate dynamic warm up leg swings hip"
@@ -2922,7 +2932,8 @@ window.MartialDisciplines = [
             ],
             "cues": [
               "Ginocchio su, poi scatto",
-              "Richiama più veloce di come calci"
+              "Richiama più veloce di come calci",
+              "Non stendere il ginocchio fino al blocco"
             ],
             "success": "Riuscito se: fai 8 mae geri per lato con ginocchio alto, ritorno in caricamento e appoggio controllato, senza inclinare il busto indietro.",
             "easier": "Calcia all'altezza del ginocchio con una mano sulla sedia, in 4 tempi lenti.",
@@ -3021,7 +3032,8 @@ window.MartialDisciplines = [
             ],
             "cues": [
               "Tallone d'appoggio verso il bersaglio",
-              "Ginocchio, anca e piede allineati"
+              "Ginocchio, anca e piede allineati",
+              "Perno su pavimento asciutto, mai sul tappetino aderente"
             ],
             "success": "Riuscito se: tieni 8 volte per lato il caricamento laterale per 2 secondi con il perno completo, senza appoggiarti di peso alla sedia.",
             "easier": "Ginocchio a metà coscia e rotazione del piede d'appoggio di soli 90 gradi.",
@@ -3066,7 +3078,7 @@ window.MartialDisciplines = [
             "steps": [
               "Saluto e yoi. Girati a sinistra con gedan barai e avanza con oi zuki; girati di 180 gradi con gedan barai e avanza con oi zuki.",
               "Girati verso il fronte con gedan barai e fai 3 oi zuki avanzando: kiai sul terzo (movimento 8).",
-              "Seconda metà: stesse coppie girandoti di 270 e 180 gradi, 3 oi zuki con il secondo kiai (movimento 16), ultime due coppie e yoi.",
+              "Seconda metà: coppie con giri di 270 e 180 gradi; giro di 90, gedan barai e 3 oi zuki (kiai sul 16); poi di nuovo 270 e 180 con le ultime due coppie, e yoi.",
               "Guarda il video per gli angoli dei giri. Con poco spazio, accorcia i passi."
             ],
             "cues": [
@@ -3074,6 +3086,7 @@ window.MartialDisciplines = [
               "Posizioni basse anche nei giri"
             ],
             "success": "Riuscito se: esegui il kata intero senza fermarti, con i due kiai al posto giusto e tornando vicino al punto di partenza.",
+            "easier": "Solo la prima metà (movimenti 1-8), a metà velocità, seguendo il video un pezzo alla volta.",
             "dose": {
               "sets": 4,
               "work": 60,
@@ -3088,7 +3101,7 @@ window.MartialDisciplines = [
             "how": "Il primo contatto: dalla guardia di kumite, pugno avanti veloce (kizami zuki) e pugno dietro con l'anca (gyaku zuki). Precisione e ritorno in guardia, forza media.",
             "steps": [
               "Bende e guantoni. Guardia di kumite a una distanza che ti fa toccare il sacco con il gyaku zuki.",
-              "Kizami zuki, gyaku zuki, piccolo passo indietro. Ogni 5 combinazioni aggiungi un mae geri basso prima dei pugni.",
+              "Kizami zuki, gyaku zuki, piccolo passo indietro. Ogni 5 combinazioni aggiungi un mae geri basso (dita tirate indietro) prima dei pugni.",
               "Senza sacco: stessa combinazione a vuoto allo specchio, con kime sul gyaku zuki."
             ],
             "cues": [
@@ -3110,7 +3123,7 @@ window.MartialDisciplines = [
             "kind": "flessibilita",
             "how": "Ai posteriori aggiungi glutei e flessori dell'anca, che liberano il circolare. Tenute statiche a fine seduta, respirando, senza spinte.",
             "steps": [
-              "Posteriori da seduto, 30 secondi per lato, e farfalla, 30 secondi.",
+              "Posteriori da seduto con una gamba tesa e l'altra piegata, 30 secondi per lato.",
               "Figura 4 sdraiato: caviglia sul ginocchio opposto, tira piano la coscia verso il petto, 30 secondi per lato.",
               "Affondo con il ginocchio dietro sul tappetino, bacino avanti, 30 secondi per lato."
             ],
@@ -3221,6 +3234,7 @@ window.MartialDisciplines = [
               "Kokutsu: peso sulla gamba dietro"
             ],
             "success": "Riuscito se: esegui il kata intero senza fermarti, con i due kiai giusti (movimenti 9 e 17) e posizioni riconoscibili allo specchio.",
+            "easier": "Solo la prima metà (movimenti 1-9) a metà velocità; la seconda la aggiungi quando è fluida.",
             "dose": {
               "sets": 4,
               "work": 90,
@@ -3257,7 +3271,7 @@ window.MartialDisciplines = [
             "kind": "flessibilita",
             "how": "Il calcio laterale chiede adduttori e glutei liberi. Aggiungi le gambe divaricate e la mezza spaccata in ginocchio, sempre graduali, mai forzate.",
             "steps": [
-              "Gambe divaricate da seduto quanto resti dritto, mani a terra davanti, 40 secondi.",
+              "Gambe divaricate da seduto quanto resti dritto, mani a terra davanti, 30 secondi.",
               "Mezza spaccata in ginocchio: gamba davanti tesa, mani su blocchi o libri, busto lungo, 30 secondi per lato.",
               "Farfalla, 30 secondi, e figura 4, 30 secondi per lato."
             ],
@@ -3361,7 +3375,8 @@ window.MartialDisciplines = [
             "steps": [
               "Dalla guardia di kumite, ruota sul piede avanti finché sei di spalle, guardando oltre la spalla.",
               "Ginocchio al petto, poi spinta del tallone in linea retta all'altezza della coscia o della cintura.",
-              "Richiama e appoggia in guardia. Le prime 4 ripetizioni partile già di spalle."
+              "Richiama e appoggia in guardia. Le prime 4 ripetizioni partile già di spalle.",
+              "Prima di iniziare libera lo spazio: nessun mobile o spigolo nel raggio della gamba."
             ],
             "cues": [
               "La testa gira prima del corpo",
@@ -3460,11 +3475,12 @@ window.MartialDisciplines = [
             "steps": [
               "Dalla guardia di kumite, gira la testa e guarda oltre la spalla posteriore.",
               "Ruota sull'avampiede del piede avanti fino a essere di spalle, completa il giro e torna in guardia.",
-              "Metà ripetizioni per verso; aumenta la velocità solo se resti stabile."
+              "8 giri in un verso, poi 8 nell'altro; aumenta la velocità solo se resti stabile."
             ],
             "cues": [
               "Testa prima, corpo dopo",
-              "Ginocchia morbide"
+              "Ginocchia morbide",
+              "Gira su pavimento asciutto, mai sul tappetino aderente"
             ],
             "success": "Riuscito se: fai 8 giri per verso fermandoti ogni volta in guardia, senza passi di recupero.",
             "easier": "Gira solo fino a trovarti di spalle (mezzo giro) e torna indietro.",
@@ -3489,9 +3505,11 @@ window.MartialDisciplines = [
             ],
             "cues": [
               "Arco orizzontale",
-              "Prima distendi, poi aggancia"
+              "Prima distendi, poi aggancia",
+              "Ginocchio mai bloccato in estensione"
             ],
             "success": "Riuscito se: 8 agganci per lato con arco orizzontale e tallone deciso, senza appoggiarti di peso alla sedia.",
+            "easier": "Due mani sulla sedia, all'altezza del ginocchio, in due tempi: prima distendi, poi aggancia.",
             "dose": {
               "sets": 2,
               "reps": 8,
@@ -3509,11 +3527,13 @@ window.MartialDisciplines = [
             "steps": [
               "Dalla guardia di kumite, la testa gira e fai perno sull'avampiede del piede avanti.",
               "Distendi la gamba posteriore poco a lato del bersaglio, all'altezza della coscia, e aggancia con il tallone.",
-              "Completa il giro e atterra in guardia. Le prime ripetizioni a mezza velocità."
+              "Completa il giro e atterra in guardia. Le prime ripetizioni a mezza velocità.",
+              "Prima di iniziare libera lo spazio: nessun mobile o spigolo nel raggio della gamba."
             ],
             "cues": [
               "Testa, perno, distensione, aggancio",
-              "Atterra fermo in guardia, mai a metà giro"
+              "Atterra fermo in guardia, mai a metà giro",
+              "Ginocchio mai bloccato in estensione"
             ],
             "success": "Riuscito se: 6 calci girati per lato all'altezza della coscia, atterrando in guardia ogni volta senza passi di recupero.",
             "easier": "Parti già di spalle con una mano sulla sedia e fai solo l'aggancio all'altezza del ginocchio, senza giro.",
@@ -3555,8 +3575,8 @@ window.MartialDisciplines = [
             "how": "Routine completa con il contrai-rilassa leggero sui posteriori: premi piano il tallone a terra 5 secondi, rilassi e respiri. La nuova posizione non si forza mai.",
             "steps": [
               "Mezza spaccata in ginocchio: 20 secondi, poi premi il tallone a terra al 30% per 5 secondi, rilassa e tieni altri 20 secondi. Per lato.",
-              "Affondo basso, 30 secondi per lato; gambe divaricate da seduto, 30 secondi.",
-              "Farfalla e figura 4, 30 secondi ciascuno, espirando lungo."
+              "Affondo basso con il ginocchio dietro sul tappetino, 30 secondi per lato.",
+              "Gambe divaricate da seduto o farfalla, 30 secondi, espirando lungo."
             ],
             "cues": [
               "Contrazione leggera, mai al massimo",
@@ -3623,7 +3643,7 @@ window.MartialDisciplines = [
             "how": "La ginga è il passo oscillante della capoeira: un triangolo di appoggi che ti tiene sempre in movimento, mai fermo e mai frontale. Da qui nasce tutto.",
             "steps": [
               "Piedi larghi quanto le spalle, ginocchia piegate, peso sugli avampiedi.",
-              "Porta un piede indietro in diagonale e il braccio opposto davanti al viso.",
+              "Porta un piede indietro in diagonale e il braccio dello stesso lato davanti al viso.",
               "Torna al centro e ripeti con l'altro piede: ritmo costante, tre tempi."
             ],
             "cues": [
@@ -3724,7 +3744,7 @@ window.MartialDisciplines = [
               "Ginocchia in linea con le punte",
               "Bacino fermo nel plank"
             ],
-            "success": "Riuscito se: completi tutte le serie mantenendo la tecnica pulita fino all'ultima ripetizione.",
+            "success": "Riuscito se: completi tutte le serie senza fermarti, con le ginocchia in linea con le punte in ogni squat e il bacino fermo nel plank.",
             "dose": {
               "sets": 3,
               "work": 60,
@@ -3747,7 +3767,8 @@ window.MartialDisciplines = [
             "steps": [
               "Ginga leggera per un minuto per alzare la temperatura.",
               "Circonduzioni ampie delle braccia avanti e indietro, poi rotazioni dei polsi.",
-              "A quattro zampe, sposta il peso avanti e indietro sulle mani, dita aperte."
+              "A quattro zampe, sposta il peso avanti e indietro sulle mani, dita aperte.",
+              "Slanci controllati della gamba avanti e di lato, una mano al muro, ampiezza crescente."
             ],
             "cues": [
               "Polsi caldi prima di caricarli",
@@ -3842,15 +3863,15 @@ window.MartialDisciplines = [
             "how": "Primo calcio circolare: la gamba distesa disegna un arco davanti a te, da fuori a dentro. Ampio, controllato, con il viso sempre coperto.",
             "steps": [
               "Dalla ginga, porta in avanti il piede dietro con la gamba distesa.",
-              "Disegna un arco da fuori a dentro all'altezza del petto, poi riabbassa la gamba.",
+              "Disegna un arco da fuori a dentro all'altezza del bacino, poi riabbassa la gamba; sali verso il petto solo quando è facile.",
               "Rientra in ginga e ripeti con l'altra gamba."
             ],
             "cues": [
               "Gamba distesa ma ginocchio non bloccato",
               "Braccio sul viso durante il calcio"
             ],
-            "success": "Riuscito se: fai le ripetizioni per lato con l'arco controllato fino al petto, senza perdere l'equilibrio.",
-            "easier": "Calcia all'altezza del bacino e appoggiati con una mano al muro per l'equilibrio.",
+            "success": "Riuscito se: fai le ripetizioni per lato con un arco controllato almeno all'altezza del bacino, senza forzare e senza perdere l'equilibrio.",
+            "easier": "Calcia all'altezza del ginocchio e appoggiati con una mano al muro per l'equilibrio.",
             "dose": {
               "sets": 4,
               "reps": 8,
@@ -4062,7 +4083,7 @@ window.MartialDisciplines = [
             "kind": "preparatorio",
             "how": "L'armada nasce da una rotazione completa. Prima impari il giro senza calcio: piedi, anche e sguardo che arriva prima del corpo.",
             "steps": [
-              "Dalla ginga, incrocia il piede avanti davanti all'altro, punta verso l'esterno.",
+              "Dalla ginga, porta avanti il piede dietro incrociandolo davanti all'altro, punta già girata nel verso del giro.",
               "Gira sugli avampiedi guardando oltre la spalla e completa il giro tornando frontale.",
               "Gira verso destra e verso sinistra, fermandoti in guardia ogni volta."
             ],
@@ -4087,7 +4108,7 @@ window.MartialDisciplines = [
             "kind": "tecnica",
             "how": "Calcio girato: ruoti il corpo e la gamba distesa arriva da dietro ad arco, da dentro a fuori. Cerchi controllo e sguardo, non altezza.",
             "steps": [
-              "Dalla ginga, incrocia il piede e inizia il giro guardando oltre la spalla.",
+              "Dalla ginga, porta avanti incrociato il piede dietro e inizia il giro guardando oltre la spalla.",
               "Quando lo sguardo ha trovato il bersaglio, la gamba dietro sale ad arco.",
               "Appoggia il piede e chiudi in ginga, braccia a protezione del viso."
             ],
@@ -4168,6 +4189,7 @@ window.MartialDisciplines = [
               "Bacino fermo, schiena mai inarcata"
             ],
             "success": "Riuscito se: completi le tre serie con tecnica pulita, senza dolore ai polsi e senza inarcare la schiena.",
+            "easier": "Pike push-up con le mani su un rialzo, oppure solo tenuta in pike; hollow con le ginocchia piegate.",
             "dose": {
               "sets": 3,
               "work": 60,
@@ -4212,7 +4234,7 @@ window.MartialDisciplines = [
             "steps": [
               "In piedi a gambe larghe, porta le mani a terra con le ginocchia morbide e respira 30 secondi.",
               "Sposta il peso su una gamba piegata, l'altra distesa di lato: 30 secondi per lato.",
-              "Seduto a farfalla, piante dei piedi unite e busto lungo, senza spingere sulle ginocchia."
+              "Seduto a farfalla per 30 secondi, piante dei piedi unite e busto lungo, senza spingere sulle ginocchia."
             ],
             "cues": [
               "Allungo che sale piano, senza molleggi",
@@ -4222,7 +4244,7 @@ window.MartialDisciplines = [
             "easier": "Appoggia le mani su un rialzo, come libri o una sedia bassa, e piega di più le ginocchia.",
             "dose": {
               "sets": 2,
-              "work": 90,
+              "work": 120,
               "rest": 15
             },
             "video": "straddle hamstring stretch beginner",
@@ -4290,7 +4312,8 @@ window.MartialDisciplines = [
             ],
             "cues": [
               "Braccia distese, spalle spinte verso l'alto",
-              "Tenute brevi: esci prima di stancarti"
+              "Tenute brevi: esci prima di stancarti",
+              "Tappetino sotto le mani e spazio libero ai lati"
             ],
             "success": "Riuscito se: sali e scendi controllato ogni volta, tenendo almeno 10 secondi a braccia distese e senza dolore ai polsi.",
             "easier": "Metti i piedi su una sedia o un gradino invece che sul muro e tieni la posizione a squadra (pike).",
@@ -4365,7 +4388,8 @@ window.MartialDisciplines = [
             ],
             "cues": [
               "Spalle spinte verso l'alto",
-              "Esci quando le braccia iniziano a tremare"
+              "Esci quando le braccia iniziano a tremare",
+              "Tappetino sotto le mani e spazio libero ai lati"
             ],
             "success": "Riuscito se: tieni 15 secondi a braccia distese in ogni serie e scendi sempre camminando, senza crolli.",
             "easier": "Resta a un angolo di 45° con le mani più lontane dal muro, oppure con i piedi su una sedia.",
@@ -4566,9 +4590,9 @@ window.MartialDisciplines = [
           },
           {
             "id": "lotta-1-4",
-            "name": "Gambetta (shrimp)",
+            "name": "Gamberetto (shrimp)",
             "kind": "tecnica",
-            "how": "La gambetta (shrimp o hip escape) sposta le anche quando sei schiena a terra: è il movimento base per creare spazio e rialzarti. Sempre su tappetino o materasso.",
+            "how": "Il gamberetto (shrimp o hip escape) sposta le anche quando sei schiena a terra: è il movimento base per creare spazio e rialzarti. Sempre su tappetino o materasso.",
             "steps": [
               "Sdraiato sulla schiena, ginocchia piegate, piedi a terra, mani davanti al petto.",
               "Spingi con un piede, ruota sul fianco opposto e porta le anche indietro, formando una C col corpo.",
@@ -4578,7 +4602,7 @@ window.MartialDisciplines = [
               "Spingi dal piede, la testa resta appoggiata",
               "Le anche vanno indietro, le mani spingono avanti"
             ],
-            "success": "Riuscito se: fai tutte le ripetizioni per lato e ogni gambetta ti sposta indietro di almeno 20 cm sul tappetino.",
+            "success": "Riuscito se: fai tutte le ripetizioni per lato e ogni gamberetto ti sposta indietro di almeno 20 cm sul tappetino.",
             "dose": {
               "sets": 3,
               "reps": 8,
@@ -4643,10 +4667,10 @@ window.MartialDisciplines = [
             "id": "lotta-2-1",
             "name": "Circuito di movimento a terra",
             "kind": "riscaldamento",
-            "how": "Scaldi il corpo coi movimenti che userai oggi: camminata dell'orso, gambette, ponti e squat. Ritmo morbido, tutto sul tappetino.",
+            "how": "Scaldi il corpo coi movimenti che userai oggi: camminata dell'orso, gamberetti, ponti e squat. Ritmo morbido, tutto sul tappetino.",
             "steps": [
               "20 secondi di camminata dell'orso avanti e indietro, ginocchia basse.",
-              "4 gambette per lato e 8 ponti di glutei.",
+              "4 gamberetti per lato e 8 ponti di glutei.",
               "10 squat e 10 giri di anca per lato, poi ricomincia."
             ],
             "cues": [
@@ -4791,7 +4815,7 @@ window.MartialDisciplines = [
             "steps": [
               "10 giri di anca per lato in piedi, poi 8 gatto-mucca a quattro zampe.",
               "Seduto con le mani dietro, porta le ginocchia da un lato all'altro per 10 volte (cambio d'anca).",
-              "10 ponti di glutei lenti e 4 gambette per lato."
+              "10 ponti di glutei lenti e 4 gamberetti per lato."
             ],
             "cues": [
               "Ampiezza crescente, senza dolore",
@@ -4932,9 +4956,9 @@ window.MartialDisciplines = [
             "id": "lotta-4-1",
             "name": "Circuito a terra",
             "kind": "riscaldamento",
-            "how": "Ripassi in sequenza i movimenti a terra già imparati: gambette, ponti, sit-out e stand-up tecnico. Leggero: serve a scaldare e a ricordare.",
+            "how": "Ripassi in sequenza i movimenti a terra già imparati: gamberetti, ponti, sit-out e stand-up tecnico. Leggero: serve a scaldare e a ricordare.",
             "steps": [
-              "4 gambette per lato e 6 ponti di glutei.",
+              "4 gamberetti per lato e 6 ponti di glutei.",
               "4 sit-out per lato partendo da quattro zampe.",
               "3 stand-up tecnici per lato e 5 sprawl leggeri."
             ],
@@ -5030,7 +5054,7 @@ window.MartialDisciplines = [
             "steps": [
               "Muoviti in posizione con passi, cerchi e finte di cambio di livello.",
               "Ogni 10-15 secondi inserisci una catena: doppia gamba, oppure sprawl e go-behind.",
-              "Ogni tanto scendi a terra, fai una gambetta e uno stand-up tecnico e riparti."
+              "Ogni tanto scendi a terra, fai un gamberetto e uno stand-up tecnico e riparti."
             ],
             "cues": [
               "Respira e resta basso",
@@ -5229,9 +5253,9 @@ window.MartialDisciplines = [
             "id": "lotta-6-1",
             "name": "Riscaldamento completo a terra",
             "kind": "riscaldamento",
-            "how": "Ripassi tutto il vocabolario a terra in un circuito leggero: gambette, ponti, sit-out, switch, stand-up e sprawl. Scaldi il corpo e la memoria.",
+            "how": "Ripassi tutto il vocabolario a terra in un circuito leggero: gamberetti, ponti, sit-out, switch, stand-up e sprawl. Scaldi il corpo e la memoria.",
             "steps": [
-              "4 gambette per lato e 6 ponti di glutei.",
+              "4 gamberetti per lato e 6 ponti di glutei.",
               "3 sit-out e 3 switch per lato, lenti.",
               "3 stand-up tecnici per lato e 5 sprawl leggeri."
             ],
@@ -5279,7 +5303,7 @@ window.MartialDisciplines = [
             "how": "L'hip heist ti fa passare da seduto a quattro zampe in un attimo: è il motore di sit-out, switch e stand-up. Prepara la catena da sotto.",
             "steps": [
               "Seduto, mani dietro, piedi a terra; solleva le anche e resta su tre appoggi togliendo una mano.",
-              "Fai passare la gamba opposta sotto il corpo e ruota fino a finire a quattro zampe, girato di lato.",
+              "Fai passare sotto il corpo la gamba dal lato della mano a terra e ruota fino a finire a quattro zampe.",
               "Torna seduto e ripeti dall'altro lato."
             ],
             "cues": [
@@ -5378,7 +5402,7 @@ window.MartialDisciplines = [
     "name": "Kung Fu (Wing Chun)",
     "tagline": "Linea centrale, gomiti bassi, pugni a catena.",
     "intro": "Il Wing Chun è economia pura: linea centrale, difesa e attacco nello stesso tempo. Come Johan Seong, guardi il gesto in video, lo copi lento allo specchio e lo ripeti finché non diventa un riflesso.",
-    "equipment": "Specchio, cuscino morbido fissato al muro o sacco, bende",
+    "equipment": "Specchio, cuscino morbido a muro o sacco, bende, guantini da sacco",
     "mottos": [
       "La linea più corta è la prima da copiare.",
       "Gomito basso, mente calma, mani vive.",
@@ -6100,7 +6124,7 @@ window.MartialDisciplines = [
             "kind": "sacco",
             "how": "Raffiche di pugno a catena veloci su cuscino o pad morbido a muro, con le bende. Velocità alta, forza media, precisione massima.",
             "steps": [
-              "Con le bende, a un braccio dal cuscino morbido fissato al muro. Mai su superfici dure.",
+              "Con bende e, se li hai, guantini da sacco, a un braccio dal cuscino morbido fissato al muro. Mai su superfici dure.",
               "Raffiche di 10 secondi veloci, poi 10 secondi lenti per controllare la linea.",
               "Senza cuscino: stesse raffiche a vuoto, senza distendere del tutto il gomito."
             ],
@@ -6175,7 +6199,7 @@ window.MartialDisciplines = [
             "id": "kungfu-6-3",
             "name": "Siu Nim Tao completa",
             "kind": "shadow",
-            "how": "Esegui la prima forma dall'inizio alla fine. È il riassunto di tutto quello che hai copiato: struttura, linea centrale, rilassamento.",
+            "how": "Esegui la prima forma dall'inizio alla fine. È il riassunto di tutto quello che hai copiato: struttura, linea centrale, rilassamento. Se il timer finisce prima, completa la forma.",
             "steps": [
               "Prima esecuzione lenta, controllando ogni posizione allo specchio.",
               "Seconda esecuzione a ritmo normale, lenta solo nella sezione di tan sao e fook sao.",
@@ -6223,7 +6247,7 @@ window.MartialDisciplines = [
             "kind": "sacco",
             "how": "Round lunghi su cuscino o pad morbido a muro, o al sacco, con le bende: pak sao, lap sao, pugni a catena, calci bassi e passi. Ritmo alto, tecnica pulita.",
             "steps": [
-              "Con le bende, lavora sul pad morbido a muro o sul sacco: mai su superfici dure.",
+              "Bende sempre, e guantini o guantoni se lavori sul sacco: pad morbido a muro o sacco, mai su superfici dure.",
               "Alterna raffiche di pugno a catena, pak da, lap sao e calcio frontale basso al sacco o a vuoto.",
               "Muoviti con passi e rotazioni tra una raffica e l'altra. Senza sacco: stesso round in shadow."
             ],
