@@ -28,14 +28,19 @@ function test(name, fn) {
   }
 }
 
-// Discipline finte per i test del motore: 7 stili, 6 livelli da 5 esercizi.
+// Discipline finte per i test del motore: 7 stili, 6 livelli, 3 sessioni da 5 esercizi.
 const IDS = ["boxe", "muaythai", "taekwondo", "karate", "capoeira", "lotta", "kungfu"];
 const DISC = IDS.map((id) => ({
   id,
   name: id,
-  levels: Array.from({ length: 6 }, (_, l) => ({ level: l + 1, title: `L${l + 1}`, exercises: Array.from({ length: 5 }, (_, i) => ({ id: `${id}-${l + 1}-${i + 1}`, dose: { sets: 3, reps: 10, rest: 30 } })) }))
+  levels: Array.from({ length: 6 }, (_, l) => ({
+    level: l + 1,
+    title: `L${l + 1}`,
+    sessions: ["a", "b", "p"].map((k, si) => ({ id: `${id}-${l + 1}-${k}`, type: ["impara", "ripeti", "prova"][si], exercises: Array.from({ length: 5 }, (_, i) => ({ id: `${id}-${l + 1}-${k}-${i + 1}`, dose: { sets: 3, reps: 10, rest: 30 } })) }))
+  }))
 }));
-const exOf = (id, level) => DISC.find((d) => d.id === id).levels[level - 1].exercises;
+const exOf = (id, level, session = 0) => DISC.find((d) => d.id === id).levels[level - 1].sessions[session].exercises;
+const TEST = { count: 3, test: true };
 
 const WED = new Date(2026, 9, 14, 19, 0).getTime(); // mercoledi' 14 ottobre 2026
 const START = new Date(2026, 8, 1, 9, 0).getTime(); // inizio del metodo (1 settembre): niente giorni esclusi
@@ -115,40 +120,80 @@ test("Prima settimana: i giorni prima dell'inizio non sono saltati", () => {
   assert.strictEqual(Object.keys(M.planWeek(lab, DISC, "2026-10-19").days).length, 5);
 });
 
-test("Allenamento: esiti, consiglio, decide l'utente se salire", () => {
+test("Allenamento: impara, ripeti, prova; consiglio solo dopo la prova, decide l'utente", () => {
   const lab = M.ensure(null, DISC, START);
+  assert.strictEqual(M.stepOf(lab, "boxe"), 0, "si parte da impara");
   M.startSession(lab, "boxe", { now: WED });
-  const ex = exOf("boxe", 1);
+  assert.strictEqual(lab.current.session, 0);
+  exOf("boxe", 1).forEach((e) => M.setResult(lab, e.id, true));
+  const s0 = M.finishSession(lab, exOf("boxe", 1), WED + 40 * 60000, { count: 3 });
+  assert.strictEqual(s0.recommend, false, "sessione normale: nessun consiglio di salire");
+  assert.strictEqual(s0.isTest, false);
+  assert.strictEqual(s0.minutes, 40);
+  assert.strictEqual(M.pendingChoice(lab, WED + 41 * 60000), null, "sessione normale: niente scelta in sospeso");
+  assert.strictEqual(M.stepOf(lab, "boxe"), 1, "poi ripeti");
+  M.startSession(lab, "boxe", { now: WED + DAY });
+  M.finishSession(lab, exOf("boxe", 1, 1), WED + DAY + 1000, { count: 3 });
+  assert.strictEqual(M.stepOf(lab, "boxe"), 2, "poi la prova");
+  // prova: 3 su 5, consiglia di restare; l'utente sceglie comunque di salire
+  M.startSession(lab, "boxe", { now: WED + 2 * DAY });
+  assert.strictEqual(lab.current.session, 2);
+  const ex = exOf("boxe", 1, 2);
   ex.forEach((e, i) => M.setResult(lab, e.id, i < 3));
-  const s = M.finishSession(lab, ex, WED + 40 * 60000);
+  const s = M.finishSession(lab, ex, WED + 2 * DAY + 1000, TEST);
   assert.strictEqual(s.done, 3);
-  assert.strictEqual(s.total, 5);
   assert.strictEqual(s.recommend, false, "3 su 5: consiglia di restare");
-  assert.strictEqual(s.minutes, 40);
-  // l'utente sceglie comunque di salire: si rispetta
-  assert.ok(M.chooseLevel(lab, true, WED + 41 * 60000));
+  assert.ok(M.pendingChoice(lab, WED + 2 * DAY + 2000), "prova: scelta in sospeso");
+  assert.strictEqual(M.stepOf(lab, "boxe"), 0, "dopo la prova si riparte da impara");
+  assert.ok(M.chooseLevel(lab, true, WED + 2 * DAY + 3000));
   assert.strictEqual(M.levelOf(lab, "boxe"), 2);
   assert.strictEqual(M.chooseLevel(lab, true), false, "una sola scelta per allenamento");
-  // allenamento successivo tutto riuscito: consiglia di salire, l'utente resta
-  M.startSession(lab, "boxe", { now: WED + DAY });
-  exOf("boxe", 2).forEach((e) => M.setResult(lab, e.id, true));
-  const s2 = M.finishSession(lab, exOf("boxe", 2), WED + DAY + 1000);
+  // prova tutta riuscita: consiglia di salire, l'utente resta
+  M.startSession(lab, "boxe", { now: WED + 3 * DAY, session: 2 });
+  exOf("boxe", 2, 2).forEach((e) => M.setResult(lab, e.id, true));
+  const s2 = M.finishSession(lab, exOf("boxe", 2, 2), WED + 3 * DAY + 1000, TEST);
   assert.strictEqual(s2.level, 2);
   assert.ok(s2.recommend);
   M.chooseLevel(lab, false);
   assert.strictEqual(M.levelOf(lab, "boxe"), 2);
   assert.strictEqual(lab.history.length, 1);
   assert.strictEqual(M.copyPercent(lab, "boxe"), 17);
+  assert.strictEqual(M.stats(lab, DISC, WED + 3 * DAY).per.boxe.tests, 1, "prove superate");
+});
+
+test("Sessioni: salire dopo una sessione normale, cambio di livello a mano, sessione scelta", () => {
+  const lab = M.ensure(null, DISC, START);
+  M.startSession(lab, "karate", { now: WED });
+  M.finishSession(lab, exOf("karate", 1), WED + 1000, { count: 3 });
+  assert.ok(M.chooseLevel(lab, true, WED + 2000), "si puo' salire anche senza prova");
+  assert.strictEqual(M.levelOf(lab, "karate"), 2);
+  assert.strictEqual(M.stepOf(lab, "karate"), 0, "livello nuovo: si parte da impara");
+  M.startSession(lab, "karate", { now: WED + DAY });
+  M.finishSession(lab, exOf("karate", 2), WED + DAY + 1000, { count: 3 });
+  assert.strictEqual(M.stepOf(lab, "karate"), 1);
+  M.setLevel(lab, "karate", 4, WED + DAY + 2000);
+  assert.strictEqual(M.stepOf(lab, "karate"), 0, "cambio a mano: si riparte da impara");
+  // sessione scelta a mano: la rotazione riparte dalla successiva
+  M.startSession(lab, "karate", { now: WED + 2 * DAY, session: 1 });
+  M.finishSession(lab, exOf("karate", 4, 1), WED + 2 * DAY + 1000, { count: 3 });
+  assert.strictEqual(M.stepOf(lab, "karate"), 2);
+  // stepOf non va oltre le sessioni del livello
+  lab.steps.karate = 7;
+  assert.strictEqual(M.stepOf(lab, "karate", 3), 2);
+  // stato rovinato
+  const bad = M.ensure({ steps: { boxe: 1, karate: -2, lotta: "x", judo: 99 } }, DISC, START);
+  assert.deepStrictEqual(bad.steps, { boxe: 1 });
 });
 
 test("Ultimo livello: salire significa stile copiato al 100%", () => {
   const lab = M.ensure(null, DISC, START);
   M.setLevel(lab, "karate", 6, WED);
   assert.strictEqual(M.copyPercent(lab, "karate"), 83);
-  M.startSession(lab, "karate", { now: WED });
-  exOf("karate", 6).forEach((e) => M.setResult(lab, e.id, true));
-  const s = M.finishSession(lab, exOf("karate", 6), WED + 1000);
+  M.startSession(lab, "karate", { now: WED, session: 2 });
+  exOf("karate", 6, 2).forEach((e) => M.setResult(lab, e.id, true));
+  const s = M.finishSession(lab, exOf("karate", 6, 2), WED + 1000, TEST);
   assert.ok(s.atMax);
+  assert.ok(s.recommend);
   M.chooseLevel(lab, true);
   assert.strictEqual(M.levelOf(lab, "karate"), 6);
   assert.strictEqual(M.copyPercent(lab, "karate"), 100);
@@ -219,7 +264,13 @@ test("Stato rovinato: si tiene il buono", () => {
   assert.strictEqual(lab.current, null);
   // allenamento in corso incompleto o di uno stile che non esiste: scartato
   assert.strictEqual(M.ensure({ current: { disc: "boxe", results: {} } }, DISC).current, null);
-  assert.strictEqual(M.ensure({ current: { disc: "judo", level: 1, week: "2026-10-12", day: 2, startedAt: WED, results: {} } }, DISC).current, null);
+  assert.strictEqual(M.ensure({ current: { disc: "judo", level: 1, session: 0, week: "2026-10-12", day: 2, startedAt: WED, results: {} } }, DISC).current, null);
+  // allenamento della versione 1 (senza sessione): gli esercizi non esistono piu', si scarta
+  assert.strictEqual(M.ensure({ current: { disc: "boxe", level: 1, week: "2026-10-12", day: 2, startedAt: WED, results: {} } }, DISC).current, null);
+  assert.ok(M.ensure({ current: { disc: "boxe", level: 1, session: 1, week: "2026-10-12", day: 2, startedAt: WED, results: {} } }, DISC).current);
+  // storico della versione 1: l'ultima voce senza scelta vale come prova
+  const v1 = M.ensure({ sessions: [{ t: WED, week: "2026-10-12", day: 2, disc: "boxe", level: 1, done: 5, total: 5, levelUp: null }] }, DISC, WED);
+  assert.ok(M.pendingChoice(v1, WED + 1000).recommend);
   // piani con stili sconosciuti: tolti; inizio nel futuro: riportato a ora
   const l2 = M.ensure({ weeks: { "2026-10-12": { days: { 2: "judo", 3: "boxe" } } }, createdAt: WED + 100 * DAY }, DISC, WED);
   assert.deepStrictEqual(l2.weeks["2026-10-12"].days, { 3: "boxe" });
@@ -285,9 +336,10 @@ test("Settimane future: anteprima senza salvarla", () => {
 
 test("Livello: si sale da quello dell'allenamento, riepilogo ritrovabile, allenamenti di ieri", () => {
   const lab = M.ensure(null, DISC, START);
-  M.startSession(lab, "boxe", { now: WED });
-  M.setLevel(lab, "boxe", 3, WED + 1000); // cambiato a mano durante l'allenamento
-  M.finishSession(lab, exOf("boxe", 1), WED + 2000);
+  M.startSession(lab, "boxe", { now: WED, session: 2 });
+  M.setLevel(lab, "boxe", 3, WED + 1000); // cambiato a mano durante la prova
+  M.finishSession(lab, exOf("boxe", 1, 2), WED + 2000, TEST);
+  assert.strictEqual(M.stepOf(lab, "boxe"), 0, "il livello cambiato a mano tiene la sua rotazione");
   assert.ok(M.pendingChoice(lab, WED + 3000));
   M.chooseLevel(lab, true, WED + 3000);
   assert.strictEqual(M.levelOf(lab, "boxe"), 3, "non sale a 4");
@@ -295,8 +347,8 @@ test("Livello: si sale da quello dell'allenamento, riepilogo ritrovabile, allena
   // livello 6 gia' copiato: niente voce doppia
   M.setLevel(lab, "lotta", 6, WED);
   for (let k = 0; k < 2; k += 1) {
-    M.startSession(lab, "lotta", { now: WED + k });
-    M.finishSession(lab, exOf("lotta", 6), WED + k + 1);
+    M.startSession(lab, "lotta", { now: WED + k, session: 2 });
+    M.finishSession(lab, exOf("lotta", 6, 2), WED + k + 1, TEST);
     M.chooseLevel(lab, true, WED + k + 2);
   }
   assert.strictEqual(lab.history.filter((h) => h.mastered).length, 1);
@@ -311,28 +363,44 @@ test("Livello: si sale da quello dell'allenamento, riepilogo ritrovabile, allena
   assert.strictEqual(M.finishSession(lab, exOf("karate", 1), WED + 20 * 3600000).minutes, 150, "minuti limitati");
 });
 
-test("Discipline vere: 7 stili, 6 livelli, dosi e preparatori validi", () => {
+test("Discipline vere: 9 stili, 6 livelli, 3 sessioni, esercizi completi", () => {
   if (!REAL) { console.log("  (martial-data.js non ancora presente: salto)"); return; }
-  assert.deepStrictEqual(REAL.map((d) => d.id).sort(), [...IDS].sort());
-  const seen = new Set();
+  const REAL_IDS = [...IDS, "systema", "sambo"];
+  assert.deepStrictEqual(REAL.map((d) => d.id).sort(), [...REAL_IDS].sort());
+  const KINDS = ["riscaldamento", "tecnica", "drill", "combinazione", "shadow", "sacco", "preparatorio", "flessibilita", "condizionamento", "prova", "defaticamento"];
   REAL.forEach((d) => {
-    assert.ok(d.name && d.tagline && d.intro && d.mottos.length === 3 && d.color, `${d.id}: testi`);
+    const seen = new Set();
+    assert.ok(d.name && d.short && d.tagline && d.intro && d.origin && d.method && d.equipment && d.color, `${d.id}: testi`);
+    assert.ok(d.mottos.length >= 4 && d.mottos.length <= 6, `${d.id}: motti`);
     assert.strictEqual(d.levels.length, 6, `${d.id}: livelli`);
+    const checkEx = (e, where, sessionIds) => {
+      assert.ok(KINDS.includes(e.kind), `${e.id}: kind ${e.kind}`);
+      assert.ok(e.name && e.goal && e.how && e.video && e.easier, `${e.id}: testi`);
+      assert.ok(/^Riuscito se: /.test(e.success), `${e.id}: criterio`);
+      assert.ok(e.steps.length >= 3 && e.cues.length >= 2, `${e.id}: passi`);
+      if (["tecnica", "combinazione", "prova"].includes(e.kind)) assert.ok(e.watch, `${e.id}: cosa guardare`);
+      if (["tecnica", "drill", "combinazione", "shadow", "sacco", "prova"].includes(e.kind)) assert.ok(e.errors && e.errors.length >= 2 && e.errors.every((x) => x.e && x.fix), `${e.id}: errori`);
+      if (e.kind === "sacco") assert.ok(e.noBag, `${e.id}: senza sacco`);
+      const ds = e.dose;
+      assert.ok(Number.isInteger(ds.sets) && ds.sets >= 1 && ds.sets <= 12 && (ds.reps != null) !== (ds.work != null), `${e.id}: dose`);
+      if (ds.tasks) assert.ok(ds.work != null && ds.tasks.length === ds.sets, `${e.id}: compiti dei round`);
+      if (e.prepFor) assert.ok(sessionIds.includes(e.prepFor) && sessionIds.indexOf(e.prepFor) > sessionIds.indexOf(e.id), `${e.id}: prepFor ${where}`);
+    };
     d.levels.forEach((lv, li) => {
       assert.strictEqual(lv.level, li + 1);
-      assert.ok(lv.exercises.length >= 5 && lv.exercises.length <= 6, `${d.id} L${li + 1}: esercizi`);
-      const ids = lv.exercises.map((e) => e.id);
-      lv.exercises.forEach((e, ei) => {
-        assert.ok(!seen.has(e.id), `duplicato ${e.id}`);
-        seen.add(e.id);
-        assert.ok(e.name && e.how && e.success && e.video, `${e.id}: testi`);
-        assert.ok(e.steps.length >= 2 && e.cues.length >= 1, `${e.id}: passi`);
-        const ds = e.dose;
-        assert.ok(ds.sets >= 1 && (ds.reps != null) !== (ds.work != null), `${e.id}: dose`);
-        if (e.prepFor) assert.ok(ids.indexOf(e.prepFor) > ei, `${e.id}: prepFor`);
+      assert.ok(lv.title && lv.goal && lv.techniques.length >= 3, `${d.id} L${li + 1}: testi`);
+      assert.strictEqual(lv.warmup.kind, "riscaldamento", `${d.id} L${li + 1}: riscaldamento`);
+      assert.ok(["defaticamento", "flessibilita"].includes(lv.cooldown.kind), `${d.id} L${li + 1}: defaticamento`);
+      [lv.warmup, lv.cooldown].forEach((e) => { assert.ok(!seen.has(e.id), `duplicato ${e.id}`); seen.add(e.id); checkEx(e, "livello", []); });
+      assert.deepStrictEqual(lv.sessions.map((s) => s.type), ["impara", "ripeti", "prova"], `${d.id} L${li + 1}: sessioni`);
+      lv.sessions.forEach((s) => {
+        assert.ok(s.title && s.focus && s.exercises.length >= 4 && s.exercises.length <= 7, `${s.id}: sessione`);
+        const ids = s.exercises.map((e) => e.id);
+        s.exercises.forEach((e) => { assert.ok(!seen.has(e.id), `duplicato ${e.id}`); seen.add(e.id); checkEx(e, s.id, ids); });
+        if (s.type === "prova") assert.ok(s.exercises.filter((e) => e.kind === "prova").length >= 3, `${s.id}: esercizi di prova`);
+        const min = M.sessionMinutes([lv.warmup, ...s.exercises, lv.cooldown]);
+        assert.ok(min >= 20 && min <= 80, `${s.id}: ${min} minuti`);
       });
-      const min = M.levelMinutes(lv);
-      assert.ok(min >= 15 && min <= 75, `${d.id} L${li + 1}: ${min} minuti`);
     });
   });
 });

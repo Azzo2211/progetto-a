@@ -5,9 +5,10 @@
  * - Settimana: N giorni di allenamento (di base lunedi'-venerdi'), ogni giorno una disciplina.
  *   Le discipline ruotano di settimana in settimana (prima quelle fatte meno di recente);
  *   ogni giorno si puo' cambiare a mano.
- * - Ogni disciplina ha 6 livelli. Un allenamento = gli esercizi del livello attuale;
- *   per ognuno l'utente segna "riuscito" o "non ancora". Alla fine e' l'utente a decidere
- *   se salire di livello (l'app consiglia soltanto).
+ * - Ogni disciplina ha 6 livelli; ogni livello ha 3 sessioni che ruotano: impara, ripeti, prova
+ *   (l'esame del livello). Per ogni esercizio l'utente segna "riuscito" o "non ancora".
+ *   Dopo la prova l'app consiglia se salire (80% riusciti), ma decide sempre l'utente;
+ *   puo' salire anche dopo una sessione normale.
  * - Storico: allenamenti, cambi di livello, settimane fatte.
  */
 (function (root, factory) {
@@ -17,7 +18,7 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  const VERSION = 1;
+  const VERSION = 2;
   const DAY = 24 * 60 * 60 * 1000;
   const MAX_LEVEL = 6;
   const WEEKDAYS = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
@@ -73,6 +74,11 @@
       else lab.levels[k] = clamp(Math.round(lab.levels[k]), 1, MAX_LEVEL);
     });
     if (!isObj(lab.mastered)) lab.mastered = {};
+    // prossima sessione del livello per ogni stile (0 impara, 1 ripeti, 2 prova)
+    if (!isObj(lab.steps)) lab.steps = {};
+    Object.keys(lab.steps).forEach((k) => {
+      if (!Number.isInteger(lab.steps[k]) || lab.steps[k] < 0 || lab.steps[k] > 9) delete lab.steps[k];
+    });
     if (!Array.isArray(lab.pool)) lab.pool = ids.slice();
     lab.pool = lab.pool.filter((id) => typeof id === "string" && (!ids.length || ids.includes(id)));
     if (!lab.pool.length && ids.length) lab.pool = ids.slice();
@@ -100,12 +106,19 @@
     const c = lab.current;
     const okCurrent = isObj(c) && typeof c.disc === "string" && (!ids.length || ids.includes(c.disc))
       && Number.isInteger(c.level) && c.level >= 1 && c.level <= MAX_LEVEL && isObj(c.results)
-      && typeof c.week === "string" && /^\d{4}-\d{2}-\d{2}$/.test(c.week) && Number.isInteger(c.day) && c.day >= 0 && c.day <= 6 && num(c.startedAt);
+      && typeof c.week === "string" && /^\d{4}-\d{2}-\d{2}$/.test(c.week) && Number.isInteger(c.day) && c.day >= 0 && c.day <= 6 && num(c.startedAt)
+      && Number.isInteger(c.session) && c.session >= 0 && c.session <= 9;
     if (!okCurrent) lab.current = null;
     return lab;
   }
 
   function levelOf(lab, disc) { return lab.levels[disc] || 1; }
+
+  // Sessione da fare la prossima volta nel livello attuale (count = sessioni del livello).
+  function stepOf(lab, disc, count = 3) {
+    const s = (lab.steps && lab.steps[disc]) || 0;
+    return count > 0 ? Math.min(s, count - 1) : 0;
+  }
 
   // "Stile copiato al X%": livelli superati su 6 (l'ultimo conta quando lo dichiari padroneggiato).
   function copyPercent(lab, disc) {
@@ -283,8 +296,9 @@
   }
 
   // ---------- Allenamento ----------
-  function startSession(lab, disc, { now = Date.now(), week = weekKey(now), day = dayIndex(now) } = {}) {
-    lab.current = { disc, level: levelOf(lab, disc), week, day, startedAt: now, results: {} };
+  function startSession(lab, disc, { now = Date.now(), week = weekKey(now), day = dayIndex(now), session = stepOf(lab, disc) } = {}) {
+    const idx = Number.isInteger(session) && session >= 0 && session <= 9 ? session : 0;
+    lab.current = { disc, level: levelOf(lab, disc), session: idx, week, day, startedAt: now, results: {} };
     return lab.current;
   }
 
@@ -295,26 +309,35 @@
   }
 
   /*
-   * Chiude l'allenamento in corso. exercises: gli esercizi del livello fatto.
-   * Restituisce la voce di storico con la raccomandazione (salire o restare).
+   * Chiude l'allenamento in corso. exercises: gli esercizi della sessione fatta.
+   * opts: count (sessioni del livello), test (true se era la prova del livello).
+   * La rotazione avanza: dopo la prova si riparte da "impara" (se l'utente sale, del livello nuovo).
+   * Restituisce la voce di storico con la raccomandazione (salire solo dopo una prova all'80%).
    */
-  function finishSession(lab, exercises, now = Date.now()) {
+  function finishSession(lab, exercises, now = Date.now(), { count = 3, test = false } = {}) {
     const c = lab.current;
     if (!c) return null;
     const results = {};
     exercises.forEach((e) => { results[e.id] = c.results[e.id] === true ? 1 : 0; });
     const done = Object.values(results).filter((v) => v === 1).length;
     const total = exercises.length;
-    const entry = { t: now, week: c.week, day: c.day, disc: c.disc, level: c.level, done, total, results, levelUp: null, minutes: clamp(Math.round((now - c.startedAt) / 60000), 1, 150) };
+    const entry = { t: now, week: c.week, day: c.day, disc: c.disc, level: c.level, session: c.session, test: !!test, done, total, results, levelUp: null, minutes: clamp(Math.round((now - c.startedAt) / 60000), 1, 150) };
     lab.sessions.push(entry);
     if (lab.sessions.length > 500) lab.sessions = lab.sessions.slice(-500);
     lab.current = null;
+    // la prossima sessione del livello (solo se nel frattempo il livello non e' cambiato)
+    if (levelOf(lab, c.disc) === c.level) lab.steps[c.disc] = test || count <= 1 ? 0 : (c.session + 1) % count;
     // anche un allenamento fuori programma (giorno di riposo o disciplina diversa) segna il giorno con quella disciplina
     const plan = lab.weeks[c.week] || (lab.weeks[c.week] = { days: {}, manual: {}, counted: [] });
     plan.days[c.day] = c.disc;
     plan.manual[c.day] = true;
     countPlan(lab, plan, c.week, c.disc);
-    return Object.assign({ recommend: total > 0 && done / total >= RECOMMEND, atMax: c.level >= MAX_LEVEL }, entry);
+    return withAdvice(entry);
+  }
+
+  function withAdvice(s) {
+    const test = s.test !== false; // gli allenamenti della versione 1 erano tutti "prove"
+    return Object.assign({ recommend: test && s.total > 0 && s.done / s.total >= RECOMMEND, atMax: s.level >= MAX_LEVEL, isTest: test }, s);
   }
 
   // La scelta dell'utente dopo l'allenamento: salire (true) o restare (false).
@@ -332,15 +355,16 @@
       return true;
     }
     lab.levels[s.disc] = s.level + 1;
-    lab.history.push({ t: now, disc: s.disc, from: s.level, to: s.level + 1 });
+    lab.steps[s.disc] = 0;
+    lab.history.push({ t: now, disc: s.disc, from: s.level, to: s.level + 1, test: s.test !== false });
     return true;
   }
 
-  // L'ultimo allenamento, se manca ancora la scelta del livello (per ritrovare il riepilogo dopo una ricarica).
+  // L'ultima prova, se manca ancora la scelta del livello (per ritrovare il riepilogo dopo una ricarica).
   function pendingChoice(lab, now = Date.now()) {
     const s = lab.sessions[lab.sessions.length - 1];
-    if (!s || s.levelUp !== null || now - s.t > 12 * 60 * 60 * 1000) return null;
-    return Object.assign({ recommend: s.total > 0 && s.done / s.total >= RECOMMEND, atMax: s.level >= MAX_LEVEL }, s);
+    if (!s || s.levelUp !== null || s.test === false || now - s.t > 12 * 60 * 60 * 1000) return null;
+    return withAdvice(s);
   }
 
   // Cambio di livello a mano (dalla scheda dello stile): anche per tornare indietro.
@@ -349,6 +373,7 @@
     const to = clamp(Math.round(level), 1, MAX_LEVEL);
     if (to === from) return false;
     lab.levels[disc] = to;
+    lab.steps[disc] = 0;
     if (to < MAX_LEVEL) delete lab.mastered[disc];
     lab.history.push({ t: now, disc, from, to, manual: true });
     return true;
@@ -363,6 +388,8 @@
       const total = list.reduce((n, s) => n + s.total, 0);
       per[d.id] = {
         level: levelOf(lab, d.id),
+        step: stepOf(lab, d.id),
+        tests: list.filter((s) => s.test === true && s.total > 0 && s.done / s.total >= RECOMMEND).length,
         copy: copyPercent(lab, d.id),
         sessions: list.length,
         rate: total ? Math.round((done / total) * 100) : null,
@@ -423,16 +450,17 @@
     return (d.sets || 1) * work * per + Math.max(0, (d.sets || 1) - 1) * (d.rest || 0);
   }
 
-  function levelMinutes(level) {
-    return Math.round(level.exercises.reduce((n, e) => n + exerciseSeconds(e) + 40, 0) / 60);
+  // Minuti stimati di una sessione (lista di esercizi), con un po' di tempo per leggere e cambiare.
+  function sessionMinutes(list) {
+    return Math.round(list.reduce((n, e) => n + exerciseSeconds(e) + ((e.dose || {}).perSide ? ((e.dose || {}).sets || 1) * 5 : 0) + 40, 0) / 60);
   }
 
   return {
     VERSION, DAY, MAX_LEVEL, WEEKDAYS, WEEKDAYS_LONG, RECOMMEND,
     weekKey, dayIndex, weekStart, addWeeks, dayTime, dayKeyOf,
-    ensure, levelOf, copyPercent,
+    ensure, levelOf, stepOf, copyPercent,
     planWeek, previewWeek, replanWeek, setDay, setTrainDays, setPool, dayStatus, sessionsOn, weekProgress, today, isStale, resumeToday,
     startSession, setResult, finishSession, chooseLevel, pendingChoice, setLevel,
-    stats, profileExtras, exerciseSeconds, levelMinutes
+    stats, profileExtras, exerciseSeconds, sessionMinutes
   };
 });

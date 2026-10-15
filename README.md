@@ -110,19 +110,20 @@ La pagina Cultura (cartella `culture/`) è una biblioteca di schede brevi da cap
 
 ## Modulo difesa: arti marziali "metodo Johan Seong"
 
-La scheda **Arti marziali** è la parte principale della pagina Difesa. Il tema è Johan Seong di Lookism (usato solo come motivazione nei testi: osserva, copia, fallo tuo).
+La scheda **Arti marziali** è la parte principale della pagina Difesa. Il tema è Johan Seong di Lookism, che copia una tecnica dopo averla vista una volta: qui diventa un metodo reale in quattro passi (osserva, copia, ripeti, fallo tuo). I riferimenti al webtoon sono solo testi con fatti verificati, niente immagini dei personaggi.
 
 | File | Cosa fa |
 |---|---|
-| `defense/martial-data.js` | 7 discipline (boxe, muay thai, taekwondo, karate, capoeira, lotta, kung fu Wing Chun), 6 livelli ciascuna da 5-6 esercizi: dose (serie, ripetizioni o secondi, recupero), criterio di "riuscito", versione più facile, esercizi preparatori prima di quelli difficili o di flessibilità, ricerca video su YouTube. |
-| `defense/martial.js` | Settimana a rotazione, livelli, storico. Senza DOM, testato in `tests/martial.test.js`. |
-| `defense/martial-ui.js`, `defense/martial.css` | Le viste Oggi, Settimana, Stili, Progressi. |
+| `defense/martial-data.js` | 9 discipline (boxe, muay thai, taekwondo, karate, capoeira, lotta, Wing Chun, systema, sambo), 6 livelli ciascuna. Ogni livello: riscaldamento, 3 sessioni (impara, ripeti, prova del livello), defaticamento. Ogni esercizio: obiettivo, cosa guardare nel video, passi, punti chiave, errori tipici con la correzione, criterio di "riuscito" misurabile, versione più facile e più difficile, cosa fare senza sacco, note di sicurezza, preparatori prima delle tecniche difficili o di flessibilità, round con un compito per round, ricerca video su YouTube. |
+| `defense/martial-lookism.js` | Riferimenti a Lookism: il metodo, chi usa quale stile nel webtoon e cosa copiarne, la scheda "In Lookism" degli stili, i ranghi. |
+| `defense/martial.js` | Settimana a rotazione, livelli, rotazione delle sessioni, storico. Senza DOM, testato in `tests/martial.test.js`. |
+| `defense/martial-ui.js`, `defense/martial.css` | Le viste Oggi, Settimana, Stili, Lookism, Progressi. |
 
-**Settimana**: di base 5 giorni (lunedì-venerdì, modificabili). Ogni giorno uno stile diverso; le discipline cambiano di settimana in settimana (prima quelle che non fai da più tempo) e ogni giorno si può cambiare a mano. Gli stili si possono togliere dalla rotazione.
+**Settimana**: di base 5 giorni (lunedì-venerdì, modificabili). Ogni giorno uno stile diverso; le discipline cambiano di settimana in settimana (prima quelle che non fai da più tempo). Lo stile di oggi si cambia con un tocco dalla vista Oggi, gli altri giorni dal loro menu nel calendario. Gli stili si possono togliere dalla rotazione.
 
-**Allenamento**: gli esercizi del livello attuale, ognuno con timer (serie a tempo o a ripetizioni, recupero, cambio lato, segnali casuali per lo shadow). Per ogni esercizio segni "Riuscito" o "Non ancora"; alla fine decidi tu se salire di livello (l'app consiglia di salire con almeno l'80% riuscito). All'ultimo livello si può dichiarare lo stile "copiato al 100%". Il livello si può cambiare a mano anche dalla scheda dello stile.
+**Allenamento**: le sessioni del livello ruotano (impara → ripeti → prova); oggi puoi sceglierne un'altra con un tocco. Ogni esercizio ha il timer (serie a tempo o a ripetizioni, recupero, cambio lato, compito del round annunciato a voce, segnali casuali per shadow e sacco). Per ogni esercizio segni "Riuscito" o "Non ancora". Dopo la prova l'app consiglia di salire se hai almeno l'80% riuscito, ma decidi sempre tu; puoi salire anche dopo una sessione normale. All'ultimo livello si può dichiarare lo stile "copiato al 100%". Il livello si cambia con un tocco anche dalla scheda dello stile.
 
-**Progressi**: settimana in corso, settimane complete di fila, allenamenti e minuti, quanto hai copiato di ogni stile, calendario delle ultime 8 settimane, cambi di livello e ultimi allenamenti. Gli allenamenti contano anche per Tecnica e Costanza nel profilo della Difesa.
+**Progressi**: settimana in corso, settimane complete di fila, allenamenti e minuti, quanto hai copiato di ogni stile, prove superate, calendario delle ultime 8 settimane, cambi di livello e ultimi allenamenti. Il rango (vista Lookism) è la media di quanto hai copiato di tutti gli stili. Gli allenamenti contano anche per Tecnica e Costanza nel profilo della Difesa.
 
 ## Modulo difesa: programma, riflessi, situazioni
 
