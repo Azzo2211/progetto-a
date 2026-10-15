@@ -36,7 +36,7 @@
   const esc = (text) => String(text == null ? "" : text).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const prose = (text) => esc(String(text == null ? "" : text).replace(/"([^"]*)"/g, "“$1”").replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ0-9])/g, "$1’$2"));
   const pad = (n) => String(n).padStart(2, "0");
-  const mmss = (sec) => `${pad(Math.floor(Math.max(0, sec) / 60))}:${pad(Math.max(0, Math.ceil(sec)) % 60)}`;
+  const mmss = (sec) => { const t = Math.max(0, Math.ceil(sec)); return `${pad(Math.floor(t / 60))}:${pad(t % 60)}`; };
 
   function lab() {
     state.defenseLab = E.ensureLab(state.defenseLab);
@@ -1589,6 +1589,7 @@
     });
     // Se si lascia la pagina: prove interrotte, sessione in pausa, voce zitta.
     const pauseAll = () => {
+      if (window.DefenseMartialUI) window.DefenseMartialUI.stop();
       if (ui.test && ui.test.phase === "run") { abortTestRecording(); if (ui.tab === "reflex") renderReflex(); }
       if (ui.run && !ui.run.paused && (ui.run.step === "warmup" || ui.run.step === "rounds")) togglePause();
       if (ui.situ && ui.situ.phase === "play" && ui.situ.picked === null && ui.situ.timer) {

@@ -66,7 +66,7 @@
     const lab = isObj(raw) ? raw : {};
     lab.version = VERSION;
     // da quando usi il metodo: i giorni prima non risultano "saltati"
-    if (!num(lab.createdAt)) lab.createdAt = now;
+    if (!num(lab.createdAt) || lab.createdAt > now) lab.createdAt = now;
     if (!isObj(lab.levels)) lab.levels = {};
     Object.keys(lab.levels).forEach((k) => {
       if (!num(lab.levels[k])) delete lab.levels[k];
@@ -76,6 +76,9 @@
     if (!Array.isArray(lab.pool)) lab.pool = ids.slice();
     lab.pool = lab.pool.filter((id) => typeof id === "string" && (!ids.length || ids.includes(id)));
     if (!lab.pool.length && ids.length) lab.pool = ids.slice();
+    // stili nuovi (aggiunti all'app dopo) entrano in rotazione; quelli tolti a mano restano fuori
+    if (!Array.isArray(lab.known)) lab.known = lab.pool.slice();
+    ids.forEach((id) => { if (!lab.known.includes(id)) { lab.known.push(id); if (!lab.pool.includes(id)) lab.pool.push(id); } });
     if (!Array.isArray(lab.trainDays)) lab.trainDays = [0, 1, 2, 3, 4];
     lab.trainDays = [...new Set(lab.trainDays.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))].sort((a, b) => a - b);
     if (!lab.trainDays.length) lab.trainDays = [0, 1, 2, 3, 4];
@@ -85,15 +88,20 @@
       if (!isObj(wk) || !isObj(wk.days) || !/^\d{4}-\d{2}-\d{2}$/.test(w)) { delete lab.weeks[w]; return; }
       Object.keys(wk.days).forEach((d) => {
         const v = wk.days[d];
-        if (!/^[0-6]$/.test(d) || (v !== null && typeof v !== "string")) delete wk.days[d];
+        if (!/^[0-6]$/.test(d) || typeof v !== "string" || (ids.length && !ids.includes(v))) delete wk.days[d];
       });
+      if (!isObj(wk.manual)) wk.manual = {};
+      if (!Array.isArray(wk.counted)) wk.counted = [...new Set(Object.values(wk.days))];
     });
     if (!isObj(lab.lastPlanned)) lab.lastPlanned = {};
     if (!isObj(lab.planCount)) lab.planCount = {};
     lab.sessions = Array.isArray(lab.sessions) ? lab.sessions.filter((s) => isObj(s) && num(s.t) && typeof s.disc === "string" && num(s.level) && num(s.done) && num(s.total)) : [];
     lab.history = Array.isArray(lab.history) ? lab.history.filter((h) => isObj(h) && num(h.t) && typeof h.disc === "string" && num(h.from) && num(h.to)) : [];
-    if (lab.current && !(isObj(lab.current) && typeof lab.current.disc === "string" && isObj(lab.current.results))) lab.current = null;
-    if (lab.current === undefined) lab.current = null;
+    const c = lab.current;
+    const okCurrent = isObj(c) && typeof c.disc === "string" && (!ids.length || ids.includes(c.disc))
+      && Number.isInteger(c.level) && c.level >= 1 && c.level <= MAX_LEVEL && isObj(c.results)
+      && typeof c.week === "string" && /^\d{4}-\d{2}-\d{2}$/.test(c.week) && Number.isInteger(c.day) && c.day >= 0 && c.day <= 6 && num(c.startedAt);
+    if (!okCurrent) lab.current = null;
     return lab;
   }
 
@@ -106,46 +114,83 @@
   }
 
   // ---------- Settimana ----------
+  function rotationOrder(lab, pool) {
+    // prima chi manca da piu' tempo, poi chi e' uscito meno volte, poi l'ordine della lista
+    return [...pool].sort((a, b) => {
+      const la = lab.lastPlanned[a] || "";
+      const lb = lab.lastPlanned[b] || "";
+      if (la !== lb) return la < lb ? -1 : 1;
+      const ca = lab.planCount[a] || 0;
+      const cb = lab.planCount[b] || 0;
+      if (ca !== cb) return ca - cb;
+      return pool.indexOf(a) - pool.indexOf(b);
+    });
+  }
+
+  // Primo giorno pianificabile della settimana: niente giorni prima dell'inizio del metodo.
+  function firstDay(lab, week) {
+    const startWeek = weekKey(lab.createdAt || 0);
+    if (week < startWeek) return 7;
+    return week === startWeek ? dayIndex(lab.createdAt) : 0;
+  }
+
+  function countPlan(lab, plan, week, id) {
+    if (plan.counted.includes(id)) return;
+    plan.counted.push(id);
+    if (!lab.lastPlanned[id] || lab.lastPlanned[id] < week) lab.lastPlanned[id] = week;
+    lab.planCount[id] = (lab.planCount[id] || 0) + 1;
+  }
+
+  // Riempie i giorni di allenamento liberi da "fromDay" in poi, evitando gli stili gia' presenti.
+  function fillWeek(lab, disciplines, week, plan, fromDay) {
+    const pool = lab.pool.filter((id) => disciplines.some((d) => d.id === id));
+    if (!pool.length) return;
+    const order = rotationOrder(lab, pool);
+    const free = lab.trainDays.filter((d) => d >= fromDay && !plan.days[d]);
+    free.forEach((d) => {
+      const used = new Set(Object.values(plan.days));
+      const id = order.find((x) => !used.has(x)) || order[Object.keys(plan.days).length % order.length];
+      plan.days[d] = id;
+      countPlan(lab, plan, week, id);
+    });
+  }
+
   /*
    * Crea il piano di una settimana se manca. Sceglie le discipline fatte meno di recente
    * (a parita', l'ordine della lista), una diversa per ogni giorno finche' bastano.
    */
   function planWeek(lab, disciplines, week) {
     if (lab.weeks[week]) return lab.weeks[week];
-    const pool = lab.pool.filter((id) => disciplines.some((d) => d.id === id));
-    const days = {};
-    const startWeek = weekKey(lab.createdAt || 0);
-    if (week < startWeek) return { days: {} };
-    // nella prima settimana si pianificano solo i giorni da oggi in poi
-    const fromDay = week === startWeek ? dayIndex(lab.createdAt) : 0;
-    const slots = lab.trainDays.filter((d) => d >= fromDay);
-    if (pool.length) {
-      // prima chi manca da piu' tempo, poi chi e' uscito meno volte, poi l'ordine della lista
-      const order = [...pool].sort((a, b) => {
-        const la = lab.lastPlanned[a] || "";
-        const lb = lab.lastPlanned[b] || "";
-        if (la !== lb) return la < lb ? -1 : 1;
-        const ca = lab.planCount[a] || 0;
-        const cb = lab.planCount[b] || 0;
-        if (ca !== cb) return ca - cb;
-        return pool.indexOf(a) - pool.indexOf(b);
-      });
-      slots.forEach((d, i) => { days[d] = order[i % order.length]; });
-      Object.values(days).forEach((id) => {
-        if (!lab.lastPlanned[id] || lab.lastPlanned[id] < week) lab.lastPlanned[id] = week;
-        lab.planCount[id] = (lab.planCount[id] || 0) + 1;
-      });
-    }
-    lab.weeks[week] = { days };
-    return lab.weeks[week];
+    const from = firstDay(lab, week);
+    if (from > 6) return { days: {}, manual: {}, counted: [] };
+    const plan = { days: {}, manual: {}, counted: [] };
+    fillWeek(lab, disciplines, week, plan, from);
+    lab.weeks[week] = plan;
+    return plan;
+  }
+
+  /*
+   * Anteprima di una settimana futura senza salvarla: le scelte (stili in rotazione,
+   * giorni di allenamento) restano libere fino a quando la settimana arriva.
+   */
+  function previewWeek(lab, disciplines, week, now = Date.now()) {
+    const current = weekKey(now);
+    if (week <= current || lab.weeks[week]) return lab.weeks[week] || (week === current ? planWeek(lab, disciplines, week) : { days: {}, manual: {}, counted: [] });
+    const sim = {
+      createdAt: lab.createdAt, pool: lab.pool.slice(), trainDays: lab.trainDays.slice(),
+      weeks: JSON.parse(JSON.stringify(lab.weeks)), lastPlanned: Object.assign({}, lab.lastPlanned), planCount: Object.assign({}, lab.planCount), sessions: lab.sessions
+    };
+    planWeek(sim, disciplines, current);
+    let w = current;
+    while (w < week) { w = addWeeks(w, 1); planWeek(sim, disciplines, w); }
+    return Object.assign({ preview: true }, sim.weeks[week]);
   }
 
   function sessionsOn(lab, week, day) {
     return lab.sessions.filter((s) => s.week === week && s.day === day);
   }
 
-  function dayStatus(lab, week, day, now = Date.now()) {
-    const plan = lab.weeks[week];
+  function dayStatus(lab, week, day, now = Date.now(), plan = lab.weeks[week]) {
     const disc = plan ? plan.days[day] : undefined;
     const done = sessionsOn(lab, week, day);
     if (done.length) return "done";
@@ -156,25 +201,51 @@
     return t < now ? "missed" : "planned";
   }
 
+  // Allenamenti fatti e previsti in una settimana (un solo calcolo per tutte le viste).
+  function weekProgress(lab, week) {
+    const plan = lab.weeks[week];
+    const done = new Set(lab.sessions.filter((s) => s.week === week).map((s) => s.day)).size;
+    return { done, planned: plan ? Object.keys(plan.days).length : 0 };
+  }
+
   // Cambia la disciplina di un giorno (null = riposo). I giorni gia' fatti non si toccano.
-  function setDay(lab, week, day, disc) {
-    const plan = lab.weeks[week] || (lab.weeks[week] = { days: {} });
+  function setDay(lab, week, day, disc, disciplines = []) {
     if (sessionsOn(lab, week, day).length) return false;
-    if (disc) plan.days[day] = disc; else delete plan.days[day];
+    const plan = lab.weeks[week] || (disciplines.length ? planWeek(lab, disciplines, week) : (lab.weeks[week] = { days: {}, manual: {}, counted: [] }));
+    if (!lab.weeks[week]) lab.weeks[week] = plan;
+    if (disc) { plan.days[day] = disc; countPlan(lab, plan, week, disc); } else delete plan.days[day];
+    plan.manual[day] = true;
+    uncountMissing(lab, plan);
     return true;
   }
 
+  // Uno stile uscito del tutto dalla settimana non conta piu' come "pianificato".
+  function uncountMissing(lab, plan) {
+    plan.counted = plan.counted.filter((id) => {
+      if (Object.values(plan.days).includes(id)) return true;
+      lab.planCount[id] = Math.max(0, (lab.planCount[id] || 1) - 1);
+      return false;
+    });
+  }
+
   /*
-   * Rifa' il piano della settimana per i giorni non ancora fatti (per esempio dopo aver
-   * cambiato i giorni di allenamento o la lista degli stili).
+   * Allinea il piano ai giorni di allenamento, da oggi in poi (le settimane passate non si toccano):
+   * toglie i giorni non piu' di allenamento (se non fatti), riempie quelli aggiunti con la rotazione,
+   * lascia com'e' tutto il resto. Chiamarla piu' volte non cambia niente.
    */
-  function replanWeek(lab, disciplines, week) {
-    const old = lab.weeks[week];
-    const keep = {};
-    if (old) Object.entries(old.days).forEach(([d, id]) => { if (sessionsOn(lab, week, Number(d)).length) keep[d] = id; });
-    delete lab.weeks[week];
-    const plan = planWeek(lab, disciplines, week);
-    Object.keys(keep).forEach((d) => { plan.days[d] = keep[d]; });
+  function replanWeek(lab, disciplines, week, now = Date.now()) {
+    const current = weekKey(now);
+    if (week < current) return lab.weeks[week] || { days: {}, manual: {}, counted: [] };
+    if (!lab.weeks[week]) return planWeek(lab, disciplines, week);
+    const plan = lab.weeks[week];
+    const from = Math.max(firstDay(lab, week), week === current ? dayIndex(now) : 0);
+    Object.keys(plan.days).map(Number).forEach((d) => {
+      if (d < from || lab.trainDays.includes(d) || sessionsOn(lab, week, d).length) return;
+      delete plan.days[d];
+      delete plan.manual[d];
+    });
+    uncountMissing(lab, plan);
+    if (from <= 6) fillWeek(lab, disciplines, week, plan, from);
     return plan;
   }
 
@@ -195,7 +266,20 @@
     const week = weekKey(now);
     const day = dayIndex(now);
     const plan = planWeek(lab, disciplines, week);
-    return { week, day, disc: plan.days[day] || null, status: dayStatus(lab, week, day, now), sessions: sessionsOn(lab, week, day) };
+    return { week, day, disc: plan.days[day] || null, status: dayStatus(lab, week, day, now), sessions: sessionsOn(lab, week, day), key: dayKeyOf(now) };
+  }
+
+  // Allenamento iniziato in un giorno precedente e mai chiuso.
+  function isStale(lab, now = Date.now()) {
+    return !!lab.current && dayKeyOf(lab.current.startedAt) !== dayKeyOf(now);
+  }
+
+  // Riprende oggi un allenamento lasciato a meta': conta per oggi, il tempo riparte ora.
+  function resumeToday(lab, now = Date.now()) {
+    if (!lab.current) return;
+    lab.current.week = weekKey(now);
+    lab.current.day = dayIndex(now);
+    lab.current.startedAt = now;
   }
 
   // ---------- Allenamento ----------
@@ -221,31 +305,42 @@
     exercises.forEach((e) => { results[e.id] = c.results[e.id] === true ? 1 : 0; });
     const done = Object.values(results).filter((v) => v === 1).length;
     const total = exercises.length;
-    const entry = { t: now, week: c.week, day: c.day, disc: c.disc, level: c.level, done, total, results, levelUp: null, minutes: Math.max(1, Math.round((now - c.startedAt) / 60000)) };
+    const entry = { t: now, week: c.week, day: c.day, disc: c.disc, level: c.level, done, total, results, levelUp: null, minutes: clamp(Math.round((now - c.startedAt) / 60000), 1, 150) };
     lab.sessions.push(entry);
     if (lab.sessions.length > 500) lab.sessions = lab.sessions.slice(-500);
     lab.current = null;
     // anche un allenamento fuori programma (giorno di riposo o disciplina diversa) segna il giorno con quella disciplina
-    const plan = lab.weeks[c.week] || (lab.weeks[c.week] = { days: {} });
-    if (plan.days[c.day] !== c.disc) plan.days[c.day] = c.disc;
-    if (!lab.lastPlanned[c.disc] || lab.lastPlanned[c.disc] < c.week) lab.lastPlanned[c.disc] = c.week;
+    const plan = lab.weeks[c.week] || (lab.weeks[c.week] = { days: {}, manual: {}, counted: [] });
+    plan.days[c.day] = c.disc;
+    plan.manual[c.day] = true;
+    countPlan(lab, plan, c.week, c.disc);
     return Object.assign({ recommend: total > 0 && done / total >= RECOMMEND, atMax: c.level >= MAX_LEVEL }, entry);
   }
 
   // La scelta dell'utente dopo l'allenamento: salire (true) o restare (false).
+  // Si sale dal livello dell'allenamento fatto; se nel frattempo il livello e' cambiato a mano, non si tocca.
   function chooseLevel(lab, up, now = Date.now()) {
     const s = lab.sessions[lab.sessions.length - 1];
     if (!s || s.levelUp !== null) return false;
     s.levelUp = !!up;
     if (!up) return true;
-    const from = levelOf(lab, s.disc);
+    if (levelOf(lab, s.disc) !== s.level) return true;
     if (s.level >= MAX_LEVEL) {
+      if (lab.mastered[s.disc]) return true;
       lab.mastered[s.disc] = true;
-    } else {
-      lab.levels[s.disc] = clamp(from + 1, 1, MAX_LEVEL);
+      lab.history.push({ t: now, disc: s.disc, from: MAX_LEVEL, to: MAX_LEVEL, mastered: true });
+      return true;
     }
-    lab.history.push({ t: now, disc: s.disc, from, to: s.level >= MAX_LEVEL ? MAX_LEVEL : from + 1, mastered: s.level >= MAX_LEVEL });
+    lab.levels[s.disc] = s.level + 1;
+    lab.history.push({ t: now, disc: s.disc, from: s.level, to: s.level + 1 });
     return true;
+  }
+
+  // L'ultimo allenamento, se manca ancora la scelta del livello (per ritrovare il riepilogo dopo una ricarica).
+  function pendingChoice(lab, now = Date.now()) {
+    const s = lab.sessions[lab.sessions.length - 1];
+    if (!s || s.levelUp !== null || now - s.t > 12 * 60 * 60 * 1000) return null;
+    return Object.assign({ recommend: s.total > 0 && s.done / s.total >= RECOMMEND, atMax: s.level >= MAX_LEVEL }, s);
   }
 
   // Cambio di livello a mano (dalla scheda dello stile): anche per tornare indietro.
@@ -281,10 +376,9 @@
     for (let i = 0; i < 8; i += 1) {
       const w = addWeeks(thisWeek, -i);
       const plan = lab.weeks[w];
-      const planned = plan ? Object.keys(plan.days).length : 0;
-      const doneDays = new Set(lab.sessions.filter((s) => s.week === w).map((s) => s.day)).size;
+      const wp = weekProgress(lab, w);
       const days = Array.from({ length: 7 }, (_, d) => ({ day: d, disc: plan ? plan.days[d] || null : null, status: plan ? dayStatus(lab, w, d, now) : "rest" }));
-      weeks.push({ week: w, planned, done: doneDays, days });
+      weeks.push({ week: w, planned: wp.planned, done: wp.done, days });
     }
     // serie: settimane complete consecutive (la corrente conta solo se gia' completa)
     let streak = 0;
@@ -337,8 +431,8 @@
     VERSION, DAY, MAX_LEVEL, WEEKDAYS, WEEKDAYS_LONG, RECOMMEND,
     weekKey, dayIndex, weekStart, addWeeks, dayTime, dayKeyOf,
     ensure, levelOf, copyPercent,
-    planWeek, replanWeek, setDay, setTrainDays, setPool, dayStatus, sessionsOn, today,
-    startSession, setResult, finishSession, chooseLevel, setLevel,
+    planWeek, previewWeek, replanWeek, setDay, setTrainDays, setPool, dayStatus, sessionsOn, weekProgress, today, isStale, resumeToday,
+    startSession, setResult, finishSession, chooseLevel, pendingChoice, setLevel,
     stats, profileExtras, exerciseSeconds, levelMinutes
   };
 });

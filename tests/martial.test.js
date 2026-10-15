@@ -83,11 +83,11 @@ test("Giorni e stili scelti dall'utente: cambi a mano, giorni fatti intoccabili"
   M.startSession(lab, "capoeira", { now: WED });
   M.finishSession(lab, exOf("capoeira", 1), WED + 3600000);
   assert.strictEqual(M.setDay(lab, t.week, 2, "boxe"), false, "giorno gia' fatto");
-  // solo 3 giorni a settimana: il piano si rifa' ma tiene il giorno fatto
+  // solo 3 giorni a settimana: il piano si rifa' da oggi in poi, tiene il giorno fatto e lo storico
   M.setTrainDays(lab, [0, 2, 4]);
-  const plan = M.replanWeek(lab, DISC, t.week);
+  const plan = M.replanWeek(lab, DISC, t.week, WED);
   assert.strictEqual(plan.days[2], "capoeira");
-  assert.deepStrictEqual(Object.keys(plan.days).map(Number).sort(), [0, 2, 4]);
+  assert.deepStrictEqual(Object.keys(plan.days).map(Number).sort(), [0, 1, 2, 4], "lunedi' e martedi' passati restano com'erano");
   // stili esclusi non compaiono piu'
   M.setPool(lab, ["boxe", "karate"]);
   const next = M.planWeek(lab, DISC, M.addWeeks(t.week, 1));
@@ -207,7 +207,7 @@ test("Profilo Difesa: le arti marziali contano per Costanza e Tecnica", () => {
 });
 
 test("Stato rovinato: si tiene il buono", () => {
-  const lab = M.ensure({ version: 9, levels: { boxe: 3, karate: "x", lotta: 99 }, pool: ["boxe", 7, "nope"], trainDays: [9, 1, 1, 3], weeks: { "2026-10-12": { days: { 2: "boxe", 8: "x" } }, bad: 1 }, sessions: [null, { t: WED, disc: "boxe", level: 1, done: 2, total: 5 }], current: "x" }, DISC);
+  const lab = M.ensure({ version: 9, known: IDS, levels: { boxe: 3, karate: "x", lotta: 99 }, pool: ["boxe", 7, "nope"], trainDays: [9, 1, 1, 3], weeks: { "2026-10-12": { days: { 2: "boxe", 8: "x" } }, bad: 1 }, sessions: [null, { t: WED, disc: "boxe", level: 1, done: 2, total: 5 }], current: "x" }, DISC);
   assert.strictEqual(lab.levels.boxe, 3);
   assert.strictEqual(lab.levels.lotta, 6);
   assert.ok(!("karate" in lab.levels));
@@ -217,6 +217,98 @@ test("Stato rovinato: si tiene il buono", () => {
   assert.deepStrictEqual(Object.keys(lab.weeks["2026-10-12"].days), ["2"]);
   assert.strictEqual(lab.sessions.length, 1);
   assert.strictEqual(lab.current, null);
+  // allenamento in corso incompleto o di uno stile che non esiste: scartato
+  assert.strictEqual(M.ensure({ current: { disc: "boxe", results: {} } }, DISC).current, null);
+  assert.strictEqual(M.ensure({ current: { disc: "judo", level: 1, week: "2026-10-12", day: 2, startedAt: WED, results: {} } }, DISC).current, null);
+  // piani con stili sconosciuti: tolti; inizio nel futuro: riportato a ora
+  const l2 = M.ensure({ weeks: { "2026-10-12": { days: { 2: "judo", 3: "boxe" } } }, createdAt: WED + 100 * DAY }, DISC, WED);
+  assert.deepStrictEqual(l2.weeks["2026-10-12"].days, { 3: "boxe" });
+  assert.strictEqual(l2.createdAt, WED);
+});
+
+test("Stili nuovi entrano in rotazione, quelli tolti a mano restano fuori", () => {
+  const old = { pool: ["boxe", "muaythai", "capoeira", "lotta", "kungfu"], known: ["boxe", "muaythai", "capoeira", "lotta", "kungfu"] };
+  const lab = M.ensure(old, DISC, START);
+  assert.ok(lab.pool.includes("taekwondo") && lab.pool.includes("karate"));
+  M.setPool(lab, lab.pool.filter((id) => id !== "karate"));
+  const again = M.ensure(lab, DISC, START);
+  assert.ok(!again.pool.includes("karate"), "tolto a mano: resta fuori");
+});
+
+test("Cambiare i giorni: solo i giorni toccati cambiano, niente doppioni, idempotente", () => {
+  const lab = M.ensure(null, DISC, START);
+  const week = M.weekKey(WED);
+  M.planWeek(lab, DISC, week);
+  M.setDay(lab, week, 4, "lotta", DISC);
+  const counts = JSON.stringify(lab.planCount);
+  const daysBefore = JSON.stringify(lab.weeks[week].days);
+  for (let i = 0; i < 3; i += 1) M.replanWeek(lab, DISC, week, WED);
+  assert.strictEqual(lab.weeks[week].days[4], "lotta", "scelta a mano conservata");
+  assert.strictEqual(JSON.stringify(lab.weeks[week].days), daysBefore, "senza cambi non si rimescola");
+  assert.strictEqual(JSON.stringify(lab.planCount), counts, "rifare tre volte non cambia i conteggi");
+  const ids = Object.values(lab.weeks[week].days);
+  assert.strictEqual(new Set(ids).size, ids.length, "stili ripetuti");
+  // aggiungere un giorno gia' passato non crea un "saltato"
+  M.setTrainDays(lab, [0, 1, 2, 3, 4, 5]);
+  M.replanWeek(lab, DISC, week, WED);
+  assert.ok(lab.weeks[week].days[5], "sabato aggiunto");
+  const after = Object.values(lab.weeks[week].days);
+  assert.strictEqual(new Set(after).size, after.length, "stili ripetuti dopo l'aggiunta");
+  assert.strictEqual(lab.weeks[week].days[4], "lotta");
+  // togliere il giovedi': sparisce solo quello
+  const thu = lab.weeks[week].days[3];
+  M.setTrainDays(lab, [0, 1, 2, 4, 5]);
+  M.replanWeek(lab, DISC, week, WED);
+  assert.ok(!lab.weeks[week].days[3] && thu);
+  assert.strictEqual(lab.weeks[week].days[4], "lotta");
+  // settimane passate: non si rifanno
+  const before = JSON.stringify(lab.weeks);
+  M.replanWeek(lab, DISC, "2026-10-05", WED);
+  assert.strictEqual(JSON.stringify(lab.weeks), before);
+});
+
+test("Settimane future: anteprima senza salvarla", () => {
+  const lab = M.ensure(null, DISC, START);
+  const next = M.addWeeks(M.weekKey(WED), 2);
+  const prev = M.previewWeek(lab, DISC, next, WED);
+  assert.strictEqual(Object.keys(prev.days).length, 5);
+  assert.ok(!lab.weeks[next], "non salvata");
+  // togliere uno stile cambia l'anteprima
+  M.setPool(lab, IDS.filter((id) => id !== prev.days[Object.keys(prev.days)[0]]));
+  const prev2 = M.previewWeek(lab, DISC, next, WED);
+  assert.ok(!Object.values(prev2.days).includes(prev.days[Object.keys(prev.days)[0]]));
+  // modificare un giorno futuro la rende vera
+  M.setDay(lab, next, 1, "karate", DISC);
+  assert.strictEqual(lab.weeks[next].days[1], "karate");
+  assert.strictEqual(Object.keys(lab.weeks[next].days).length >= 5, true);
+});
+
+test("Livello: si sale da quello dell'allenamento, riepilogo ritrovabile, allenamenti di ieri", () => {
+  const lab = M.ensure(null, DISC, START);
+  M.startSession(lab, "boxe", { now: WED });
+  M.setLevel(lab, "boxe", 3, WED + 1000); // cambiato a mano durante l'allenamento
+  M.finishSession(lab, exOf("boxe", 1), WED + 2000);
+  assert.ok(M.pendingChoice(lab, WED + 3000));
+  M.chooseLevel(lab, true, WED + 3000);
+  assert.strictEqual(M.levelOf(lab, "boxe"), 3, "non sale a 4");
+  assert.strictEqual(M.pendingChoice(lab, WED + 4000), null);
+  // livello 6 gia' copiato: niente voce doppia
+  M.setLevel(lab, "lotta", 6, WED);
+  for (let k = 0; k < 2; k += 1) {
+    M.startSession(lab, "lotta", { now: WED + k });
+    M.finishSession(lab, exOf("lotta", 6), WED + k + 1);
+    M.chooseLevel(lab, true, WED + k + 2);
+  }
+  assert.strictEqual(lab.history.filter((h) => h.mastered).length, 1);
+  // allenamento lasciato a meta' ieri: si riconosce e si riprende oggi
+  M.startSession(lab, "karate", { now: WED });
+  assert.ok(M.isStale(lab, WED + DAY));
+  M.resumeToday(lab, WED + DAY);
+  assert.strictEqual(lab.current.day, 3);
+  const s = M.finishSession(lab, exOf("karate", 1), WED + DAY + 30 * 60000);
+  assert.strictEqual(s.minutes, 30);
+  M.startSession(lab, "karate", { now: WED });
+  assert.strictEqual(M.finishSession(lab, exOf("karate", 1), WED + 20 * 3600000).minutes, 150, "minuti limitati");
 });
 
 test("Discipline vere: 7 stili, 6 livelli, dosi e preparatori validi", () => {

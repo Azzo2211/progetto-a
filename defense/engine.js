@@ -465,8 +465,8 @@
     const lastSession = states.length ? Math.max(...states.map((s) => s.last)) : 0;
     const idle = lastSession ? Math.max(0, (now - lastSession) / DAY - 10) : 0;
     let tecnica = states.length ? 12 + progress * 50 + quality * 38 * Math.min(1, reps / 6) - Math.min(25, idle) : 10;
-    // con le arti marziali: media dei due allenamenti tecnici (o solo quello praticato)
-    if (num(ex.tecnica)) tecnica = states.length ? (tecnica + ex.tecnica) / 2 : ex.tecnica;
+    // allenarsi in piu' non deve mai abbassare il punteggio: vale il migliore dei due
+    if (num(ex.tecnica)) tecnica = states.length ? Math.max(tecnica, ex.tecnica) : ex.tecnica;
 
     // Costanza: giorni di allenamento negli ultimi 14 giorni e sessioni negli ultimi 28
     const days14 = new Set();

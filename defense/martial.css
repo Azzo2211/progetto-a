@@ -32,6 +32,11 @@
   cursor: pointer;
 }
 .ma-nav button[aria-pressed="true"] { color: #1d1406; background: var(--d-amber); border-color: var(--d-amber); }
+.ma-live { color: var(--d-go); font-size: 0.7em; vertical-align: 2px; }
+.ma-nav button[aria-pressed="true"] .ma-live { color: #0d4d2a; }
+.ma-swap { display: flex; align-items: flex-end; gap: 8px; }
+.ma-swap .ma-select { flex: 1; }
+.ma-swap .def-ghost { padding: 8px 12px; }
 .ma-h2 { margin: 0 0 4px; font-size: 1.35rem; font-stretch: var(--d-cond); font-weight: 760; }
 
 /* tipi di esercizio */
@@ -93,7 +98,8 @@
 .ma-strip-day.s-today { border-color: var(--ma-c, var(--d-amber)); }
 .ma-strip-day.s-today em { color: var(--d-amber); }
 .ma-strip-day.s-missed em { color: var(--d-stop); }
-.ma-strip-day.s-rest { opacity: 0.6; }
+.ma-strip-day.s-rest { background: var(--d-inset); }
+.ma-strip-day.s-rest strong { color: var(--d-muted); }
 
 /* ---------- allenamento ---------- */
 .ma-session-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 10px; margin-bottom: 14px; }
@@ -203,7 +209,7 @@
 .ma-levels { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
 .ma-levels > li { padding: 14px; border: 1px solid var(--d-line); border-radius: 14px; background: var(--d-panel); }
 .ma-levels > li.now { border-color: var(--ma-c); }
-.ma-levels > li.past { opacity: 0.7; }
+.ma-levels > li.past { opacity: 0.88; }
 .ma-lvl-head { display: flex; gap: 12px; align-items: flex-start; }
 .ma-lvl-head p { margin: 2px 0 0; color: var(--d-muted); font-size: 0.88rem; line-height: 1.45; }
 .ma-lvl-n { display: grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0; border-radius: 9px; border: 1px solid var(--d-line-strong); font-weight: 800; }
@@ -261,8 +267,9 @@
 @media (max-width: 560px) {
   .ma-week-head { flex-wrap: nowrap; }
   .ma-week-head h2 { font-size: 1.1rem; }
-  .ma-preview li { grid-template-columns: minmax(0, 1fr) auto; }
-  .ma-preview li .ma-kind { grid-column: 1 / -1; justify-self: start; }
+  .ma-preview li { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .ma-preview li .ma-kind { justify-self: start; }
+  .ma-preview li em { white-space: normal; }
   .ma-week { grid-template-columns: minmax(0, 1fr); }
   .ma-day { min-height: 0; flex-direction: row; flex-wrap: wrap; align-items: center; }
   .ma-day-head { width: 64px; flex-direction: column; }
@@ -277,8 +284,8 @@
   .ma-heat { border-spacing: 3px; }
   .ma-cell { width: 18px; height: 18px; }
   .ma-band { padding: 10px 12px; }
-  .ma-nav { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .ma-nav button { padding: 7px 4px; font-size: 0.84rem; }
+  .ma-nav { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ma-nav button { padding: 10px 4px; font-size: 0.88rem; min-height: 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ma-ring-fg { transition: none; }

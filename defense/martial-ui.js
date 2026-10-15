@@ -32,14 +32,15 @@
     ex: 0,            // esercizio mostrato durante l'allenamento
     summary: null,    // riepilogo dopo l'ultimo allenamento
     timer: null,      // timer dell'esercizio corrente
-    renderedAt: 0
+    renderedAt: 0,
+    exFor: null       // allenamento per cui ui.ex e' gia' stato posizionato
   };
 
   const $ = (id) => document.getElementById(id);
   const esc = (text) => String(text == null ? "" : text).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const prose = (text) => esc(String(text == null ? "" : text).replace(/"([^"]*)"/g, "“$1”").replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ0-9])/g, "$1’$2"));
   const pad = (n) => String(n).padStart(2, "0");
-  const mmss = (sec) => `${pad(Math.floor(Math.max(0, sec) / 60))}:${pad(Math.max(0, Math.ceil(sec)) % 60)}`;
+  const mmss = (sec) => { const t = Math.max(0, Math.ceil(sec)); return `${pad(Math.floor(t / 60))}:${pad(t % 60)}`; };
 
   function lab() {
     state.martialLab = M.ensure(state.martialLab, DISC);
@@ -138,16 +139,20 @@
     const c = 2 * Math.PI * r;
     return `<svg class="ma-ring" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true">
       <circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="ma-ring-bg"></circle>
-      <circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="ma-ring-fg" style="stroke:${color};stroke-dasharray:${((pct / 100) * c).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 ${size / 2} ${size / 2})"></circle>
+      ${pct > 0 ? `<circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="ma-ring-fg" style="stroke:${color};stroke-dasharray:${((pct / 100) * c).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 ${size / 2} ${size / 2})"></circle>` : ""}
       <text x="50%" y="54%" text-anchor="middle" class="ma-ring-text">${pct}%</text>
     </svg>`;
   }
 
-  // Piano di una settimana: le passate non si inventano (restano come erano), le altre si creano.
+  // Piano di una settimana: le passate restano com'erano, la corrente si crea, le future sono anteprime.
   function planFor(l, week) {
-    if (week < M.weekKey(Date.now())) return l.weeks[week] || { days: {} };
-    return M.planWeek(l, DISC, week);
+    const current = M.weekKey(Date.now());
+    if (week < current) return l.weeks[week] || { days: {} };
+    if (week === current) return M.planWeek(l, DISC, week);
+    return M.previewWeek(l, DISC, week);
   }
+
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
   function discOptions(selected, withRest) {
     const l = lab();
@@ -165,9 +170,12 @@
     if (!DISC.length) { box.innerHTML = `<p class="def-note">Discipline non caricate.</p>`; return; }
     const l = lab();
     const views = [["today", "Oggi"], ["week", "Settimana"], ["styles", "Stili"], ["progress", "Progressi"]];
-    const nav = `<div class="ma-nav" role="group" aria-label="Arti marziali">${views.map(([k, label]) => `<button type="button" data-mact="view" data-view="${k}" aria-pressed="${ui.view === k}">${label}</button>`).join("")}</div>`;
+    const nav = `<div class="ma-nav" role="group" aria-label="Arti marziali">${views.map(([k, label]) => `<button type="button" data-mact="view" data-view="${k}" aria-pressed="${ui.view === k}">${label}${k === "today" && l.current ? ` <span class="ma-live" title="Allenamento in corso">●</span><span class="def-sr"> (allenamento in corso)</span>` : ""}</button>`).join("")}</div>`;
     let body = "";
-    if (ui.view === "today") body = l.current ? sessionView(l) : ui.summary ? summaryView(l) : todayView(l);
+    // dopo una ricarica: ritrova il riepilogo dell'ultimo allenamento se manca la scelta del livello
+    if (!ui.summary && !l.current) { const pend = M.pendingChoice(l); if (pend) ui.summary = pend; }
+    if (ui.summary && !BY.get(ui.summary.disc)) ui.summary = null;
+    if (ui.view === "today") body = l.current ? (M.isStale(l) ? staleView(l) : sessionView(l)) : ui.summary ? summaryView(l) : todayView(l);
     else if (ui.view === "week") body = weekView(l);
     else if (ui.view === "styles") body = stylesView(l);
     else body = progressView(l);
@@ -177,9 +185,28 @@
         ${nav}
       </div>
       ${body}`;
-    if (l.current && ui.view === "today") paintTimer();
+    if (l.current && ui.view === "today" && !M.isStale(l)) paintTimer();
     ui.renderedAt = Date.now();
     if (focus) focusHeading(box.querySelector(".ma-body") || box);
+  }
+
+  /* -------------------------------------------- allenamento lasciato a meta' */
+  function staleView(l) {
+    const c = l.current;
+    const d = BY.get(c.disc);
+    const marked = Object.keys(c.results).length;
+    return `
+      <div class="ma-body">
+        <article class="ma-today rest" style="--ma-c:${d.color}">
+          <span class="def-kicker">Allenamento lasciato a metà</span>
+          <h2 data-focus-title>${esc(d.name)} · Livello ${c.level}</h2>
+          <p>L'hai iniziato ${esc(dayLabel(c.startedAt))} e hai segnato ${marked} esercizi. Puoi riprenderlo oggi (conterà per oggi) oppure lasciarlo perdere e fare l'allenamento previsto.</p>
+          <div class="def-row">
+            <button type="button" class="def-primary" data-mact="resume">Riprendi oggi</button>
+            <button type="button" class="def-ghost" data-mact="discard">Lascia perdere</button>
+          </div>
+        </article>
+      </div>`;
   }
 
   /* ---------------------------------------------------------------- Oggi */
@@ -202,13 +229,14 @@
             <p>Il corpo impara anche quando recupera. Se vuoi muoverti, fai 10 minuti leggeri di mobilità o allenati comunque con uno stile.</p>
             <div class="def-row">
               <label class="ma-select"><span>Allenati comunque con</span><select id="maRestPick">${discOptions(DISC[0].id, false)}</select></label>
-              <button type="button" class="def-ghost" data-mact="start-pick">Allenati comunque</button>
+              <button type="button" class="def-ghost" data-mact="start-pick" data-daykey="${t.key}">Allenati comunque</button>
             </div>
           </article>
           ${strip}
         </div>`;
     }
     const d = BY.get(t.disc);
+    if (!d) return `<div class="ma-body"><p class="def-note">Lo stile previsto oggi non esiste più: sceglilo dal calendario.</p>${strip}</div>`;
     const level = M.levelOf(l, t.disc);
     const lv = levelData(t.disc, level);
     const last = t.sessions[t.sessions.length - 1];
@@ -229,8 +257,8 @@
             <span class="ma-copy-label">stile copiato</span>
             <span class="ma-mins">circa ${M.levelMinutes(lv)} minuti</span>
             ${doneToday ? `<p class="ma-done-note">Fatto oggi: ${last.done}/${last.total} riusciti.</p>` : ""}
-            <button type="button" class="def-${doneToday ? "ghost" : "primary"}" data-mact="start" data-disc="${d.id}">${doneToday ? "Allenati di nuovo" : "Inizia l'allenamento"}</button>
-            ${doneToday ? "" : `<label class="ma-select"><span>Oggi preferisci un altro stile?</span><select data-mact-change="today-disc" aria-label="Cambia lo stile di oggi">${discOptions(t.disc, true)}</select></label>`}
+            <button type="button" class="def-${doneToday ? "ghost" : "primary"}" data-mact="start" data-disc="${d.id}" data-daykey="${t.key}">${doneToday ? "Allenati di nuovo" : "Inizia l'allenamento"}</button>
+            ${doneToday ? "" : `<div class="ma-swap"><label class="ma-select"><span>Oggi preferisci un altro stile?</span><select id="maTodayPick">${discOptions(t.disc, true)}</select></label><button type="button" class="def-ghost" data-mact="today-swap">Cambia</button></div>`}
           </div>
         </article>
         ${strip}
@@ -242,7 +270,7 @@
     const plan = planFor(l, week);
     const cells = M.WEEKDAYS.map((name, i) => {
       const id = plan.days[i];
-      const st = M.dayStatus(l, week, i, now);
+      const st = M.dayStatus(l, week, i, now, plan);
       const d = id ? BY.get(id) : null;
       return `<li class="ma-strip-day s-${st}" ${d ? `style="--ma-c:${d.color}"` : ""}><span>${name}</span><strong>${d ? esc(d.short || d.name) : "—"}</strong><em>${{ done: "fatto", today: "oggi", missed: "saltato", planned: "", rest: "riposo" }[st]}</em></li>`;
     }).join("");
@@ -255,6 +283,13 @@
     const d = BY.get(c.disc);
     const lv = levelData(c.disc, c.level);
     const ex = lv.exercises;
+    // dopo una ricarica si riparte dal primo esercizio ancora da segnare
+    const sessionKey = `${c.disc}-${c.level}-${c.startedAt}`;
+    if (ui.exFor !== sessionKey) {
+      ui.exFor = sessionKey;
+      const open = ex.findIndex((x) => c.results[x.id] === undefined);
+      ui.ex = open >= 0 ? open : ex.length - 1;
+    }
     ui.ex = Math.max(0, Math.min(ex.length - 1, ui.ex));
     const e = ex[ui.ex];
     const marked = ex.filter((x) => c.results[x.id] !== undefined).length;
@@ -356,11 +391,23 @@
     const box = $("maTimer");
     if (box) box.className = `ma-timer ${t.finished ? "finished" : p.type}${box.classList.contains("signal") ? " signal" : ""}`;
     if (sets) sets.innerHTML = Array.from({ length: t.sets }, (_, i) => `<i class="${i + 1 < p.set || t.finished ? "done" : i + 1 === p.set ? "now" : ""}"></i>`).join("");
+    // i pulsanti si ricreano solo quando cambia lo stato (fase, avviato/in pausa): clic e focus non si perdono
+    const key = `${t.i}|${t.running}|${t.finished}|${p.type}|${prefs().signals}`;
+    const rebuild = t.ctrlKey !== key || !ctrl.firstChild;
+    if (rebuild) {
+      const hadFocus = ctrl.contains(document.activeElement) ? document.activeElement.dataset.mact : null;
+      t.ctrlKey = key;
+      ctrl.innerHTML = controlsFor(t, p);
+      if (hadFocus) {
+        const map = { "timer-start": "timer-pause", "timer-pause": "timer-start" };
+        const again = ctrl.querySelector(`[data-mact="${hadFocus}"]`) || ctrl.querySelector(`[data-mact="${map[hadFocus] || ""}"]`) || ctrl.querySelector("button");
+        if (again) again.focus({ preventScroll: true });
+      }
+    }
     if (t.finished) {
       phase.textContent = "Esercizio finito";
       clock.textContent = "Fatto";
       if (bar) bar.style.width = "100%";
-      ctrl.innerHTML = `<button type="button" class="def-ghost" data-mact="timer-reset">Ricomincia</button><span class="def-note">Ora segna com'è andata.</span>`;
       return;
     }
     const sideTxt = p.side ? ` · ${p.side}` : "";
@@ -368,14 +415,18 @@
       phase.textContent = `Serie ${p.set} di ${t.sets}${sideTxt}`;
       clock.textContent = `${p.reps} rip.`;
       if (bar) bar.style.width = "100%";
-      ctrl.innerHTML = `<button type="button" class="def-primary" data-mact="timer-done">Serie fatta</button><button type="button" class="def-ghost" data-mact="timer-reset">Ricomincia</button>`;
       return;
     }
     phase.textContent = p.type === "rest" ? `Recupero · poi serie ${p.set + 1}` : p.type === "switch" ? "Cambia lato" : `Serie ${p.set} di ${t.sets}${sideTxt}`;
     clock.textContent = mmss(t.left);
     if (bar) bar.style.width = `${Math.max(0, Math.min(100, (t.left / p.secs) * 100))}%`;
-    ctrl.innerHTML = `${t.running ? `<button type="button" class="def-primary" data-mact="timer-pause">Pausa</button>` : `<button type="button" class="def-primary" data-mact="timer-start">${t.i === 0 && t.left === p.secs ? "Avvia" : "Riprendi"}</button>`}
-      ${p.type !== "work" ? `<button type="button" class="def-ghost" data-mact="timer-skip">Salta</button>` : `<button type="button" class="def-ghost" data-mact="timer-skip">Fine serie</button>`}
+  }
+
+  function controlsFor(t, p) {
+    if (t.finished) return `<button type="button" class="def-ghost" data-mact="timer-reset">Ricomincia</button><span class="def-note">Ora segna com'è andata.</span>`;
+    if (p.type === "reps") return `<button type="button" class="def-primary" data-mact="timer-done">Serie fatta</button><button type="button" class="def-ghost" data-mact="timer-reset">Ricomincia</button>`;
+    return `${t.running ? `<button type="button" class="def-primary" data-mact="timer-pause">Pausa</button>` : `<button type="button" class="def-primary" data-mact="timer-start">${t.i === 0 && t.left === p.secs ? "Avvia" : "Riprendi"}</button>`}
+      <button type="button" class="def-ghost" data-mact="timer-skip">${p.type === "work" ? "Fine serie" : "Salta"}</button>
       <button type="button" class="def-ghost" data-mact="timer-reset">Ricomincia</button>
       ${t.signalable ? `<button type="button" class="def-ghost def-toggle" data-mact="timer-signals" aria-pressed="${!!prefs().signals}" title="Durante la serie un segnale a caso: scatta con la tecnica">Segnali casuali</button>` : ""}`;
   }
@@ -414,7 +465,13 @@
     if (t.signalable && prefs().signals && p && p.type === "work" && performance.now() >= t.nextSignal && t.left > 1.5) {
       beep(1250, 90, 0.1);
       const box = $("maTimer");
-      if (box) { box.classList.remove("signal"); void box.offsetWidth; box.classList.add("signal"); }
+      if (box) {
+        box.classList.remove("signal");
+        void box.offsetWidth;
+        box.classList.add("signal");
+        clearTimeout(t.signalOff);
+        t.signalOff = setTimeout(() => { const b = $("maTimer"); if (b) b.classList.remove("signal"); }, 450);
+      }
       t.nextSignal = performance.now() + 2500 + Math.random() * 3500;
     }
     if (t.left <= 0) nextPhase(true);
@@ -438,8 +495,9 @@
     }
     const p = t.phases[t.i];
     t.left = p.secs || 0;
-    if (p.type === "rest") { beep(523, 260, 0.07); speak("Recupero"); }
-    if (p.type === "switch") { beep(660, 160, 0.06); speak("Cambia lato"); }
+    if (p.type === "rest") { beep(523, 260, 0.07); speak("Recupero"); announce(`Recupero ${p.secs} secondi`); }
+    if (p.type === "switch") { beep(660, 160, 0.06); speak("Cambia lato"); announce("Cambia lato"); }
+    if (p.type === "work" || p.type === "reps") announce(`Serie ${p.set} di ${t.sets}${p.side ? `, ${p.side}` : ""}`);
     if (p.secs && (auto || p.type !== "work")) timerStart();
     else paintTimer();
     if (p.type === "reps") speak(`Serie ${p.set}`);
@@ -447,6 +505,7 @@
 
   function stopTimer() {
     if (ui.timer && ui.timer.tick) clearInterval(ui.timer.tick);
+    if (ui.timer) clearTimeout(ui.timer.signalOff);
     ui.timer = null;
   }
 
@@ -457,8 +516,13 @@
     const lv = levelData(s.disc, s.level);
     const choice = s.levelUp;
     const nextLv = Math.min(M.MAX_LEVEL, s.level + 1);
+    const alreadyMastered = s.atMax && l.mastered[s.disc];
     let decide;
-    if (choice === null || choice === undefined) {
+    if ((choice === null || choice === undefined) && alreadyMastered) {
+      decide = `
+        <p class="ma-reco up">Questo stile l'hai già copiato al 100%: ripeterlo lo mantiene pulito.</p>
+        <div class="def-row"><button type="button" class="def-primary" data-mact="level" data-up="0">Fatto</button></div>`;
+    } else if (choice === null || choice === undefined) {
       decide = `
         <p class="ma-reco ${s.recommend ? "up" : "stay"}">${s.recommend ? `Hai fatto ${s.done} esercizi su ${s.total}: questo livello lo hai copiato. ${s.atMax ? "Puoi dichiarare lo stile copiato al 100%." : `Ti consiglio di salire al livello ${nextLv}.`}` : `Hai fatto ${s.done} esercizi su ${s.total}. Ti consiglio di restare al livello ${s.level} e riprovare la prossima volta: decidi tu.`}</p>
         <div class="def-row">
@@ -491,12 +555,13 @@
     const isCurrent = week === M.weekKey(now);
     const isPast = week < M.weekKey(now);
     const plan = planFor(l, week);
+    const isPreview = !!plan.preview;
     const start = new Date(M.weekStart(week));
     const days = M.WEEKDAYS.map((name, i) => {
       const t = M.dayTime(week, i);
       const id = plan.days[i] || null;
       const d = id ? BY.get(id) : null;
-      const st = M.dayStatus(l, week, i, now);
+      const st = M.dayStatus(l, week, i, now, plan);
       const sess = M.sessionsOn(l, week, i);
       const last = sess[sess.length - 1];
       const dayPast = t < new Date(now).setHours(0, 0, 0, 0);
@@ -511,13 +576,14 @@
           ${locked ? "" : `<select data-mact-change="day" data-day="${i}" aria-label="${M.WEEKDAYS_LONG[i]} ${new Date(t).getDate()}: stile">${discOptions(id, true)}</select>`}
         </li>`;
     }).join("");
-    const planned = Object.keys(plan.days).length;
-    const doneDays = new Set(l.sessions.filter((s) => s.week === week).map((s) => s.day)).size;
+    const wp = M.weekProgress(l, week);
+    const planned = isPreview ? Object.keys(plan.days).length : wp.planned;
+    const doneDays = wp.done;
     return `
       <div class="ma-body">
         <div class="ma-week-head">
           <button type="button" class="def-ghost" data-mact="week" data-delta="-1" aria-label="Settimana precedente">‹</button>
-          <div><h2 data-focus-title>Settimana del ${start.getDate()} ${start.toLocaleDateString("it-IT", { month: "long" })}</h2><span class="def-note">${doneDays}/${planned} allenamenti fatti${isCurrent ? " · settimana in corso" : ""}</span></div>
+          <div><h2 data-focus-title>Settimana del ${start.getDate()} ${start.toLocaleDateString("it-IT", { month: "long" })}</h2><span class="def-note">${isPreview ? `anteprima: ${plural(planned, "allenamento previsto", "allenamenti previsti")}, si fissa quando la settimana arriva o quando cambi un giorno` : `${doneDays}/${planned} allenamenti fatti${isCurrent ? " · settimana in corso" : ""}`}</span></div>
           <button type="button" class="def-ghost" data-mact="week" data-delta="1" aria-label="Settimana successiva">›</button>
           ${isCurrent ? "" : `<button type="button" class="def-ghost" data-mact="week" data-delta="0">Questa settimana</button>`}
         </div>
@@ -525,10 +591,9 @@
         <div class="ma-week-settings">
           <div>
             <h3>Giorni di allenamento</h3>
-            <p class="def-note">Di base 5 giorni. Gli stili cambiano ogni settimana: prima quelli che non fai da più tempo. Ogni giorno lo puoi cambiare dal menu.</p>
+            <p class="def-note">Di base 5 giorni. Gli stili cambiano ogni settimana: prima quelli che non fai da più tempo. Ogni giorno lo puoi cambiare dal menu. Cambiare i giorni vale da oggi in poi.</p>
             <div class="ma-daypick" role="group" aria-label="Giorni di allenamento">${M.WEEKDAYS.map((n, i) => `<button type="button" data-mact="trainday" data-day="${i}" aria-pressed="${l.trainDays.includes(i)}">${n}</button>`).join("")}</div>
           </div>
-          <button type="button" class="def-ghost" data-mact="replan">Rifai il piano di questa settimana</button>
         </div>
       </div>`;
   }
@@ -543,7 +608,7 @@
         <article class="ma-style" style="--ma-c:${d.color}">
           <header>${copyRing(p.copy, d.color, 58)}<div><h3>${esc(d.name)}</h3><span>Livello ${p.level} di ${M.MAX_LEVEL}</span></div></header>
           <p>${esc(d.tagline)}</p>
-          <div class="ma-style-meta"><span>${p.sessions} allenamenti${p.rate != null ? ` · ${p.rate}% riusciti` : ""}</span></div>
+          <div class="ma-style-meta"><span>${plural(p.sessions, "allenamento", "allenamenti")}${p.rate != null ? ` · ${p.rate}% riusciti` : ""}</span></div>
           <div class="def-row">
             <button type="button" class="def-ghost" data-mact="open-style" data-disc="${d.id}">Livelli ed esercizi</button>
             <label class="ma-check"><input type="checkbox" data-mact-change="pool" data-disc="${d.id}" ${p.inPool ? "checked" : ""}> Nella rotazione</label>
@@ -573,8 +638,8 @@
           <p class="def-note">Attrezzatura: ${esc(d.equipment)}</p>
           <ul class="ma-mottos">${d.mottos.map((m) => `<li>«${esc(m)}»</li>`).join("")}</ul>
           <div class="def-row">
-            <button type="button" class="def-primary" data-mact="start" data-disc="${d.id}">Allenati ora con questo stile</button>
-            <label class="ma-select"><span>Livello attuale</span><select data-mact-change="set-level" data-disc="${d.id}">${Array.from({ length: M.MAX_LEVEL }, (_, i) => `<option value="${i + 1}" ${i + 1 === p.level ? "selected" : ""}>Livello ${i + 1}</option>`).join("")}</select></label>
+            <button type="button" class="def-primary" data-mact="start" data-disc="${d.id}" data-confirm="${l.current ? "1" : ""}">${l.current ? "Allenati ora (chiude quello in corso)" : "Allenati ora con questo stile"}</button>
+            <div class="ma-swap"><label class="ma-select"><span>Livello attuale</span><select id="maLevelPick">${Array.from({ length: M.MAX_LEVEL }, (_, i) => `<option value="${i + 1}" ${i + 1 === p.level ? "selected" : ""}>Livello ${i + 1}</option>`).join("")}</select></label><button type="button" class="def-ghost" data-mact="set-level" data-disc="${d.id}">Imposta</button></div>
           </div>
         </article>
         <ol class="ma-levels">${levels}</ol>
@@ -609,10 +674,10 @@
       <div class="ma-body">
         <h2 class="ma-h2" data-focus-title>Progressi</h2>
         <div class="ma-tiles">
-          <div><strong>${thisWeek.done}/${thisWeek.planned || l.trainDays.length}</strong><span>questa settimana</span></div>
+          <div><strong>${thisWeek.done}/${thisWeek.planned}</strong><span>questa settimana</span></div>
           <div><strong>${st.streak}</strong><span>${st.streak === 1 ? "settimana completa di fila" : "settimane complete di fila"}</span></div>
-          <div><strong>${st.sessions}</strong><span>allenamenti in tutto</span></div>
-          <div><strong>${st.minutes < 120 ? st.minutes : Math.round(st.minutes / 6) / 10}</strong><span>${st.minutes < 120 ? "minuti di allenamento" : "ore di allenamento"}</span></div>
+          <div><strong>${st.sessions}</strong><span>${st.sessions === 1 ? "allenamento in tutto" : "allenamenti in tutto"}</span></div>
+          <div><strong>${st.minutes < 120 ? st.minutes : (Math.round(st.minutes / 6) / 10).toLocaleString("it-IT")}</strong><span>${st.minutes < 120 ? "minuti di allenamento" : "ore di allenamento"}</span></div>
         </div>
         <div class="ma-prog-grid">
           <article class="def-pcard"><h3>Quanto hai copiato di ogni stile</h3><ul class="ma-bars">${bars}</ul></article>
@@ -631,7 +696,7 @@
     if (!BY.get(disc)) return;
     stopTimer();
     M.startSession(lab(), disc);
-    ui.ex = 0;
+    ui.exFor = null;
     ui.summary = null;
     ui.view = "today";
     save();
@@ -641,21 +706,82 @@
     speak(BY.get(disc).name);
   }
 
+  // Pulsanti con conferma in due tempi (la seconda pressione vale solo dopo 400 ms).
+  function confirmTwice(el, label, original) {
+    const armedAt = Number(el.dataset.armed || 0);
+    if (armedAt && Date.now() - armedAt >= 400) return true;
+    if (!armedAt) {
+      el.dataset.armed = String(Date.now());
+      el.textContent = label;
+      setTimeout(() => { if (el.isConnected) { delete el.dataset.armed; el.textContent = original; } }, 3000);
+    }
+    return false;
+  }
+
+  // Se la pagina e' rimasta aperta oltre la mezzanotte, prima si aggiorna "Oggi".
+  function staleDay(el) {
+    if (el.dataset.daykey && el.dataset.daykey !== M.dayKeyOf(Date.now())) {
+      render(true);
+      announce("È un nuovo giorno: ho aggiornato l'allenamento di oggi");
+      return true;
+    }
+    return false;
+  }
+
+  function focusAct(selector) {
+    const b = $("defPanel-martial").querySelector(selector);
+    if (b) b.focus({ preventScroll: true });
+    return !!b;
+  }
+
   function onClick(event) {
     const el = event.target.closest("[data-mact]");
     if (!el || !$("defPanel-martial").contains(el) || el.tagName === "SELECT" || el.tagName === "INPUT") return;
     const act = el.dataset.mact;
-    if (["result", "finish", "level", "start"].includes(act) && event.detail > 1) return;
-    if (event.detail === 0 && Date.now() - ui.renderedAt < 600 && ["result", "finish", "level"].includes(act)) return;
+    if (["result", "finish", "level", "start", "cancel", "timer-start", "timer-pause", "timer-skip", "timer-done", "resume", "discard"].includes(act) && event.detail > 1) return;
+    if (event.detail === 0 && Date.now() - ui.renderedAt < 600 && ["result", "finish", "level", "start"].includes(act)) return;
     const l = lab();
     switch (act) {
       case "view":
+        if (ui.view === "today" && el.dataset.view !== "today" && ui.timer && ui.timer.running) timerPause();
         ui.view = el.dataset.view;
         if (ui.view !== "styles") ui.open = null;
         render(true);
         break;
-      case "start": startDisc(el.dataset.disc); break;
-      case "start-pick": { const s = $("maRestPick"); if (s && s.value) startDisc(s.value); break; }
+      case "start":
+        if (staleDay(el)) break;
+        if (el.dataset.confirm && !confirmTwice(el, "Conferma: chiudi quello in corso", el.textContent)) break;
+        startDisc(el.dataset.disc);
+        break;
+      case "start-pick": {
+        if (staleDay(el)) break;
+        const sel = $("maRestPick");
+        if (sel && sel.value) startDisc(sel.value);
+        break;
+      }
+      case "today-swap": {
+        const sel = $("maTodayPick");
+        if (!sel) break;
+        const t = M.today(l, DISC);
+        M.setDay(l, t.week, t.day, sel.value || null, DISC);
+        save();
+        render(false);
+        announce(sel.value ? `Oggi: ${BY.get(sel.value).name}` : "Oggi riposo");
+        focusAct("#maTodayPick") || focusHeading($("defPanel-martial").querySelector(".ma-body"));
+        break;
+      }
+      case "resume":
+        M.resumeToday(l);
+        ui.exFor = null;
+        save();
+        render(true);
+        break;
+      case "discard":
+        stopTimer();
+        l.current = null;
+        save();
+        render(true);
+        break;
       case "goto":
         ui.ex = Number(el.dataset.index);
         render(true);
@@ -666,11 +792,14 @@
         const v = el.dataset.v === "1";
         M.setResult(l, e.id, l.current.results[e.id] === v ? null : v);
         save();
-        announce(l.current.results[e.id] === undefined ? "Da segnare" : v ? "Riuscito" : "Non ancora");
-        // passa al prossimo esercizio da segnare
-        const nextOpen = lv.exercises.findIndex((x, i) => i > ui.ex && l.current.results[x.id] === undefined);
-        if (l.current.results[e.id] !== undefined && nextOpen >= 0) { ui.ex = nextOpen; stopTimer(); render(true); scrollTop(); } else render(false);
-        if (l.current.results[e.id] !== undefined && nextOpen < 0) { const f = $("defPanel-martial").querySelector('[data-mact="finish"]'); if (f && !f.disabled) f.focus({ preventScroll: true }); }
+        const now = l.current.results[e.id];
+        announce(now === undefined ? "Da segnare" : v ? "Riuscito" : "Non ancora");
+        if (now === undefined) { render(false); focusAct(`.ma-result [data-v="${el.dataset.v}"]`); break; }
+        // al prossimo esercizio da segnare (anche tornando indietro nella lista)
+        const n = lv.exercises.length;
+        let next = -1;
+        for (let k = 1; k < n; k += 1) { const i = (ui.ex + k) % n; if (l.current.results[lv.exercises[i].id] === undefined) { next = i; break; } }
+        if (next >= 0) { ui.ex = next; stopTimer(); render(true); scrollTop(); } else { render(false); focusAct('[data-mact="finish"]'); }
         break;
       }
       case "finish": {
@@ -685,8 +814,9 @@
       }
       case "level":
         M.chooseLevel(l, el.dataset.up === "1");
-        ui.summary.levelUp = el.dataset.up === "1";
+        if (ui.summary) ui.summary.levelUp = el.dataset.up === "1";
         save();
+        if (ui.summary && ui.summary.atMax && l.mastered[ui.summary.disc] && el.dataset.up !== "1") ui.summary = null;
         render(true);
         break;
       case "close-summary":
@@ -694,12 +824,7 @@
         render(true);
         break;
       case "cancel":
-        if (!el.dataset.armed) {
-          el.dataset.armed = "1";
-          el.textContent = "Conferma: annulla";
-          setTimeout(() => { if (el.isConnected) { delete el.dataset.armed; el.textContent = "Annulla"; } }, 3000);
-          break;
-        }
+        if (!confirmTwice(el, "Conferma: annulla", "Annulla")) break;
         stopTimer();
         l.current = null;
         save();
@@ -720,7 +845,9 @@
       case "timer-signals":
         prefs().signals = !prefs().signals;
         el.setAttribute("aria-pressed", prefs().signals ? "true" : "false");
+        if (ui.timer) ui.timer.ctrlKey = null;
         save();
+        paintTimer();
         break;
       case "timer-pause": timerPause(); break;
       case "timer-skip": nextPhase(false); break;
@@ -730,6 +857,7 @@
         stopTimer();
         ensureTimer(e);
         paintTimer();
+        focusAct('#maTimerCtrl button');
         break;
       }
       case "week": {
@@ -743,19 +871,26 @@
         const set = new Set(l.trainDays);
         if (set.has(day)) set.delete(day); else set.add(day);
         if (!M.setTrainDays(l, [...set])) { announce("Serve almeno un giorno di allenamento"); break; }
-        M.replanWeek(l, DISC, M.weekKey(Date.now()));
+        // da oggi in poi: settimana corrente e settimane future gia' fissate
+        const current = M.weekKey(Date.now());
+        Object.keys(l.weeks).filter((w) => w >= current).forEach((w) => M.replanWeek(l, DISC, w));
+        if (!l.weeks[current]) M.planWeek(l, DISC, current);
         save();
         render(false);
-        const b = $("defPanel-martial").querySelector(`[data-mact="trainday"][data-day="${day}"]`);
-        if (b) b.focus({ preventScroll: true });
+        focusAct(`[data-mact="trainday"][data-day="${day}"]`);
+        announce(set.has(day) ? `${M.WEEKDAYS_LONG[day]} aggiunto` : `${M.WEEKDAYS_LONG[day]} tolto`);
         break;
       }
-      case "replan":
-        M.replanWeek(l, DISC, ui.week || M.weekKey(Date.now()));
+      case "set-level": {
+        const sel = $("maLevelPick");
+        if (!sel) break;
+        const changed = M.setLevel(l, el.dataset.disc, Number(sel.value));
         save();
         render(false);
-        announce("Piano della settimana rifatto");
+        focusAct('[data-mact="set-level"]');
+        announce(changed ? `Livello impostato: ${sel.value}` : "Livello invariato");
         break;
+      }
       case "open-style":
         ui.open = el.dataset.disc;
         render(true);
@@ -765,8 +900,7 @@
         const from = ui.open;
         ui.open = null;
         render(false);
-        const b = $("defPanel-martial").querySelector(`[data-mact="open-style"][data-disc="${from}"]`);
-        if (b) b.focus({ preventScroll: true });
+        focusAct(`[data-mact="open-style"][data-disc="${from}"]`);
         break;
       }
       default: break;
@@ -778,29 +912,18 @@
     if (!el || !$("defPanel-martial").contains(el)) return;
     const l = lab();
     const kind = el.dataset.mactChange;
-    if (kind === "today-disc") {
-      const t = M.today(l, DISC);
-      M.setDay(l, t.week, t.day, el.value || null);
-      save();
-      render(true);
-    } else if (kind === "day") {
+    if (kind === "day") {
       const week = ui.week || M.weekKey(Date.now());
-      M.setDay(l, week, Number(el.dataset.day), el.value || null);
+      M.setDay(l, week, Number(el.dataset.day), el.value || null, DISC);
       save();
       render(false);
-      const s = $("defPanel-martial").querySelector(`[data-mact-change="day"][data-day="${el.dataset.day}"]`);
-      if (s) s.focus({ preventScroll: true });
+      focusAct(`[data-mact-change="day"][data-day="${el.dataset.day}"]`);
     } else if (kind === "pool") {
       const set = new Set(l.pool);
       if (el.checked) set.add(el.dataset.disc); else set.delete(el.dataset.disc);
       if (!M.setPool(l, DISC.map((d) => d.id).filter((id) => set.has(id)))) { el.checked = true; announce("Serve almeno uno stile in rotazione"); return; }
       save();
       announce(el.checked ? "Aggiunto alla rotazione" : "Tolto dalla rotazione: vale dalle prossime settimane");
-    } else if (kind === "set-level") {
-      M.setLevel(l, el.dataset.disc, Number(el.value));
-      save();
-      render(false);
-      announce(`Livello impostato: ${el.value}`);
     }
   }
 
@@ -817,7 +940,7 @@
       const t = M.today(l, DISC);
       const st = M.stats(l, DISC).weeks[0];
       const d = t.disc ? BY.get(t.disc) : null;
-      return { label: d ? d.short || d.name : "Riposo", title: d ? `${d.name} · Lv ${M.levelOf(l, d.id)}` : "Giorno di riposo", sub: `${st.done}/${st.planned || l.trainDays.length} allenamenti questa settimana`, color: d ? d.color : null };
+      return { label: d ? d.short || d.name : "Riposo", title: d ? `${d.name} · Lv ${M.levelOf(l, d.id)}` : "Giorno di riposo", sub: st.planned ? `${st.done}/${st.planned} allenamenti questa settimana` : "nessun allenamento previsto questa settimana", color: d ? d.color : null };
     },
     trend() {
       if (!M || !DISC.length) return "";
@@ -825,7 +948,7 @@
       const t = M.today(l, DISC);
       const st = M.stats(l, DISC).weeks[0];
       const d = t.disc ? BY.get(t.disc) : null;
-      return `${d ? `Oggi ${d.name} Lv ${M.levelOf(l, d.id)}` : "Oggi riposo"} · ${st.done}/${st.planned || l.trainDays.length} questa settimana`;
+      return `${d ? `Oggi ${d.name} Lv ${M.levelOf(l, d.id)}` : "Oggi riposo"}${st.planned ? ` · ${st.done}/${st.planned} questa settimana` : ""}`;
     },
     extras() {
       if (!M || !DISC.length) return null;
@@ -835,7 +958,7 @@
     profileCard() {
       if (!M || !DISC.length) return "";
       const st = M.stats(lab(), DISC);
-      return `<article class="def-pcard"><h3>Arti marziali</h3><ul class="ma-bars">${DISC.map((d) => `<li style="--ma-c:${d.color}"><span>${esc(d.name)}</span><div class="ma-bar"><i style="width:${st.per[d.id].copy}%"></i></div><em>Lv ${st.per[d.id].level} · ${st.per[d.id].copy}%</em></li>`).join("")}</ul><p class="def-note">${st.sessions} allenamenti · ${st.streak} ${st.streak === 1 ? "settimana completa" : "settimane complete"} di fila</p></article>`;
+      return `<article class="def-pcard"><h3>Arti marziali</h3><ul class="ma-bars">${DISC.map((d) => `<li style="--ma-c:${d.color}"><span>${esc(d.name)}</span><div class="ma-bar"><i style="width:${st.per[d.id].copy}%"></i></div><em>Lv ${st.per[d.id].level} · ${st.per[d.id].copy}%</em></li>`).join("")}</ul><p class="def-note">${plural(st.sessions, "allenamento", "allenamenti")} · ${st.streak} ${st.streak === 1 ? "settimana completa" : "settimane complete"} di fila</p></article>`;
     }
   };
 
