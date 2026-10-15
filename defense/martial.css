@@ -415,3 +415,6 @@
   .ma-ring-fg { transition: none; }
   .ma-timer.signal { animation: none; outline: 3px solid var(--d-amber); }
 }
+
+/* titoli che ricevono il focus dopo un cambio di vista: niente cornice */
+#defPanel-martial [data-focus-title]:focus, #defPanel-martial h2[tabindex="-1"]:focus, #defPanel-martial h3[tabindex="-1"]:focus { outline: none; }

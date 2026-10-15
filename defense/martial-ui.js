@@ -821,7 +821,7 @@
         <span class="ma-char-style">${esc(c.style)}</span>
         <p>${prose(c.note)}</p>
         ${c.copy ? `<p class="ma-char-copy"><strong>Cosa copiare</strong>${prose(c.copy)}</p>` : ""}
-        ${styles.length ? `<div class="def-row">${styles.map((id) => `<button type="button" class="def-ghost" data-mact="open-style" data-disc="${id}" style="--ma-c:${BY.get(id).color}">Apri ${esc(BY.get(id).name)}</button>`).join("")}</div>` : ""}
+        ${styles.length ? `<div class="def-row">${styles.map((id) => `<button type="button" class="def-ghost" data-mact="open-style" data-disc="${id}" style="--ma-c:${BY.get(id).color}">Apri ${esc(BY.get(id).short || BY.get(id).name)}</button>`).join("")}</div>` : ""}
       </article>`;
     }).join("");
     const facts = (LOOK.johan || []).map((f) => `<li>${prose(f)}</li>`).join("");
