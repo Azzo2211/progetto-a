@@ -368,7 +368,7 @@
   .ma-today-side .def-primary, .ma-today-side .def-ghost { flex: 1 1 100%; }
   .ma-facts, .ma-rank { grid-template-columns: minmax(0, 1fr); }
   .ma-session-grid { grid-template-columns: minmax(0, 1fr); }
-  .ma-result { position: sticky; bottom: 0; z-index: 2; margin: 16px -20px 0; padding: 10px 20px calc(10px + env(safe-area-inset-bottom)); background: rgba(24, 29, 35, 0.96); border-top: 1px solid var(--d-line); box-shadow: 0 -8px 18px rgba(0, 0, 0, 0.35); }
+  .ma-result { position: sticky; bottom: 0; z-index: 2; margin: 16px -20px 0; padding: 10px 20px calc(10px + env(safe-area-inset-bottom)); background: var(--d-panel); border-top: 1px solid var(--d-line-strong); box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.45); }
   .ma-exlist { position: relative; display: flex; overflow-x: auto; padding-bottom: 4px; }
   .ma-exlist li { flex: 0 0 auto; max-width: 70%; }
   .ma-exlist button span:not(.ma-dot):not(.def-sr) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
