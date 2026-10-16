@@ -201,6 +201,8 @@
           this.tone(t + 0.1, 987.77, 0.24, 0.09, "triangle");
         } else if (kind === "error") {
           this.tone(t, 196, 0.18, 0.08, "square");
+        } else if (kind === "premove") {
+          this.tone(t, 523.25, 0.09, 0.05, "sine");
         }
       } catch (error) {
         /* l'audio non deve mai bloccare la scacchiera */
@@ -727,6 +729,7 @@
     render(vm = {}) {
       this.vm = vm;
       this.root.classList.toggle("is-interactive", Boolean(vm.interactive));
+      this.root.classList.toggle("is-premove", Boolean(vm.premove));
       const animate = vm.animate !== false;
       if (vm.position !== undefined) this.setPosition(vm.position, { animate });
       this.renderMarks();
@@ -811,7 +814,7 @@
         el.classList.toggle("target-capture", targets.has(square) && Boolean(targets.get(square).capture));
         el.classList.toggle("in-check", vm.check === square);
         el.classList.toggle("mated", vm.mated === square);
-        ["mark-good", "mark-bad", "mark-hint"].forEach((cls) => el.classList.toggle(cls, marks[square] === cls.slice(5)));
+        ["mark-good", "mark-bad", "mark-hint", "mark-premove"].forEach((cls) => el.classList.toggle(cls, marks[square] === cls.slice(5)));
       });
     }
 

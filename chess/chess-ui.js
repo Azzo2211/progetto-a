@@ -25,6 +25,8 @@
   let showBestArrow = false;
   let hintState = null; // { fen, uci, level }
   let coachWarning = null; // avviso del coach che ferma il bot
+  let premove = null; // premossa: { from, to, gameId, ply } giocata appena tocca a te
+  let preSel = null; // pezzo scelto per la premossa mentre il bot pensa
 
   /* ------------------------------------------------------------ impostazioni */
 
@@ -89,7 +91,134 @@
     return !reviewBoard && !chessGameOver && !isBotTurn() && !coachWarning;
   }
 
+  /* ------------------------------------------------------------ premosse */
+  // Mentre il bot pensa puoi preparare la tua mossa: si gioca da sola appena tocca a te,
+  // se e' ancora legale (altrimenti si annulla). Una premossa alla volta, come su lichess.
+  function premoveMode() {
+    return !reviewBoard && !chessGameOver && isBotTurn() && !coachWarning && !trainerOwnsBoard();
+  }
+
+  // Valida finche' e' la stessa partita: durante il turno del bot, o subito dopo la sua mossa
+  // (in attesa di essere giocata). Una ripresa o una partita nuova la annullano.
+  function premoveValid() {
+    if (!premove || premove.gameId !== currentGame.id) return false;
+    const len = currentGame.moves.length;
+    return premove.ply === len || (premove.ply === len - 1 && !isBotTurn());
+  }
+
+  // Case raggiungibili "a scacchiera vuota": il bot deve ancora muovere, quindi non si sa
+  // cosa sara' libero o catturabile. Alla fine conta solo se la mossa e' legale in quel momento.
+  function premoveTargets(square) {
+    const { row, col } = squareToRC(square);
+    const piece = board[row][col];
+    if (!piece || !isWhite(piece)) return [];
+    const out = [];
+    const add = (r, c) => { if (r >= 0 && r < 8 && c >= 0 && c < 8 && !(r === row && c === col)) out.push(coord(r, c)); };
+    const kind = piece.toLowerCase();
+    if (kind === "p") {
+      add(row - 1, col);
+      if (row === 6) add(row - 2, col);
+      add(row - 1, col - 1);
+      add(row - 1, col + 1);
+    } else if (kind === "n") {
+      [[1, 2], [2, 1], [-1, 2], [-2, 1], [1, -2], [2, -1], [-1, -2], [-2, -1]].forEach(([dr, dc]) => add(row + dr, col + dc));
+    } else if (kind === "k") {
+      for (let dr = -1; dr <= 1; dr += 1) for (let dc = -1; dc <= 1; dc += 1) if (dr || dc) add(row + dr, col + dc);
+      if (row === 7 && col === 4) {
+        if (board[7][7] === "R") add(7, 6);
+        if (board[7][0] === "R") add(7, 2);
+      }
+    } else {
+      const dirs = kind === "r" ? [[1, 0], [-1, 0], [0, 1], [0, -1]] : kind === "b" ? [[1, 1], [1, -1], [-1, 1], [-1, -1]] : [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+      dirs.forEach(([dr, dc]) => { for (let k = 1; k < 8; k += 1) add(row + dr * k, col + dc * k); });
+    }
+    return [...new Set(out)];
+  }
+
+  function setPremove(from, to) {
+    premove = { from, to, gameId: currentGame.id, ply: currentGame.moves.length };
+    preSel = null;
+    Kit.Sound.play("premove");
+    renderBoard({ animate: false });
+  }
+
+  function clearPremove(render = true) {
+    const had = premove || preSel;
+    premove = null;
+    preSel = null;
+    if (had && render) renderBoard({ animate: false });
+  }
+  window.chessClearPremove = () => clearPremove(true);
+
+  function premoveGrab(square) {
+    const { row, col } = squareToRC(square);
+    const piece = board[row][col];
+    if (!piece || !isWhite(piece)) return false;
+    preSel = square;
+    renderBoard({ animate: false });
+    return true;
+  }
+
+  function premoveTap(square, { wasSelected } = {}) {
+    if (preSel && preSel !== square && premoveTargets(preSel).includes(square)) {
+      setPremove(preSel, square);
+      return;
+    }
+    const { row, col } = squareToRC(square);
+    const piece = board[row][col];
+    if (piece && isWhite(piece) && !wasSelected) {
+      preSel = square;
+      renderBoard({ animate: false });
+      return;
+    }
+    // tocco altrove: annulla la scelta e la premossa
+    clearPremove(true);
+    renderBoard({ animate: false });
+  }
+
+  function premoveDrop(from, to) {
+    if (premoveTargets(from).includes(to)) setPremove(from, to);
+    else { preSel = from; renderBoard({ animate: false }); }
+  }
+
+  // Cosa mostrare sulla scacchiera durante il turno del bot (chiamata da renderBoard).
+  window.chessPremoveView = function chessPremoveView() {
+    if (premove && !premoveValid()) premove = null;
+    if (!premoveMode()) { preSel = null; return premove ? { marks: { [premove.from]: "premove", [premove.to]: "premove" }, selected: null, targets: [], active: false } : null; }
+    const marks = premove ? { [premove.from]: "premove", [premove.to]: "premove" } : {};
+    const targets = preSel ? premoveTargets(preSel).map((sq) => ({ square: sq, capture: false })) : [];
+    return { marks, selected: preSel, targets, active: true, pending: Boolean(premove) };
+  };
+
+  // Dopo la mossa del bot: gioca la premossa se e' legale, altrimenti la annulla.
+  window.chessTryPremove = function chessTryPremove() {
+    if (!premove) return;
+    const p = premove;
+    premove = null;
+    preSel = null;
+    if (p.gameId !== currentGame.id || p.ply !== currentGame.moves.length - 1 || !gameInteractive()) { renderBoard({ animate: false }); return; }
+    const a = squareToRC(p.from);
+    const b = squareToRC(p.to);
+    const move = getLegalMoves(board, a.row, a.col).find((m) => m.toRow === b.row && m.toCol === b.col);
+    if (!move || !board[a.row][a.col] || !isWhite(board[a.row][a.col])) {
+      Kit.Sound.play("error");
+      renderBoard({ animate: false });
+      const turn = document.getElementById("turnStatus");
+      if (turn) turn.textContent = "Premossa annullata: non era più legale";
+      return;
+    }
+    const piece = board[move.fromRow][move.fromCol];
+    // premossa di promozione: donna automatica (niente finestra di scelta)
+    const final = piece === "P" && move.toRow === 0 ? { ...move, promotion: "q" } : move;
+    window.setTimeout(() => {
+      if (!gameInteractive() || currentGame.moves.length !== p.ply + 1) return;
+      hintState = null;
+      makePlayerMove(final);
+    }, 120);
+  };
+
   function gameGrab(square) {
+    if (premoveMode()) return premoveGrab(square);
     if (!gameInteractive()) return false;
     const { row, col } = squareToRC(square);
     const piece = board[row][col];
@@ -100,6 +229,7 @@
   }
 
   function gameTap(square, { wasSelected } = {}) {
+    if (premoveMode()) { premoveTap(square, { wasSelected }); return; }
     if (!gameInteractive()) return;
     const { row, col } = squareToRC(square);
     if (selectedSquare && (selectedSquare.row !== row || selectedSquare.col !== col)) {
@@ -115,6 +245,7 @@
   }
 
   function gameDrop(from, to) {
+    if (premoveMode()) { premoveDrop(from, to); return; }
     if (!gameInteractive()) return;
     const a = squareToRC(from);
     const b = squareToRC(to);
@@ -175,7 +306,7 @@
     return { arrows, marks };
   };
 
-  window.chessGameInteractive = gameInteractive;
+  window.chessGameInteractive = () => gameInteractive() || premoveMode();
 
   /* -------------------------------------------------------- barre giocatori */
 
@@ -310,8 +441,21 @@
       rows.push(`<li><span class="move-no">${Math.floor(i / 2) + 1}.</span>${cell(white, i)}${cell(black, i + 1)}</li>`);
     }
     list.innerHTML = rows.join("");
+    // Porta in vista la mossa attiva scorrendo SOLO la lista: scrollIntoView farebbe saltare
+    // tutta la pagina (sul telefono finiva giu', vicino ai bot, a ogni mossa).
     const active = list.querySelector(".move-cell.active");
-    if (active && list.scrollHeight > list.clientHeight) active.scrollIntoView({ block: "nearest" });
+    if (active) {
+      const lr = list.getBoundingClientRect();
+      const ar = active.getBoundingClientRect();
+      if (list.scrollHeight > list.clientHeight) {
+        if (ar.top < lr.top) list.scrollTop += ar.top - lr.top - 4;
+        else if (ar.bottom > lr.bottom) list.scrollTop += ar.bottom - lr.bottom + 4;
+      }
+      if (list.scrollWidth > list.clientWidth) {
+        if (ar.left < lr.left) list.scrollLeft += ar.left - lr.left - 4;
+        else if (ar.right > lr.right) list.scrollLeft += ar.right - lr.right + 4;
+      }
+    }
   }
 
   function onMoveListClick(event) {

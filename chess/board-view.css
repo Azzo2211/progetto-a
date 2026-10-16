@@ -8,6 +8,8 @@
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
   container-type: inline-size;
   --bv-anim: 190ms;
 }
@@ -81,6 +83,15 @@
   box-shadow: inset 0 0 0 3px rgba(28, 126, 214, 0.9);
   animation: bv-pulse 1.1s ease-in-out infinite;
 }
+
+/* premossa: case della mossa preparata mentre il bot pensa */
+.bv-sq.mark-premove::before {
+  inset: 0;
+  background: rgba(70, 110, 220, 0.45);
+  box-shadow: inset 0 0 0 max(2px, 0.35cqi) rgba(70, 110, 220, 0.85);
+}
+.bv.is-premove .bv-sq.target::after { background: rgba(70, 110, 220, 0.5); }
+.bv.is-premove .bv-sq.selected::before { box-shadow: inset 0 0 0 3px rgba(120, 160, 255, 0.95); }
 
 .bv-sq.mark-good::before {
   inset: 0;

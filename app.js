@@ -1717,6 +1717,8 @@ function renderBoard(options = {}) {
   }
   const view = getBoardView();
   const interactive = window.chessGameInteractive ? window.chessGameInteractive() : !reviewBoard && !chessGameOver && !isBotTurn();
+  const pre = !reviewBoard && window.chessPremoveView ? window.chessPremoveView() : null;
+  if (pre && pre.active) selectedSquare = null;
   const selected = selectedSquare && !reviewBoard ? coord(selectedSquare.row, selectedSquare.col) : null;
   const legal = selectedSquare && !reviewBoard ? getLegalMoves(board, selectedSquare.row, selectedSquare.col) : [];
   const targets = legal.map((move) => ({ square: coord(move.toRow, move.toCol), capture: Boolean(board[move.toRow][move.toCol] || move.enPassant) }));
@@ -1737,10 +1739,11 @@ function renderBoard(options = {}) {
     lastMove,
     check: checkedKing ? coord(checkedKing.row, checkedKing.col) : null,
     mated,
-    selected: interactive ? selected : null,
-    targets: interactive ? targets : [],
+    selected: pre && pre.active ? pre.selected : interactive ? selected : null,
+    targets: pre && pre.active ? pre.targets : interactive ? targets : [],
     arrows: decorations.arrows,
-    marks: decorations.marks,
+    marks: pre ? { ...decorations.marks, ...pre.marks } : decorations.marks,
+    premove: Boolean(pre && pre.active),
     badge,
     interactive,
     movable: "w",
@@ -1752,7 +1755,7 @@ function renderBoard(options = {}) {
   if (turn) {
     if (reviewBoard) turn.textContent = currentGame.reviewIndex >= 0 ? `Mossa ${currentGame.reviewIndex + 1}/${currentGame.moves.length}` : "Posizione iniziale";
     else if (chessGameOver) turn.textContent = "Partita conclusa";
-    else if (isBotTurn()) turn.textContent = "Il bot pensa";
+    else if (isBotTurn()) turn.textContent = pre && pre.pending ? "Il bot pensa · premossa pronta" : "Il bot pensa: puoi preparare una premossa";
     else turn.textContent = isKingInCheck(board, "w") ? "Sei sotto scacco" : "Tocca a te";
   }
   if (window.renderChessChrome) renderChessChrome(displayBoard);
@@ -1959,6 +1962,7 @@ async function makeBotMove() {
   else if (window.coachAfterBotMove) coachAfterBotMove(savedBotRecord);
   renderBoard();
   finishIfGameOver("w");
+  if (!chessGameOver && window.chessTryPremove) window.chessTryPremove();
 }
 
 function getChessPhase(currentBoard) {
