@@ -124,13 +124,17 @@ Pagina **Mira** (cartella `aim/`): allenamento della mira in prima persona e ric
 
 | File | Cosa fa |
 |---|---|
-| `aim/engine.js` | Calcoli della sensibilità come in Valorant (0,07 gradi per unità di movimento a sens 1, campo visivo orizzontale 103 gradi, eDPI, cm/360), calibrazione del mouse, proiezione 3D e colpi, gli scenari (Gridshot, Precisione, Linea della testa, Peek dagli angoli, Tracking ADAD, Riflessi, Prova sensibilità), la ricerca della sens, lo stato. Senza DOM, testato in `tests/aim.test.js`. |
-| `aim/game.js` | Il gioco: stanza 3D disegnata su canvas, mouse bloccato con input grezzo (Pointer Lock con `unadjustedMovement` dove il browser lo permette), mirino in stile Valorant, HUD, suoni; misura del giro di 360 gradi. |
-| `aim/ui.js`, `aim/aim.css` | La pagina: Allenamento (routine del giorno di 6 esercizi, circa 7 minuti), Trova la sens, Progressi, Impostazioni (DPI, sens, mirino, colori, suoni). |
+| `aim/engine.js` | Calcoli della sensibilità come in Valorant (0,07 gradi per unità di movimento a sens 1, campo visivo orizzontale 103 gradi, eDPI, cm/360), calibrazione del mouse, proiezione 3D e colpi, gli 8 scenari con 3 livelli (Gridshot, Precisione, Linea della testa, Counter-strafe, Peek dagli angoli, Duelli ADAD, Tracking ADAD, Riflessi) più la Prova sensibilità a tre fasi, l'analisi dei flick, i dati di ogni partita, i consigli automatici, i riepiloghi per i progressi, la ricerca della sens, lo stato. Senza DOM, testato in `tests/aim.test.js`. |
+| `aim/game.js` | Il gioco: stanza 3D disegnata su canvas, mouse bloccato con input grezzo (Pointer Lock con `unadjustedMovement` dove il browser lo permette), A/D o frecce per muoversi nel counter-strafe, mirino in stile Valorant, HUD, fasi della prova sens, suoni; misura del giro di 360 gradi. |
+| `aim/ui.js`, `aim/aim.css` | La pagina: Allenamento (livelli per esercizio, routine del giorno di 7 esercizi, circa 9 minuti), risultato con tutti i dati, Trova la sens, Progressi (calendario, abilità, grafici per ogni dato, analisi, confronto per sens, tutte le partite), Impostazioni (DPI, sens, mirino, colori, suoni). |
 
 **Sensibilità identica al gioco**: ogni unità di movimento letta dal browser gira la visuale di sens × 0,07 gradi. Con Chrome o Edge l'accelerazione del sistema viene disattivata; per essere sicuri c'è la verifica del 360: si fa un giro completo in Valorant segnando il tappetino, poi lo stesso movimento qui, e l'app corregge lo scarto.
 
-**Trova la sens**: confronti a coppie (30 secondi per sens, flick lunghi e corti), su scala logaritmica attorno alla sens attuale (da ÷1,6 a ×1,6); a ogni turno si tiene la metà con la sens migliore (6 turni). L'app suggerisce in base al punteggio, sceglie l'utente.
+**Dati di ogni partita**: precisione, colpi mancati, tempi (media, mediana, migliore, irregolarità), come arrivi sul bersaglio (flick puliti, oltre e corretti, corti e corretti; colpi mancati oltre, corti o di lato), flick per distanza (corti, medi, lunghi), punto medio dei colpi rispetto al centro, andamento dentro la partita; in più per esercizio: errore in altezza, colpi in movimento e tempo da fermo allo sparo, colpi sul muro, duelli persi e colpi dietro/davanti, tempo addosso, dietro/davanti e riaggancio nel tracking, partenze anticipate.
+
+**Livelli**: Base, Avanzato, Pro (bersagli più piccoli, più lontani, tempi più stretti). Record e medie sono separati per livello; quando le ultime 3 partite superano la soglia (precisione 90%, riusciti 85%, tempo addosso 65%) l'app propone di salire.
+
+**Trova la sens**: confronti a coppie alla cieca (Sens 1 e Sens 2, valori svelati dopo la scelta) su scala logaritmica attorno alla sens attuale (da ÷1,6 a ×1,6), 4 turni; a ogni turno si tiene la metà con la sens migliore. Ogni prova dura 40 secondi in tre fasi (flick lunghi e corti, precisione su bersagli piccoli, tracking) con gli stessi bersagli per le due sens. Versione precisa (ordine 1-2-2-1, ogni sens provata due volte) o rapida; riscaldamento iniziale che non conta. Il consiglio unisce punteggio (pesa di più), sensazione (lenta, giusta, veloce) e come arrivi sul bersaglio (spesso oltre = sens alta, spesso corto = sens bassa); sceglie l'utente. Le ricerche fatte restano salvate e l'app propone la media delle ultime 3.
 
 ## Modulo difesa: arti marziali "metodo Johan Seong"
 

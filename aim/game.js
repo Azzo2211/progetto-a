@@ -7,6 +7,8 @@
  * - Campo visivo orizzontale 103 gradi, mirino in stile Valorant.
  * - Logica degli scenari in aim/engine.js; qui disegno, input, HUD, suoni.
  *
+ * - Counter-strafe: A e D (o le frecce) muovono a destra e sinistra mentre il mouse e' bloccato.
+ *
  * AimGame.create(mount, opzioni) -> { destroy, state }
  * AimGame.measure(mount, { sens, calib, onDone, onCancel }) -> misura di un giro di 360 gradi
  */
@@ -130,7 +132,7 @@
 
   /* ------------------------------------------------------------ il gioco */
   function create(mount, opts) {
-    const o = Object.assign({ sens: 0.35, calib: null, crosshair: A.defaultSettings().crosshair, targetColor: "#33e0ff", sound: true, seed: Date.now() }, opts || {});
+    const o = Object.assign({ sens: 0.35, calib: null, crosshair: A.defaultSettings().crosshair, targetColor: "#33e0ff", sound: true, seed: Date.now(), lv: 1, blind: false }, opts || {});
     const def = A.scenario(o.scenarioId);
     mount.innerHTML = `
       <div class="aim-stage" tabindex="-1">
@@ -149,11 +151,13 @@
     const hud = { time: mount.querySelector('[data-hud="time"]'), score: mount.querySelector('[data-hud="score"]'), acc: mount.querySelector('[data-hud="acc"]') };
 
     const g = {
-      state: "ready", sc: null, yaw: 0, pitch: 0, holding: false, locked: false, raw: null,
+      state: "ready", sc: null, yaw: 0, pitch: 0, mouseDown: false, keys: { l: false, r: false }, locked: false, raw: null,
+      lastPhase: -1, phaseAt: 0,
       countdown: 0, last: performance.now(), raf: 0, w: 0, h: 0, dpr: 1, hudAt: 0, destroyed: false, error: "",
       dpu: A.degPerUnit(o.sens, o.calib), fpsN: 0, fpsT: 0, fps: 0
     };
-    g.sc = A.createScenario(def.id, { seed: o.seed, aim: { yaw: 0, pitch: 0 } });
+    g.sc = A.createScenario(def.id, { seed: o.seed, aim: { yaw: 0, pitch: 0 }, lv: o.lv });
+    const levelName = def.lv ? (A.LEVELS.find((l) => l.id === g.sc.lv) || A.LEVELS[0]).name : "";
 
     function resize() {
       const r = canvas.getBoundingClientRect();
@@ -178,7 +182,8 @@
           ${o.kicker ? `<span class="aim-ov-kicker">${o.kicker}</span>` : ""}
           <h3>${o.title || def.name}</h3>
           <p>${o.subtitle || def.text}</p>
-          <p class="aim-ov-meta">${goal} · sens ${String(o.sens).replace(".", ",")} · campo visivo 103°</p>
+          <p class="aim-ov-meta">${goal}${levelName ? ` · livello ${levelName}` : ""} · ${o.blind ? "sens nascosta" : `sens ${String(o.sens).replace(".", ",")}`} · campo visivo 103°</p>
+          ${def.keys ? `<p class="aim-ov-keys">Ti muovi con <kbd>A</kbd> e <kbd>D</kbd> (o con le frecce). Spara solo da fermo.</p>` : ""}
           ${g.error ? `<p class="aim-ov-error">${g.error}</p>` : ""}
           <div class="aim-ov-actions">
             <button type="button" class="aim-ov-go" data-g="start-full">Schermo intero e inizia</button>
@@ -239,7 +244,9 @@
         if (g.state === "ready") { g.state = "countdown"; g.countdown = 3; showOverlay(""); if (o.sound) blip(660, 90, 0.05); }
         else if (g.state === "paused") { g.state = "countdown"; g.countdown = 1.5; showOverlay(""); }
       } else if (!g.locked && was) {
-        g.holding = false;
+        g.mouseDown = false;
+        g.keys.l = false;
+        g.keys.r = false;
         if (g.state === "running" || g.state === "countdown") { g.state = "paused"; pausedOverlay(); }
       }
     }
@@ -270,9 +277,10 @@
 
     function fire() {
       if (g.state !== "running") return;
-      if (def.id === "tracking") { g.holding = true; return; }
+      if (g.sc.holdMode) return;
       if (o.sound) shotSound();
       const r = g.sc.shoot({ yaw: g.yaw, pitch: g.pitch });
+      if (r.early && o.sound) blip(220, 120, 0.05, "square");
       if (r.hit && o.sound) { if (r.head) { blip(1320, 70, 0.06, "triangle"); blip(1760, 90, 0.05, "triangle", 0.05); } else blip(1180, 60, 0.05); }
       g.flash = { t: performance.now(), hit: r.hit, head: r.head };
       if (g.sc.done) finish();
@@ -282,11 +290,22 @@
       if (e.button !== 0) return;
       if (!g.locked) return;
       e.preventDefault();
-      // tracking: il tasto tenuto premuto dal conto alla rovescia vale gia'
-      if (def.id === "tracking") { g.holding = true; return; }
-      fire();
+      // il tasto tenuto premuto conta nel tracking (anche dal conto alla rovescia)
+      g.mouseDown = true;
+      if (!g.sc.holdMode) fire();
     }
-    function onUp(e) { if (e.button === 0) g.holding = false; }
+    function onUp(e) { if (e.button === 0) g.mouseDown = false; }
+
+    // A/D e frecce: movimento laterale nel counter-strafe
+    const KEY = { KeyA: "l", ArrowLeft: "l", KeyD: "r", ArrowRight: "r" };
+    function onKey(e) {
+      const k = KEY[e.code];
+      if (!k || !g.locked) return;
+      e.preventDefault();
+      g.keys[k] = e.type === "keydown";
+    }
+    function onBlur() { g.keys.l = false; g.keys.r = false; g.mouseDown = false; }
+    const moveDir = () => (g.keys.r ? 1 : 0) - (g.keys.l ? 1 : 0);
 
     function onClick(e) {
       const btn = e.target.closest("[data-g]");
@@ -320,7 +339,7 @@
     function finish() {
       if (g.state === "done") return;
       g.state = "done";
-      g.holding = false;
+      g.mouseDown = false;
       if (o.sound) { blip(523, 120, 0.05, "triangle"); blip(784, 200, 0.05, "triangle", 0.1); }
       const stats = g.sc.stats();
       stats.raw = g.raw;
@@ -364,7 +383,7 @@
       boxFaces(box.min, box.max).forEach((face) => {
         const v = A.toCamera(face.p[0], b);
         // facce rivolte verso di te (la camera e' nell'origine)
-        const p0 = face.p[0];
+        const p0 = b.o ? [face.p[0][0] - b.o[0], face.p[0][1] - b.o[1], face.p[0][2] - b.o[2]] : face.p[0];
         if (face.n[0] * p0[0] + face.n[1] * p0[1] + face.n[2] * p0[2] >= 0) return;
         const k = face.n[1] > 0 ? 1.25 : face.n[1] < 0 ? 0.6 : face.n[0] !== 0 ? 0.82 : 1;
         drawPoly(b, face.p, shade(base, k), "rgba(0,0,0,0.25)");
@@ -419,8 +438,54 @@
       rects.forEach(([x, y, w, h]) => ctx.fillRect(x, y, w, h));
     }
 
+    function bannerText(text, y, alpha, small) {
+      if (alpha <= 0) return;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = `800 ${Math.round(Math.max(18 * g.dpr, g.h * 0.045))}px Archivo, sans-serif`;
+      ctx.lineWidth = 5 * g.dpr;
+      ctx.strokeStyle = "rgba(6, 10, 16, 0.8)";
+      ctx.strokeText(text, g.w / 2, y);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(text, g.w / 2, y);
+      if (small) {
+        ctx.font = `650 ${Math.round(Math.max(13 * g.dpr, g.h * 0.026))}px Archivo, sans-serif`;
+        ctx.strokeText(small, g.w / 2, y + g.h * 0.05);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+        ctx.fillText(small, g.w / 2, y + g.h * 0.05);
+      }
+      ctx.restore();
+    }
+
+    // Counter-strafe: quanto corri (verde = fermo, i colpi vanno dove miri)
+    function drawSpeedBar() {
+      const sp = g.sc.speed();
+      const still = sp <= A.STRAFE.still;
+      const w = Math.min(g.w * 0.3, 260 * g.dpr);
+      const h = 8 * g.dpr;
+      const x = (g.w - w) / 2;
+      const y = g.h - 34 * g.dpr;
+      ctx.fillStyle = "rgba(8, 12, 18, 0.65)";
+      ctx.fillRect(x - 6 * g.dpr, y - 22 * g.dpr, w + 12 * g.dpr, h + 30 * g.dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = still ? "#3ccf7e" : "#ffb547";
+      ctx.fillRect(x, y, Math.max(3 * g.dpr, w * Math.min(1, sp / A.STRAFE.max)), h);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.fillRect(x + w * (A.STRAFE.still / A.STRAFE.max), y - 3 * g.dpr, g.dpr, h + 6 * g.dpr);
+      ctx.font = `700 ${Math.round(12 * g.dpr)}px Archivo, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillStyle = still ? "#3ccf7e" : "#ffb547";
+      ctx.fillText(still ? "Fermo: colpi precisi" : "In movimento: colpi a caso", g.w / 2, y - 7 * g.dpr);
+    }
+
     function draw() {
-      const b = A.basis(g.yaw, g.pitch);
+      const sc = g.sc;
+      const eye = sc.eye;
+      const b = A.basis(g.yaw, g.pitch, eye);
       ctx.fillStyle = "#12171f";
       ctx.fillRect(0, 0, g.w, g.h);
       PLANES.forEach((pl) => drawPoly(b, pl.p, PLANE_FILL[pl.kind]));
@@ -429,12 +494,13 @@
       ctx.strokeStyle = "rgba(170, 190, 215, 0.09)";
       ctx.lineWidth = g.dpr;
       ctx.stroke();
-      const sc = g.sc;
       // oggetti dal piu' lontano al piu' vicino
       const items = [];
-      sc.covers.forEach((c) => items.push({ d: Math.hypot((c.min[0] + c.max[0]) / 2, (c.min[2] + c.max[2]) / 2), draw: () => drawBox(b, c, "#4a5668") }));
-      sc.bots.forEach((bot) => items.push({ d: Math.hypot(bot.x, bot.z) + 0.01, draw: () => drawBot(b, bot) }));
-      sc.targets.forEach((t) => items.push({ d: Math.hypot(t.c[0], t.c[1], t.c[2]), draw: () => {
+      const dist = (x, y, z) => Math.hypot(x - eye[0], y - eye[1], z - eye[2]);
+      sc.decor.forEach((c) => items.push({ d: dist((c.min[0] + c.max[0]) / 2, 0, (c.min[2] + c.max[2]) / 2), draw: () => drawBox(b, c, "#3c5a6e") }));
+      sc.covers.forEach((c) => items.push({ d: dist((c.min[0] + c.max[0]) / 2, 0, (c.min[2] + c.max[2]) / 2), draw: () => drawBox(b, c, "#4a5668") }));
+      sc.bots.forEach((bot) => items.push({ d: dist(bot.x, 0, bot.z) + 0.01, draw: () => drawBot(b, bot) }));
+      sc.targets.forEach((t) => items.push({ d: dist(t.c[0], t.c[1], t.c[2]), draw: () => {
         if (t.kind === "head") drawFigure(b, t.c[0], t.c[2], t.r, "#c2414f", "#ff8a8f");
         else drawSphere(b, t.c, t.r, o.targetColor);
       } }));
@@ -450,7 +516,26 @@
         ctx.lineWidth = 2 * g.dpr;
         ctx.stroke();
       });
+      // duello perso: il nemico ha sparato prima
+      const lost = sc.effects.find((e) => e.kind === "lost");
+      if (lost) {
+        const k = Math.min(1, (sc.time - lost.t) / 0.45);
+        ctx.fillStyle = `rgba(220, 40, 60, ${0.32 * (1 - k)})`;
+        ctx.fillRect(0, 0, g.w, g.h);
+        bannerText("Ti ha colpito prima lui", g.h * 0.3, 1 - k);
+      }
       drawCrosshair();
+      if (def.id === "strafe") drawSpeedBar();
+      if (sc.hint && g.state === "running") bannerText(sc.hint, g.h * 0.2, 1);
+      // prova sens: nome della fase quando cambia
+      if (def.phases && g.state === "running") {
+        if (sc.phase !== g.lastPhase) { g.lastPhase = sc.phase; g.phaseAt = performance.now(); }
+        const age = performance.now() - g.phaseAt;
+        if (age < 1800) {
+          const ph = def.phases[sc.phase];
+          bannerText(`Fase ${sc.phase + 1} di ${def.phases.length}: ${ph.name}`, g.h * 0.24, age < 1400 ? 1 : 1 - (age - 1400) / 400, ph.text);
+        }
+      }
       if (g.state === "countdown") {
         ctx.fillStyle = "rgba(10, 14, 20, 0.35)";
         ctx.fillRect(0, 0, g.w, g.h);
@@ -469,8 +554,8 @@
       const sc = g.sc;
       const st = sc.stats();
       hud.time.textContent = def.duration ? `${Math.max(0, Math.ceil(def.duration - sc.time))} s` : `${Math.min(def.reps, (sc.rep || 0) + 1)}/${def.reps}`;
-      hud.score.textContent = def.id === "tracking" ? `${st.track || 0}% addosso` : `${st.score} punti`;
-      hud.acc.textContent = def.id === "tracking" ? "tieni premuto" : st.shots ? `${String(st.acc).replace(".", ",")}% precisione` : "";
+      hud.score.textContent = def.id === "tracking" ? `${String(st.track || 0).replace(".", ",")}% addosso` : def.id === "senstest" ? `fase ${sc.phase + 1} di 3` : `${st.score} punti`;
+      hud.acc.textContent = sc.holdMode ? "tieni premuto" : st.shots ? `${String(st.acc).replace(".", ",")}% precisione` : "";
     }
 
     /* ---------- ciclo */
@@ -484,7 +569,7 @@
         if (Math.ceil(g.countdown) !== before && g.countdown > 0 && o.sound) blip(660, 80, 0.04);
         if (g.countdown <= 0) { g.state = "running"; if (o.sound) blip(990, 120, 0.05); }
       } else if (g.state === "running") {
-        g.sc.update(dt, { yaw: g.yaw, pitch: g.pitch, holding: g.holding });
+        g.sc.update(dt, { yaw: g.yaw, pitch: g.pitch, holding: g.mouseDown, move: moveDir() });
         if (g.sc.done) finish();
       }
       draw();
@@ -499,6 +584,9 @@
       document.removeEventListener("pointerlockchange", onLockChange);
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("keyup", onKey);
+      window.removeEventListener("blur", onBlur);
       if (document.pointerLockElement === canvas) document.exitPointerLock();
       if (document.fullscreenElement === stage) document.exitFullscreen().catch(() => {});
       if (ro) ro.disconnect(); else window.removeEventListener("resize", resize);
@@ -508,6 +596,9 @@
     document.addEventListener("pointerlockchange", onLockChange);
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", onUp);
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("keyup", onKey);
+    window.addEventListener("blur", onBlur);
     canvas.addEventListener("mousedown", onDown);
     stage.addEventListener("click", onClick);
     canvas.addEventListener("contextmenu", (e) => e.preventDefault());
@@ -527,7 +618,8 @@
         look,
         aim(yaw, pitch) { g.yaw = yaw; g.pitch = pitch; },
         fire,
-        hold(v) { g.holding = !!v; },
+        hold(v) { g.mouseDown = !!v; },
+        move(m) { g.keys.l = m < 0; g.keys.r = m > 0; },
         get sc() { return g.sc; },
         get view() { return { yaw: g.yaw, pitch: g.pitch, dpu: g.dpu }; }
       };

@@ -5,11 +5,17 @@
  *   campo visivo orizzontale 103 gradi. eDPI = DPI x sens; cm/360 = 2,54 x 360 / (0,07 x eDPI).
  * - Calibrazione: se il browser non legge il mouse 1:1 come il gioco, un fattore lo corregge
  *   (si misura facendo lo stesso giro di 360 gradi nel gioco e qui).
- * - Scenari puri: posizionano bersagli e sagome in una stanza 3D, gestiscono colpi, tracking e
- *   punteggio. Il disegno e l'input stanno in aim/game.js.
- * - Ricerca della sensibilita': confronti a coppie su scala logaritmica, l'intervallo si dimezza
- *   a ogni turno (come il metodo PSA).
- * - Stato: impostazioni, partite, ricerca in corso, storico delle sensibilita'.
+ * - Scenari puri, con tre livelli (Base, Avanzato, Pro): posizionano bersagli e sagome in una
+ *   stanza 3D, gestiscono colpi, tracking, movimento laterale (counter-strafe) e punteggio.
+ *   Il disegno e l'input stanno in aim/game.js.
+ * - Dati di ogni partita: precisione, tempi (media, mediana, migliore, costanza), come arrivi sul
+ *   bersaglio (flick puliti, oltre e corretti, corti e corretti), dove finiscono i colpi mancati,
+ *   flick per distanza, andamento dentro la partita, tracking (dietro/davanti, riaggancio).
+ * - Consigli automatici dalla partita, livelli consigliati, riepiloghi per i progressi.
+ * - Ricerca della sensibilita': prove alla cieca a coppie su scala logaritmica, intervallo che si
+ *   dimezza a ogni turno; prova a tre fasi (flick, precisione, tracking), ordine A-B-B-A nella
+ *   versione precisa, giudizio a sensazione e indizi da superamento/correzione del bersaglio.
+ * - Stato: impostazioni, partite, ricerca in corso, ricerche fatte, storico delle sensibilita'.
  */
 (function (root, factory) {
   const api = factory();
@@ -18,7 +24,7 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  const VERSION = 1;
+  const VERSION = 2;
   const YAW = 0.07; // Valorant: gradi per unita' di movimento a sens 1
   const FOV_H = 103; // Valorant: campo visivo orizzontale fisso
   const DEG = Math.PI / 180;
@@ -27,6 +33,23 @@
   const isObj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
   const num = (v) => typeof v === "number" && Number.isFinite(v);
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const wrap = (d) => ((((d + 180) % 360) + 360) % 360) - 180;
+  const avg = (l) => (l.length ? l.reduce((x, y) => x + y, 0) / l.length : null);
+  const median = (l) => {
+    if (!l.length) return null;
+    const s = l.slice().sort((a, b) => a - b);
+    const m = s.length >> 1;
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  };
+  const stdev = (l) => {
+    if (l.length < 3) return null;
+    const m = avg(l);
+    return Math.sqrt(avg(l.map((x) => (x - m) * (x - m))));
+  };
+  const r1 = (v) => (num(v) ? Math.round(v * 10) / 10 : null);
+  const r2 = (v) => (num(v) ? Math.round(v * 100) / 100 : null);
+  const ms = (v) => (num(v) ? Math.round(v * 1000) : null);
+  const it = (v, d = 0) => (num(v) ? v.toFixed(d).replace(".", ",") : "—");
 
   /* ------------------------------------------------------------ sensibilita' */
   function edpi(dpi, sens) { return dpi * sens; }
@@ -62,16 +85,19 @@
   const len = (a) => Math.sqrt(dot(a, a));
   const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 
-  // Base della camera: avanti, destra, su.
-  function basis(yaw, pitch) {
+  // Base della camera: avanti, destra, su; eye = posizione degli occhi (di solito l'origine).
+  function basis(yaw, pitch, eye = null) {
     const f = dir(yaw, pitch);
     const y = yaw * DEG;
     const r = [Math.cos(y), 0, -Math.sin(y)];
     const u = cross(f, r);
-    return { f, r, u };
+    return { f, r, u, o: eye && (eye[0] || eye[1] || eye[2]) ? eye : null };
   }
 
-  function toCamera(p, b) { return [dot(p, b.r), dot(p, b.u), dot(p, b.f)]; }
+  function toCamera(p, b) {
+    const q = b.o ? [p[0] - b.o[0], p[1] - b.o[1], p[2] - b.o[2]] : p;
+    return [dot(q, b.r), dot(q, b.u), dot(q, b.f)];
+  }
 
   function focal(width, fovH = FOV_H) { return width / 2 / Math.tan((fovH / 2) * DEG); }
 
@@ -135,6 +161,65 @@
     };
   }
 
+  /* ------------------------------------------------------------ analisi dei flick */
+  // Le distanze sono nello "spazio del mouse": gradi di yaw e pitch (quello che muove la mano).
+  const binOf = (d) => (d < 10 ? "s" : d < 30 ? "m" : "l");
+
+  /*
+   * Come il mirino e' arrivato su un bersaglio colpito.
+   * path: campioni [tempo, yaw, pitch] dall'inizio del flick al colpo; tgt: {yaw, pitch}; rDeg: raggio angolare.
+   * "over": e' andato oltre ed e' tornato indietro; "under": si e' fermato prima e ha aggiustato;
+   * "clean": arrivato senza correzioni; null: bersaglio troppo vicino per parlare di flick.
+   */
+  function flickKind(path, tgt, rDeg) {
+    if (!path || path.length < 2 || !tgt) return null;
+    const s = path[0];
+    const fx = wrap(tgt.yaw - s[1]);
+    const fy = tgt.pitch - s[2];
+    const D = Math.hypot(fx, fy);
+    if (D < Math.max(3, rDeg * 3)) return null;
+    const ux = fx / D;
+    const uy = fy / D;
+    const tol = rDeg + D * 0.05;
+    let maxAlong = -Infinity;
+    let stopAlong = null;
+    let moving = false;
+    let j = 0;
+    for (let i = 1; i < path.length; i += 1) {
+      const p = path[i];
+      const along = wrap(p[1] - s[1]) * ux + (p[2] - s[2]) * uy;
+      if (along > maxAlong) maxAlong = along;
+      // velocita' su almeno 30 ms: il mouse non manda movimento a ogni fotogramma
+      while (j < i - 1 && p[0] - path[j + 1][0] >= 0.03) j += 1;
+      const q = path[j];
+      const dt = p[0] - q[0];
+      if (dt < 0.03) continue;
+      const sp = Math.hypot(wrap(p[1] - q[1]), p[2] - q[2]) / dt;
+      if (sp >= 60) moving = true;
+      else if (moving && stopAlong == null && sp < 20) stopAlong = along;
+    }
+    if (maxAlong > D + tol) return "over";
+    if (stopAlong != null && stopAlong < D - tol) return "under";
+    return "clean";
+  }
+
+  // Dove e' finito un colpo mancato rispetto al flick: oltre, corto o di lato (null se non c'era flick).
+  function missKind(start, aim, tgt, rDeg) {
+    if (!start || !tgt) return null;
+    const fx = wrap(tgt.yaw - start[1]);
+    const fy = tgt.pitch - start[2];
+    const D = Math.hypot(fx, fy);
+    if (D < Math.max(3, rDeg * 3)) return null;
+    const ux = fx / D;
+    const uy = fy / D;
+    const ox = wrap(aim.yaw - tgt.yaw);
+    const oy = aim.pitch - tgt.pitch;
+    const along = ox * ux + oy * uy;
+    const lat = -ox * uy + oy * ux;
+    if (Math.abs(along) >= Math.abs(lat)) return along > 0 ? "over" : "under";
+    return "side";
+  }
+
   /* ------------------------------------------------------------ stanza */
   // Stanza: pavimento a -1.6 m (occhi a 1,6 m), soffitto a 6 m. Le teste stanno a quota 0.
   const ROOM = { x: [-24, 24], y: [-1.6, 6], z: [-24, 30] };
@@ -149,84 +234,218 @@
     };
   }
 
+  // Movimento laterale (counter-strafe): velocita' di corsa e accelerazioni del modello.
+  const STRAFE = { lane: 3, max: 6.75, acc: 40, friction: 22, still: 1.0 };
+
   /* ------------------------------------------------------------ scenari */
+  const LEVELS = [{ id: 1, name: "Base" }, { id: 2, name: "Avanzato" }, { id: 3, name: "Pro" }];
+
   const SCENARIOS = [
     {
       id: "gridshot", name: "Gridshot", trains: "Velocità e flick brevi", duration: 60,
       text: "Tre bersagli alla volta su una griglia davanti a te: colpiscili il più in fretta possibile senza sprecare colpi.",
-      tip: "Non inseguire il bersaglio: guarda il prossimo prima di sparare e lascia che il mouse arrivi lì."
+      tip: "Non inseguire il bersaglio: guarda il prossimo prima di sparare e lascia che il mouse arrivi lì.",
+      levels: ["Bersagli grandi", "Bersagli medi", "Bersagli piccoli"],
+      lv: { 1: { r: 0.42 }, 2: { r: 0.32 }, 3: { r: 0.24 } },
+      up: { key: "acc", min: 90 }
     },
     {
       id: "microshot", name: "Precisione", trains: "Micro-correzioni sulla testa", duration: 60,
       text: "Un bersaglio piccolo come una testa, vicino al centro: un colpo preciso alla volta.",
-      tip: "Movimenti corti col polso, mirino fermo prima del clic. La precisione viene prima della velocità."
+      tip: "Movimenti corti col polso, mirino fermo prima del clic. La precisione viene prima della velocità.",
+      levels: ["Testa grande, vicino al centro", "Testa più piccola, più sparsa", "Testa piccola, tutto lo schermo"],
+      lv: { 1: { r: 0.14, yaw: 11, pitch: [-4, 6] }, 2: { r: 0.11, yaw: 16, pitch: [-6, 8] }, 3: { r: 0.085, yaw: 22, pitch: [-8, 10] } },
+      up: { key: "acc", min: 90 }
     },
     {
       id: "headline", name: "Linea della testa", trains: "Mirino all'altezza della testa e flick orizzontali", duration: 60,
       text: "Le teste compaiono sempre alla stessa altezza, a destra e a sinistra: tieni il mirino su quella linea e muoviti solo di lato.",
-      tip: "Il numero da guardare è l'altezza media del mirino: più è vicina a 0 gradi, meno correzioni verticali farai in partita."
+      tip: "Il numero da guardare è l'errore in altezza: più è vicino a 0 gradi, meno correzioni verticali farai in partita.",
+      levels: ["Vicine, davanti a te", "Più lontane e più larghe", "Lontane, fino ai lati"],
+      lv: { 1: { dist: [10, 18], yaw: 42 }, 2: { dist: [12, 24], yaw: 55 }, 3: { dist: [16, 30], yaw: 70 } },
+      up: { key: "acc", min: 90 }
+    },
+    {
+      id: "strafe", name: "Counter-strafe", trains: "Fermarsi prima di sparare (tasti A e D)", duration: 0, reps: 20,
+      text: "Ti muovi a destra e a sinistra con A e D. Il nemico esce mentre corri: fermati e colpiscilo alla testa. Come in Valorant, i colpi sparati in movimento vanno a caso.",
+      tip: "Per fermarti subito tocca il tasto opposto (se vai a destra con D, un tocco di A), poi spara: la barra in basso diventa verde quando sei fermo.",
+      levels: ["Resta 2 secondi", "Resta 1,5 secondi", "Resta 1,1 secondi, più lontano"],
+      lv: { 1: { life: 2.0, dist: [10, 15], yaw: 25 }, 2: { life: 1.5, dist: [12, 20], yaw: 32 }, 3: { life: 1.1, dist: [15, 26], yaw: 40 } },
+      up: { key: "win", min: 85 },
+      keys: true
     },
     {
       id: "peek", name: "Peek dagli angoli", trains: "Reazione e one-tap alla testa", duration: 0, reps: 20,
       text: "Una sagoma esce da dietro un muro e rientra: colpiscila alla testa prima che sparisca. Il corpo non basta.",
-      tip: "Tieni il mirino sul bordo del muro, all'altezza della testa: devi solo cliccare, non correre dietro alla sagoma."
+      tip: "Tieni il mirino sul bordo del muro, all'altezza della testa: devi solo cliccare, non correre dietro alla sagoma.",
+      levels: ["Resta fuori a lungo", "Resta fuori poco", "Esce e rientra subito"],
+      lv: { 1: { speed: [4.6, 5.8], hold: [0.35, 0.7] }, 2: { speed: [5.2, 6.4], hold: [0.25, 0.5] }, 3: { speed: [5.8, 6.8], hold: [0.16, 0.32] } },
+      up: { key: "win", min: 85 }
+    },
+    {
+      id: "duel", name: "Duelli ADAD", trains: "One-tap alla testa su un nemico che si muove", duration: 0, reps: 20,
+      text: "Un nemico compare e si sposta a destra e sinistra come in un duello vero. Colpiscilo alla testa prima che spari lui.",
+      tip: "Non inseguirlo con tutto il braccio: aspetta che la testa passi nel mirino o anticipala di poco, poi un clic secco.",
+      levels: ["Ti lascia 1,3 secondi", "Ti lascia 0,95 secondi", "Ti lascia 0,65 secondi, scatti veloci"],
+      lv: {
+        1: { window: 1.3, speed: [3.5, 5], change: [0.3, 0.9], dist: [10, 15], yaw: 30 },
+        2: { window: 0.95, speed: [4.5, 6], change: [0.22, 0.75], dist: [12, 20], yaw: 36 },
+        3: { window: 0.65, speed: [5.5, 6.75], change: [0.15, 0.55], dist: [15, 25], yaw: 42 }
+      },
+      up: { key: "win", min: 85 }
     },
     {
       id: "tracking", name: "Tracking ADAD", trains: "Seguire un nemico che scatta a destra e sinistra", duration: 45,
       text: "Una sagoma si sposta a destra e sinistra cambiando direzione a caso, come uno strafe ADAD. Tieni premuto e restale addosso.",
-      tip: "Guarda il busto, non i piedi, e anticipa i cambi di direzione con piccoli movimenti fluidi."
+      tip: "Guarda il busto, non i piedi, e anticipa i cambi di direzione con piccoli movimenti fluidi.",
+      levels: ["Cambi lenti", "Cambi più rapidi, più lontana", "Scatti veloci, lontana"],
+      lv: {
+        1: { speed: [3.8, 6], change: [0.22, 0.85], z: 10, bound: 5.5 },
+        2: { speed: [4.5, 6.75], change: [0.18, 0.7], z: 12, bound: 5.5 },
+        3: { speed: [5.5, 7.5], change: [0.12, 0.55], z: 14, bound: 5.5 }
+      },
+      up: { key: "track", min: 65 }
     },
     {
       id: "reflex", name: "Riflessi", trains: "Tempo di reazione e primo flick", duration: 0, reps: 20,
-      text: "Aspetta il bersaglio: compare dopo un attimo a caso. Colpiscilo prima che sparisca.",
-      tip: "Non anticipare il clic. Il tempo che conta è dal bersaglio che compare al colpo a segno."
+      text: "Aspetta il bersaglio: compare dopo un attimo a caso. Colpiscilo prima che sparisca. Cliccare prima che compaia è una partenza anticipata.",
+      tip: "Non anticipare il clic. Il tempo che conta è dal bersaglio che compare al colpo a segno.",
+      levels: ["Grande, resta 1,6 secondi", "Medio, resta 1,15 secondi", "Piccolo, resta 0,85 secondi"],
+      lv: { 1: { r: 0.3, life: 1.6, yaw: 26, pitch: [-9, 11] }, 2: { r: 0.22, life: 1.15, yaw: 35, pitch: [-12, 14] }, 3: { r: 0.16, life: 0.85, yaw: 45, pitch: [-15, 18] } },
+      up: { key: "win", min: 85 }
     },
     {
-      id: "senstest", name: "Prova sensibilità", trains: "Flick lunghi e corti insieme", duration: 30, hidden: true,
-      text: "Flick lunghi e piccoli aggiustamenti alternati: serve a confrontare due sensibilità.",
-      tip: "Gioca come in partita: preciso, senza strafare."
+      id: "senstest", name: "Prova sensibilità", trains: "Flick, precisione e tracking", duration: 40, hidden: true,
+      text: "Tre fasi: flick lunghi e corti, bersagli piccoli e vicini, tracking tenendo premuto. Serve a confrontare due sensibilità.",
+      tip: "Gioca come in partita: preciso, senza strafare.",
+      phases: [
+        { name: "Flick", until: 16, text: "Flick lunghi e corti" },
+        { name: "Precisione", until: 28, text: "Bersagli piccoli e vicini" },
+        { name: "Tracking", until: 40, text: "Tieni premuto e seguila", hold: true }
+      ]
     }
   ];
   const SCN = new Map(SCENARIOS.map((s) => [s.id, s]));
-  const ROUTINE = ["gridshot", "microshot", "headline", "peek", "tracking", "reflex"];
+  const VISIBLE = SCENARIOS.filter((s) => !s.hidden).map((s) => s.id);
+  const ROUTINE = ["gridshot", "microshot", "headline", "strafe", "peek", "duel", "tracking"];
+  const HEAD_ONLY = ["peek", "duel", "strafe"];
 
   /*
    * Crea uno scenario. Interfaccia:
-   *   sc.update(dt, aim)  aim = { yaw, pitch, holding }
-   *   sc.shoot(aim)       -> { hit, head, kill, blocked }
+   *   sc.update(dt, aim)  aim = { yaw, pitch, holding, move (-1 sinistra, 0, 1 destra) }
+   *   sc.shoot(aim)       -> { hit, head, kill, blocked, early }
    *   sc.targets          sfere { id, c, r, born, kind }
    *   sc.bots             sagome { id, x, z, crouch, visible, born }
-   *   sc.covers           box di copertura (muri) per il disegno e i colpi bloccati
+   *   sc.covers, sc.decor box da disegnare (i muri delle coperture bloccano i colpi)
+   *   sc.eye              posizione degli occhi (cambia solo nel counter-strafe)
+   *   sc.holdMode         true quando conta tenere premuto (tracking)
    *   sc.done, sc.time, sc.stats()
    */
-  function createScenario(id, { seed = Date.now(), aim = { yaw: 0, pitch: 0 } } = {}) {
+  function createScenario(id, { seed = Date.now(), aim = { yaw: 0, pitch: 0 }, lv = 1 } = {}) {
     const def = SCN.get(id);
     if (!def) throw new Error(`scenario sconosciuto: ${id}`);
+    const level = def.lv && def.lv[lv] ? lv : 1;
+    const P = def.lv ? def.lv[level] : {};
     const rand = rng(seed);
+    const NSEG = def.duration ? 6 : 4;
+    const zeros = () => new Array(NSEG).fill(0);
     const sc = {
-      id, def, time: 0, done: false, targets: [], bots: [], covers: [], effects: [],
-      shots: 0, hits: 0, heads: 0, kills: 0, body: 0, misses: 0, escaped: 0,
-      points: 0, ttk: [], rt: [], onTarget: 0, trackTime: 0, vertSum: 0, vertN: 0,
-      nextId: 1, lastKillAt: 0
+      id, def, lv: level, P, time: 0, done: false,
+      targets: [], bots: [], covers: [], decor: [], effects: [], eye: [0, 0, 0],
+      holdMode: id === "tracking", phase: 0, hint: "",
+      shots: 0, hits: 0, heads: 0, kills: 0, body: 0, misses: 0, escaped: 0, wall: 0, early: 0, lost: 0,
+      moving: 0, still: 0, behind: 0, ahead: 0,
+      points: 0, ttk: [], rt: [], stop: [],
+      onTarget: 0, trackTime: 0, holdTime: 0, lagT: 0, leadT: 0, errSum: 0, reacq: [], rc: null,
+      vertSum: 0, vertSigned: 0, vertN: 0,
+      path: [[0, aim.yaw || 0, aim.pitch || 0]], resetPath: false,
+      flick: { c: 0, o: 0, u: 0 }, miss: { o: 0, u: 0, s: 0 },
+      bins: { s: [0, 0, 0], m: [0, 0, 0], l: [0, 0, 0] },
+      bias: { x: 0, y: 0, n: 0, r: 0 },
+      segK: zeros(), segS: zeros(), segH: zeros(), segOn: zeros(), segT: zeros(),
+      rep: 0, wait: 0, nextId: 1, lastKillAt: 0, vx: 0, stillSince: 0, movedFor: 0
     };
     const between = (a, b) => a + rand() * (b - a);
     const spherePoint = (yaw, pitch, dist) => { const d = dir(yaw, pitch); return [d[0] * dist, d[1] * dist, d[2] * dist]; };
+    const rel = (c) => sub(c, sc.eye);
     const addTarget = (c, r, extra = {}) => { const t = { id: sc.nextId++, c, r, born: sc.time, ...extra }; sc.targets.push(t); return t; };
-    const killTarget = (t) => { sc.targets = sc.targets.filter((x) => x !== t); sc.effects.push({ c: t.c, t: sc.time, kind: "hit" }); };
+    const killTarget = (t) => { sc.targets = sc.targets.filter((x) => x !== t); sc.effects.push({ c: t.c, t: sc.time, kind: t.kind === "head" ? "head" : "hit" }); };
+    const segNow = () => (def.duration
+      ? Math.min(NSEG - 1, Math.floor((sc.time / def.duration) * NSEG))
+      : Math.min(NSEG - 1, Math.floor((sc.rep / def.reps) * NSEG)));
+    // fine di una ripetizione (scenari a ripetizioni)
+    const endRep = (success) => {
+      const seg = segNow();
+      if (success) sc.segK[seg] += 1;
+      sc.rep += 1;
+      sc.wait = id === "reflex" ? between(0.7, 1.9) : between(0.5, 1.2);
+      if (id === "strafe") sc.movedFor = 0;
+      if (sc.rep >= def.reps) sc.done = true;
+    };
+    // direzione media dei colpi rispetto al centro del bersaglio (solo colpi vicini al bersaglio)
+    const addBias = (a, tg, rDeg) => {
+      const dx = wrap(a.yaw - tg.yaw);
+      const dy = a.pitch - tg.pitch;
+      if (Math.hypot(dx, dy) > rDeg * 3 + 2) return;
+      sc.bias.x += dx;
+      sc.bias.y += dy;
+      sc.bias.r += rDeg;
+      sc.bias.n += 1;
+    };
+
+    /* ---- movimento a destra e sinistra (tracking, duelli, prova sens) */
+    const stepAdad = (b, dt, Q, rnd) => {
+      b.dirLeft -= dt;
+      if (b.dirLeft <= 0) {
+        b.v = (b.v > 0 ? -1 : 1) * (Q.speed[0] + rnd() * (Q.speed[1] - Q.speed[0]));
+        b.dirLeft = Q.change[0] + rnd() * (Q.change[1] - Q.change[0]);
+        b.changed = true;
+      }
+      b.s += b.v * dt;
+      if (b.s > Q.bound) { b.s = Q.bound; b.v = -Math.abs(b.v); b.changed = true; }
+      if (b.s < -Q.bound) { b.s = -Q.bound; b.v = Math.abs(b.v); b.changed = true; }
+    };
+
+    // Misura del tracking su una sagoma: tempo addosso, dietro o davanti, riaggancio dopo i cambi.
+    const measureTrack = (dt, a, b) => {
+      sc.trackTime += dt;
+      const seg = segNow();
+      sc.segT[seg] += dt;
+      const parts = botParts(b.x, b.z);
+      const f = dir(a.yaw, a.pitch);
+      const on = raySphere(f, parts.head.c, parts.head.r) >= 0 || rayBox(f, parts.body) >= 0;
+      if (b.changed) {
+        b.changed = false;
+        if (sc.rc && sc.rc.lost) sc.reacq.push(Math.min(1, sc.time - sc.rc.t0));
+        sc.rc = { t0: sc.time, lost: !on };
+      }
+      if (!a.holding) return;
+      sc.holdTime += dt;
+      if (on) { sc.onTarget += dt; sc.segOn[seg] += dt; }
+      const ex = wrap(a.yaw - anglesTo([b.x, -0.6, b.z]).yaw);
+      sc.errSum += Math.abs(ex) * dt;
+      if (!on) { if (ex * b.v > 0) sc.leadT += dt; else sc.lagT += dt; }
+      if (sc.rc) {
+        if (!on) sc.rc.lost = true;
+        else if (sc.rc.lost) { sc.reacq.push(sc.time - sc.rc.t0); sc.rc = null; } else if (sc.time - sc.rc.t0 > 0.25) { sc.reacq.push(0); sc.rc = null; }
+      }
+    };
 
     /* ---- gridshot: 3 bersagli su una griglia 5x5 */
     if (id === "gridshot") {
       const spots = [];
       for (let i = 0; i < 5; i += 1) for (let j = 0; j < 5; j += 1) spots.push([(i - 2) * 1.35, 0.8 + (j - 2) * 1.0, 11]);
-      const free = () => spots.filter((s) => !sc.targets.some((t) => t.c === s));
-      const spawn = () => { const f = free(); addTarget(f[Math.floor(rand() * f.length)], 0.42); };
+      const spawn = () => {
+        const free = spots.filter((s) => !sc.targets.some((t) => t.c === s));
+        addTarget(free[Math.floor(rand() * free.length)], P.r);
+      };
       for (let k = 0; k < 3; k += 1) spawn();
       sc.onKill = () => spawn();
     }
 
     /* ---- precisione: un bersaglio piccolo vicino al centro */
     if (id === "microshot") {
-      const spawn = () => addTarget(spherePoint(between(-11, 11), between(-4, 6), 12), 0.14);
+      const spawn = () => addTarget(spherePoint(between(-P.yaw, P.yaw), between(P.pitch[0], P.pitch[1]), 12), P.r);
       spawn();
       sc.onKill = () => spawn();
     }
@@ -234,45 +453,82 @@
     /* ---- linea della testa: teste alla stessa quota */
     if (id === "headline") {
       const spawn = () => {
-        const yaw = between(-42, 42);
-        const d = between(10, 18);
-        const p = spherePoint(yaw, 0, d);
+        const p = spherePoint(between(-P.yaw, P.yaw), 0, between(P.dist[0], P.dist[1]));
         addTarget([p[0], HEAD_Y, p[2]], 0.13, { kind: "head" });
       };
       spawn();
       sc.onKill = () => spawn();
     }
 
-    /* ---- riflessi: compare dopo un'attesa a caso, sparisce dopo 1,6 s */
+    /* ---- riflessi: compare dopo un'attesa a caso, sparisce dopo un po' */
     if (id === "reflex") {
       sc.wait = between(0.8, 2.0);
-      sc.rep = 0;
-      sc.onKill = (t) => { sc.rt.push(sc.time - t.born); sc.rep += 1; sc.wait = between(0.7, 1.9); if (sc.rep >= def.reps) sc.done = true; };
+      sc.onKill = (t) => { sc.rt.push(sc.time - t.born); endRep(true); };
       sc.tick = (dt) => {
         if (sc.targets.length) {
           const t = sc.targets[0];
-          if (sc.time - t.born > 1.6) { sc.targets = []; sc.escaped += 1; sc.rep += 1; sc.wait = between(0.7, 1.9); if (sc.rep >= def.reps) sc.done = true; }
+          if (sc.time - t.born > P.life) { sc.targets = []; sc.escaped += 1; endRep(false); }
           return;
         }
         sc.wait -= dt;
-        if (sc.wait <= 0 && !sc.done) addTarget(spherePoint(between(-26, 26), between(-9, 11), 11), 0.3);
+        if (sc.wait <= 0 && !sc.done) {
+          addTarget(spherePoint(between(-P.yaw, P.yaw), between(P.pitch[0], P.pitch[1]), 11), P.r);
+          sc.resetPath = true;
+        }
       };
     }
 
-    /* ---- prova sensibilita': flick lunghi e corti alternati, relativi alla mira */
+    /* ---- prova sensibilita': flick, precisione, tracking (ogni fase con i suoi bersagli fissi) */
     if (id === "senstest") {
+      const PH = def.phases.map((p) => p.until);
+      const randF = rng(seed ^ 0x2545f491);
+      const randP = rng(seed ^ 0x6c078965);
+      const randT = rng(seed ^ 0x9e3779b9);
+      const inF = (a, b) => a + randF() * (b - a);
+      const inP = (a, b) => a + randP() * (b - a);
+      sc.ph = [0, 1, 2].map(() => ({ shots: 0, hits: 0, kills: 0 }));
       let flip = 0;
-      const spawn = (a) => {
+      // un flick verso il centro quando si e' gia' vicini al bordo
+      const away = (from, amount, limit) => (Math.abs(from + amount) > limit ? from - amount : from + amount);
+      const spawnFlick = (a) => {
         flip += 1;
         const long = flip % 2 === 1;
-        const ang = between(0, Math.PI * 2);
-        const amount = long ? between(16, 42) : between(3, 8);
-        const yaw = clamp(a.yaw + Math.cos(ang) * amount, -70, 70);
-        const pitch = clamp(a.pitch + Math.sin(ang) * amount * 0.45, -18, 22);
-        addTarget(spherePoint(yaw, pitch, 12), long ? 0.24 : 0.14);
+        const ang = inF(0, Math.PI * 2);
+        const amount = long ? inF(18, 70) : inF(3, 8);
+        const yaw = away(a.yaw, Math.cos(ang) * amount, 85);
+        const pitch = clamp(away(a.pitch, Math.sin(ang) * amount * 0.35, 18), -15, 22);
+        addTarget(spherePoint(yaw, pitch, 12), long ? 0.26 : 0.16);
       };
-      spawn(aim);
-      sc.onKill = (t, a) => spawn(a);
+      const spawnPrec = (a) => {
+        const ang = inP(0, Math.PI * 2);
+        const amount = inP(2, 6);
+        const yaw = away(a.yaw, Math.cos(ang) * amount, 85);
+        const pitch = clamp(away(a.pitch, Math.sin(ang) * amount * 0.6, 16), -12, 18);
+        addTarget(spherePoint(yaw, pitch, 10), 0.1);
+      };
+      const T = { speed: [4, 6], change: [0.25, 0.8], bound: 4.5 };
+      let bot = null;
+      sc.tick = (dt, a) => {
+        const ph = sc.time < PH[0] ? 0 : sc.time < PH[1] ? 1 : 2;
+        if (ph !== sc.phase) {
+          sc.phase = ph;
+          sc.targets = [];
+          sc.resetPath = true;
+          if (ph === 1) spawnPrec(a);
+          if (ph === 2) {
+            sc.holdMode = true;
+            bot = { id: sc.nextId++, s: 0, x: 0, z: 11, v: randT() < 0.5 ? -T.speed[0] : T.speed[0], dirLeft: 0.3 + randT() * 0.4, crouch: false, visible: true, born: sc.time };
+            sc.bots.push(bot);
+          }
+        }
+        if (ph === 2 && bot) {
+          stepAdad(bot, dt, T, randT);
+          bot.x = bot.s;
+          measureTrack(dt, a, bot);
+        }
+      };
+      sc.onKill = (t, a) => (sc.phase === 0 ? spawnFlick(a) : spawnPrec(a));
+      spawnFlick({ yaw: aim.yaw || 0, pitch: aim.pitch || 0 });
     }
 
     /* ---- peek: sagome che escono da dietro i muri */
@@ -285,11 +541,14 @@
       ];
       const W = 2.4;
       lanes.forEach((l) => {
-        const w = W;
-        const x0 = l.side > 0 ? l.x - w : l.x;
-        sc.covers.push({ min: [x0, ROOM.y[0], l.z - 0.6], max: [x0 + w, 1.6, l.z - 0.2] });
+        const x0 = l.side > 0 ? l.x - W : l.x;
+        sc.covers.push({ min: [x0, ROOM.y[0], l.z - 0.6], max: [x0 + W, 1.6, l.z - 0.2] });
       });
-      sc.rep = 0;
+      const wallBefore = (pt) => {
+        const d = len(pt);
+        const to = pt.map((v) => v / d);
+        return sc.covers.reduce((m, c) => { const t = rayBox(to, c); return t >= 0 && t < m ? t : m; }, Infinity);
+      };
       sc.wait = between(0.6, 1.4);
       sc.tick = (dt) => {
         if (sc.bots.length) {
@@ -299,205 +558,708 @@
           if (age < b.out) b.x = b.start + b.side * b.speed * age;
           else if (age < b.out + b.hold) b.x = b.start + b.side * b.speed * b.out;
           else b.x = b.start + b.side * b.speed * Math.max(0, b.out - (age - b.out - b.hold));
-          // visibile quando la testa non e' coperta dal muro (vista dalla tua posizione)
           // visibile quando si vede la testa (il centro o il bordo che esce) dalla tua posizione
           const hp = botParts(b.x, b.z).head;
-          const seen = (pt) => {
-            const d = len(pt);
-            const dirTo = pt.map((v) => v / d);
-            const tWall = sc.covers.reduce((m, c) => { const t = rayBox(dirTo, c); return t >= 0 && t < m ? t : m; }, Infinity);
-            return tWall > d;
-          };
+          const seen = (pt) => wallBefore(pt) > len(pt);
           b.visible = seen(hp.c) || seen([hp.c[0] + b.side * hp.r * 0.8, hp.c[1], hp.c[2]]);
-          if (b.visible && b.seenAt == null) b.seenAt = sc.time;
-          if (age > b.out * 2 + b.hold) { sc.bots = []; sc.escaped += 1; sc.rep += 1; sc.wait = between(0.5, 1.3); if (sc.rep >= def.reps) sc.done = true; }
+          if (b.visible && b.seenAt == null) { b.seenAt = sc.time; sc.resetPath = true; }
+          if (age > b.out * 2 + b.hold) { sc.bots = []; sc.escaped += 1; endRep(false); }
           return;
         }
         sc.wait -= dt;
         if (sc.wait <= 0 && !sc.done) {
           const l = lanes[Math.floor(rand() * lanes.length)];
-          const speed = between(4.6, 5.8);
+          const speed = between(P.speed[0], P.speed[1]);
           // parte nascosta: abbastanza dietro il muro da non vedersi dalla tua posizione
-          const hidden = (x) => {
-            const head = botParts(x, l.z + 0.4).head.c;
-            const d = len(head);
-            const toHead = head.map((v) => v / d);
-            const tWall = sc.covers.reduce((m, c) => { const t = rayBox(toHead, c); return t >= 0 && t < m ? t : m; }, Infinity);
-            return tWall < d;
-          };
+          const hidden = (x) => { const head = botParts(x, l.z + 0.4).head.c; return wallBefore(head) < len(head); };
           let start = l.x - l.side * 0.35;
           while (!hidden(start) && Math.abs(start - l.x) < W - 0.3) start -= l.side * 0.1;
-          sc.bots.push({ id: sc.nextId++, lane: l, edge: l.x, start, side: l.side, x: start, z: l.z + 0.4, speed, out: between(0.3, 0.42), hold: between(0.35, 0.7), born: sc.time, seenAt: null, visible: false, hp: 1 });
+          sc.bots.push({ id: sc.nextId++, lane: l, edge: l.x, start, side: l.side, x: start, z: l.z + 0.4, speed, out: between(0.3, 0.42), hold: between(P.hold[0], P.hold[1]), born: sc.time, seenAt: null, visible: false });
         }
       };
-      sc.botKill = (b) => {
-        sc.rt.push(sc.time - (b.seenAt == null ? b.born : b.seenAt));
-        sc.effects.push({ c: botParts(b.x, b.z).head.c, t: sc.time, kind: "head" });
-        sc.bots = [];
-        sc.rep += 1;
-        sc.wait = between(0.5, 1.3);
-        if (sc.rep >= def.reps) sc.done = true;
+    }
+
+    /* ---- duelli: un nemico che si sposta a destra e sinistra e spara dopo un po' */
+    if (id === "duel") {
+      sc.wait = between(0.6, 1.2);
+      const Q = { speed: P.speed, change: P.change, bound: 2.2 };
+      sc.tick = (dt) => {
+        if (sc.bots.length) {
+          const b = sc.bots[0];
+          stepAdad(b, dt, Q, rand);
+          b.changed = false;
+          b.x = b.base[0] + b.L[0] * b.s;
+          b.z = b.base[2] + b.L[2] * b.s;
+          if (sc.time - b.born > P.window) {
+            sc.lost += 1;
+            sc.effects.push({ c: botParts(b.x, b.z).head.c, t: sc.time, kind: "lost" });
+            sc.bots = [];
+            endRep(false);
+          }
+          return;
+        }
+        sc.wait -= dt;
+        if (sc.wait <= 0 && !sc.done) {
+          const yaw = between(-P.yaw, P.yaw);
+          const p = spherePoint(yaw, 0, between(P.dist[0], P.dist[1]));
+          const L = [Math.cos(yaw * DEG), 0, -Math.sin(yaw * DEG)];
+          const s = between(-1, 1);
+          sc.bots.push({ id: sc.nextId++, base: [p[0], 0, p[2]], L, s, v: (rand() < 0.5 ? -1 : 1) * between(P.speed[0], P.speed[1]), dirLeft: between(P.change[0], P.change[1]), x: p[0] + L[0] * s, z: p[2] + L[2] * s, crouch: false, visible: true, born: sc.time });
+          sc.resetPath = true;
+        }
+      };
+    }
+
+    /* ---- counter-strafe: ti muovi con A e D, il nemico esce mentre corri */
+    if (id === "strafe") {
+      const S = STRAFE;
+      sc.decor.push(
+        { min: [-S.lane - 0.5, ROOM.y[0], -1.4], max: [-S.lane - 0.3, ROOM.y[0] + 0.3, 1.4] },
+        { min: [S.lane + 0.3, ROOM.y[0], -1.4], max: [S.lane + 0.5, ROOM.y[0] + 0.3, 1.4] }
+      );
+      sc.wait = between(0.4, 0.9);
+      sc.tick = (dt, a) => {
+        const m = a.move > 0 ? 1 : a.move < 0 ? -1 : 0;
+        if (m) {
+          const step = S.acc * dt;
+          sc.vx += clamp(m * S.max - sc.vx, -step, step);
+        } else {
+          const step = S.friction * dt;
+          sc.vx = Math.abs(sc.vx) <= step ? 0 : sc.vx - Math.sign(sc.vx) * step;
+        }
+        let x = sc.eye[0] + sc.vx * dt;
+        if (x > S.lane) { x = S.lane; sc.vx = Math.min(sc.vx, 0); }
+        if (x < -S.lane) { x = -S.lane; sc.vx = Math.max(sc.vx, 0); }
+        sc.eye = [x, 0, 0];
+        const speed = Math.abs(sc.vx);
+        if (speed > S.still) sc.stillSince = null;
+        else if (sc.stillSince == null) sc.stillSince = sc.time;
+        if (speed > 3) sc.movedFor += dt;
+        if (sc.bots.length) {
+          const b = sc.bots[0];
+          sc.hint = speed > S.still ? "Fermati e spara" : "";
+          if (sc.time - b.born > P.life) { sc.bots = []; sc.escaped += 1; endRep(false); }
+          return;
+        }
+        sc.hint = sc.movedFor < 0.25 ? "Muoviti con A e D" : "";
+        sc.wait -= dt;
+        // esce solo mentre corri: per colpirlo devi fermarti
+        if (sc.wait <= 0 && sc.movedFor >= 0.25 && speed > 2.5 && !sc.done) {
+          const p = spherePoint(between(-P.yaw, P.yaw), 0, between(P.dist[0], P.dist[1]));
+          sc.bots.push({ id: sc.nextId++, x: p[0], z: p[2], crouch: false, visible: true, born: sc.time });
+          sc.resetPath = true;
+        }
       };
     }
 
     /* ---- tracking ADAD */
     if (id === "tracking") {
-      const b = { id: sc.nextId++, x: 0, z: 10, v: 0, dirLeft: between(0.25, 0.8), crouch: false, visible: true, born: 0 };
-      b.v = rand() < 0.5 ? -5 : 5;
+      const b = { id: sc.nextId++, s: 0, x: 0, z: P.z, v: rand() < 0.5 ? -P.speed[0] : P.speed[0], dirLeft: between(P.change[0], P.change[1]), crouch: false, visible: true, born: 0 };
       sc.bots.push(b);
-      sc.tick = (dt, a) => {
-        b.dirLeft -= dt;
-        if (b.dirLeft <= 0) { b.v = (b.v > 0 ? -1 : 1) * between(3.8, 6); b.dirLeft = between(0.22, 0.85); }
-        b.x += b.v * dt;
-        if (b.x > 5.5) { b.x = 5.5; b.v = -Math.abs(b.v); }
-        if (b.x < -5.5) { b.x = -5.5; b.v = Math.abs(b.v); }
-        sc.trackTime += dt;
-        if (a && a.holding) {
-          const f = dir(a.yaw, a.pitch);
-          const parts = botParts(b.x, b.z);
-          const on = raySphere(f, parts.head.c, parts.head.r) >= 0 || rayBox(f, parts.body) >= 0;
-          if (on) sc.onTarget += dt;
-        }
-      };
+      sc.tick = (dt, a) => { stepAdad(b, dt, P, rand); b.x = b.s; measureTrack(dt, a, b); };
     }
 
-    sc.update = function update(dt, a = { yaw: 0, pitch: 0, holding: false }) {
+    sc.update = function update(dt, a = {}) {
       if (sc.done) return;
+      const aim = { yaw: a.yaw || 0, pitch: a.pitch || 0, holding: !!a.holding, move: a.move || 0 };
       sc.time += dt;
-      if (sc.tick) sc.tick(dt, a);
+      if (sc.tick) sc.tick(dt, aim);
+      if (sc.resetPath) { sc.path = []; sc.resetPath = false; }
+      sc.path.push([sc.time, aim.yaw, aim.pitch]);
+      if (sc.path.length > 3000) sc.path.splice(1, sc.path.length - 3000);
       // linea della testa: quanto il mirino sta sopra o sotto la testa da colpire (in gradi)
       if (id === "headline") {
         const t = sc.targets[0];
-        const linePitch = t ? anglesTo(t.c).pitch : Math.atan2(HEAD_Y, 14) / DEG;
-        sc.vertSum += Math.abs(a.pitch - linePitch) * dt;
+        const linePitch = t ? anglesTo(rel(t.c)).pitch : Math.atan2(HEAD_Y, 14) / DEG;
+        sc.vertSum += Math.abs(aim.pitch - linePitch) * dt;
+        sc.vertSigned += (aim.pitch - linePitch) * dt;
         sc.vertN += dt;
       }
       if (def.duration && sc.time >= def.duration) { sc.time = def.duration; sc.done = true; }
-      sc.effects = sc.effects.filter((e) => sc.time - e.t < 0.4);
+      sc.effects = sc.effects.filter((e) => sc.time - e.t < 0.45);
     };
 
-    sc.shoot = function shoot(a) {
-      if (sc.done || id === "tracking") return { hit: false };
-      sc.shots += 1;
-      const f = dir(a.yaw, a.pitch);
-      // sagome (peek): i muri bloccano il colpo
-      if (sc.bots.length && id === "peek") {
-        const b = sc.bots[0];
-        const parts = botParts(b.x, b.z);
-        const tHead = raySphere(f, parts.head.c, parts.head.r);
-        const tBody = rayBox(f, parts.body);
-        const tWall = sc.covers.reduce((m, c) => { const t = rayBox(f, c); return t >= 0 && t < m ? t : m; }, Infinity);
-        if (tHead >= 0 && tHead < tWall) {
-          sc.hits += 1; sc.heads += 1; sc.kills += 1;
-          const react = sc.time - (b.seenAt == null ? b.born : b.seenAt);
-          sc.points += 150 + Math.round(clamp(1 - react / 0.9, 0, 1) * 100);
-          sc.botKill(b);
-          return { hit: true, head: true, kill: true };
-        }
-        if (tBody >= 0 && tBody < tWall) { sc.hits += 1; sc.body += 1; sc.points += 20; sc.effects.push({ c: [b.x, -0.6, b.z], t: sc.time, kind: "body" }); return { hit: true, head: false, kill: false }; }
-        sc.misses += 1;
-        sc.points -= 15;
-        return { hit: false, blocked: tWall < Infinity };
-      }
-      // sfere: la piu' vicina colpita
+    function shootSpheres(a, f, seg) {
       let best = null;
       let bestT = Infinity;
-      sc.targets.forEach((t) => { const d = raySphere(f, t.c, t.r); if (d >= 0 && d < bestT) { bestT = d; best = t; } });
-      if (!best) { sc.misses += 1; sc.points -= id === "microshot" ? 40 : 25; return { hit: false }; }
+      let near = null;
+      let nearA = Infinity;
+      sc.targets.forEach((t) => {
+        const c = rel(t.c);
+        const d = raySphere(f, c, t.r);
+        if (d >= 0 && d < bestT) { bestT = d; best = t; }
+        const ang = angleTo(f, c);
+        if (ang < nearA) { nearA = ang; near = t; }
+      });
+      const goal = best || near;
+      let tg = null;
+      let rDeg = 0;
+      let D = 0;
+      if (goal) {
+        const c = rel(goal.c);
+        tg = anglesTo(c);
+        rDeg = Math.atan2(goal.r, len(c)) / DEG;
+        addBias(a, tg, rDeg);
+        const s = sc.path[0];
+        D = Math.hypot(wrap(tg.yaw - s[1]), tg.pitch - s[2]);
+      }
+      if (!best) {
+        sc.misses += 1;
+        sc.points -= id === "microshot" ? 40 : id === "reflex" ? 20 : 25;
+        if (goal) {
+          const k = missKind(sc.path[0], a, tg, rDeg);
+          if (k) sc.miss[k[0]] += 1;
+          sc.bins[binOf(D)][1] += 1;
+        }
+        return { hit: false };
+      }
       sc.hits += 1;
       sc.kills += 1;
+      sc.segH[seg] += 1;
+      if (def.duration) sc.segK[seg] += 1;
+      if (sc.ph) { sc.ph[sc.phase].hits += 1; sc.ph[sc.phase].kills += 1; }
       if (best.kind === "head") sc.heads += 1;
       const ttk = sc.time - Math.max(best.born, sc.lastKillAt);
       sc.ttk.push(ttk);
       sc.lastKillAt = sc.time;
+      const k = flickKind(sc.path, tg, rDeg);
+      if (k) sc.flick[k[0]] += 1;
+      const bin = sc.bins[binOf(D)];
+      bin[0] += 1;
+      bin[2] += ttk;
       // punti: base + rapidita' (+ precisione nel centro per "precisione")
       const speed = Math.round(clamp(1 - (ttk - 0.25) / 0.9, 0, 1) * 50);
-      const off = angleTo(f, best.c) / (Math.atan2(best.r, len(best.c)) / DEG);
+      const off = angleTo(f, rel(best.c)) / rDeg;
       const center = id === "microshot" ? Math.round(clamp(1 - off, 0, 1) * 40) : 0;
       sc.points += 100 + speed + center;
       killTarget(best);
+      sc.path = [[sc.time, a.yaw, a.pitch]];
       if (sc.onKill) sc.onKill(best, a);
       return { hit: true, head: best.kind === "head", kill: true };
+    }
+
+    function shootBot(a, f, b, movingShot, seg) {
+      const parts = botParts(b.x, b.z, b.crouch);
+      const headC = rel(parts.head.c);
+      const tHead = raySphere(f, headC, parts.head.r);
+      const tBody = rayBox(f, { min: rel(parts.body.min), max: rel(parts.body.max) });
+      const tWall = sc.covers.reduce((m, c) => { const t = rayBox(f, { min: rel(c.min), max: rel(c.max) }); return t >= 0 && t < m ? t : m; }, Infinity);
+      const tg = anglesTo(headC);
+      const rDeg = Math.atan2(parts.head.r, len(headC)) / DEG;
+      addBias(a, tg, rDeg);
+      const s = sc.path[0];
+      const D = Math.hypot(wrap(tg.yaw - s[1]), tg.pitch - s[2]);
+      const still = id === "strafe" || id === "peek"; // sagome ferme quando le colpisci (o quasi)
+      if (tHead >= 0 && tHead < tWall) {
+        sc.hits += 1;
+        sc.heads += 1;
+        sc.kills += 1;
+        sc.segH[seg] += 1;
+        const since = sc.time - (b.seenAt != null ? b.seenAt : b.born);
+        sc.rt.push(since);
+        sc.ttk.push(since);
+        if (id === "strafe") { const k = flickKind(sc.path, tg, rDeg); if (k) sc.flick[k[0]] += 1; }
+        if (still) { const bin = sc.bins[binOf(D)]; bin[0] += 1; bin[2] += since; }
+        const window = id === "peek" ? 0.9 : id === "duel" ? P.window : P.life;
+        sc.points += 150 + Math.round(clamp(1 - since / window, 0, 1) * 100);
+        sc.effects.push({ c: parts.head.c, t: sc.time, kind: "head" });
+        sc.bots = [];
+        sc.path = [[sc.time, a.yaw, a.pitch]];
+        endRep(true);
+        return { hit: true, head: true, kill: true };
+      }
+      if (tBody >= 0 && tBody < tWall) {
+        sc.hits += 1;
+        sc.body += 1;
+        sc.points += 10;
+        sc.effects.push({ c: [b.x, -0.6, b.z], t: sc.time, kind: "body" });
+        return { hit: true, head: false, kill: false };
+      }
+      sc.misses += 1;
+      sc.points -= movingShot ? 30 : 15;
+      const blocked = tWall < Infinity && ((tHead >= 0 && tHead >= tWall) || (tBody >= 0 && tBody >= tWall));
+      if (blocked) sc.wall += 1;
+      if (id === "duel") {
+        const dx = wrap(a.yaw - tg.yaw);
+        if (Math.abs(dx) > rDeg * 0.3) { if (dx * b.v > 0) sc.ahead += 1; else sc.behind += 1; }
+      }
+      if (id === "strafe" && !movingShot) {
+        const k = missKind(s, a, tg, rDeg);
+        if (k) sc.miss[k[0]] += 1;
+        sc.bins[binOf(D)][1] += 1;
+      }
+      if (id === "peek" && !blocked) sc.bins[binOf(D)][1] += 1;
+      return { hit: false, blocked };
+    }
+
+    sc.shoot = function shoot(a) {
+      if (sc.done || sc.holdMode) return { hit: false };
+      if (id === "reflex" && !sc.targets.length) { sc.early += 1; sc.points -= 30; return { hit: false, early: true }; }
+      let f = dir(a.yaw, a.pitch);
+      let movingShot = false;
+      if (id === "strafe") {
+        const speed = Math.abs(sc.vx);
+        if (speed > STRAFE.still) {
+          // come in Valorant: in corsa il colpo parte storto (piu' veloce, piu' storto)
+          movingShot = true;
+          sc.moving += 1;
+          const amount = 1 + ((speed - STRAFE.still) / (STRAFE.max - STRAFE.still)) * 6;
+          const ang = rand() * Math.PI * 2;
+          f = dir(a.yaw + Math.cos(ang) * amount, a.pitch + Math.sin(ang) * amount);
+        } else {
+          sc.still += 1;
+          if (sc.bots.length) sc.stop.push(sc.time - Math.max(sc.stillSince == null ? sc.time : sc.stillSince, sc.bots[0].born));
+        }
+      }
+      sc.shots += 1;
+      if (sc.ph) sc.ph[sc.phase].shots += 1;
+      const seg = segNow();
+      sc.segS[seg] += 1;
+      if (sc.bots.length) return shootBot(a, f, sc.bots[0], movingShot, seg);
+      if (HEAD_ONLY.includes(id)) { sc.misses += 1; sc.points -= movingShot ? 30 : 15; return { hit: false }; }
+      return shootSpheres(a, f, seg);
     };
 
     sc.stats = function stats() {
-      const avg = (list) => (list.length ? list.reduce((x, y) => x + y, 0) / list.length : null);
-      // nel peek conta solo la testa: la precisione e' teste su colpi sparati
-      const acc = sc.shots ? (id === "peek" ? sc.heads : sc.hits) / sc.shots : id === "tracking" ? null : 0;
-      const out = {
-        sc: id, dur: Math.round(sc.time * 10) / 10, shots: sc.shots, hits: sc.hits, kills: sc.kills, heads: sc.heads,
-        acc: acc == null ? null : Math.round(acc * 1000) / 10,
-        ttk: avg(sc.ttk) == null ? null : Math.round(avg(sc.ttk) * 1000),
-        rt: avg(sc.rt) == null ? null : Math.round(avg(sc.rt) * 1000),
-        escaped: sc.escaped
+      const st = {
+        sc: id, lv: sc.lv, dur: r1(sc.time), shots: sc.shots, hits: sc.hits, kills: sc.kills, heads: sc.heads, misses: sc.misses
       };
-      if (id === "tracking") {
-        out.track = sc.trackTime ? Math.round((sc.onTarget / sc.trackTime) * 1000) / 10 : 0;
-        out.score = Math.round(out.track * 100);
-      } else if (id === "headline") {
-        out.vert = sc.vertN ? Math.round((sc.vertSum / sc.vertN) * 100) / 100 : null;
-        out.score = Math.max(0, Math.round(sc.points));
-      } else if (id === "reflex") {
-        // punteggio: colpiti, piu' veloce meglio
-        out.score = Math.max(0, Math.round(sc.rt.reduce((s, r) => s + 100 + clamp(1 - (r - 0.25) / 0.8, 0, 1) * 100, 0) - sc.misses * 20));
-      } else if (id === "senstest") {
-        // per confrontare due sensibilita': bersagli al secondo pesati per la precisione
-        const kps = sc.time ? sc.kills / sc.time : 0;
-        out.score = Math.round(kps * 1000 * (0.5 + 0.5 * (acc || 0)));
-      } else {
-        out.score = Math.max(0, Math.round(sc.points));
+      if (id === "tracking") st.acc = null;
+      else st.acc = sc.shots ? r1(((HEAD_ONLY.includes(id) ? sc.heads : sc.hits) / sc.shots) * 100) : 0;
+      st.kps = sc.time ? r2(sc.kills / sc.time) : 0;
+      if (sc.ttk.length) { st.ttk = ms(avg(sc.ttk)); st.ttkMed = ms(median(sc.ttk)); st.ttkBest = ms(Math.min(...sc.ttk)); }
+      if (sc.rt.length) {
+        st.rt = ms(avg(sc.rt));
+        st.rtMed = ms(median(sc.rt));
+        st.rtBest = ms(Math.min(...sc.rt));
+        const d = stdev(sc.rt);
+        if (d != null) st.rtSd = ms(d);
+        st.rts = sc.rt.map((v) => ms(v));
       }
-      out.kps = sc.time ? Math.round((sc.kills / sc.time) * 100) / 100 : 0;
-      return out;
+      if (def.reps) { st.reps = def.reps; st.win = Math.round((sc.kills / def.reps) * 100); }
+      if (sc.escaped) st.escaped = sc.escaped;
+      const fl = sc.flick.c + sc.flick.o + sc.flick.u;
+      if (fl) st.flick = { ...sc.flick };
+      const mi = sc.miss.o + sc.miss.u + sc.miss.s;
+      if (mi) st.miss = { ...sc.miss };
+      const bins = {};
+      Object.keys(sc.bins).forEach((k) => { const b = sc.bins[k]; if (b[0] + b[1]) bins[k] = [b[0], b[1], b[0] ? ms(b[2] / b[0]) : null]; });
+      if (Object.keys(bins).length) st.bins = bins;
+      if (sc.bias.n >= 3) st.bias = { x: r2(sc.bias.x / sc.bias.n), y: r2(sc.bias.y / sc.bias.n), r: r2(sc.bias.r / sc.bias.n), n: sc.bias.n };
+      if (id === "tracking" || id === "senstest") {
+        st.track = sc.trackTime ? r1((sc.onTarget / sc.trackTime) * 100) : 0;
+        st.hold = sc.trackTime ? Math.round((sc.holdTime / sc.trackTime) * 100) : 0;
+        const off = sc.holdTime - sc.onTarget;
+        if (off > 0.05) { st.lag = Math.round((sc.lagT / off) * 100); st.lead = Math.round((sc.leadT / off) * 100); }
+        if (sc.holdTime > 0.05) st.err = r2(sc.errSum / sc.holdTime);
+        if (sc.reacq.length) st.reacq = ms(avg(sc.reacq));
+      }
+      if (id === "tracking") st.seg = sc.segT.map((t, i) => (t ? r1((sc.segOn[i] / t) * 100) : null));
+      else if (def.duration && id !== "senstest") { st.seg = sc.segK.slice(); st.segAcc = sc.segS.map((s, i) => (s ? Math.round((sc.segH[i] / s) * 100) : null)); } else if (def.reps) st.seg = sc.segK.slice();
+      if (id === "headline" && sc.vertN) { st.vert = r2(sc.vertSum / sc.vertN); st.vertBias = r2(sc.vertSigned / sc.vertN); }
+      if (id === "peek") { st.body = sc.body; st.wall = sc.wall; }
+      if (id === "duel") { st.body = sc.body; st.lost = sc.lost; st.behind = sc.behind; st.ahead = sc.ahead; }
+      if (id === "strafe") {
+        st.body = sc.body;
+        st.moving = sc.moving;
+        st.still = sc.still;
+        st.movingPct = sc.shots ? Math.round((sc.moving / sc.shots) * 100) : 0;
+        if (sc.stop.length) st.stop = ms(avg(sc.stop));
+      }
+      if (id === "reflex") st.early = sc.early;
+
+      if (id === "tracking") {
+        st.score = Math.round(st.track * 100);
+      } else if (id === "reflex") {
+        st.score = Math.max(0, Math.round(sc.rt.reduce((s, r) => s + 100 + clamp(1 - (r - 0.25) / 0.8, 0, 1) * 100, 0) - sc.misses * 20 - sc.early * 30));
+      } else if (id === "senstest") {
+        const PH = def.phases.map((p) => p.until);
+        const p0 = sc.ph[0];
+        const p1 = sc.ph[1];
+        const t0 = Math.min(sc.time, PH[0]);
+        const t1 = clamp(sc.time - PH[0], 0, PH[1] - PH[0]);
+        const fAcc = p0.shots ? p0.hits / p0.shots : 0;
+        const pAcc = p1.shots ? p1.hits / p1.shots : 0;
+        const fKps = t0 ? p0.kills / t0 : 0;
+        const pKps = t1 ? p1.kills / t1 : 0;
+        const fs = Math.round(clamp((fKps * (0.4 + 0.6 * fAcc)) / 1.5, 0, 2) * 1000);
+        const ps = Math.round(clamp((pKps * (0.4 + 0.6 * pAcc)) / 1.6, 0, 2) * 1000);
+        const ts = Math.round(clamp((st.track || 0) / 60, 0, 2) * 1000);
+        st.sub = { flick: fs, prec: ps, track: ts, fKps: r2(fKps), fAcc: r1(fAcc * 100), pKps: r2(pKps), pAcc: r1(pAcc * 100), trk: st.track || 0 };
+        st.score = Math.round(0.4 * fs + 0.3 * ps + 0.3 * ts);
+      } else {
+        st.score = Math.max(0, Math.round(sc.points));
+      }
+      return st;
     };
 
+    // velocita' laterale (per la barra del counter-strafe)
+    sc.speed = () => Math.abs(sc.vx);
     return sc;
   }
 
-  /* ------------------------------------------------------------ ricerca della sens */
-  // Confronti a coppie su scala logaritmica: a ogni turno si tiene la meta' con la sens migliore.
-  const FINDER_ROUNDS = 4; // oltre, due sens troppo vicine non si distinguono in 30 secondi
-  const FINDER_SPAN = 1.6;
+  /* ------------------------------------------------------------ dati per i progressi */
+  const METRICS = {
+    score: { label: "Punteggio", unit: "", d: 0, up: true },
+    acc: { label: "Precisione", unit: "%", d: 1, up: true },
+    kps: { label: "Bersagli al secondo", unit: "", d: 2, up: true },
+    ttk: { label: "Tempo per bersaglio", unit: " ms", d: 0, up: false },
+    rt: { label: "Reazione media", unit: " ms", d: 0, up: false },
+    rtBest: { label: "Reazione migliore", unit: " ms", d: 0, up: false },
+    rtSd: { label: "Irregolarità dei tempi", unit: " ms", d: 0, up: false },
+    win: { label: "Riusciti", unit: "%", d: 0, up: true },
+    track: { label: "Tempo addosso", unit: "%", d: 1, up: true },
+    err: { label: "Distanza media dalla sagoma", unit: "°", d: 2, up: false },
+    reacq: { label: "Riaggancio dopo un cambio", unit: " ms", d: 0, up: false },
+    vert: { label: "Errore in altezza", unit: "°", d: 2, up: false },
+    stop: { label: "Da fermo allo sparo", unit: " ms", d: 0, up: false },
+    movingPct: { label: "Colpi in movimento", unit: "%", d: 0, up: false },
+    clean: { label: "Flick puliti", unit: "%", d: 0, up: true },
+    over: { label: "Flick oltre e corretti", unit: "%", d: 0, up: false },
+    under: { label: "Flick corti e corretti", unit: "%", d: 0, up: false }
+  };
+  const SC_METRICS = {
+    gridshot: ["score", "kps", "acc", "ttk", "clean", "over", "under"],
+    microshot: ["score", "acc", "kps", "ttk", "clean", "over", "under"],
+    headline: ["score", "acc", "vert", "ttk", "clean", "over", "under"],
+    strafe: ["score", "win", "movingPct", "stop", "rt", "acc"],
+    peek: ["score", "win", "rt", "rtBest", "acc"],
+    duel: ["score", "win", "rt", "acc"],
+    tracking: ["score", "track", "err", "reacq"],
+    reflex: ["score", "rt", "rtBest", "rtSd", "win"]
+  };
 
-  function finderStart(base, { rounds = FINDER_ROUNDS, now = Date.now() } = {}) {
-    const lo = base / FINDER_SPAN;
-    const hi = base * FINDER_SPAN;
-    return finderPair({ base, lo, hi, round: 0, rounds, history: [], startedAt: now, scores: {} });
+  function metricValue(run, key) {
+    if (!run) return null;
+    if (key === "clean" || key === "over" || key === "under") {
+      const f = run.flick;
+      if (!f) return null;
+      const n = (f.c || 0) + (f.o || 0) + (f.u || 0);
+      if (n < 5) return null;
+      return Math.round(((key === "clean" ? f.c : key === "over" ? f.o : f.u) / n) * 100);
+    }
+    const v = run[key];
+    return num(v) ? v : null;
   }
 
+  const levelOf = (lab, id) => (lab && lab.settings && lab.settings.levels && [1, 2, 3].includes(lab.settings.levels[id]) ? lab.settings.levels[id] : 1);
+  const runsOf = (lab, id, lv = null) => lab.runs.filter((r) => r.sc === id && (lv == null || (r.lv || 1) === lv));
+
+  // Per ogni dato: record, ultima, media delle ultime 5, prime partite e variazione.
+  function summary(lab, id, lv = null) {
+    const runs = runsOf(lab, id, lv).slice().sort((x, y) => x.t - y.t);
+    const keys = SC_METRICS[id] || ["score"];
+    const metrics = keys.map((key) => {
+      const m = METRICS[key];
+      const vals = runs.map((r) => metricValue(r, key)).filter(num);
+      const k = Math.min(5, Math.floor(vals.length / 2));
+      const first = k ? avg(vals.slice(0, k)) : null;
+      const recent = k ? avg(vals.slice(-k)) : null;
+      const last5 = vals.slice(-5);
+      const change = first != null && recent != null && first !== 0 ? ((recent - first) / Math.abs(first)) * 100 : null;
+      return {
+        key, label: m.label, unit: m.unit, d: m.d, up: m.up, n: vals.length,
+        best: vals.length ? (m.up ? Math.max(...vals) : Math.min(...vals)) : null,
+        last: vals.length ? vals[vals.length - 1] : null,
+        avg5: last5.length ? avg(last5) : null,
+        first, recent, k,
+        change: change == null ? null : Math.round(change * 10) / 10,
+        better: change == null || Math.abs(change) < 1 ? null : (change > 0) === m.up
+      };
+    });
+    return { runs, metrics };
+  }
+
+  // Somme delle ultime partite: come arrivi sul bersaglio, colpi mancati, flick per distanza, direzione.
+  function aggregate(runs) {
+    const a = { n: runs.length, flick: { c: 0, o: 0, u: 0 }, miss: { o: 0, u: 0, s: 0 }, bins: { s: [0, 0, 0, 0], m: [0, 0, 0, 0], l: [0, 0, 0, 0] }, bias: { x: 0, y: 0, r: 0, n: 0 } };
+    runs.forEach((r) => {
+      if (r.flick) ["c", "o", "u"].forEach((k) => { a.flick[k] += r.flick[k] || 0; });
+      if (r.miss) ["o", "u", "s"].forEach((k) => { a.miss[k] += r.miss[k] || 0; });
+      if (r.bins) Object.keys(a.bins).forEach((k) => {
+        const b = r.bins[k];
+        if (!Array.isArray(b)) return;
+        a.bins[k][0] += b[0] || 0;
+        a.bins[k][1] += b[1] || 0;
+        if (num(b[2]) && b[0]) { a.bins[k][2] += b[2] * b[0]; a.bins[k][3] += b[0]; }
+      });
+      if (r.bias && r.bias.n) { a.bias.x += r.bias.x * r.bias.n; a.bias.y += r.bias.y * r.bias.n; a.bias.r += r.bias.r * r.bias.n; a.bias.n += r.bias.n; }
+    });
+    if (a.bias.n) { a.bias.x = r2(a.bias.x / a.bias.n); a.bias.y = r2(a.bias.y / a.bias.n); a.bias.r = r2(a.bias.r / a.bias.n); }
+    Object.keys(a.bins).forEach((k) => { const b = a.bins[k]; a.bins[k] = [b[0], b[1], b[3] ? Math.round(b[2] / b[3]) : null]; });
+    return a;
+  }
+
+  // Le partite raggruppate per sensibilita' usata.
+  function bySens(runs, key = "score") {
+    const map = new Map();
+    runs.forEach((r) => {
+      if (!num(r.sens)) return;
+      const s = roundSens(r.sens);
+      if (!map.has(s)) map.set(s, []);
+      map.get(s).push(r);
+    });
+    return [...map.entries()].map(([sens, list]) => ({
+      sens, n: list.length,
+      value: avg(list.map((r) => metricValue(r, key)).filter(num)),
+      acc: avg(list.map((r) => r.acc).filter(num)),
+      last: Math.max(...list.map((r) => r.t))
+    })).sort((x, y) => x.sens - y.sens);
+  }
+
+  // Abilita' (una per esercizio): valore attuale (media delle ultime 5) e variazione dalle prime partite.
+  const SKILLS = [
+    { sc: "gridshot", key: "kps", name: "Velocità" },
+    { sc: "microshot", key: "acc", name: "Precisione" },
+    { sc: "headline", key: "vert", name: "Mirino all'altezza della testa" },
+    { sc: "strafe", key: "win", name: "Counter-strafe" },
+    { sc: "peek", key: "rt", name: "Reazione sui peek" },
+    { sc: "duel", key: "win", name: "Duelli" },
+    { sc: "tracking", key: "track", name: "Tracking" },
+    { sc: "reflex", key: "rt", name: "Riflessi" }
+  ];
+
+  function skillProfile(lab) {
+    return SKILLS.map((s) => {
+      const lv = levelOf(lab, s.sc);
+      const vals = runsOf(lab, s.sc, lv).map((r) => metricValue(r, s.key)).filter(num);
+      const m = METRICS[s.key];
+      const k = Math.min(5, Math.floor(vals.length / 2));
+      const first = k ? avg(vals.slice(0, k)) : null;
+      const recent = k ? avg(vals.slice(-k)) : null;
+      const change = first ? ((recent - first) / Math.abs(first)) * 100 : null;
+      return {
+        ...s, lv, label: m.label, unit: m.unit, d: m.d, up: m.up, n: vals.length,
+        value: vals.length ? avg(vals.slice(-5)) : null,
+        change: change == null ? null : Math.round(change * 10) / 10,
+        better: change == null || Math.abs(change) < 1 ? null : (change > 0) === m.up,
+        trend: vals.slice(-12)
+      };
+    });
+  }
+
+  function dayKey(t) { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
+
+  // Minuti di allenamento per giorno (ultimi giorni, il piu' vecchio per primo).
+  function activity(lab, now = Date.now(), days = 84) {
+    const real = lab.runs.filter((r) => SCN.has(r.sc) && !SCN.get(r.sc).hidden);
+    const map = new Map();
+    real.forEach((r) => {
+      const k = dayKey(r.t);
+      const e = map.get(k) || { sec: 0, runs: 0 };
+      e.sec += r.dur || 0;
+      e.runs += 1;
+      map.set(k, e);
+    });
+    const out = [];
+    const end = new Date(now);
+    end.setHours(12, 0, 0, 0);
+    for (let i = days - 1; i >= 0; i -= 1) {
+      const d = new Date(end.getTime() - i * DAY);
+      const k = dayKey(d.getTime());
+      const e = map.get(k);
+      out.push({ day: k, t: d.getTime(), dow: (d.getDay() + 6) % 7, minutes: e ? Math.round((e.sec / 60) * 10) / 10 : 0, runs: e ? e.runs : 0 });
+    }
+    return out;
+  }
+
+  // Pronto per il livello successivo? (ultime 3 partite al livello attuale)
+  function levelAdvice(lab, id, lv = levelOf(lab, id)) {
+    const def = SCN.get(id);
+    if (!def || !def.up) return null;
+    const vals = runsOf(lab, id, lv).slice(-3).map((r) => metricValue(r, def.up.key)).filter(num);
+    const value = vals.length ? avg(vals) : null;
+    return { key: def.up.key, label: METRICS[def.up.key].label, unit: METRICS[def.up.key].unit, min: def.up.min, value, n: vals.length, lv, next: lv < 3 ? lv + 1 : null, ready: lv < 3 && vals.length >= 3 && value >= def.up.min };
+  }
+
+  /* ------------------------------------------------------------ consigli dalla partita */
+  function insights(run) {
+    if (!run || !SCN.has(run.sc)) return [];
+    const out = [];
+    const add = (tone, text, w) => out.push({ tone, text, w });
+    const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+    const id = run.sc;
+    const fl = run.flick;
+    const mi = run.miss;
+    if (fl) {
+      const n = (fl.c || 0) + (fl.o || 0) + (fl.u || 0);
+      if (n >= 8) {
+        if (fl.o / n >= 0.35) add("warn", `Nel ${pct(fl.o, n)}% dei flick vai oltre il bersaglio e torni indietro: frena un attimo prima di arrivare. Se succede in tutti gli esercizi, la sens potrebbe essere un po' alta.`, 3);
+        else if (fl.u / n >= 0.35) add("warn", `Nel ${pct(fl.u, n)}% dei flick ti fermi prima del bersaglio e devi aggiustare: flick più decisi. Se succede in tutti gli esercizi, la sens potrebbe essere un po' bassa.`, 3);
+        else if (fl.c / n >= 0.7) add("good", `Flick puliti: il ${pct(fl.c, n)}% arriva sul bersaglio senza correzioni.`, 1);
+      }
+    }
+    if (mi) {
+      const n = (mi.o || 0) + (mi.u || 0) + (mi.s || 0);
+      if (n >= 5) {
+        if (mi.o / n >= 0.5) add("warn", `Il ${pct(mi.o, n)}% dei colpi mancati finisce oltre il bersaglio: spari mentre il mouse è ancora in corsa.`, 2);
+        else if (mi.u / n >= 0.5) add("warn", `Il ${pct(mi.u, n)}% dei colpi mancati finisce prima del bersaglio: spari prima di arrivarci.`, 2);
+      }
+    }
+    if (["gridshot", "microshot", "headline"].includes(id) && run.shots >= 15 && num(run.acc)) {
+      if (run.acc < 80) add("warn", `Precisione ${it(run.acc, 1)}%: rallenta quel tanto che basta. In Valorant un colpo sbagliato costa più di un colpo un po' lento.`, 2);
+      else if (run.acc >= 97 && num(run.ttk) && run.ttk > (id === "microshot" ? 650 : 480)) add("tip", `Precisione ${it(run.acc, 1)}%: puoi permetterti di andare più veloce.`, 1);
+    }
+    if (run.bias && run.bias.n >= 10 && run.bias.r > 0) {
+      const bx = run.bias.x / run.bias.r;
+      const by = run.bias.y / run.bias.r;
+      if (Math.abs(by) >= 0.35 && Math.abs(by) >= Math.abs(bx)) add("tip", `I colpi tendono a finire ${by > 0 ? "sopra" : "sotto"} il centro (in media ${it(Math.abs(run.bias.y), 2)}°): ${by > 0 ? "abbassa" : "alza"} di poco il punto in cui fermi il mirino.`, 2);
+      else if (Math.abs(bx) >= 0.35) add("tip", `I colpi tendono a finire a ${bx > 0 ? "destra" : "sinistra"} del centro (in media ${it(Math.abs(run.bias.x), 2)}°): fermati un filo prima.`, 2);
+    }
+    if (run.bins && Array.isArray(run.bins.s) && Array.isArray(run.bins.l)) {
+      const s = run.bins.s;
+      const l = run.bins.l;
+      if (s[0] + s[1] >= 4 && l[0] + l[1] >= 4) {
+        const as = s[0] / (s[0] + s[1]);
+        const al = l[0] / (l[0] + l[1]);
+        if (as - al >= 0.2) add("tip", `Sui flick lunghi (oltre 30°) prendi il ${Math.round(al * 100)}% contro il ${Math.round(as * 100)}% di quelli corti: per i flick lunghi muovi il braccio, non solo il polso.`, 2);
+      }
+    }
+    if (Array.isArray(run.seg) && run.seg.length === 6 && ["gridshot", "microshot", "headline"].includes(id)) {
+      const a = (run.seg[0] || 0) + (run.seg[1] || 0);
+      const b = (run.seg[4] || 0) + (run.seg[5] || 0);
+      if (a >= 6 && b < a * 0.8) add("tip", `Negli ultimi 20 secondi hai fatto ${b} bersagli contro i ${a} dei primi 20: tieni il ritmo fino alla fine.`, 1);
+      else if (a >= 6 && b > a * 1.15) add("good", "Hai chiuso più forte di come hai iniziato: il riscaldamento funziona.", 1);
+    }
+    if (id === "headline" && num(run.vert)) {
+      if (run.vert <= 0.6) add("good", `Mirino quasi sempre all'altezza della testa (${it(run.vert, 2)}° di scarto medio).`, 2);
+      else if (run.vert >= 1.5) add("warn", `In media il mirino sta ${it(run.vert, 1)}° ${num(run.vertBias) && run.vertBias < 0 ? "sotto" : "sopra"} la linea delle teste: mentre ti giri tienilo all'altezza delle teste, così in partita ti basta andare di lato.`, 3);
+    }
+    if (id === "tracking") {
+      if (num(run.hold) && run.hold < 80) add("warn", `Hai tenuto premuto solo per il ${run.hold}% del tempo: il tempo addosso conta solo con il tasto premuto.`, 4);
+      if (num(run.lag) && run.lag >= 65) add("warn", `Quando la perdi, nel ${run.lag}% dei casi sei dietro alla sagoma: anticipa i cambi di direzione.`, 3);
+      else if (num(run.lead) && run.lead >= 65) add("warn", `Quando la perdi, nel ${run.lead}% dei casi sei davanti alla sagoma: movimenti più morbidi. Se succede sempre, la sens potrebbe essere alta.`, 3);
+      if (num(run.reacq) && run.reacq > 300) add("tip", `Dopo un cambio di direzione ci metti in media ${run.reacq} ms a riprenderla.`, 2);
+    }
+    if (id === "strafe") {
+      if (run.moving >= 3) add("warn", `${run.moving} colpi sparati in movimento: in Valorant quei colpi vanno a vuoto. Fermati (lascia il tasto o tocca quello opposto) e poi spara.`, 3);
+      else if (run.moving === 0 && run.shots > 0) add("good", "Nessun colpo in movimento: ti fermi sempre prima di sparare.", 2);
+      if (num(run.stop) && run.stop > 350) add("tip", `Da fermo ci metti in media ${run.stop} ms a sparare: porta il mirino sulla testa mentre ti fermi.`, 2);
+    }
+    if (id === "duel") {
+      const n = (run.behind || 0) + (run.ahead || 0);
+      if (n >= 4 && run.behind >= run.ahead * 2) add("warn", `${run.behind} colpi mancati su ${n} sono dietro alla testa: anticipa nella direzione in cui si muove.`, 3);
+      else if (n >= 4 && run.ahead >= run.behind * 2) add("warn", `${run.ahead} colpi mancati su ${n} sono davanti alla testa: aspetta che entri nel mirino.`, 3);
+      if (run.lost >= 5) add("tip", `${run.lost} duelli persi perché il nemico ha sparato prima: porta prima il mirino sulla testa, poi clicca.`, 2);
+    }
+    if ((id === "duel" || id === "peek" || id === "strafe") && run.body >= 3) add("tip", `${run.body} colpi al corpo: il mirino è basso, tienilo all'altezza della testa.`, 2);
+    if (id === "peek" && run.wall >= 3) add("warn", `${run.wall} colpi sul muro: aspetta che la testa sia fuori, poi clicca.`, 3);
+    if (id === "reflex") {
+      if (run.early >= 2) add("warn", `${run.early} partenze anticipate: clicca solo quando vedi il bersaglio.`, 3);
+      if (num(run.rtSd) && run.rtSd > 90) add("tip", `Tempi irregolari (±${run.rtSd} ms): cerca lo stesso ritmo a ogni bersaglio.`, 1);
+    }
+    if (num(run.win) && run.win >= 90 && (run.lv || 1) < 3) add("good", `${run.win}% riusciti: puoi provare il livello più difficile.`, 1);
+    return out.sort((x, y) => y.w - x.w).slice(0, 4).map(({ tone, text }) => ({ tone, text }));
+  }
+
+  /* ------------------------------------------------------------ ricerca della sens */
+  const FINDER_ROUNDS = 4; // oltre, due sens troppo vicine non si distinguono
+  const FINDER_SPAN = 1.6; // si parte da sens attuale / 1,6 fino a x 1,6
+  const FEELS = ["slow", "ok", "fast"];
+
+  function finderStart(base, { mode = "precisa", rounds = FINDER_ROUNDS, now = Date.now() } = {}) {
+    const f = { v: 2, mode: mode === "rapida" ? "rapida" : "precisa", base: roundSens(base), lo: base / FINDER_SPAN, hi: base * FINDER_SPAN, round: 0, rounds, history: [], startedAt: now, warm: false };
+    return finderPair(f);
+  }
+
+  // Coppia del turno: A (piu' bassa) e B (piu' alta), in ordine casuale e alla cieca.
   function finderPair(f) {
     const ratio = f.hi / f.lo;
     f.a = roundSens(f.lo * Math.pow(ratio, 0.25));
     f.b = roundSens(f.lo * Math.pow(ratio, 0.75));
-    f.scores = {};
-    // ordine alternato: un turno si parte dalla bassa, l'altro dall'alta
-    f.order = f.round % 2 === 0 ? ["a", "b"] : ["b", "a"];
     // stessi bersagli per A e B nello stesso turno: cambia solo la sens
     f.seed = ((Math.round(f.startedAt || 0) % 100000) * 31 + f.round * 7919 + 1) >>> 0;
+    const first = rng(f.seed ^ 0x5bd1e995)() < 0.5 ? "a" : "b";
+    const second = first === "a" ? "b" : "a";
+    // precisa: A-B-B-A (o B-A-A-B) cosi' il riscaldarsi durante il turno pesa uguale su tutte e due
+    f.seq = f.mode === "rapida" ? [first, second] : [first, second, second, first];
+    f.trials = [];
+    f.feel = {};
     return f;
   }
 
-  function finderScore(f, which, score) {
-    if (!f || (which !== "a" && which !== "b")) return f;
-    f.scores[which] = score;
+  // Alla cieca: "Sens 1" e' quella che si prova per prima.
+  function finderLabel(f, which) { return f && f.seq && f.seq[0] === which ? 1 : 2; }
+
+  function finderNext(f) {
+    if (!f || f.done || !Array.isArray(f.seq)) return null;
+    const i = f.trials.length;
+    return i < f.seq.length ? { which: f.seq[i], index: i, total: f.seq.length, label: finderLabel(f, f.seq[i]) } : null;
+  }
+
+  function finderRecord(f, which, st) {
+    const next = finderNext(f);
+    if (!next || next.which !== which || !st || !num(st.score)) return false;
+    f.trials.push({ which, score: st.score, sub: st.sub || null, fl: st.flick || null, mi: st.miss || null, lag: num(st.lag) ? st.lag : null, lead: num(st.lead) ? st.lead : null });
+    return true;
+  }
+
+  function finderFeel(f, which, value) {
+    if (f && (which === "a" || which === "b") && FEELS.includes(value)) f.feel[which] = value;
     return f;
   }
 
-  // Consiglio: la sens con il punteggio migliore; sotto il 5% di differenza conta la sensazione.
+  // Medie del turno per A e per B.
+  function finderTally(f) {
+    const side = (w) => {
+      const list = (f.trials || []).filter((t) => t.which === w);
+      if (!list.length) return null;
+      const mean = (fn) => { const v = avg(list.map(fn).filter(num)); return v == null ? null : Math.round(v); };
+      const count = (k1, k2) => list.reduce((n, t) => n + ((t[k1] && t[k1][k2]) || 0), 0);
+      return {
+        n: list.length,
+        score: mean((t) => t.score),
+        scores: list.map((t) => t.score),
+        flick: mean((t) => t.sub && t.sub.flick),
+        prec: mean((t) => t.sub && t.sub.prec),
+        track: mean((t) => t.sub && t.sub.track),
+        over: count("fl", "o") + count("mi", "o"),
+        under: count("fl", "u") + count("mi", "u"),
+        clean: count("fl", "c"),
+        feel: f.feel[w] || null
+      };
+    };
+    return { a: side("a"), b: side("b") };
+  }
+
+  /*
+   * Consiglio del turno: punteggio (pesa di piu'), sensazione e indizi dai flick.
+   * Restituisce { pick: "a"|"b"|"tie", reasons: [{ k, w, pct }] }.
+   */
   function finderSuggest(f) {
-    const a = f.scores.a;
-    const b = f.scores.b;
-    if (!num(a) || !num(b)) return null;
-    const top = Math.max(a, b, 1);
-    if (Math.abs(a - b) / top < 0.05) return "tie";
-    return a > b ? "a" : "b";
+    if (!f || finderNext(f)) return null;
+    const t = finderTally(f);
+    const A1 = t.a;
+    const B1 = t.b;
+    if (!A1 || !B1) return null;
+    const reasons = [];
+    let vote = 0; // negativo: la piu' bassa (A); positivo: la piu' alta (B)
+    const top = Math.max(A1.score, B1.score, 1);
+    const diff = (B1.score - A1.score) / top;
+    if (Math.abs(diff) >= 0.05) { vote += diff > 0 ? 2 : -2; reasons.push({ k: "score", w: diff > 0 ? "b" : "a", pct: Math.round(Math.abs(diff) * 100) }); } else reasons.push({ k: "close", pct: Math.round(Math.abs(diff) * 100) });
+    // sensazione: lenta = serve piu' alta, veloce = serve piu' bassa
+    const fv = { slow: -1, ok: 0, fast: 1 };
+    if (A1.feel || B1.feel) {
+      const sum = (A1.feel ? fv[A1.feel] : 0) + (B1.feel ? fv[B1.feel] : 0);
+      if (sum < 0) { vote += 1; reasons.push({ k: "feel", w: "b" }); } else if (sum > 0) { vote -= 1; reasons.push({ k: "feel", w: "a" }); } else if (A1.feel === "slow" && B1.feel === "fast") reasons.push({ k: "feel", w: "tie" });
+    }
+    // flick: la piu' alta che supera spesso il bersaglio -> meglio la bassa; la bassa che arriva corta -> meglio l'alta
+    const share = (s) => { const n = s.over + s.under; return n >= 6 ? { over: s.over / n, under: s.under / n } : null; };
+    const sa = share(A1);
+    const sb = share(B1);
+    if (sb && sb.over >= 0.65) { vote -= 1; reasons.push({ k: "over", w: "a", pct: Math.round(sb.over * 100) }); } else if (sa && sa.under >= 0.65) { vote += 1; reasons.push({ k: "under", w: "b", pct: Math.round(sa.under * 100) }); }
+    return { pick: vote > 0 ? "b" : vote < 0 ? "a" : "tie", reasons, diff };
   }
 
   // winner: "a" (piu' bassa), "b" (piu' alta) o "tie" (uguali: si stringe verso il centro).
   function finderChoose(f, winner, now = Date.now()) {
+    if (!f || f.done || !["a", "b", "tie"].includes(winner)) return f;
+    const t = finderTally(f);
+    const sug = finderSuggest(f);
+    const sideOf = (s) => (s ? { score: s.score, feel: s.feel, over: s.over, under: s.under } : null);
+    f.history.push({ round: f.round + 1, a: f.a, b: f.b, first: f.seq[0], A: sideOf(t.a), B: sideOf(t.b), sugg: sug ? sug.pick : null, winner });
     const ratio = f.hi / f.lo;
     const mid = Math.sqrt(f.lo * f.hi);
-    f.history.push({ round: f.round + 1, a: f.a, b: f.b, scoreA: f.scores.a == null ? null : f.scores.a, scoreB: f.scores.b == null ? null : f.scores.b, winner });
     if (winner === "a") f.hi = mid;
     else if (winner === "b") f.lo = mid;
     else { const lo = f.lo * Math.pow(ratio, 0.25); const hi = f.lo * Math.pow(ratio, 0.75); f.lo = lo; f.hi = hi; }
@@ -509,9 +1271,32 @@
       // sempre la stessa direzione: la sens migliore potrebbe stare oltre l'intervallo provato
       const w = f.history.map((h) => h.winner);
       f.edge = w.every((x) => x === "a") ? "low" : w.every((x) => x === "b") ? "high" : null;
+      f.trials = [];
       return f;
     }
     return finderPair(f);
+  }
+
+  // Rifai il turno da capo (per esempio dopo una distrazione).
+  function finderRedo(f) { if (f && !f.done) { f.trials = []; f.feel = {}; } return f; }
+
+  // Ricerca finita: si annota tra le ricerche fatte (una volta sola).
+  function saveFinderResult(lab, { now = Date.now() } = {}) {
+    const f = lab.finder;
+    if (!f || !f.done || f.saved || !num(f.result)) return false;
+    lab.finderResults.push({ t: f.finishedAt || now, base: f.base, result: f.result, mode: f.mode, edge: f.edge || null, dpi: lab.settings.dpi });
+    if (lab.finderResults.length > 20) lab.finderResults = lab.finderResults.slice(-20);
+    f.saved = true;
+    return true;
+  }
+
+  // Piu' ricerche in giorni diversi: la media (geometrica) delle ultime 3 e' piu' affidabile di una sola.
+  function finderAdvice(lab) {
+    const list = lab.finderResults.filter((r) => !r.edge).slice(-3);
+    if (list.length < 2) return { n: list.length, avg: list.length ? list[0].result : null, spread: null, list };
+    const g = Math.exp(avg(list.map((r) => Math.log(r.result))));
+    const vals = list.map((r) => r.result);
+    return { n: list.length, avg: roundSens(g), spread: Math.round((Math.max(...vals) / Math.min(...vals) - 1) * 100), list };
   }
 
   /* ------------------------------------------------------------ stato */
@@ -519,9 +1304,14 @@
 
   function defaultSettings() {
     return {
-      dpi: 800, sens: 0.35, calib: null, sound: true, targetColor: "#33e0ff",
+      dpi: 800, sens: 0.35, calib: null, sound: true, targetColor: "#33e0ff", levels: {},
       crosshair: { color: "#2ef27a", len: 5, thick: 2, gap: 3, dot: false, outline: true }
     };
+  }
+
+  function validFinder(f) {
+    return isObj(f) && f.v === 2 && num(f.lo) && num(f.hi) && f.lo > 0 && f.hi > f.lo && Number.isInteger(f.round) && Number.isInteger(f.rounds) &&
+      Array.isArray(f.history) && Array.isArray(f.trials) && Array.isArray(f.seq) && isObj(f.feel) && num(f.a) && num(f.b) && num(f.seed);
   }
 
   function ensure(raw, now = Date.now()) {
@@ -534,6 +1324,9 @@
     if (!isObj(s.calib) || !num(s.calib.factor) || s.calib.factor < 0.2 || s.calib.factor > 5) s.calib = null;
     s.sound = typeof s.sound === "boolean" ? s.sound : d.sound;
     s.targetColor = typeof s.targetColor === "string" && /^#[0-9a-f]{6}$/i.test(s.targetColor) ? s.targetColor : d.targetColor;
+    const lv = isObj(s.levels) ? s.levels : {};
+    s.levels = {};
+    VISIBLE.forEach((id) => { s.levels[id] = [1, 2, 3].includes(lv[id]) ? lv[id] : 1; });
     const c = isObj(s.crosshair) ? s.crosshair : {};
     s.crosshair = {
       color: typeof c.color === "string" && /^#[0-9a-f]{6}$/i.test(c.color) ? c.color : d.crosshair.color,
@@ -545,29 +1338,23 @@
     };
     lab.settings = s;
     lab.runs = Array.isArray(lab.runs) ? lab.runs.filter((r) => isObj(r) && num(r.t) && SCN.has(r.sc) && num(r.score)).slice(-800) : [];
+    lab.runs.forEach((r) => { if (![1, 2, 3].includes(r.lv)) r.lv = 1; });
     lab.sensHistory = Array.isArray(lab.sensHistory) ? lab.sensHistory.filter((h) => isObj(h) && num(h.t) && num(h.to)).slice(-60) : [];
+    lab.finderResults = Array.isArray(lab.finderResults) ? lab.finderResults.filter((r) => isObj(r) && num(r.t) && num(r.result) && r.result > 0).slice(-20) : [];
     const f = lab.finder;
-    const okFinder = isObj(f) && num(f.lo) && num(f.hi) && f.lo > 0 && f.hi > f.lo && Number.isInteger(f.round) && Number.isInteger(f.rounds) && Array.isArray(f.history) && isObj(f.scores);
-    if (!okFinder) lab.finder = null;
-    if (lab.finder && !lab.finder.done) finderPairKeep(lab.finder);
+    if (!validFinder(f)) {
+      // ricerca della versione precedente: se era finita si tiene il risultato
+      if (isObj(f) && f.v !== 2 && f.done && num(f.result) && f.result > 0) lab.finderResults.push({ t: num(f.finishedAt) ? f.finishedAt : now, base: num(f.base) ? f.base : null, result: f.result, mode: "rapida", edge: f.edge || null, dpi: s.dpi });
+      lab.finder = null;
+    }
     if (!num(lab.createdAt) || lab.createdAt > now) lab.createdAt = now;
     return lab;
   }
 
-  // Dopo una ricarica: ricalcola la coppia se manca, senza perdere i punteggi gia' fatti.
-  function finderPairKeep(f) {
-    const scores = f.scores;
-    if (!num(f.a) || !num(f.b) || !Array.isArray(f.order) || !num(f.seed)) finderPair(f);
-    f.scores = isObj(scores) ? scores : {};
-  }
-
   function recordRun(lab, stats, { sens, now = Date.now(), routine = false } = {}) {
-    if (!stats || !SCN.has(stats.sc)) return null;
-    const run = { t: now, sc: stats.sc, score: stats.score, shots: stats.shots, hits: stats.hits, acc: stats.acc, ttk: stats.ttk, rt: stats.rt, kps: stats.kps, sens: num(sens) ? sens : lab.settings.sens, dur: stats.dur };
-    if (stats.track != null) run.track = stats.track;
-    if (stats.vert != null) run.vert = stats.vert;
-    if (stats.heads) run.heads = stats.heads;
-    if (stats.escaped) run.escaped = stats.escaped;
+    if (!stats || !SCN.has(stats.sc) || !num(stats.score)) return null;
+    const run = { t: now, ...stats, sens: num(sens) ? sens : lab.settings.sens };
+    if (![1, 2, 3].includes(run.lv)) run.lv = 1;
     if (routine) run.routine = true;
     lab.runs.push(run);
     if (lab.runs.length > 800) lab.runs = lab.runs.slice(-800);
@@ -584,48 +1371,63 @@
     return true;
   }
 
-  function dayKey(t) { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
-
   function stats(lab, now = Date.now()) {
     const per = {};
     SCENARIOS.filter((s) => !s.hidden).forEach((s) => {
-      const list = lab.runs.filter((r) => r.sc === s.id);
+      const lv = levelOf(lab, s.id);
+      const list = runsOf(lab, s.id, lv);
       const scores = list.map((r) => r.score);
       const last5 = scores.slice(-5);
       per[s.id] = {
+        lv,
         count: list.length,
+        total: runsOf(lab, s.id).length,
         best: scores.length ? Math.max(...scores) : null,
         last: list.length ? list[list.length - 1] : null,
-        avg5: last5.length ? Math.round(last5.reduce((x, y) => x + y, 0) / last5.length) : null,
+        avg5: last5.length ? Math.round(avg(last5)) : null,
         trend: scores.slice(-20)
       };
     });
     const real = lab.runs.filter((r) => SCN.has(r.sc) && !SCN.get(r.sc).hidden);
-    const days = [...new Set(real.map((r) => dayKey(r.t)))];
+    const days = new Set(real.map((r) => dayKey(r.t)));
     let streak = 0;
     for (let i = 0; i < 400; i += 1) {
       const k = dayKey(now - i * DAY);
-      if (days.includes(k)) streak += 1;
+      if (days.has(k)) streak += 1;
       else if (i === 0) continue;
       else break;
     }
     const minutes = Math.round(real.reduce((n, r) => n + (r.dur || 0), 0) / 60);
     const today = real.filter((r) => dayKey(r.t) === dayKey(now));
-    return { per, runs: real.length, minutes, streak, days: days.length, today: today.length, routineToday: ROUTINE.every((id) => today.some((r) => r.sc === id)) };
+    const shots = real.reduce((n, r) => n + (r.shots || 0), 0);
+    const recent = real.filter((r) => now - r.t <= 30 * DAY && num(r.acc) && r.shots);
+    const accShots = recent.reduce((n, r) => n + r.shots, 0);
+    const acc30 = accShots ? Math.round((recent.reduce((n, r) => n + (r.acc / 100) * r.shots, 0) / accShots) * 1000) / 10 : null;
+    const routineDays = new Set();
+    const byDay = new Map();
+    real.forEach((r) => { const k = dayKey(r.t); if (!byDay.has(k)) byDay.set(k, new Set()); byDay.get(k).add(r.sc); });
+    byDay.forEach((set, k) => { if (ROUTINE.every((id) => set.has(id))) routineDays.add(k); });
+    return {
+      per, runs: real.length, minutes, streak, days: days.size, today: today.length, shots, acc30,
+      routineDays: routineDays.size,
+      routineToday: ROUTINE.every((id) => today.some((r) => r.sc === id))
+    };
   }
 
-  // Un record nuovo per lo scenario? (confronta con le partite precedenti)
+  // Un record nuovo per lo scenario e il livello? (confronta con le partite precedenti)
   function isBest(lab, run) {
-    const prev = lab.runs.filter((r) => r.sc === run.sc && r !== run).map((r) => r.score);
+    const prev = lab.runs.filter((r) => r.sc === run.sc && (r.lv || 1) === (run.lv || 1) && r !== run).map((r) => r.score);
     return !prev.length || run.score > Math.max(...prev);
   }
 
   return {
-    VERSION, YAW, FOV_H, ROOM, HEAD_Y, SCENARIOS, ROUTINE, COLORS, FINDER_ROUNDS, FINDER_SPAN,
+    VERSION, YAW, FOV_H, ROOM, HEAD_Y, STRAFE, LEVELS, SCENARIOS, VISIBLE, ROUTINE, COLORS, FINDER_ROUNDS, FINDER_SPAN, METRICS, SC_METRICS, SKILLS,
     edpi, cm360, sensForCm, roundSens, degPerUnit, calibrate,
-    dir, basis, toCamera, focal, project, raySphere, rayBox, angleTo, anglesTo, rng, botParts,
+    dir, basis, toCamera, focal, project, raySphere, rayBox, angleTo, anglesTo, rng, botParts, wrap,
+    flickKind, missKind,
     scenario: (id) => SCN.get(id), createScenario,
-    finderStart, finderScore, finderSuggest, finderChoose,
+    metricValue, summary, aggregate, bySens, skillProfile, activity, levelAdvice, levelOf, runsOf, insights,
+    finderStart, finderNext, finderLabel, finderRecord, finderFeel, finderTally, finderSuggest, finderChoose, finderRedo, saveFinderResult, finderAdvice,
     defaultSettings, ensure, recordRun, setSens, stats, isBest, dayKey
   };
 });
