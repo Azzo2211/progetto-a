@@ -235,7 +235,7 @@
   }
 
   // Movimento laterale (counter-strafe): velocita' di corsa e accelerazioni del modello.
-  const STRAFE = { lane: 3, max: 6.75, acc: 40, friction: 22, still: 1.0 };
+  const STRAFE = { lane: 3, depth: 1.5, max: 6.75, acc: 40, friction: 22, still: 1.0 };
 
   /* ------------------------------------------------------------ scenari */
   const LEVELS = [{ id: 1, name: "Base" }, { id: 2, name: "Avanzato" }, { id: 3, name: "Pro" }];
@@ -356,7 +356,7 @@
       shots: 0, hits: 0, heads: 0, kills: 0, body: 0, misses: 0, escaped: 0, wall: 0, early: 0, lost: 0,
       moving: 0, still: 0, behind: 0, ahead: 0,
       points: 0, ttk: [], rt: [], stop: [],
-      onTarget: 0, trackTime: 0, holdTime: 0, lagT: 0, leadT: 0, errSum: 0, reacq: [], rc: null,
+      onTarget: 0, trackTime: 0, holdTime: 0, lagT: 0, leadT: 0, highT: 0, errSum: 0, reacq: [], rc: null,
       vertSum: 0, vertSigned: 0, vertN: 0,
       path: [[0, aim.yaw || 0, aim.pitch || 0]], resetPath: false,
       flick: { c: 0, o: 0, u: 0 }, miss: { o: 0, u: 0, s: 0 },
@@ -424,7 +424,13 @@
       if (on) { sc.onTarget += dt; sc.segOn[seg] += dt; }
       const ex = wrap(a.yaw - anglesTo([b.x, -0.6, b.z]).yaw);
       sc.errSum += Math.abs(ex) * dt;
-      if (!on) { if (ex * b.v > 0) sc.leadT += dt; else sc.lagT += dt; }
+      // fuori dalla sagoma: di lato (dietro o davanti, rispetto a dove va) oppure in altezza
+      if (!on) {
+        const half = Math.atan2(0.3, Math.hypot(b.x, b.z)) / DEG;
+        if (Math.abs(ex) <= half) sc.highT += dt;
+        else if (ex * b.v > 0) sc.leadT += dt;
+        else sc.lagT += dt;
+      }
       if (sc.rc) {
         if (!on) sc.rc.lost = true;
         else if (sc.rc.lost) { sc.reacq.push(sc.time - sc.rc.t0); sc.rc = null; } else if (sc.time - sc.rc.t0 > 0.25) { sc.reacq.push(0); sc.rc = null; }
@@ -627,10 +633,14 @@
           const step = S.friction * dt;
           sc.vx = Math.abs(sc.vx) <= step ? 0 : sc.vx - Math.sign(sc.vx) * step;
         }
-        let x = sc.eye[0] + sc.vx * dt;
-        if (x > S.lane) { x = S.lane; sc.vx = Math.min(sc.vx, 0); }
-        if (x < -S.lane) { x = -S.lane; sc.vx = Math.max(sc.vx, 0); }
-        sc.eye = [x, 0, 0];
+        // A e D muovono a sinistra e destra rispetto a dove guardi, come in Valorant
+        const yr = (a.yaw || 0) * DEG;
+        let x = sc.eye[0] + Math.cos(yr) * sc.vx * dt;
+        let z = sc.eye[2] - Math.sin(yr) * sc.vx * dt;
+        const nx = clamp(x, -S.lane, S.lane);
+        const nz = clamp(z, -S.depth, S.depth);
+        if (nx !== x || nz !== z) sc.vx = 0; // contro il bordo della corsia ti fermi
+        sc.eye = [nx, 0, nz];
         const speed = Math.abs(sc.vx);
         if (speed > S.still) sc.stillSince = null;
         else if (sc.stillSince == null) sc.stillSince = sc.time;
@@ -850,7 +860,12 @@
         st.track = sc.trackTime ? r1((sc.onTarget / sc.trackTime) * 100) : 0;
         st.hold = sc.trackTime ? Math.round((sc.holdTime / sc.trackTime) * 100) : 0;
         const off = sc.holdTime - sc.onTarget;
-        if (off > 0.05) { st.lag = Math.round((sc.lagT / off) * 100); st.lead = Math.round((sc.leadT / off) * 100); }
+        if (off > 0.05) {
+          const tot = sc.lagT + sc.leadT + sc.highT || off;
+          st.lag = Math.round((sc.lagT / tot) * 100);
+          st.lead = Math.round((sc.leadT / tot) * 100);
+          st.high = Math.max(0, 100 - st.lag - st.lead);
+        }
         if (sc.holdTime > 0.05) st.err = r2(sc.errSum / sc.holdTime);
         if (sc.reacq.length) st.reacq = ms(avg(sc.reacq));
       }
@@ -905,6 +920,7 @@
     kps: { label: "Bersagli al secondo", unit: "", d: 2, up: true },
     ttk: { label: "Tempo per bersaglio", unit: " ms", d: 0, up: false },
     rt: { label: "Reazione media", unit: " ms", d: 0, up: false },
+    hitTime: { label: "Tempo per colpirlo", unit: " ms", d: 0, up: false },
     rtBest: { label: "Reazione migliore", unit: " ms", d: 0, up: false },
     rtSd: { label: "Irregolarità dei tempi", unit: " ms", d: 0, up: false },
     win: { label: "Riusciti", unit: "%", d: 0, up: true },
@@ -922,9 +938,9 @@
     gridshot: ["score", "kps", "acc", "ttk", "clean", "over", "under"],
     microshot: ["score", "acc", "kps", "ttk", "clean", "over", "under"],
     headline: ["score", "acc", "vert", "ttk", "clean", "over", "under"],
-    strafe: ["score", "win", "movingPct", "stop", "rt", "acc"],
+    strafe: ["score", "win", "movingPct", "stop", "hitTime", "acc"],
     peek: ["score", "win", "rt", "rtBest", "acc"],
-    duel: ["score", "win", "rt", "acc"],
+    duel: ["score", "win", "hitTime", "acc"],
     tracking: ["score", "track", "err", "reacq"],
     reflex: ["score", "rt", "rtBest", "rtSd", "win"]
   };
@@ -938,7 +954,7 @@
       if (n < 5) return null;
       return Math.round(((key === "clean" ? f.c : key === "over" ? f.o : f.u) / n) * 100);
     }
-    const v = run[key];
+    const v = run[key === "hitTime" ? "rt" : key];
     return num(v) ? v : null;
   }
 
@@ -1104,7 +1120,7 @@
       const bx = run.bias.x / run.bias.r;
       const by = run.bias.y / run.bias.r;
       if (Math.abs(by) >= 0.35 && Math.abs(by) >= Math.abs(bx)) add("tip", `I colpi tendono a finire ${by > 0 ? "sopra" : "sotto"} il centro (in media ${it(Math.abs(run.bias.y), 2)}°): ${by > 0 ? "abbassa" : "alza"} di poco il punto in cui fermi il mirino.`, 2);
-      else if (Math.abs(bx) >= 0.35) add("tip", `I colpi tendono a finire a ${bx > 0 ? "destra" : "sinistra"} del centro (in media ${it(Math.abs(run.bias.x), 2)}°): fermati un filo prima.`, 2);
+      else if (Math.abs(bx) >= 0.35) add("tip", `I colpi tendono a finire a ${bx > 0 ? "destra" : "sinistra"} del centro (in media ${it(Math.abs(run.bias.x), 2)}°): prima di cliccare controlla che il mirino sia al centro del bersaglio.`, 2);
     }
     if (run.bins && Array.isArray(run.bins.s) && Array.isArray(run.bins.l)) {
       const s = run.bins.s;
@@ -1127,7 +1143,8 @@
     }
     if (id === "tracking") {
       if (num(run.hold) && run.hold < 80) add("warn", `Hai tenuto premuto solo per il ${run.hold}% del tempo: il tempo addosso conta solo con il tasto premuto.`, 4);
-      if (num(run.lag) && run.lag >= 65) add("warn", `Quando la perdi, nel ${run.lag}% dei casi sei dietro alla sagoma: anticipa i cambi di direzione.`, 3);
+      if (num(run.high) && run.high >= 50) add("warn", `Quando la perdi, nel ${run.high}% dei casi il problema è l'altezza, non il lato: tieni il mirino sul busto.`, 3);
+      else if (num(run.lag) && run.lag >= 65) add("warn", `Quando la perdi, nel ${run.lag}% dei casi sei dietro alla sagoma: anticipa i cambi di direzione.`, 3);
       else if (num(run.lead) && run.lead >= 65) add("warn", `Quando la perdi, nel ${run.lead}% dei casi sei davanti alla sagoma: movimenti più morbidi. Se succede sempre, la sens potrebbe essere alta.`, 3);
       if (num(run.reacq) && run.reacq > 300) add("tip", `Dopo un cambio di direzione ci metti in media ${run.reacq} ms a riprenderla.`, 2);
     }
@@ -1223,8 +1240,11 @@
   }
 
   /*
-   * Consiglio del turno: punteggio (pesa di piu'), sensazione e indizi dai flick.
-   * Restituisce { pick: "a"|"b"|"tie", reasons: [{ k, w, pct }] }.
+   * Consiglio del turno: punteggio (pesa di piu'), sensazione e come arrivi sul bersaglio.
+   * Usa solo indizi che non dicono quale delle due e' la piu' alta (la scelta resta alla cieca):
+   * - sensazione: vince quella giudicata "giusta" contro una lenta o veloce;
+   * - flick: vince quella con le correzioni piu' equilibrate (non sempre oltre o sempre corte).
+   * Restituisce { pick: "a"|"b"|"tie", reasons: [{ k, w, pct, feel, other }] }.
    */
   function finderSuggest(f) {
     if (!f || finderNext(f)) return null;
@@ -1233,21 +1253,24 @@
     const B1 = t.b;
     if (!A1 || !B1) return null;
     const reasons = [];
-    let vote = 0; // negativo: la piu' bassa (A); positivo: la piu' alta (B)
+    let vote = 0; // negativo: A; positivo: B
     const top = Math.max(A1.score, B1.score, 1);
     const diff = (B1.score - A1.score) / top;
     if (Math.abs(diff) >= 0.05) { vote += diff > 0 ? 2 : -2; reasons.push({ k: "score", w: diff > 0 ? "b" : "a", pct: Math.round(Math.abs(diff) * 100) }); } else reasons.push({ k: "close", pct: Math.round(Math.abs(diff) * 100) });
-    // sensazione: lenta = serve piu' alta, veloce = serve piu' bassa
-    const fv = { slow: -1, ok: 0, fast: 1 };
-    if (A1.feel || B1.feel) {
-      const sum = (A1.feel ? fv[A1.feel] : 0) + (B1.feel ? fv[B1.feel] : 0);
-      if (sum < 0) { vote += 1; reasons.push({ k: "feel", w: "b" }); } else if (sum > 0) { vote -= 1; reasons.push({ k: "feel", w: "a" }); } else if (A1.feel === "slow" && B1.feel === "fast") reasons.push({ k: "feel", w: "tie" });
+    const fa = A1.feel;
+    const fb = B1.feel;
+    if (fa && fb) {
+      if (fa === "ok" && fb !== "ok") { vote -= 1; reasons.push({ k: "feel", w: "a" }); } else if (fb === "ok" && fa !== "ok") { vote += 1; reasons.push({ k: "feel", w: "b" }); } else if (fa !== fb && fa !== "ok") reasons.push({ k: "between" }); else if (fa === fb && fa !== "ok") reasons.push({ k: "same", feel: fa });
     }
-    // flick: la piu' alta che supera spesso il bersaglio -> meglio la bassa; la bassa che arriva corta -> meglio l'alta
-    const share = (s) => { const n = s.over + s.under; return n >= 6 ? { over: s.over / n, under: s.under / n } : null; };
-    const sa = share(A1);
-    const sb = share(B1);
-    if (sb && sb.over >= 0.65) { vote -= 1; reasons.push({ k: "over", w: "a", pct: Math.round(sb.over * 100) }); } else if (sa && sa.under >= 0.65) { vote += 1; reasons.push({ k: "under", w: "b", pct: Math.round(sa.under * 100) }); }
+    // squilibrio: quanto le correzioni vanno in un verso solo (0 = equilibrate, 1 = sempre lo stesso verso)
+    const lean = (s) => { const n = s.over + s.under; return n >= 6 ? Math.abs(s.over - s.under) / n : null; };
+    const la = lean(A1);
+    const lb = lean(B1);
+    if (la != null && lb != null && Math.abs(la - lb) >= 0.3) {
+      const w = la < lb ? "a" : "b";
+      vote += w === "b" ? 1 : -1;
+      reasons.push({ k: "balance", w, pct: Math.round(Math.min(la, lb) * 100), other: Math.round(Math.max(la, lb) * 100) });
+    }
     return { pick: vote > 0 ? "b" : vote < 0 ? "a" : "tie", reasons, diff };
   }
 
@@ -1291,12 +1314,14 @@
   }
 
   // Piu' ricerche in giorni diversi: la media (geometrica) delle ultime 3 e' piu' affidabile di una sola.
+  // Si fa la media dell'eDPI (sens x DPI), cosi' vale anche se nel frattempo hai cambiato i DPI.
   function finderAdvice(lab) {
+    const dpi = lab.settings.dpi;
     const list = lab.finderResults.filter((r) => !r.edge).slice(-3);
-    if (list.length < 2) return { n: list.length, avg: list.length ? list[0].result : null, spread: null, list };
-    const g = Math.exp(avg(list.map((r) => Math.log(r.result))));
-    const vals = list.map((r) => r.result);
-    return { n: list.length, avg: roundSens(g), spread: Math.round((Math.max(...vals) / Math.min(...vals) - 1) * 100), list };
+    const ed = list.map((r) => r.result * (num(r.dpi) && r.dpi > 0 ? r.dpi : dpi));
+    if (list.length < 2) return { n: list.length, avg: list.length ? roundSens(ed[0] / dpi) : null, spread: null, list };
+    const g = Math.exp(avg(ed.map((e) => Math.log(e))));
+    return { n: list.length, avg: roundSens(g / dpi), spread: Math.round((Math.max(...ed) / Math.min(...ed) - 1) * 100), list };
   }
 
   /* ------------------------------------------------------------ stato */
@@ -1307,6 +1332,76 @@
       dpi: 800, sens: 0.35, calib: null, sound: true, targetColor: "#33e0ff", levels: {},
       crosshair: { color: "#2ef27a", len: 5, thick: 2, gap: 3, dot: false, outline: true }
     };
+  }
+
+  /* ---- pulizia dei dati salvati (anche da un file importato): solo numeri e valori previsti */
+  const RUN_NUM = ["t", "score", "shots", "hits", "kills", "heads", "misses", "acc", "kps", "ttk", "ttkMed", "ttkBest", "rt", "rtMed", "rtBest", "rtSd", "reps", "win",
+    "escaped", "track", "hold", "lag", "lead", "high", "err", "reacq", "vert", "vertBias", "body", "wall", "lost", "behind", "ahead", "moving", "still", "movingPct", "stop", "early", "sens", "dur"];
+  const numOr = (v) => (num(v) ? v : null);
+  const numList = (l, max) => (Array.isArray(l) ? l.slice(0, max).map((v) => (num(v) ? v : null)) : null);
+  const numObj = (o, keys) => {
+    if (!isObj(o)) return null;
+    const out = {};
+    keys.forEach((k) => { out[k] = num(o[k]) ? o[k] : 0; });
+    return out;
+  };
+
+  function cleanRun(r) {
+    const out = { t: r.t, sc: r.sc, lv: [1, 2, 3].includes(r.lv) ? r.lv : 1 };
+    RUN_NUM.forEach((k) => { if (num(r[k])) out[k] = r[k]; });
+    if (r.routine === true) out.routine = true;
+    if (r.raw === true || r.raw === false) out.raw = r.raw;
+    const fl = numObj(r.flick, ["c", "o", "u"]);
+    if (fl) out.flick = fl;
+    const mi = numObj(r.miss, ["o", "u", "s"]);
+    if (mi) out.miss = mi;
+    if (isObj(r.bins)) {
+      const b = {};
+      ["s", "m", "l"].forEach((k) => { const x = r.bins[k]; if (Array.isArray(x)) b[k] = [num(x[0]) ? x[0] : 0, num(x[1]) ? x[1] : 0, num(x[2]) ? x[2] : null]; });
+      if (Object.keys(b).length) out.bins = b;
+    }
+    const bias = numObj(r.bias, ["x", "y", "r", "n"]);
+    if (bias) out.bias = bias;
+    ["seg", "segAcc"].forEach((k) => { const l = numList(r[k], 12); if (l) out[k] = l; });
+    const rts = numList(r.rts, 60);
+    if (rts) out.rts = rts.filter(num);
+    const sub = numObj(r.sub, ["flick", "prec", "track", "fKps", "fAcc", "pKps", "pAcc", "trk"]);
+    if (sub) out.sub = sub;
+    // partite della versione precedente: bersagli e colpi mancati ricavati
+    if (!num(out.kills) && num(out.hits)) out.kills = ["peek", "duel", "strafe"].includes(out.sc) && num(out.heads) ? out.heads : out.hits;
+    if (!num(out.misses) && num(out.shots) && num(out.hits)) out.misses = Math.max(0, out.shots - out.hits);
+    return out;
+  }
+
+  const WHO = ["a", "b"];
+  function cleanSide(x) {
+    if (!isObj(x)) return null;
+    return { score: numOr(x.score), over: num(x.over) ? x.over : 0, under: num(x.under) ? x.under : 0, feel: FEELS.includes(x.feel) ? x.feel : null };
+  }
+  function cleanFinder(f) {
+    f.mode = f.mode === "rapida" ? "rapida" : "precisa";
+    f.base = num(f.base) ? f.base : roundSens(Math.sqrt(f.lo * f.hi));
+    f.warm = f.warm === true;
+    f.done = f.done === true;
+    f.saved = f.saved === true;
+    f.noRaw = f.noRaw === true;
+    f.edge = f.edge === "low" || f.edge === "high" ? f.edge : null;
+    if (!num(f.result)) delete f.result;
+    if (!num(f.startedAt)) f.startedAt = 0;
+    if (!f.seq.every((w) => WHO.includes(w))) return false;
+    f.trials = f.trials.filter((t) => isObj(t) && WHO.includes(t.which) && num(t.score)).map((t) => ({
+      which: t.which, score: t.score,
+      sub: numObj(t.sub, ["flick", "prec", "track", "fKps", "fAcc", "pKps", "pAcc", "trk"]),
+      fl: numObj(t.fl, ["c", "o", "u"]), mi: numObj(t.mi, ["o", "u", "s"]), lag: numOr(t.lag), lead: numOr(t.lead)
+    })).slice(0, f.seq.length);
+    const feel = {};
+    WHO.forEach((w) => { if (FEELS.includes(f.feel[w])) feel[w] = f.feel[w]; });
+    f.feel = feel;
+    const pick = (v) => (["a", "b", "tie"].includes(v) ? v : null);
+    f.history = f.history.filter((h) => isObj(h) && num(h.a) && num(h.b)).map((h, i) => ({
+      round: i + 1, a: h.a, b: h.b, first: WHO.includes(h.first) ? h.first : "a", A: cleanSide(h.A), B: cleanSide(h.B), sugg: pick(h.sugg), winner: pick(h.winner) || "tie"
+    }));
+    return true;
   }
 
   function validFinder(f) {
@@ -1337,14 +1432,14 @@
       outline: typeof c.outline === "boolean" ? c.outline : d.crosshair.outline
     };
     lab.settings = s;
-    lab.runs = Array.isArray(lab.runs) ? lab.runs.filter((r) => isObj(r) && num(r.t) && SCN.has(r.sc) && num(r.score)).slice(-800) : [];
-    lab.runs.forEach((r) => { if (![1, 2, 3].includes(r.lv)) r.lv = 1; });
-    lab.sensHistory = Array.isArray(lab.sensHistory) ? lab.sensHistory.filter((h) => isObj(h) && num(h.t) && num(h.to)).slice(-60) : [];
-    lab.finderResults = Array.isArray(lab.finderResults) ? lab.finderResults.filter((r) => isObj(r) && num(r.t) && num(r.result) && r.result > 0).slice(-20) : [];
+    if (s.calib) s.calib = { factor: s.calib.factor, measuredFactor: numOr(s.calib.measuredFactor), expected: numOr(s.calib.expected), measured: numOr(s.calib.measured), sens: numOr(s.calib.sens), raw: s.calib.raw === true ? true : s.calib.raw === false ? false : null, t: numOr(s.calib.t) };
+    lab.runs = Array.isArray(lab.runs) ? lab.runs.filter((r) => isObj(r) && num(r.t) && SCN.has(r.sc) && num(r.score)).slice(-800).map(cleanRun) : [];
+    lab.sensHistory = Array.isArray(lab.sensHistory) ? lab.sensHistory.filter((h) => isObj(h) && num(h.t) && num(h.to)).slice(-60).map((h) => ({ t: h.t, from: numOr(h.from), to: h.to, dpi: numOr(h.dpi), method: h.method === "ricerca" ? "ricerca" : "manuale" })) : [];
+    lab.finderResults = Array.isArray(lab.finderResults) ? lab.finderResults.filter((r) => isObj(r) && num(r.t) && num(r.result) && r.result > 0).slice(-20).map((r) => ({ t: r.t, base: numOr(r.base), result: r.result, mode: r.mode === "precisa" ? "precisa" : "rapida", edge: r.edge === "low" || r.edge === "high" ? r.edge : null, dpi: numOr(r.dpi) })) : [];
     const f = lab.finder;
-    if (!validFinder(f)) {
+    if (!validFinder(f) || !cleanFinder(f)) {
       // ricerca della versione precedente: se era finita si tiene il risultato
-      if (isObj(f) && f.v !== 2 && f.done && num(f.result) && f.result > 0) lab.finderResults.push({ t: num(f.finishedAt) ? f.finishedAt : now, base: num(f.base) ? f.base : null, result: f.result, mode: "rapida", edge: f.edge || null, dpi: s.dpi });
+      if (isObj(f) && f.v !== 2 && f.done && num(f.result) && f.result > 0) lab.finderResults.push({ t: num(f.finishedAt) ? f.finishedAt : now, base: num(f.base) ? f.base : null, result: f.result, mode: "rapida", edge: f.edge === "low" || f.edge === "high" ? f.edge : null, dpi: s.dpi });
       lab.finder = null;
     }
     if (!num(lab.createdAt) || lab.createdAt > now) lab.createdAt = now;

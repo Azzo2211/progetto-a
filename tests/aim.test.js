@@ -396,15 +396,26 @@ test("Ricerca della sens: alla cieca, A-B-B-A, consiglio e convergenza", () => {
   const q = run("rapida");
   assert.ok(Math.abs(q.result - best) / best < 0.08, `rapida ${q.result}`);
 
-  // sensazione e flick oltre il bersaglio spostano il consiglio quando i punteggi sono pari
+  // a punteggi pari contano le correzioni equilibrate e la sensazione (senza dire quale e' la piu' alta)
   const g = A.finderStart(0.5, { mode: "rapida" });
-  g.seq.forEach((w) => A.finderRecord(g, w, { score: 1000, flick: w === "b" ? { c: 2, o: 9, u: 1 } : { c: 6, o: 2, u: 2 } }));
+  g.seq.forEach((w) => A.finderRecord(g, w, { score: 1000, flick: w === "b" ? { c: 2, o: 9, u: 1 } : { c: 6, o: 3, u: 3 } }));
   let s = A.finderSuggest(g);
-  assert.strictEqual(s.pick, "a", "la piu' alta supera il bersaglio: meglio la bassa");
-  assert.ok(s.reasons.some((r) => r.k === "over"));
+  assert.strictEqual(s.pick, "a", "correzioni piu' equilibrate");
+  assert.ok(s.reasons.some((r) => r.k === "balance" && r.w === "a"));
+  // la stessa cosa a parti invertite: il consiglio non dipende da quale e' la piu' alta
+  const g2 = A.finderStart(0.5, { mode: "rapida" });
+  g2.seq.forEach((w) => A.finderRecord(g2, w, { score: 1000, flick: w === "a" ? { c: 2, o: 1, u: 9 } : { c: 6, o: 3, u: 3 } }));
+  assert.strictEqual(A.finderSuggest(g2).pick, "b");
   A.finderFeel(g, "b", "fast");
-  s = A.finderSuggest(g);
-  assert.strictEqual(s.pick, "a");
+  assert.strictEqual(A.finderSuggest(g).pick, "a", "una sola sensazione: non cambia nulla");
+  // sensazione: vince la "giusta", da qualunque parte stia
+  const feelPick = (fa, fb) => { const x = A.finderStart(0.5, { mode: "rapida" }); x.seq.forEach((w) => A.finderRecord(x, w, { score: 1000 })); A.finderFeel(x, "a", fa); A.finderFeel(x, "b", fb); return A.finderSuggest(x); };
+  assert.strictEqual(feelPick("slow", "ok").pick, "b");
+  assert.strictEqual(feelPick("ok", "slow").pick, "a", "la piu' alta giudicata lenta non vince");
+  assert.strictEqual(feelPick("fast", "ok").pick, "b");
+  assert.strictEqual(feelPick("slow", "slow").pick, "tie", "tutte e due lente: nessun voto");
+  assert.ok(feelPick("slow", "slow").reasons.some((r) => r.k === "same" && r.feel === "slow"));
+  assert.ok(feelPick("slow", "fast").reasons.some((r) => r.k === "between"));
   const h = A.finderStart(0.5, { mode: "rapida" });
   h.seq.forEach((w) => A.finderRecord(h, w, { score: 1000 }));
   A.finderFeel(h, "a", "slow");
@@ -519,10 +530,64 @@ test("Stato: dati rovinati sistemati, partite, sens, ricerche, versione preceden
   assert.strictEqual(adv.n, 2);
   assert.ok(adv.avg > 0.4 && adv.avg < 0.44);
   assert.ok(adv.spread > 0);
+  // media fatta sull'eDPI: una ricerca a 1600 DPI vale come il doppio della sens a 800
+  const d = A.ensure({ settings: { dpi: 800 }, finderResults: [{ t: 1, result: 0.33, dpi: 800 }, { t: 2, result: 0.37, dpi: 1600 }] });
+  near(A.finderAdvice(d).avg, A.roundSens(Math.sqrt(0.33 * 800 * 0.37 * 1600) / 800), 1e-9, "media in eDPI");
   // ricerca finita della versione precedente: diventa una ricerca fatta
   const old = A.ensure({ finder: { lo: 0.3, hi: 0.4, round: 4, rounds: 4, history: [], scores: {}, done: true, result: 0.37, finishedAt: t0 } });
   assert.strictEqual(old.finder, null);
   assert.strictEqual(old.finderResults[0].result, 0.37);
+});
+
+test("Dati importati: solo numeri e valori previsti (niente codice nella pagina)", () => {
+  const evil = "<img src=x onerror=alert(1)>";
+  const lab = A.ensure({
+    settings: { calib: { factor: 1.1, sens: evil } },
+    runs: [{ t: 5, sc: "duel", score: 10, behind: evil, ahead: 2, lead: evil, flick: { c: evil, o: 1, u: 2 }, bins: { s: [evil, 1, evil], x: [1] }, seg: [1, evil], segAcc: [evil], rts: [100, evil], bias: { x: evil, y: 1, r: 1, n: 3 }, extra: evil, sc2: evil }],
+    sensHistory: [{ t: 1, from: evil, to: 0.4, method: evil }],
+    finderResults: [{ t: 1, result: 0.4, mode: evil, edge: evil, base: evil }],
+    finder: { v: 2, lo: 0.3, hi: 0.5, round: 1, rounds: 4, a: 0.33, b: 0.45, seed: 3, seq: ["a", "b"], trials: [{ which: "a", score: 5, sub: { flick: evil } }, { which: evil, score: 1 }], feel: { a: evil, b: "ok" }, history: [{ round: evil, a: 0.3, b: 0.5, A: { score: evil, feel: evil }, winner: evil }] }
+  });
+  const text = JSON.stringify(lab);
+  assert.ok(!/onerror/.test(text), text);
+  const r = lab.runs[0];
+  assert.strictEqual(r.behind, undefined);
+  assert.strictEqual(r.ahead, 2);
+  assert.strictEqual(r.flick.c, 0);
+  assert.deepStrictEqual(r.bins, { s: [0, 1, null] });
+  assert.deepStrictEqual(r.seg, [1, null]);
+  assert.deepStrictEqual(r.rts, [100]);
+  assert.strictEqual(lab.sensHistory[0].method, "manuale");
+  assert.strictEqual(lab.finderResults[0].mode, "rapida");
+  assert.strictEqual(lab.finder.trials.length, 1);
+  assert.deepStrictEqual(lab.finder.feel, { b: "ok" });
+  assert.strictEqual(lab.finder.history[0].round, 1);
+  assert.strictEqual(lab.finder.history[0].winner, "tie");
+  assert.strictEqual(lab.settings.calib.sens, null);
+  // partite vecchie: bersagli e colpi mancati ricavati
+  const old = A.ensure({ runs: [{ t: 1, sc: "gridshot", score: 3, shots: 50, hits: 40 }] }).runs[0];
+  assert.strictEqual(old.kills, 40);
+  assert.strictEqual(old.misses, 10);
+});
+
+test("Tracking in altezza e counter-strafe rispetto a dove guardi", () => {
+  // yaw perfetto ma mirino sopra la testa: non e' "dietro", e' altezza
+  const sc = A.createScenario("tracking", { seed: 4 });
+  for (let i = 0; i < 45 * 60 && !sc.done; i += 1) {
+    const b = sc.bots[0];
+    const g = A.anglesTo([b.x, 0.6, b.z]);
+    sc.update(1 / 60, { yaw: g.yaw, pitch: g.pitch, holding: true });
+  }
+  const st = sc.stats();
+  assert.ok(st.high > 90, `in altezza ${st.high}`);
+  assert.ok(A.insights({ ...st, t: 1 }).some((x) => /altezza/.test(x.text)));
+  // guardando a 90 gradi a destra, D porta indietro (verso -z), non a destra
+  const s = A.createScenario("strafe", { seed: 1 });
+  for (let i = 0; i < 12; i += 1) s.update(1 / 120, { yaw: 90, move: 1 });
+  assert.ok(s.eye[2] < -0.01 && Math.abs(s.eye[0]) < 1e-6, JSON.stringify(s.eye));
+  for (let i = 0; i < 200; i += 1) s.update(1 / 120, { yaw: 90, move: 1 });
+  assert.ok(s.eye[2] >= -A.STRAFE.depth - 1e-9, "resta nella corsia");
+  assert.strictEqual(s.speed(), 0, "contro il bordo si ferma");
 });
 
 console.log(`${passed} test superati${failed.length ? `, ${failed.length} falliti` : ""}`);

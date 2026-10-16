@@ -236,17 +236,17 @@
     const headOnly = ["peek", "duel", "strafe"].includes(run.sc);
     const items = [];
     const add = (k, v, note) => items.push([k, v, note]);
-    if (num(run.acc)) add("Precisione", `${fmt(run.acc, 1)}%`, headOnly ? `${run.heads} teste su ${plural(run.shots, "colpo", "colpi")}` : `${run.hits} a segno su ${run.shots}`);
-    if (num(run.win)) add("Riusciti", `${run.win}%`, `${run.kills} su ${run.reps}`);
+    if (num(run.acc)) add("Precisione", `${fmt(run.acc, 1)}%`, num(run.shots) ? (headOnly ? `${fmt(run.heads || 0)} teste su ${fmt(run.shots)} colpi` : `${fmt(run.hits || 0)} a segno su ${fmt(run.shots)}`) : "");
+    if (num(run.win)) add("Riusciti", `${fmt(run.win)}%`, num(run.reps) ? `${fmt(run.kills || 0)} su ${fmt(run.reps)}` : "");
     if (d.duration && run.sc !== "tracking" && run.sc !== "senstest") { add("Bersagli", fmt(run.kills)); add("Bersagli al secondo", fmt(run.kps, 2)); }
     if (run.shots && run.sc !== "tracking") add("Colpi mancati", fmt(run.misses));
-    if (num(run.ttk) && !num(run.rt)) add("Tempo per bersaglio", `${fmt(run.ttk)} ms`, `mediana ${fmt(run.ttkMed)} · migliore ${fmt(run.ttkBest)} ms`);
-    if (num(run.rt)) add(run.sc === "duel" || run.sc === "strafe" ? "Tempo per colpirlo" : "Reazione media", `${fmt(run.rt)} ms`, `mediana ${fmt(run.rtMed)} · migliore ${fmt(run.rtBest)} ms`);
+    if (num(run.ttk) && !num(run.rt)) add("Tempo per bersaglio", `${fmt(run.ttk)} ms`, num(run.ttkMed) ? `mediana ${fmt(run.ttkMed)} · migliore ${fmt(run.ttkBest)} ms` : "");
+    if (num(run.rt)) add(run.sc === "duel" || run.sc === "strafe" ? "Tempo per colpirlo" : "Reazione media", `${fmt(run.rt)} ms`, num(run.rtMed) ? `mediana ${fmt(run.rtMed)} · migliore ${fmt(run.rtBest)} ms` : "");
     if (num(run.rtSd)) add("Irregolarità dei tempi", `±${fmt(run.rtSd)} ms`, "più è bassa, più sei costante");
     if (run.escaped) add("Scappati", fmt(run.escaped), "spariti prima del colpo");
     if (run.sc === "duel") { add("Duelli persi", fmt(run.lost || 0), "ha sparato prima lui"); }
     if (run.sc === "strafe") {
-      add("Colpi in movimento", fmt(run.moving || 0), `${run.movingPct || 0}% dei colpi: vanno a caso`);
+      add("Colpi in movimento", fmt(run.moving || 0), `${fmt(run.movingPct || 0)}% dei colpi: vanno a caso`);
       if (num(run.stop)) add("Da fermo allo sparo", `${fmt(run.stop)} ms`);
     }
     if (run.sc === "peek") add("Colpi sul muro", fmt(run.wall || 0), "sparati prima che uscisse");
@@ -257,7 +257,7 @@
       add("Tempo addosso", `${fmt(run.track, 1)}%`);
       if (num(run.hold)) add("Tasto premuto", `${fmt(run.hold)}%`, "del tempo");
       if (num(run.err)) add("Distanza media dalla sagoma", `${fmt(run.err, 2)}°`);
-      if (num(run.lag)) add("Quando la perdi", `dietro ${run.lag}%`, `davanti ${run.lead}%`);
+      if (num(run.lag)) add("Quando la perdi", `dietro ${fmt(run.lag)}%`, `davanti ${fmt(run.lead)}%${num(run.high) ? ` · in altezza ${fmt(run.high)}%` : ""}`);
       if (num(run.reacq)) add("Riaggancio dopo un cambio", `${fmt(run.reacq)} ms`);
     }
     if (run.sc === "senstest" && run.sub) {
@@ -266,7 +266,7 @@
       add("Tracking", fmt(run.sub.track), `${fmt(run.sub.trk, 1)}% addosso`);
     }
     const clean = A.metricValue(run, "clean");
-    if (clean != null) add("Flick puliti", `${clean}%`, "arrivati senza correzioni");
+    if (clean != null) add("Flick puliti", `${fmt(clean)}%`, "arrivati senza correzioni");
     return items;
   }
 
@@ -279,11 +279,12 @@
   }
 
   function stackBar(parts, label) {
+    parts = parts.map((p) => ({ ...p, n: Math.max(0, Number(p.n) || 0) }));
     const total = parts.reduce((n, p) => n + p.n, 0);
     if (!total) return "";
     const pct = (n) => Math.round((n / total) * 100);
     return `<div class="aim-stack" role="img" aria-label="${esc(`${label}: ${parts.map((p) => `${p.name} ${pct(p.n)}%`).join(", ")}`)}">${parts.filter((p) => p.n).map((p) => `<i class="${p.cls}" style="flex-grow:${p.n}"></i>`).join("")}</div>
-      <ul class="aim-legend">${parts.map((p) => `<li><span class="aim-key ${p.cls}" aria-hidden="true"></span>${p.name} <strong>${pct(p.n)}%</strong> <em>(${p.n})</em></li>`).join("")}</ul>`;
+      <ul class="aim-legend">${parts.map((p) => `<li><span class="aim-key ${p.cls}" aria-hidden="true"></span>${p.name} <strong>${pct(p.n)}%</strong> <em>(${fmt(p.n)})</em></li>`).join("")}</ul>`;
   }
 
   function flickBox(flick, miss, title) {
@@ -295,7 +296,7 @@
     return `<section class="aim-sec"><h3 class="aim-h3">${esc(title || "Come arrivi sul bersaglio")}</h3>
       ${nf >= 3 ? `<p class="aim-sec-sub">Bersagli colpiti</p>${stackBar([{ name: "Puliti", n: f.c || 0, cls: "k1" }, { name: "Oltre e corretti", n: f.o || 0, cls: "k2" }, { name: "Corti e corretti", n: f.u || 0, cls: "k3" }], "Bersagli colpiti")}` : ""}
       ${nm >= 3 ? `<p class="aim-sec-sub">Colpi mancati</p>${stackBar([{ name: "Oltre", n: m.o || 0, cls: "k2" }, { name: "Corti", n: m.u || 0, cls: "k3" }, { name: "Di lato", n: m.s || 0, cls: "k0" }], "Colpi mancati")}` : ""}
-      <p class="aim-hint">Pulito: arrivi e spari senza correzioni. Oltre e corretto: vai oltre il bersaglio e torni indietro (flick troppo forte o sens alta). Corto e corretto: ti fermi prima e aggiusti (flick timido o sens bassa). Contano i flick da 3 gradi in su.</p>
+      <p class="aim-hint">Pulito: arrivi e spari senza correzioni. Oltre e corretto: vai oltre il bersaglio e torni indietro (flick troppo forte o sens alta). Corto e corretto: ti fermi prima e aggiusti (flick timido o sens bassa). Contano i flick da 3 gradi in su (di più con i bersagli grandi).</p>
     </section>`;
   }
 
@@ -305,7 +306,7 @@
     if (!rows.length) return "";
     return `<section class="aim-sec"><h3 class="aim-h3">${esc(title || "Flick per distanza")}</h3>
       <div class="aim-table-wrap"><table class="aim-table"><thead><tr><th scope="col">Flick</th><th scope="col">Colpiti</th><th scope="col">Precisione</th><th scope="col">Tempo</th></tr></thead><tbody>
-      ${rows.map(([k, name, range]) => { const b = bins[k]; return `<tr><th scope="row">${name}<em>${range}</em></th><td>${b[0]}<em>${b[1]} mancati</em></td><td>${fmt((b[0] / (b[0] + b[1])) * 100)}%</td><td>${num(b[2]) ? `${fmt(b[2])} ms` : "—"}</td></tr>`; }).join("")}
+      ${rows.map(([k, name, range]) => { const b = bins[k]; return `<tr><th scope="row">${name}<em>${range}</em></th><td>${fmt(b[0])}<em>${fmt(b[1])} mancati</em></td><td>${fmt((b[0] / (b[0] + b[1])) * 100)}%</td><td>${num(b[2]) ? `${fmt(b[2])} ms` : "—"}</td></tr>`; }).join("")}
       </tbody></table></div>
       <p class="aim-hint">La distanza è quanto devi muovere il mirino per arrivare sul bersaglio; il tempo è la media per colpirlo. Se i lunghi vanno molto peggio dei corti, usa più il braccio.</p>
     </section>`;
@@ -321,7 +322,7 @@
     if (run.sc === "tracking") { title = "Tempo addosso, ogni 7,5 secondi"; labels = run.seg.map((_, i) => `${fmt(i * 7.5, 1)}–${fmt((i + 1) * 7.5, 1)} s`); max = 100; unit = "%"; } else if (d.duration) { title = "Bersagli ogni 10 secondi"; labels = run.seg.map((_, i) => `${i * 10}–${(i + 1) * 10} s`); max = Math.max(1, ...run.seg.filter(num)); } else { const k = d.reps / run.seg.length; title = `Riusciti ogni ${k} ripetizioni`; labels = run.seg.map((_, i) => `${i * k + 1}–${(i + 1) * k}`); max = k; }
     return `<section class="aim-sec"><h3 class="aim-h3">Andamento nella partita</h3><p class="aim-sec-sub">${title}</p>
       <div class="aim-bars" role="img" aria-label="${esc(`${title}: ${run.seg.map((v, i) => `${labels[i]} ${v == null ? "nessun dato" : fmt(v) + unit}`).join(", ")}`)}">
-      ${run.seg.map((v, i) => `<div class="aim-bar"><span class="aim-bar-v">${v == null ? "—" : fmt(v) + unit}</span><span class="aim-bar-track"><i style="height:${v == null ? 0 : Math.max(2, (v / max) * 100)}%"></i></span><span class="aim-bar-x">${labels[i]}</span>${run.segAcc && run.segAcc[i] != null ? `<em>${run.segAcc[i]}%</em>` : ""}</div>`).join("")}
+      ${run.seg.map((v, i) => `<div class="aim-bar"><span class="aim-bar-v">${v == null ? "—" : fmt(v) + unit}</span><span class="aim-bar-track"><i style="height:${v == null ? 0 : Math.max(2, (v / max) * 100)}%"></i></span><span class="aim-bar-x">${labels[i]}</span>${run.segAcc && num(run.segAcc[i]) ? `<em>${fmt(run.segAcc[i])}%</em>` : ""}</div>`).join("")}
       </div>
       ${run.segAcc ? `<p class="aim-hint">Sotto ogni colonna: la precisione in quel tratto.</p>` : ""}
     </section>`;
@@ -358,8 +359,8 @@
 
   function trackBox(run) {
     if (run.sc === "tracking" && num(run.lag)) {
-      const off = 100 - (run.track || 0);
-      return `<section class="aim-sec"><h3 class="aim-h3">Quando perdi la sagoma</h3>${stackBar([{ name: "Dietro", n: run.lag, cls: "k3" }, { name: "Davanti", n: run.lead, cls: "k2" }], "Quando perdi la sagoma")}<p class="aim-hint">Fuori dalla sagoma per circa il ${fmt(off)}% del tempo. Dietro: arrivi tardi sui cambi di direzione. Davanti: vai oltre, movimenti troppo bruschi.</p></section>`;
+      const off = 100 - (Number(run.track) || 0);
+      return `<section class="aim-sec"><h3 class="aim-h3">Quando perdi la sagoma</h3>${stackBar([{ name: "Dietro", n: run.lag, cls: "k3" }, { name: "Davanti", n: run.lead, cls: "k2" }, { name: "In altezza", n: run.high, cls: "k0" }], "Quando perdi la sagoma")}<p class="aim-hint">Fuori dalla sagoma per circa il ${fmt(off)}% del tempo. Dietro: arrivi tardi sui cambi di direzione. Davanti: vai oltre, movimenti troppo bruschi. In altezza: il mirino scappa sopra o sotto.</p></section>`;
     }
     if (run.sc === "duel" && (run.behind || run.ahead)) {
       return `<section class="aim-sec"><h3 class="aim-h3">Colpi mancati sul nemico in movimento</h3>${stackBar([{ name: "Dietro alla testa", n: run.behind || 0, cls: "k3" }, { name: "Davanti alla testa", n: run.ahead || 0, cls: "k2" }], "Colpi mancati")}<p class="aim-hint">Dietro: spari dove era, non dove sta andando. Davanti: anticipi troppo.</p></section>`;
@@ -444,7 +445,7 @@
               <li><strong>Tre fasi in ogni prova (40 secondi).</strong> Flick lunghi e corti, bersagli piccoli e vicini, tracking tenendo premuto. Una sens troppo bassa fatica sui flick lunghi, una troppo alta sulla precisione e sul tracking.</li>
               <li><strong>Stessi bersagli.</strong> Nello stesso turno le due prove hanno la stessa sequenza di bersagli (stesse distanze e direzioni, stessa sagoma nel tracking): cambia solo la sens.</li>
               <li><strong>Com'era?</strong> Dopo ogni prova dici se la sens ti è sembrata lenta, giusta o veloce.</li>
-              <li><strong>Come arrivi sul bersaglio.</strong> Se con una sens vai spesso oltre e torni indietro, è un segno che è alta; se ti fermi spesso prima, che è bassa. L'app ne tiene conto nel consiglio, ma decidi tu.</li>
+              <li><strong>Come arrivi sul bersaglio.</strong> Se con una sens correggi quasi sempre nello stesso verso (vai oltre e torni indietro, oppure ti fermi prima e aggiusti), non è quella giusta. Il consiglio guarda punteggio, sensazione e correzioni senza svelarti quale sens è la più alta; decidi tu.</li>
             </ul>
           </div>
           <div class="aim-step">
@@ -453,7 +454,7 @@
               ${mode("precisa", "Precisa", "circa 15 minuti", "Ogni sens si prova due volte per turno, in ordine 1-2-2-1: il riscaldarsi durante il turno pesa uguale su tutte e due. Consigliata.")}
               ${mode("rapida", "Rapida", "circa 8 minuti", "Una prova per sens a ogni turno. Va bene per un controllo veloce.")}
             </div>
-            <p class="aim-hint">Parte dalla tua sens attuale e prova valori fino a ${fmt(A.FINDER_SPAN * 100 - 100)}% più alti e più bassi. Prima c'è un riscaldamento di una prova che non conta.</p>
+            <p class="aim-hint">Parte dalla tua sens attuale e cerca tra la sens divisa per ${fmt(A.FINDER_SPAN, 1)} e la sens per ${fmt(A.FINDER_SPAN, 1)} (circa dal ${fmt(100 - 100 / A.FINDER_SPAN)}% più bassa al ${fmt(A.FINDER_SPAN * 100 - 100)}% più alta). Prima c'è un riscaldamento di una prova che non conta.</p>
             <button type="button" class="aim-btn primary" data-aim="finder-start">Inizia la ricerca</button>
           </div>
         </article>
@@ -551,9 +552,10 @@
     const text = (sug ? sug.reasons : []).map((r) => {
       if (r.k === "score") return `La Sens ${L(r.w)} ha fatto il ${r.pct}% di punti in più.`;
       if (r.k === "close") return `Punteggi quasi uguali (${r.pct}% di differenza): contano la sensazione e come arrivi sul bersaglio.`;
-      if (r.k === "feel") return r.w === "tie" ? "Una ti è sembrata lenta e l'altra veloce: la giusta sta in mezzo." : `La sensazione dice la Sens ${L(r.w)}.`;
-      if (r.k === "over") return `Con la Sens ${L(r.w === "a" ? "b" : "a")} sei andato oltre il bersaglio nel ${r.pct}% delle correzioni: meglio la Sens ${L(r.w)}.`;
-      if (r.k === "under") return `Con la Sens ${L(r.w === "a" ? "b" : "a")} ti sei fermato prima del bersaglio nel ${r.pct}% delle correzioni: meglio la Sens ${L(r.w)}.`;
+      if (r.k === "feel") return `La Sens ${L(r.w)} ti è sembrata giusta, l'altra no.`;
+      if (r.k === "between") return "Una ti è sembrata lenta e l'altra veloce: la giusta sta in mezzo.";
+      if (r.k === "same") return `Tutte e due ti sono sembrate ${r.feel === "slow" ? "lente" : "veloci"}: qui decide il punteggio.`;
+      if (r.k === "balance") return `Con la Sens ${L(r.w)} le correzioni sono più equilibrate: in un verso solo il ${r.pct}% contro il ${r.other}% dell'altra.`;
       return "";
     }).filter(Boolean);
     const pick = sug ? sug.pick : "tie";
@@ -567,7 +569,7 @@
           ${row("Tracking", (t) => t && t.track, "up")}
           ${row("Oltre il bersaglio", (t) => t && t.over, "")}
           ${row("Prima del bersaglio", (t) => t && t.under, "")}
-          ${row("Sensazione", (t) => (t && t.feel ? FEEL_LABEL[t.feel] : "—"), "")}
+          ${row("Sensazione", (t) => (t && FEEL_LABEL[t.feel] ? FEEL_LABEL[t.feel] : "—"), "")}
         </tbody></table></div>
         <div class="aim-reco"><p><strong>${pickText}</strong></p>${text.map((t) => `<p>${esc(t)}</p>`).join("")}<p>Decidi tu: se ti sei trovato meglio con l'altra, scegli quella.</p></div>
         <div class="aim-row">
@@ -604,9 +606,9 @@
             ${f.history.map((h) => {
               const one = h.first;
               const two = one === "a" ? "b" : "a";
-              const side = (w) => { const v = w === "a" ? h.a : h.b; const t = w === "a" ? h.A : h.B; return `${fmtSens(v)}<em>${t ? `${fmt(t.score)} punti${t.feel ? ` · ${FEEL_LABEL[t.feel].toLowerCase()}` : ""}` : "—"}</em>`; };
+              const side = (w) => { const v = w === "a" ? h.a : h.b; const t = w === "a" ? h.A : h.B; return `${fmtSens(v)}<em>${t ? `${fmt(t.score)} punti${FEEL_LABEL[t.feel] ? ` · ${FEEL_LABEL[t.feel].toLowerCase()}` : ""}` : "—"}</em>`; };
               const name = (w) => (w === "tie" ? "uguali" : w ? `Sens ${w === one ? 1 : 2} (${w === "a" ? "bassa" : "alta"})` : "—");
-              return `<tr><th scope="row">${h.round}</th><td>${side(one)}</td><td>${side(two)}</td><td>${name(h.sugg)}</td><td>${name(h.winner)}</td></tr>`;
+              return `<tr><th scope="row">${fmt(h.round)}</th><td>${side(one)}</td><td>${side(two)}</td><td>${name(h.sugg)}</td><td>${name(h.winner)}</td></tr>`;
             }).join("")}
           </tbody></table></div>
         </article>
@@ -620,9 +622,9 @@
     const adv = A.finderAdvice(l);
     const s = l.settings;
     return `<article class="aim-panel"><h3 class="aim-h3">Le tue ricerche</h3>
-      ${adv.n >= 2 ? `<p class="aim-reco">Media delle ultime ${adv.n} ricerche (senza quelle finite al bordo): <strong>${fmtSens(adv.avg)}</strong>, scarto tra loro ${adv.spread}%. ${adv.spread <= 10 ? "Sono vicine: è un valore affidabile." : "Sono ancora lontane: fai un'altra ricerca in un giorno diverso."}</p>
+      ${adv.n >= 2 ? `<p class="aim-reco">Media delle ultime ${adv.n} ricerche (senza quelle finite al bordo), a ${fmt(s.dpi)} DPI: <strong>${fmtSens(adv.avg)}</strong>, scarto tra loro ${fmt(adv.spread)}%. ${adv.spread <= 10 ? "Sono vicine: è un valore affidabile." : "Sono ancora lontane: fai un'altra ricerca in un giorno diverso."}</p>
         ${A.roundSens(adv.avg) !== A.roundSens(s.sens) ? `<div class="aim-row"><button type="button" class="aim-btn" data-aim="finder-use" data-sens="${adv.avg}">Usa la media (${fmtSens(adv.avg)})</button></div>` : ""}` : ""}
-      <ul class="aim-hist">${list.map((r) => `<li><em>${dateLong(r.t)}</em><span>${r.base ? `${fmtSens(r.base)} → ` : ""}<strong>${fmtSens(r.result)}</strong>${r.edge ? " · al bordo" : ""}</span><span>${r.mode === "precisa" ? "precisa" : "rapida"}</span></li>`).join("")}</ul>
+      <ul class="aim-hist">${list.map((r) => `<li><em>${dateLong(r.t)}</em><span>${r.base ? `${fmtSens(r.base)} → ` : ""}<strong>${fmtSens(r.result)}</strong>${num(r.dpi) && r.dpi !== s.dpi ? ` a ${fmt(r.dpi)} DPI` : ""}${r.edge ? " · al bordo" : ""}</span><span>${r.mode === "precisa" ? "precisa" : "rapida"}</span></li>`).join("")}</ul>
     </article>`;
   }
 
@@ -935,12 +937,12 @@
     if (id === "tracking") {
       const list = runs.filter((r) => num(r.lag));
       if (!list.length) return "";
-      const lag = Math.round(list.reduce((n, r) => n + r.lag, 0) / list.length);
-      return `<section class="aim-sec"><h3 class="aim-h3">Quando perdi la sagoma (${tag})</h3>${stackBar([{ name: "Dietro", n: lag, cls: "k3" }, { name: "Davanti", n: 100 - lag, cls: "k2" }], "Quando perdi la sagoma")}</section>`;
+      const mean = (k) => Math.round(list.reduce((n, r) => n + (num(r[k]) ? r[k] : 0), 0) / list.length);
+      return `<section class="aim-sec"><h3 class="aim-h3">Quando perdi la sagoma (${tag})</h3>${stackBar([{ name: "Dietro", n: mean("lag"), cls: "k3" }, { name: "Davanti", n: mean("lead"), cls: "k2" }, { name: "In altezza", n: mean("high"), cls: "k0" }], "Quando perdi la sagoma")}</section>`;
     }
     if (id === "duel") {
-      const b = runs.reduce((n, r) => n + (r.behind || 0), 0);
-      const a = runs.reduce((n, r) => n + (r.ahead || 0), 0);
+      const b = runs.reduce((n, r) => n + (num(r.behind) ? r.behind : 0), 0);
+      const a = runs.reduce((n, r) => n + (num(r.ahead) ? r.ahead : 0), 0);
       if (b + a < 3) return "";
       return `<section class="aim-sec"><h3 class="aim-h3">Colpi mancati sul nemico in movimento (${tag})</h3>${stackBar([{ name: "Dietro alla testa", n: b, cls: "k3" }, { name: "Davanti alla testa", n: a, cls: "k2" }], "Colpi mancati")}</section>`;
     }
@@ -1211,7 +1213,7 @@
         render(false);
         const btn = document.querySelector(`#aim [data-aim="finder-feel"][data-which="${el.dataset.which}"][data-feel="${el.dataset.feel}"]`);
         if (btn) btn.focus({ preventScroll: true });
-        announce(`Sens ${A.finderLabel(f, el.dataset.which)}: ${FEEL_LABEL[el.dataset.feel].toLowerCase()}`);
+        announce(`Sens ${A.finderLabel(f, el.dataset.which)}: ${(FEEL_LABEL[el.dataset.feel] || "").toLowerCase()}`);
         break;
       }
       case "finder-redo":
