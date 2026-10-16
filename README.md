@@ -118,6 +118,20 @@ Il sito è una web app installabile (`manifest.webmanifest`, icone in `icons/`, 
 
 Il service worker usa prima la rete: con internet carichi sempre l'ultima versione, senza internet la copia dell'ultima visita.
 
+## Modulo mira (Valorant)
+
+Pagina **Mira** (cartella `aim/`): allenamento della mira in prima persona e ricerca della sensibilità, pensati per Valorant.
+
+| File | Cosa fa |
+|---|---|
+| `aim/engine.js` | Calcoli della sensibilità come in Valorant (0,07 gradi per unità di movimento a sens 1, campo visivo orizzontale 103 gradi, eDPI, cm/360), calibrazione del mouse, proiezione 3D e colpi, gli scenari (Gridshot, Precisione, Linea della testa, Peek dagli angoli, Tracking ADAD, Riflessi, Prova sensibilità), la ricerca della sens, lo stato. Senza DOM, testato in `tests/aim.test.js`. |
+| `aim/game.js` | Il gioco: stanza 3D disegnata su canvas, mouse bloccato con input grezzo (Pointer Lock con `unadjustedMovement` dove il browser lo permette), mirino in stile Valorant, HUD, suoni; misura del giro di 360 gradi. |
+| `aim/ui.js`, `aim/aim.css` | La pagina: Allenamento (routine del giorno di 6 esercizi, circa 7 minuti), Trova la sens, Progressi, Impostazioni (DPI, sens, mirino, colori, suoni). |
+
+**Sensibilità identica al gioco**: ogni unità di movimento letta dal browser gira la visuale di sens × 0,07 gradi. Con Chrome o Edge l'accelerazione del sistema viene disattivata; per essere sicuri c'è la verifica del 360: si fa un giro completo in Valorant segnando il tappetino, poi lo stesso movimento qui, e l'app corregge lo scarto.
+
+**Trova la sens**: confronti a coppie (30 secondi per sens, flick lunghi e corti), su scala logaritmica attorno alla sens attuale (da ÷1,6 a ×1,6); a ogni turno si tiene la metà con la sens migliore (6 turni). L'app suggerisce in base al punteggio, sceglie l'utente.
+
 ## Modulo difesa: arti marziali "metodo Johan Seong"
 
 La scheda **Arti marziali** è la parte principale della pagina Difesa. Il tema è Johan Seong di Lookism, che copia una tecnica dopo averla vista una volta: qui diventa un metodo reale in quattro passi (osserva, copia, ripeti, fallo tuo). I riferimenti al webtoon sono solo testi con fatti verificati, niente immagini dei personaggi.
@@ -164,6 +178,7 @@ node tests/scenarios.test.js
 node tests/culture.test.js
 node tests/defense.test.js
 node tests/martial.test.js
+node tests/aim.test.js
 node tools/verify-lessons.js           # controlla esempi ed esercizi delle lezioni con Stockfish
 node tools/calibrate.js self:8 6       # precisione media del livello 8 su 6 partite bot contro bot
 node tools/calibrate.js match:10-12 10 # scontro diretto tra due livelli

@@ -105,6 +105,7 @@ const routes = [
   "culture",
   "planning",
   "defense",
+  "aim",
   "logic",
   "memory",
   "influence",
