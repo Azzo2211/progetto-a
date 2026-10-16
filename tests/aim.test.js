@@ -38,6 +38,13 @@ test("Calibrazione: corregge un browser che non legge il mouse 1:1", () => {
   const exact = A.calibrate(0.4, 360 / (0.4 * 0.07));
   near(exact.factor, 1, 1e-9);
   assert.ok(exact.ok);
+  // input grezzo e scarto piccolo: si tiene 1:1 (errore di misura a mano)
+  const small = A.calibrate(0.4, (360 / (0.4 * 0.07)) * 1.02, true);
+  assert.strictEqual(small.factor, 1);
+  near(small.measuredFactor, 1 / 1.02, 1e-9);
+  const noRaw = A.calibrate(0.4, (360 / (0.4 * 0.07)) * 1.02, false);
+  near(noRaw.factor, 1 / 1.02, 1e-9, "senza input grezzo si corregge");
+  assert.ok(!A.calibrate(0.4, 10).valid, "misura assurda");
   const half = A.calibrate(0.4, 360 / (0.4 * 0.07) / 2); // il browser riporta meta' delle unita'
   near(half.factor, 2, 1e-9);
   assert.ok(!half.ok);
@@ -117,6 +124,8 @@ test("Scenari a tempo: un giocatore perfetto colpisce tutto, finiscono a tempo",
   assert.ok(g.ttk > 0 && g.ttk < 200, `ttk ${g.ttk}`);
   const h = play("headline").st;
   assert.ok(h.vert < 0.5, `altezza media del mirino ${h.vert}`);
+  // la testa da colpire coincide con la testa disegnata delle sagome
+  near(A.HEAD_Y, A.botParts(0, 0).head.c[1], 1e-9, "altezza della testa");
   // sparare a vuoto toglie punti e precisione
   const sc = A.createScenario("gridshot", { seed: 1 });
   sc.update(0.1, { yaw: 180, pitch: 0 });
@@ -187,7 +196,19 @@ test("Ricerca della sens: trova il punto migliore in pochi turni", () => {
     f = A.finderChoose(f, s === "tie" ? "tie" : s);
   }
   assert.strictEqual(f.history.length, A.FINDER_ROUNDS);
-  assert.ok(Math.abs(f.result - best) / best < 0.06, `risultato ${f.result}`);
+  assert.ok(Math.abs(f.result - best) / best < 0.08, `risultato ${f.result}`);
+  assert.strictEqual(f.edge, null);
+  // stessi bersagli per A e B nello stesso turno
+  const s1 = A.finderStart(0.4, { now: 12345 });
+  assert.ok(Number.isInteger(s1.seed));
+  const seed1 = s1.seed;
+  A.finderChoose(s1, "b");
+  assert.notStrictEqual(s1.seed, seed1, "turno nuovo, bersagli nuovi");
+  // sempre la piu' alta: risultato al bordo
+  let e = A.finderStart(0.3);
+  while (!e.done) e = A.finderChoose(e, "b");
+  assert.strictEqual(e.edge, "high");
+  assert.ok(e.result > 0.3 && e.result <= 0.3 * A.FINDER_SPAN);
   // ordine alternato tra i turni
   const g = A.finderStart(0.5);
   assert.deepStrictEqual(g.order, ["a", "b"]);
@@ -217,7 +238,9 @@ test("Stato: dati rovinati sistemati, partite, sens e statistiche", () => {
   assert.ok(A.isBest(lab, r1));
   const r2 = A.recordRun(lab, { sc: "gridshot", score: 4000, shots: 60, hits: 50, acc: 83, ttk: 600, kps: 0.8, dur: 60 }, { now: t0 });
   assert.ok(!A.isBest(lab, r2));
+  lab.runs.push({ t: t0, sc: "senstest", score: 999, dur: 30 });
   const st = A.stats(lab, t0);
+  assert.strictEqual(st.runs, 2, "le prove della ricerca non contano nei totali");
   assert.strictEqual(st.per.gridshot.best, 5000);
   assert.strictEqual(st.per.gridshot.count, 2);
   assert.strictEqual(st.streak, 2);

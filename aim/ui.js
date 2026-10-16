@@ -56,7 +56,7 @@
 
   function calibBadge(s) {
     if (!s.calib) return `<span class="aim-badge warn" title="Fai la verifica del 360 nella sezione Trova la sens">mouse non verificato</span>`;
-    return s.calib.ok ? `<span class="aim-badge ok">mouse 1:1 con Valorant</span>` : `<span class="aim-badge ok">mouse calibrato (×${fmt(s.calib.factor, 2)})</span>`;
+    return s.calib.factor === 1 ? `<span class="aim-badge ok">mouse 1:1 con Valorant</span>` : `<span class="aim-badge ok">mouse corretto (×${fmt(s.calib.factor, 2)})</span>`;
   }
 
   /* -------------------------------------------------------------- render */
@@ -153,12 +153,13 @@
       targetColor: l.settings.targetColor,
       sound: l.settings.sound,
       kicker: extra.kicker,
+      seed: extra.seed,
       title: extra.title,
       subtitle: extra.subtitle,
       onEnd: (stats) => endPlay(stats),
       onQuit: () => { ui.play = null; if (mode === "routine") ui.routine = null; render(true); }
     });
-    ui.play = { ctl, id, mode, which: extra.which, sens };
+    ui.play = { ctl, id, mode, which: extra.which, sens, kicker: extra.kicker };
     const stage = box.querySelector(".aim-stage");
     if (stage) stage.focus({ preventScroll: true });
     const top = box.getBoundingClientRect().top;
@@ -173,7 +174,7 @@
     ui.play = null;
     if (p.mode === "finder") {
       const f = l.finder;
-      if (f && !f.done) A.finderScore(f, p.which, stats.score);
+      if (f && !f.done) { A.finderScore(f, p.which, stats.score); if (stats.raw === false) f.noRaw = true; }
       l.runs.push({ t: Date.now(), sc: "senstest", score: stats.score, shots: stats.shots, hits: stats.hits, acc: stats.acc, ttk: stats.ttk, kps: stats.kps, sens: p.sens, dur: stats.dur });
       save();
       ui.tab = "finder";
@@ -184,7 +185,7 @@
     const run = A.recordRun(l, stats, { sens: p.sens, routine: p.mode === "routine" });
     const best = A.isBest(l, run);
     save();
-    if (p.mode === "routine" && ui.routine) ui.routine.results.push({ run, best });
+    if (p.mode === "routine" && ui.routine) ui.routine.results[ui.routine.index] = { run, best };
     ui.result = { stats, run, best, mode: p.mode };
     render(true);
     announce(`${A.scenario(stats.sc).name}: ${stats.score} punti${best ? ", nuovo record" : ""}`);
@@ -207,7 +208,7 @@
     const routine = r.mode === "routine" && ui.routine;
     const nextId = routine ? A.ROUTINE[ui.routine.index + 1] : null;
     const routineDone = routine && !nextId;
-    const summary = routineDone ? `<h3 class="aim-h3">Routine completata</h3><ul class="aim-sum">${ui.routine.results.map((x) => `<li><span>${esc(A.scenario(x.run.sc).name)}</span><strong>${fmt(x.run.score)}</strong>${x.best ? `<em>record</em>` : ""}</li>`).join("")}</ul>` : "";
+    const summary = routineDone ? `<h3 class="aim-h3">Routine completata</h3><ul class="aim-sum">${ui.routine.results.filter(Boolean).map((x) => `<li><span>${esc(A.scenario(x.run.sc).name)}</span><strong>${fmt(x.run.score)}</strong>${x.best ? `<em>record</em>` : ""}</li>`).join("")}</ul>` : "";
     return `
       <div class="aim-body">
         <article class="aim-result">
@@ -240,7 +241,7 @@
           <article class="aim-panel">
             <span class="aim-kicker">Trova la sens</span>
             <h2 data-focus-title>Una sensibilità scelta da te, non copiata</h2>
-            <p>Provi due sensibilità per 30 secondi ciascuna con lo stesso esercizio (flick lunghi e piccoli aggiustamenti). Scegli la migliore: l'intervallo si dimezza e si riparte, per ${A.FINDER_ROUNDS} turni. Alla fine hai il valore da mettere in Valorant. Ci vogliono circa 8 minuti.</p>
+            <p>Provi due sensibilità per 30 secondi ciascuna con lo stesso esercizio (flick lunghi e piccoli aggiustamenti). Scegli la migliore: l'intervallo si dimezza e si riparte, per ${A.FINDER_ROUNDS} turni. Alla fine hai il valore da mettere in Valorant. Ci vogliono circa 6 minuti.</p>
             <div class="aim-form">
               <label><span>DPI del mouse</span><input type="number" inputmode="numeric" min="100" max="32000" step="50" value="${s.dpi}" data-aim-input="dpi"></label>
               <label><span>Sens attuale in Valorant</span><input type="number" inputmode="decimal" min="0.02" max="10" step="0.001" value="${s.sens}" data-aim-input="sens"></label>
@@ -268,11 +269,13 @@
             <span class="aim-kicker">Ricerca finita</span>
             <h2 data-focus-title>La tua sens: ${fmtSens(res)}</h2>
             <dl class="aim-stats big"><div><dt>In Valorant</dt><dd>${fmtSens(res)}</dd></div><div><dt>eDPI</dt><dd>${fmt(A.edpi(s.dpi, res))}</dd></div><div><dt>Giro completo</dt><dd>${fmt(A.cm360(s.dpi, res), 1)} cm</dd></div><div><dt>Partivi da</dt><dd>${fmtSens(f.base)}</dd></div></dl>
+            ${f.edge ? `<p class="aim-note warn">Hai scelto sempre la sens ${f.edge === "low" ? "più bassa" : "più alta"}: la tua ideale potrebbe essere ancora ${f.edge === "low" ? "più bassa" : "più alta"}. Rifai la ricerca partendo da ${fmtSens(res)}.</p>` : ""}
+            ${f.noRaw ? `<p class="aim-note warn">Durante la ricerca l'accelerazione del mouse era attiva: in Valorant la stessa sens combacia solo se in Windows hai tolto "Precisione puntatore avanzata".</p>` : ""}
             <p>Molti giocatori professionisti stanno tra circa 200 e 400 di eDPI: la tua è ${A.edpi(s.dpi, res) < 200 ? "più alta come movimento (sens bassa)" : A.edpi(s.dpi, res) > 400 ? "più veloce della media (sens alta)" : "nella fascia più usata"}. Usala almeno una settimana prima di cambiarla di nuovo: all'inizio ogni sens nuova sembra strana.</p>
             <div class="aim-row">
               ${A.roundSens(res) === A.roundSens(s.sens) ? `<span class="aim-badge ok">È già la tua sens</span>` : `<button type="button" class="aim-btn primary" data-aim="finder-use">Usa ${fmtSens(res)} come mia sens</button>`}
-              <button type="button" class="aim-btn" data-aim="finder-restart">Rifai la ricerca</button>
-              <button type="button" class="aim-btn ghost" data-aim="finder-close">Chiudi</button>
+              <button type="button" class="aim-btn" data-aim="finder-again" data-from="${res}">Rifai partendo da ${fmtSens(res)}</button>
+              <button type="button" class="aim-btn ghost" data-aim="finder-close" data-pending="${A.roundSens(res) === A.roundSens(s.sens) ? "" : "1"}">Chiudi</button>
             </div>
             <h3 class="aim-h3">I turni</h3>
             <ol class="aim-rounds">${f.history.map((h) => `<li><span>Turno ${h.round}</span><span class="${h.winner === "a" ? "win" : ""}">${fmtSens(h.a)} · ${h.scoreA == null ? "—" : fmt(h.scoreA)}</span><span class="${h.winner === "b" ? "win" : ""}">${fmtSens(h.b)} · ${h.scoreB == null ? "—" : fmt(h.scoreB)}</span><em>${h.winner === "tie" ? "pari" : h.winner === "a" ? "meglio la bassa" : "meglio l'alta"}</em></li>`).join("")}</ol>
@@ -299,7 +302,8 @@
           <span class="aim-kicker">Turno ${f.round + 1} di ${f.rounds}</span>
           <h2 data-focus-title>Quale sens va meglio?</h2>
           <div class="aim-progress" aria-label="Intervallo rimasto"><i style="width:${Math.max(4, Math.round(width * 100))}%"></i></div>
-          <p class="aim-hint">Intervallo rimasto: da ${fmtSens(f.lo)} a ${fmtSens(f.hi)}. Prova tutte e due nell'ordine indicato, poi scegli.</p>
+          <p class="aim-hint">Intervallo rimasto: da ${fmtSens(f.lo)} a ${fmtSens(f.hi)}. Prova tutte e due nell'ordine indicato, poi scegli. A e B hanno gli stessi bersagli: cambia solo la sens.</p>
+          ${f.noRaw ? `<p class="aim-note warn">Il browser non ha disattivato l'accelerazione del mouse: i confronti valgono lo stesso, ma la sens finale combacia con Valorant solo se in Windows hai tolto "Precisione puntatore avanzata". Meglio Chrome o Edge.</p>` : ""}
           <div class="aim-pair">${f.order.map(tile).join("")}</div>
           ${both ? `
             <p class="aim-reco">${sug === "tie" ? "Punteggi quasi uguali: scegli a sensazione, quella con cui ti sei sentito più sicuro." : `Il punteggio dice ${sug === "a" ? "la bassa" : "l'alta"} (${fmtSens(f[sug])}). Se ti sei trovato meglio con l'altra, scegli quella: decidi tu.`}</p>
@@ -322,20 +326,22 @@
     const s = l.settings;
     const c = ui.calib;
     if (c.phase === "measure") {
-      return `<div class="aim-body aim-playing"><div class="aim-mount" id="aimMeasure"></div><p class="aim-tip"><strong>Ricorda</strong> Muovi solo in orizzontale, dal primo al secondo segno, alla velocità che vuoi: conta la distanza.</p></div>`;
+      return `<div class="aim-body aim-playing"><div class="aim-mount" id="aimMeasure"></div><p class="aim-tip"><strong>Ricorda</strong> Muovi solo in orizzontale, dal primo al secondo segno, a velocità tranquilla e costante: conta la distanza.</p></div>`;
     }
     if (c.phase === "result") {
       const r = c.res;
-      const off = Math.round((r.factor - 1) * 1000) / 10;
+      const off = Math.round((r.measured / r.expected - 1) * 1000) / 10;
       return `
         <div class="aim-body">
           <article class="aim-panel">
             <span class="aim-kicker">Verifica del 360</span>
             <h2 data-focus-title>${r.ok ? "Il browser legge il mouse come Valorant" : "Il browser legge il mouse in modo diverso"}</h2>
-            <p>Valorant usa ${fmt(r.expected)} unità per un giro alla sens ${fmtSens(r.sens)}; qui ne hai fatte ${fmt(r.measured)} (${off > 0 ? "+" : ""}${fmt(off, 1)}%). ${r.ok ? "Scarto sotto il 5%: va bene così, lo correggo comunque." : "Correggo io la sensibilità qui, così un giro richiede lo stesso movimento."}</p>
+            <p>Valorant usa ${fmt(r.expected)} unità per un giro alla sens ${fmtSens(r.sens)}; qui ne hai fatte ${fmt(r.measured)} (${off > 0 ? "+" : ""}${fmt(off, 1)}%). ${r.ok ? "Scarto sotto il 5%: va bene." : "Correggo io la sensibilità qui, così un giro richiede lo stesso movimento."}</p>
             ${Math.abs(off) > 40 ? `<p class="aim-note warn">Lo scarto è molto grande: controlla di aver usato la stessa sens e gli stessi DPI in Valorant, e di aver fatto un giro solo. Se puoi, rifai la misura.</p>` : ""}
+            ${r.raw === false ? `<p class="aim-note warn">Il browser non ha disattivato l'accelerazione del mouse: con l'accelerazione il giro cambia con la velocità e nessuna correzione basta. Salvala solo se in Windows hai tolto "Precisione puntatore avanzata"; meglio rifare la misura con Chrome o Edge.</p>` : ""}
+            ${r.raw === true && r.factor === 1 && r.measuredFactor !== 1 ? `<p class="aim-hint">Con l'input grezzo uno scarto così piccolo è normale nella misura a mano: tengo 1:1.</p>` : ""}
             <div class="aim-row">
-              <button type="button" class="aim-btn primary" data-aim="calib-save">Salva la correzione</button>
+              ${r.valid ? `<button type="button" class="aim-btn primary" data-aim="calib-save">Salva la correzione</button>` : `<p class="aim-note warn">Misura non valida: rifalla.</p>`}
               <button type="button" class="aim-btn" data-aim="calib-measure">Rifai la misura</button>
               <button type="button" class="aim-btn ghost" data-aim="calib-close">Annulla</button>
             </div>
@@ -347,6 +353,7 @@
         <article class="aim-panel">
           <span class="aim-kicker">Verifica del 360</span>
           <h2 data-focus-title>Stesso movimento qui e in Valorant</h2>
+          ${c.msg ? `<p class="aim-note warn">${esc(c.msg)}</p>` : ""}
           <ol class="aim-steps">
             <li>In Valorant controlla di avere la sens <strong>${fmtSens(s.sens)}</strong> e il mouse a <strong>${fmt(s.dpi)} DPI</strong> (se no, cambiali nella pagina Impostazioni di qui).</li>
             <li>Vai nel Poligono, punta il mirino su uno spigolo verticale e fai un segno sul tappetino accanto al bordo sinistro del mouse.</li>
@@ -369,7 +376,13 @@
     ui.measureCtl = G.measure(mount, {
       sens: l.settings.sens,
       calib: null,
-      onDone: (units) => { ui.measureCtl = null; const res = A.calibrate(l.settings.sens, units); ui.calib = res ? { phase: "result", res } : { phase: "intro" }; render(true); },
+      sound: l.settings.sound,
+      onDone: (units, raw) => {
+        ui.measureCtl = null;
+        const res = A.calibrate(l.settings.sens, units, raw);
+        ui.calib = res ? { phase: "result", res } : { phase: "intro", msg: "Non ho letto nessun movimento: rifai la misura muovendo il mouse dal primo al secondo segno." };
+        render(true);
+      },
       onCancel: () => { ui.measureCtl = null; ui.calib = { phase: "intro" }; render(true); }
     });
   }
@@ -424,7 +437,7 @@
               <label><span>Sens in Valorant</span><input type="number" inputmode="decimal" min="0.02" max="10" step="0.001" value="${s.sens}" data-aim-input="sens"></label>
               <p class="aim-live-calc" id="aimCalc">eDPI ${fmt(A.edpi(s.dpi, s.sens))} · ${fmt(A.cm360(s.dpi, s.sens), 1)} cm per un giro completo</p>
             </div>
-            <p class="aim-hint">Qui ogni movimento del mouse gira la visuale di sens × 0,07 gradi, come in Valorant, con campo visivo di 103 gradi. ${calibBadge(s)}</p>
+            <p class="aim-hint">Qui ogni movimento del mouse gira la visuale di sens × 0,07 gradi, come in Valorant, con campo visivo di 103 gradi. Combacia davvero con Chrome o Edge (input grezzo) e zoom della pagina al 100%; la verifica del 360 lo conferma. ${calibBadge(s)}</p>
             ${s.calib ? `<button type="button" class="aim-link" data-aim="calib-remove">Togli la correzione del mouse</button>` : `<button type="button" class="aim-link" data-aim="calib">Verifica il mouse con il 360</button>`}
           </article>
           <article class="aim-panel">
@@ -510,7 +523,11 @@
     switch (el.dataset.aim) {
       case "tab": ui.tab = el.dataset.tab; ui.result = null; render(true); break;
       case "play": startPlay(el.dataset.id, "free"); break;
-      case "again": startPlay(el.dataset.id, ui.result && ui.result.mode === "routine" ? "routine" : "free"); break;
+      case "again": {
+        const inRoutine = ui.result && ui.result.mode === "routine" && ui.routine;
+        startPlay(el.dataset.id, inRoutine ? "routine" : "free", inRoutine ? { kicker: `Routine · ${ui.routine.index + 1} di ${A.ROUTINE.length}` } : {});
+        break;
+      }
       case "routine": ui.routine = { index: 0, results: [] }; startPlay(A.ROUTINE[0], "routine", { kicker: `Routine · 1 di ${A.ROUTINE.length}` }); break;
       case "next":
         if (!ui.routine) break;
@@ -529,7 +546,7 @@
         const f = l.finder;
         if (!f || f.done) break;
         const which = el.dataset.which;
-        startPlay("senstest", "finder", { which, sens: f[which], kicker: `Trova la sens · turno ${f.round + 1} di ${f.rounds}`, title: `Prova ${which.toUpperCase()}: sens ${fmtSens(f[which])}`, subtitle: "Flick lunghi e piccoli aggiustamenti alternati, 30 secondi. Gioca come in partita." });
+        startPlay("senstest", "finder", { which, sens: f[which], seed: f.seed, kicker: `Trova la sens · turno ${f.round + 1} di ${f.rounds}`, title: `Prova ${which.toUpperCase()}: sens ${fmtSens(f[which])}`, subtitle: "Flick lunghi e piccoli aggiustamenti alternati, 30 secondi. Gioca come in partita." });
         break;
       }
       case "finder-choose": {
@@ -562,12 +579,25 @@
         save();
         render(true);
         break;
-      case "finder-close": l.finder = null; save(); render(true); break;
+      case "finder-close":
+        if (el.dataset.pending && !confirmTwice(el, "Chiudi senza usarla?")) break;
+        l.finder = null;
+        save();
+        render(true);
+        break;
+      case "finder-again": {
+        const from = Number(el.dataset.from);
+        l.finder = A.finderStart(Number.isFinite(from) && from > 0 ? from : l.settings.sens);
+        save();
+        render(true);
+        announce(`Nuova ricerca da ${fmtSens(l.finder.base)}`);
+        break;
+      }
       case "calib": ui.tab = "finder"; ui.result = null; ui.calib = { phase: "intro" }; render(true); break;
       case "calib-measure": ui.calib = { phase: "measure" }; render(true); break;
       case "calib-close": ui.calib = null; render(true); break;
       case "calib-save":
-        if (ui.calib && ui.calib.res) { l.settings.calib = Object.assign({ t: Date.now() }, ui.calib.res); save(); }
+        if (ui.calib && ui.calib.res && ui.calib.res.valid) { l.settings.calib = Object.assign({ t: Date.now() }, ui.calib.res); save(); }
         ui.calib = null;
         render(true);
         announce("Correzione del mouse salvata");
@@ -617,7 +647,15 @@
         el.removeAttribute("aria-invalid");
         save();
         updateCalc();
-      } else if (final) el.setAttribute("aria-invalid", "true");
+      } else if (final) {
+        // valore non valido: si torna alla sens di prima (nel campo e nei dati)
+        const before = Number(el.dataset.before);
+        if (Number.isFinite(before) && before > 0.01) l.settings.sens = before;
+        el.value = String(l.settings.sens);
+        el.removeAttribute("aria-invalid");
+        save();
+        updateCalc();
+      }
     } else if (key.startsWith("ch-")) {
       const k = key.slice(3);
       l.settings.crosshair[k] = Math.round(v);

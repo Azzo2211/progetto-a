@@ -192,28 +192,41 @@
         <div class="aim-ov-card">
           <h3>In pausa</h3>
           <p>${def.name}: ${def.duration ? `${Math.max(0, Math.ceil(def.duration - g.sc.time))} secondi rimasti` : `${def.reps - (g.sc.rep || 0)} ripetizioni rimaste`}.</p>
+          ${g.error ? `<p class="aim-ov-error">${g.error}</p>` : ""}
           <button type="button" class="aim-ov-go" data-g="start">Clicca per riprendere</button>
           <button type="button" class="aim-ov-ghost" data-g="quit">Esci senza salvare</button>
         </div>`);
     }
 
     /* ---------- pointer lock */
+    function lockFailed() {
+      g.error = "Il browser non ha bloccato il mouse. Aspetta un secondo e clicca di nuovo (subito dopo Esc il browser non lo permette; se compare una richiesta di permesso, accettala).";
+      if (g.state === "paused") pausedOverlay(); else readyOverlay();
+    }
+
+    // Chiede il mouse bloccato con l'input grezzo; senza supporto, quello normale.
     async function lock() {
       ac();
       g.error = "";
       if (!canvas.requestPointerLock) { g.error = "Questo browser non permette di bloccare il mouse: usa Chrome o Edge su un computer."; readyOverlay(); return; }
+      let p;
       try {
-        const p = canvas.requestPointerLock({ unadjustedMovement: true });
-        if (p && typeof p.then === "function") { await p; g.raw = true; } else g.raw = false;
+        p = canvas.requestPointerLock({ unadjustedMovement: true });
       } catch (e) {
-        try {
-          const p2 = canvas.requestPointerLock();
-          if (p2 && typeof p2.then === "function") await p2;
-          g.raw = false;
-        } catch (e2) {
-          g.error = "Il browser non ha bloccato il mouse. Clicca di nuovo dentro il riquadro (se compare una richiesta di permesso, accettala).";
-          if (g.state === "paused") pausedOverlay(); else readyOverlay();
-        }
+        p = null;
+      }
+      if (!p || typeof p.then !== "function") { g.raw = false; return; }
+      try {
+        await p;
+        g.raw = true;
+      } catch (e) {
+        if (e && e.name === "NotSupportedError") {
+          try {
+            const p2 = canvas.requestPointerLock();
+            if (p2 && typeof p2.then === "function") await p2;
+            g.raw = false;
+          } catch (e2) { lockFailed(); }
+        } else lockFailed();
       }
     }
 
@@ -221,7 +234,9 @@
       const was = g.locked;
       g.locked = document.pointerLockElement === canvas;
       if (g.locked && !was) {
-        if (g.state === "ready") { g.state = "countdown"; g.countdown = 3; showOverlay(""); blip(660, 90, 0.05); }
+        g.skipMove = true; // il primo movimento dopo il blocco puo' essere un salto
+        g.lastMoveAt = performance.now();
+        if (g.state === "ready") { g.state = "countdown"; g.countdown = 3; showOverlay(""); if (o.sound) blip(660, 90, 0.05); }
         else if (g.state === "paused") { g.state = "countdown"; g.countdown = 1.5; showOverlay(""); }
       } else if (!g.locked && was) {
         g.holding = false;
@@ -233,8 +248,16 @@
       if (!g.locked) return;
       const dx = e.movementX || 0;
       const dy = e.movementY || 0;
-      // salti assurdi (difetto noto di alcuni browser con il mouse bloccato): si ignorano
-      if (Math.abs(dx) > 600 || Math.abs(dy) > 600) return;
+      const now = performance.now();
+      const since = now - (g.lastMoveAt || now);
+      g.lastMoveAt = now;
+      if (g.skipMove) { g.skipMove = false; if (!g.raw && (Math.abs(dx) > 200 || Math.abs(dy) > 200)) return; }
+      // senza input grezzo alcuni browser mandano salti assurdi: si scartano solo quelli
+      // impossibili per una mano (oltre 40 unita' al millisecondo); i flick veloci restano
+      if (!g.raw) {
+        const limit = Math.max(2000, 40 * since);
+        if (Math.abs(dx) > limit || Math.abs(dy) > limit) return;
+      }
       look(dx, dy);
     }
 
@@ -259,6 +282,8 @@
       if (e.button !== 0) return;
       if (!g.locked) return;
       e.preventDefault();
+      // tracking: il tasto tenuto premuto dal conto alla rovescia vale gia'
+      if (def.id === "tracking") { g.holding = true; return; }
       fire();
     }
     function onUp(e) { if (e.button === 0) g.holding = false; }
@@ -269,9 +294,9 @@
         const act = btn.dataset.g;
         if (act === "start") lock();
         else if (act === "start-full") {
-          const go = () => lock();
-          if (!document.fullscreenElement && stage.requestFullscreen) stage.requestFullscreen().then(() => { resize(); go(); }).catch(go);
-          else go();
+          // prima il mouse bloccato, poi lo schermo intero, nello stesso clic
+          lock();
+          if (!document.fullscreenElement && stage.requestFullscreen) stage.requestFullscreen().then(() => setTimeout(resize, 60)).catch(() => {});
         }
         else if (act === "quit") quit();
         else if (act === "fullscreen") fullscreen();
@@ -513,7 +538,8 @@
   /* ------------------------------------------------------------ misura del 360 */
   // Si conta il movimento tra due clic: lo stesso movimento fisico che in Valorant fa un giro.
   function measure(mount, opts) {
-    const o = Object.assign({ sens: 0.35, calib: null }, opts || {});
+    const o = Object.assign({ sens: 0.35, calib: null, sound: true }, opts || {});
+    const beep = (f, ms, gn) => { if (o.sound) blip(f, ms, gn); };
     mount.innerHTML = `
       <div class="aim-stage aim-measure" tabindex="-1">
         <canvas class="aim-canvas" aria-label="Misura del giro di 360 gradi"></canvas>
@@ -522,7 +548,7 @@
     const canvas = mount.querySelector("canvas");
     const ctx = canvas.getContext("2d");
     const overlay = mount.querySelector(".aim-overlay");
-    const m = { phase: "ready", units: 0, locked: false, raf: 0, destroyed: false };
+    const m = { phase: "ready", units: 0, locked: false, raf: 0, destroyed: false, raw: null };
     const dpu = A.degPerUnit(o.sens, o.calib);
 
     function card(html) { overlay.innerHTML = html; overlay.hidden = !html; }
@@ -534,11 +560,16 @@
         <button type="button" class="aim-ov-ghost" data-m="cancel">Annulla</button></div>`);
     }
     async function lock() {
+      let p;
+      try { p = canvas.requestPointerLock({ unadjustedMovement: true }); } catch (e) { p = null; }
+      if (!p || typeof p.then !== "function") { m.raw = false; return; }
       try {
-        const p = canvas.requestPointerLock({ unadjustedMovement: true });
-        if (p && p.then) await p;
+        await p;
+        m.raw = true;
       } catch (e) {
-        try { const p2 = canvas.requestPointerLock(); if (p2 && p2.then) await p2; } catch (e2) { ready("Il browser non ha bloccato il mouse: riprova."); }
+        if (e && e.name === "NotSupportedError") {
+          try { const p2 = canvas.requestPointerLock(); if (p2 && p2.then) await p2; m.raw = false; } catch (e2) { ready("Il browser non ha bloccato il mouse: aspetta un secondo e riprova."); }
+        } else ready("Il browser non ha bloccato il mouse: aspetta un secondo e riprova.");
       }
     }
     function onLock() {
@@ -548,20 +579,24 @@
     }
     function onMove(e) {
       if (!m.locked || m.phase !== "moving") return;
-      if (Math.abs(e.movementX) > 600) return;
+      const now = performance.now();
+      const since = now - (m.lastAt || now);
+      m.lastAt = now;
+      if (!m.raw && Math.abs(e.movementX) > Math.max(2000, 40 * since)) return;
       m.units += e.movementX || 0;
     }
     function onDown(e) {
       if (!m.locked || e.button !== 0) return;
-      if (m.phase === "armed") { m.phase = "moving"; m.units = 0; blip(660, 80, 0.05); }
+      if (m.phase === "armed") { m.phase = "moving"; m.units = 0; m.lastAt = performance.now(); beep(660, 80, 0.05); }
       else if (m.phase === "moving") {
         m.phase = "done";
-        blip(990, 120, 0.05);
+        beep(990, 120, 0.05);
         document.exitPointerLock();
         const units = Math.abs(m.units);
+        const raw = m.raw;
         const cb = o.onDone;
         destroy();
-        if (cb) cb(units);
+        if (cb) cb(units, raw);
       }
     }
     function onClick(e) {

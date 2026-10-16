@@ -41,11 +41,14 @@
   }
 
   // measured: unita' lette qui per lo stesso movimento fisico che in Valorant fa 360 gradi.
-  function calibrate(sens, measured) {
+  function calibrate(sens, measured, raw = null) {
     const expected = 360 / (sens * YAW);
     if (!num(measured) || measured <= 0) return null;
-    const factor = expected / measured;
-    return { factor, expected: Math.round(expected), measured: Math.round(measured), sens, ok: Math.abs(1 - factor) <= 0.05 };
+    const measuredFactor = expected / measured;
+    // con l'input grezzo uno scarto sotto il 3% e' errore di misura a mano: si tiene 1:1
+    const snap = raw === true && Math.abs(1 - measuredFactor) < 0.03;
+    const factor = snap ? 1 : measuredFactor;
+    return { factor, measuredFactor, expected: Math.round(expected), measured: Math.round(measured), sens, raw, ok: Math.abs(1 - measuredFactor) <= 0.05, valid: measuredFactor >= 0.2 && measuredFactor <= 5 };
   }
 
   /* ------------------------------------------------------------ vettori */
@@ -135,7 +138,7 @@
   /* ------------------------------------------------------------ stanza */
   // Stanza: pavimento a -1.6 m (occhi a 1,6 m), soffitto a 6 m. Le teste stanno a quota 0.
   const ROOM = { x: [-24, 24], y: [-1.6, 6], z: [-24, 30] };
-  const HEAD_Y = 0.02;
+  const HEAD_Y = -0.02; // centro della testa delle sagome (vedi botParts)
 
   // Sagoma: corpo come box verticale, testa come sfera.
   function botParts(x, z, crouch = false) {
@@ -297,10 +300,15 @@
           else if (age < b.out + b.hold) b.x = b.start + b.side * b.speed * b.out;
           else b.x = b.start + b.side * b.speed * Math.max(0, b.out - (age - b.out - b.hold));
           // visibile quando la testa non e' coperta dal muro (vista dalla tua posizione)
-          const head = botParts(b.x, b.z).head.c;
-          const toHead = head.map((v) => v / len(head));
-          const tWall = sc.covers.reduce((m, c) => { const t = rayBox(toHead, c); return t >= 0 && t < m ? t : m; }, Infinity);
-          b.visible = tWall > len(head);
+          // visibile quando si vede la testa (il centro o il bordo che esce) dalla tua posizione
+          const hp = botParts(b.x, b.z).head;
+          const seen = (pt) => {
+            const d = len(pt);
+            const dirTo = pt.map((v) => v / d);
+            const tWall = sc.covers.reduce((m, c) => { const t = rayBox(dirTo, c); return t >= 0 && t < m ? t : m; }, Infinity);
+            return tWall > d;
+          };
+          b.visible = seen(hp.c) || seen([hp.c[0] + b.side * hp.r * 0.8, hp.c[1], hp.c[2]]);
           if (b.visible && b.seenAt == null) b.seenAt = sc.time;
           if (age > b.out * 2 + b.hold) { sc.bots = []; sc.escaped += 1; sc.rep += 1; sc.wait = between(0.5, 1.3); if (sc.rep >= def.reps) sc.done = true; }
           return;
@@ -357,7 +365,13 @@
       if (sc.done) return;
       sc.time += dt;
       if (sc.tick) sc.tick(dt, a);
-      if (id === "headline") { sc.vertSum += Math.abs(a.pitch - Math.atan2(HEAD_Y, 15) / DEG) * dt; sc.vertN += dt; }
+      // linea della testa: quanto il mirino sta sopra o sotto la testa da colpire (in gradi)
+      if (id === "headline") {
+        const t = sc.targets[0];
+        const linePitch = t ? anglesTo(t.c).pitch : Math.atan2(HEAD_Y, 14) / DEG;
+        sc.vertSum += Math.abs(a.pitch - linePitch) * dt;
+        sc.vertN += dt;
+      }
       if (def.duration && sc.time >= def.duration) { sc.time = def.duration; sc.done = true; }
       sc.effects = sc.effects.filter((e) => sc.time - e.t < 0.4);
     };
@@ -408,7 +422,8 @@
 
     sc.stats = function stats() {
       const avg = (list) => (list.length ? list.reduce((x, y) => x + y, 0) / list.length : null);
-      const acc = sc.shots ? sc.hits / sc.shots : id === "tracking" ? null : 0;
+      // nel peek conta solo la testa: la precisione e' teste su colpi sparati
+      const acc = sc.shots ? (id === "peek" ? sc.heads : sc.hits) / sc.shots : id === "tracking" ? null : 0;
       const out = {
         sc: id, dur: Math.round(sc.time * 10) / 10, shots: sc.shots, hits: sc.hits, kills: sc.kills, heads: sc.heads,
         acc: acc == null ? null : Math.round(acc * 1000) / 10,
@@ -441,7 +456,7 @@
 
   /* ------------------------------------------------------------ ricerca della sens */
   // Confronti a coppie su scala logaritmica: a ogni turno si tiene la meta' con la sens migliore.
-  const FINDER_ROUNDS = 6;
+  const FINDER_ROUNDS = 4; // oltre, due sens troppo vicine non si distinguono in 30 secondi
   const FINDER_SPAN = 1.6;
 
   function finderStart(base, { rounds = FINDER_ROUNDS, now = Date.now() } = {}) {
@@ -457,6 +472,8 @@
     f.scores = {};
     // ordine alternato: un turno si parte dalla bassa, l'altro dall'alta
     f.order = f.round % 2 === 0 ? ["a", "b"] : ["b", "a"];
+    // stessi bersagli per A e B nello stesso turno: cambia solo la sens
+    f.seed = ((Math.round(f.startedAt || 0) % 100000) * 31 + f.round * 7919 + 1) >>> 0;
     return f;
   }
 
@@ -489,6 +506,9 @@
       f.done = true;
       f.result = roundSens(Math.sqrt(f.lo * f.hi));
       f.finishedAt = now;
+      // sempre la stessa direzione: la sens migliore potrebbe stare oltre l'intervallo provato
+      const w = f.history.map((h) => h.winner);
+      f.edge = w.every((x) => x === "a") ? "low" : w.every((x) => x === "b") ? "high" : null;
       return f;
     }
     return finderPair(f);
@@ -537,7 +557,7 @@
   // Dopo una ricarica: ricalcola la coppia se manca, senza perdere i punteggi gia' fatti.
   function finderPairKeep(f) {
     const scores = f.scores;
-    if (!num(f.a) || !num(f.b) || !Array.isArray(f.order)) finderPair(f);
+    if (!num(f.a) || !num(f.b) || !Array.isArray(f.order) || !num(f.seed)) finderPair(f);
     f.scores = isObj(scores) ? scores : {};
   }
 
@@ -580,7 +600,8 @@
         trend: scores.slice(-20)
       };
     });
-    const days = [...new Set(lab.runs.map((r) => dayKey(r.t)))];
+    const real = lab.runs.filter((r) => SCN.has(r.sc) && !SCN.get(r.sc).hidden);
+    const days = [...new Set(real.map((r) => dayKey(r.t)))];
     let streak = 0;
     for (let i = 0; i < 400; i += 1) {
       const k = dayKey(now - i * DAY);
@@ -588,9 +609,9 @@
       else if (i === 0) continue;
       else break;
     }
-    const minutes = Math.round(lab.runs.reduce((n, r) => n + (r.dur || 0), 0) / 60);
-    const today = lab.runs.filter((r) => dayKey(r.t) === dayKey(now));
-    return { per, runs: lab.runs.length, minutes, streak, days: days.length, today: today.length, routineToday: ROUTINE.every((id) => today.some((r) => r.sc === id)) };
+    const minutes = Math.round(real.reduce((n, r) => n + (r.dur || 0), 0) / 60);
+    const today = real.filter((r) => dayKey(r.t) === dayKey(now));
+    return { per, runs: real.length, minutes, streak, days: days.length, today: today.length, routineToday: ROUTINE.every((id) => today.some((r) => r.sc === id)) };
   }
 
   // Un record nuovo per lo scenario? (confronta con le partite precedenti)
