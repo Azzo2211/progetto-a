@@ -255,7 +255,7 @@
     if (num(run.vert)) add("Errore in altezza", `${fmt(run.vert, 2)}°`, num(run.vertBias) && Math.abs(run.vertBias) >= 0.05 ? `di solito ${run.vertBias > 0 ? "sopra" : "sotto"} la linea delle teste` : "centrato sulla linea");
     if (run.sc === "tracking") {
       add("Tempo addosso", `${fmt(run.track, 1)}%`);
-      add("Tasto premuto", `${fmt(run.hold)}%`, "del tempo");
+      if (num(run.hold)) add("Tasto premuto", `${fmt(run.hold)}%`, "del tempo");
       if (num(run.err)) add("Distanza media dalla sagoma", `${fmt(run.err, 2)}°`);
       if (num(run.lag)) add("Quando la perdi", `dietro ${run.lag}%`, `davanti ${run.lead}%`);
       if (num(run.reacq)) add("Riaggancio dopo un cambio", `${fmt(run.reacq)} ms`);
@@ -442,7 +442,7 @@
             <ul class="aim-how">
               <li><strong>Alla cieca.</strong> Le due sens si chiamano Sens 1 e Sens 2: scopri quale era la più alta solo dopo aver scelto, così non ti fai condizionare.</li>
               <li><strong>Tre fasi in ogni prova (40 secondi).</strong> Flick lunghi e corti, bersagli piccoli e vicini, tracking tenendo premuto. Una sens troppo bassa fatica sui flick lunghi, una troppo alta sulla precisione e sul tracking.</li>
-              <li><strong>Stessi bersagli.</strong> Nello stesso turno le due prove hanno gli stessi bersagli: cambia solo la sens.</li>
+              <li><strong>Stessi bersagli.</strong> Nello stesso turno le due prove hanno la stessa sequenza di bersagli (stesse distanze e direzioni, stessa sagoma nel tracking): cambia solo la sens.</li>
               <li><strong>Com'era?</strong> Dopo ogni prova dici se la sens ti è sembrata lenta, giusta o veloce.</li>
               <li><strong>Come arrivi sul bersaglio.</strong> Se con una sens vai spesso oltre e torni indietro, è un segno che è alta; se ti fermi spesso prima, che è bassa. L'app ne tiene conto nel consiglio, ma decidi tu.</li>
             </ul>
