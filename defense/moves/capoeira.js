@@ -462,7 +462,6 @@
     mv("capoeira.wallPlank", "Plank sulle mani con i piedi contro il muro", [K(PW.copy().act("torso"), 400, 1300)]);
     mv("capoeira.wallWalk", "Scalata al muro: piedi su per il muro, mani verso il muro fino a 45 gradi, poi giù", [K(PW, 300, 200), K(W20.copy().act("legl", "legr"), 600, 150), K(W45, 600, 1000), K(W20, 550, 150), K(PW, 550, 200)]);
     mv("capoeira.wallHold45", "Tenuta a 45 gradi: braccia distese, spalle spinte verso le orecchie", [K(PW, 300, 150), K(W20, 500, 100), K(W45, 500, 1800), K(W20, 450, 100), K(PW, 450, 200)]);
-    mv("capoeira.wallDown", "Discesa camminando: mani e piedi nell'ordine inverso", [K(W45, 300, 300), K(W20.copy().act("arml", "armr", "legl", "legr"), 600, 150), K(PW, 600, 400)]);
     mv("capoeira.bananeira", "Bananeira al muro: petto verso il muro, braccia distese, corpo allineato", [K(PW, 300, 150), K(W20, 500, 80), K(W45, 500, 80), K(W80, 600, 1800), K(W45, 500, 80), K(W20, 450, 80), K(PW, 450, 200)]);
     mv("capoeira.bananeiraExit", "Se perdi le forze piega le gambe e scendi camminando, mai di lato", [K(W80, 300, 300), K(wallPose(70, true).act("legl", "legr"), 500, 300), K(W45, 500, 100), K(W20, 450, 100), K(PW, 450, 300)]);
 
@@ -573,7 +572,6 @@
     const rockA = HO.copy().set("pel", [0.02, 0.14, 0]).set("chest", [-0.45, 0.32, 0]).set("head", [-0.62, 0.43, 0]).footAt("l", [0.84, 0.16, -0.08], 0, -60).footAt("r", [0.84, 0.16, 0.08], 0, -60).handW("l", -0.95, 0.6, -0.14, "open").handW("r", -0.95, 0.6, 0.14, "open");
     const rockB = HO.copy().set("pel", [-0.02, 0.14, 0]).set("chest", [-0.5, 0.16, 0]).set("head", [-0.7, 0.2, 0]).footAt("l", [0.74, 0.5, -0.08], 0, -60).footAt("r", [0.74, 0.5, 0.08], 0, -60).handW("l", -1.04, 0.28, -0.14, "open").handW("r", -1.04, 0.28, 0.14, "open");
     mv("capoeira.hollowRock", "Hollow con dondolio leggero avanti e indietro, corpo compatto", [K(HO, 400, 100), K(rockA.act("torso"), 350, 60), K(rockB.act("torso"), 400, 60), K(rockA.act("torso"), 400, 60), K(rockB.act("torso"), 400, 60), K(HO, 350, 150)]);
-    mv("capoeira.hollowSide", "Hollow con dondolio, poi tenuta laterale sull'avambraccio", [K(HO, 400, 100), K(rockA, 350, 60), K(rockB, 400, 60), K(HO, 350, 300), K(lieBack(), 400, 100)]);
     // camminata delle mani: dai piedi al plank e ritorno
     const fold = standing().foot("l", 0, -0.1, 5, 0).foot("r", 0, 0.1, -5, 0).set("pel", [-0.14, 0.9, 0]).set("chest", [0.2, 0.55, 0]).set("head", [0.28, 0.37, 0]).handW("l", 0.35, 0.035, -0.15, "open").handW("r", 0.35, 0.035, 0.15, "open").knee("l", [1, 0, 0]).knee("r", [1, 0, 0]);
     const walkMid = fold.copy().set("pel", [0.0, 0.74, 0]).set("chest", [0.42, 0.52, 0]).set("head", [0.58, 0.42, 0]).handW("l", 0.72, 0.035, -0.17, "open").handW("r", 0.72, 0.035, 0.17, "open");
