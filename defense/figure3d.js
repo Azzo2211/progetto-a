@@ -524,8 +524,8 @@
 
     container.innerHTML = `
       <div class="mf-player">
-        <div class="mf-stage" tabindex="0" role="img" aria-label="Dimostrazione animata"></div>
-        <p class="mf-cap" aria-live="polite"><span class="mf-step"></span><span class="mf-captext"></span></p>
+        <div class="mf-stage" tabindex="0" role="group" aria-roledescription="dimostrazione animata" aria-keyshortcuts="Space ArrowLeft ArrowRight" aria-label="Dimostrazione animata"></div>
+        <p class="mf-cap" aria-live="off"><span class="mf-step"></span><span class="mf-captext"></span></p>
         <div class="mf-ctrl">
           <button type="button" class="mf-btn mf-play" data-mf="toggle" aria-label="Riproduci"><span class="mf-ico" aria-hidden="true"></span></button>
           <button type="button" class="mf-btn" data-mf="prev" aria-label="Passo precedente">‹</button>
@@ -536,24 +536,23 @@
         </div>
       </div>`;
     const stage = container.querySelector(".mf-stage");
+    const capEl = container.querySelector(".mf-cap");
     const capText = container.querySelector(".mf-captext");
+    let announce = false; // la didascalia si legge ad alta voce solo dopo un comando, non a ogni giro del video
     const stepEl = container.querySelector(".mf-step");
     const playBtn = container.querySelector(".mf-play");
     const loopBtn = container.querySelector('[data-mf="loop"]');
 
     function viewNow() { return custom || VIEWS[viewKey]; }
-    function draw() {
-      const v = viewNow();
-      const cam = camera(v);
-      const st = poseAt(tl, clock);
+    // passo e fotogramma del momento (didascalia ed evidenziazione), anche quando il video non si vede
+    function sync(st) {
       const it = tl.items[st.index];
       const step = loop != null ? loop : st.step;
-      // frecce: dal fotogramma prima a quello a cui si sta arrivando
-      const prevItem = tl.items[st.index - 1];
-      stage.innerHTML = svg(st.pose, { view: v, box: boxFor(cam, custom ? null : viewKey), act: st.act, props, partner: st.partner, floorAt, prev: prevItem && clock % tl.total < it.start + it.t + it.h ? prevItem.pose : null });
       if (step !== stepShown) {
         stepShown = step;
         const label = demo.steps[step] ? demo.steps[step].label : "";
+        capEl.setAttribute("aria-live", announce || !playing ? "polite" : "off");
+        announce = false;
         capText.textContent = label;
         stepEl.textContent = `${step + 1}/${n}`;
         stage.setAttribute("aria-label", `Dimostrazione animata, passo ${step + 1} di ${n}: ${label}`);
@@ -565,12 +564,22 @@
         if (opts.onFrame) opts.onFrame(step, it.local);
       }
     }
+    function draw() {
+      const v = viewNow();
+      const cam = camera(v);
+      const st = poseAt(tl, clock);
+      const it = tl.items[st.index];
+      // frecce: dal fotogramma prima a quello a cui si sta arrivando
+      const prevItem = tl.items[st.index - 1];
+      stage.innerHTML = svg(st.pose, { view: v, box: boxFor(cam, custom ? null : viewKey), act: st.act, props, partner: st.partner, floorAt, prev: prevItem && clock % tl.total < it.start + it.t + it.h ? prevItem.pose : null });
+      sync(st);
+    }
     function frameLoop(now) {
       if (!playing) return;
       const dt = Math.min(100, now - (last || now));
       last = now;
       clock += dt * speed;
-      if (visible && now - lastDraw >= minGap) { lastDraw = now; draw(); }
+      if (visible && now - lastDraw >= minGap) { lastDraw = now; draw(); } else if (!visible && now - lastDraw >= 120) { lastDraw = now; sync(poseAt(tl, clock)); }
       raf = requestAnimationFrame(frameLoop);
     }
     function setPlayBtn() {
@@ -595,6 +604,7 @@
     }
     function goStep(i, keepPlaying = true) {
       const k = ((i % n) + n) % n;
+      announce = true;
       if (loop != null) { loop = k; tl = tlOf(k); clock = 0; } else clock = stepStart(k);
       stepShown = -1;
       draw();
@@ -603,6 +613,7 @@
     // mostra un fotogramma preciso di un passo, fermo
     function showFrame(step, local) {
       const k = Math.max(0, Math.min(n - 1, step));
+      announce = true;
       pause();
       let it;
       if (loop != null) { loop = k; tl = tlOf(k); it = tl.items[local] || tl.items[0]; } else it = full.items.find((x) => x.step === k && x.local === local) || full.items.find((x) => x.step === k);
@@ -612,6 +623,7 @@
     // ripete solo il passo i (null = tutta la dimostrazione)
     function loopStep(i) {
       const cur = stepShown < 0 ? 0 : stepShown;
+      announce = true;
       if (i == null) { loop = null; tl = full; clock = stepStart(cur); } else { loop = ((i % n) + n) % n; tl = tlOf(loop); clock = 0; }
       loopBtn.setAttribute("aria-pressed", String(loop != null));
       stepShown = -1;
@@ -641,7 +653,12 @@
     }
     function onUp() { drag = null; }
     function onKey(e) {
-      if (e.key === " " || e.key === "Enter") { e.preventDefault(); if (playing) pause(); else play(); } else if (e.key === "ArrowRight") { e.preventDefault(); goStep(stepShown + 1, playing); } else if (e.key === "ArrowLeft") { e.preventDefault(); goStep(stepShown - 1, playing); }
+      const k = e.key;
+      if (k !== " " && k !== "Enter" && k !== "ArrowRight" && k !== "ArrowLeft") return;
+      // il tasto e' del video: non deve arrivare ad altri comandi della pagina (es. pausa della sessione)
+      e.preventDefault();
+      e.stopPropagation();
+      if (k === "ArrowRight") goStep(stepShown + 1, playing); else if (k === "ArrowLeft") goStep(stepShown - 1, playing); else if (playing) pause(); else play();
     }
     container.addEventListener("click", onClick);
     stage.addEventListener("pointerdown", onDown);

@@ -741,5 +741,5 @@
     return [...keep].sort((a, b) => a - b);
   }
 
-  return { add: addStyle, get, has, names, catalog, demoFor, keyFrames, lib, B };
+  return { add: addStyle, get, has, names, catalog, demoFor, keyFrames, sig, lib, B };
 });

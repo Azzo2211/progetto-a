@@ -47,7 +47,8 @@
     player: null,     // il video dell'omino dell'esercizio mostrato
     playerId: null,
     playerState: null, // dove era arrivato il video (per riprendere dopo un nuovo disegno)
-    peek: null        // esercizio aperto per guardarlo nella scheda dello stile
+    peek: null,       // esercizio aperto per guardarlo nella scheda dello stile ("stile-livello-sessione:id")
+    openSess: new Set() // sessioni aperte a mano nella scheda dello stile
   };
 
   const $ = (id) => document.getElementById(id);
@@ -235,6 +236,8 @@
     const box = $("defPanel-martial");
     if (!box || !M) return;
     dropDemo();
+    // nella scheda di uno stile restano aperte le sessioni che avevi aperto a mano
+    ui.openSess = new Set([...box.querySelectorAll(".ma-lvl-sess[open][data-sess]")].map((x) => x.dataset.sess));
     if (!DISC.length) { box.innerHTML = `<p class="def-note">Discipline non caricate.</p>`; return; }
     const l = lab();
     const views = [["today", "Oggi"], ["week", "Settimana"], ["styles", "Stili"], ["lookism", "Lookism"], ["progress", "Progressi"]];
@@ -374,10 +377,21 @@
 
   /* ------------------------------------------- l'omino che mostra come si fa */
   // Per ogni esercizio: la dimostrazione animata (defense/martial-demos.js + movimenti) e, per ogni
-  // passo, la sequenza di immagini. Calcolate una volta sola e tenute da parte.
+  // passo, la sequenza di immagini. Calcolate solo per l'esercizio che si guarda; le ultime restano da parte.
   const demoCache = new Map();
+  const DEMO_KEEP = 12;
+  // controllo leggero (senza calcolare niente): c'e' una dimostrazione per tutti i passi?
+  function hasDemo(e) {
+    const spec = window.MartialDemos && window.MartialDemos[e.id];
+    return !!(window.MartialFigure && window.MartialMoves && Array.isArray(spec) && spec.length === e.steps.length && spec.every((r) => Array.isArray(r) && r.length > 1));
+  }
   function demoOf(e) {
-    if (demoCache.has(e.id)) return demoCache.get(e.id);
+    if (demoCache.has(e.id)) {
+      const hit = demoCache.get(e.id);
+      demoCache.delete(e.id);
+      demoCache.set(e.id, hit);
+      return hit;
+    }
     let out = null;
     const F = window.MartialFigure;
     const MM = window.MartialMoves;
@@ -398,7 +412,7 @@
               return { k, label: one ? one.label : st.label, html: F.svg(f.pose, { view: "tq", box, prev: k ? st.frames[k - 1].pose : null, act: f.act, props: demo.props, partner: f.partner }) };
             });
             // per evidenziare l'immagine giusta mentre il video scorre: fotogramma -> immagine
-            const sig = (f) => JSON.stringify([f.pose, f.partner || 0]);
+            const sig = MM.sig || ((f) => JSON.stringify([f.pose, f.partner || 0]));
             const keySig = items.map((it) => sig(st.frames[it.k]));
             const toKey = st.frames.map((f, j) => {
               const same = keySig.indexOf(sig(f));
@@ -414,6 +428,7 @@
       } catch (err) { out = null; }
     }
     demoCache.set(e.id, out);
+    while (demoCache.size > DEMO_KEEP) demoCache.delete(demoCache.keys().next().value);
     return out;
   }
 
@@ -889,14 +904,16 @@
       const cls = lv.level === p.level ? "now" : lv.level < p.level || (lv.level === p.level && l.mastered[d.id]) ? "past" : "";
       const sess = (lv.sessions || []).map((s, i) => {
         const list = listOf(lv, i);
-        const peekHere = list.some((e) => e.id === ui.peek);
-        return `<details class="ma-lvl-sess"${(lv.level === p.level && i === p.step) || peekHere ? " open" : ""}>
+        const sessKey = `${d.id}-${lv.level}-${i}`;
+        const peekHere = !!ui.peek && ui.peek.startsWith(`${sessKey}:`);
+        return `<details class="ma-lvl-sess" data-sess="${sessKey}"${(lv.level === p.level && i === p.step) || peekHere || ui.openSess.has(sessKey) ? " open" : ""}>
           <summary><span class="ma-sess-n">${i + 1}</span><strong>${esc(TYPE[s.type] || s.type)}: ${esc(s.title)}</strong><em>${plural(list.length, "esercizio", "esercizi")} · circa ${M.sessionMinutes(list)} min${lv.level === p.level && i === p.step ? " · la prossima" : ""}</em></summary>
           <p>${prose(s.focus)}</p>
           <ol>${list.map((e) => {
-            const dm = demoOf(e);
-            const open = ui.peek === e.id && dm;
-            return `<li><span class="ma-kind k-${e.kind}">${KIND[e.kind] || e.kind}</span>${esc(e.name)}<em>${esc(doseText(e.dose, e.kind))}</em>${dm ? `<button type="button" class="ma-peek-btn" data-mact="peek" data-ex="${esc(e.id)}" aria-expanded="${!!open}">${open ? "Chiudi" : "Guarda come si fa"}</button>` : "<span></span>"}</li>${open ? `<li class="ma-peek-li"><div class="ma-peek">${e.goal ? `<p class="ma-goal">${prose(e.goal)}</p>` : ""}${howMarkup(e, dm)}</div></li>` : ""}`;
+            const key = `${sessKey}:${e.id}`;
+            const can = hasDemo(e);
+            const dm = can && ui.peek === key ? demoOf(e) : null;
+            return `<li><span class="ma-kind k-${e.kind}">${KIND[e.kind] || e.kind}</span>${esc(e.name)}<em>${esc(doseText(e.dose, e.kind))}</em>${can ? `<button type="button" class="ma-peek-btn" data-mact="peek" data-peek="${esc(key)}" aria-expanded="${!!dm}">${dm ? "Chiudi" : "Guarda come si fa"}</button>` : "<span></span>"}</li>${dm ? `<li class="ma-peek-li"><div class="ma-peek">${e.goal ? `<p class="ma-goal">${prose(e.goal)}</p>` : ""}${howMarkup(e, dm)}</div></li>` : ""}`;
           }).join("")}</ol>
         </details>`;
       }).join("");
@@ -1083,17 +1100,21 @@
     const l = lab();
     switch (act) {
       case "peek": {
-        const id = el.dataset.ex;
-        ui.peek = ui.peek === id ? null : id;
+        const key = el.dataset.peek;
+        ui.peek = ui.peek === key ? null : key;
         render(false);
-        focusAct(`[data-mact="peek"][data-ex="${id}"]`);
+        if (!focusAct(`[data-mact="peek"][data-peek="${key}"]`)) {
+          const sum = $("defPanel-martial").querySelector(`.ma-lvl-sess[data-sess="${key.split(":")[0]}"] summary`);
+          if (sum) sum.focus({ preventScroll: true });
+        }
         break;
       }
       case "demo-step":
         if (ui.player) { ui.player.loopStep(Number(el.dataset.step)); ui.player.play(); showDemo(); }
         break;
       case "demo-frame":
-        if (ui.player) { ui.player.showFrame(Number(el.dataset.step), Number(el.dataset.frame)); showDemo(); }
+        // l'immagine mostra gia' la posa: il video si ferma li', senza spostare la pagina
+        if (ui.player) ui.player.showFrame(Number(el.dataset.step), Number(el.dataset.frame));
         break;
       case "view":
         if (ui.view === "today" && el.dataset.view !== "today" && ui.timer && ui.timer.running) timerPause();
@@ -1292,6 +1313,7 @@
         ui.view = "styles";
         ui.open = el.dataset.disc;
         ui.peek = null;
+        ui.openSess = new Set();
         render(true);
         scrollTop();
         break;

@@ -364,10 +364,11 @@
 /* ---------- l'omino che mostra come si fa (defense/figure3d.js) ---------- */
 .ma-ex { container-type: inline-size; }
 .ma-howgrid { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "demo" "steps"; gap: 14px; align-items: start; }
-.ma-howgrid .ma-demo { grid-area: demo; min-width: 0; width: 100%; max-width: 640px; }
+.ma-howgrid .ma-demo { grid-area: demo; min-width: 0; width: 100%; max-width: 640px; container-type: inline-size; }
 .ma-howgrid .def-steps { grid-area: steps; min-width: 0; }
-@container (min-width: 760px) {
-  .ma-howgrid { grid-template-columns: minmax(0, 1fr) minmax(300px, 46%); grid-template-areas: "steps demo"; }
+@container (min-width: 560px) {
+  .ma-howgrid { grid-template-columns: minmax(0, 1fr) minmax(280px, 50%); grid-template-areas: "steps demo"; }
+  .ma-howgrid .ma-seq-img { width: 76px; height: 84px; }
   .ma-howgrid .ma-demo { position: sticky; top: 12px; max-width: none; }
 }
 .mf-player { border: 1px solid var(--d-line); border-radius: 14px; background: var(--d-inset); overflow: hidden; }
