@@ -139,7 +139,6 @@
     const zSoto = () => { const b = zen(-38); soto(b, "l"); hik(b, "r"); return b; };
     const zUchi = () => { const b = zen(-38); uchi(b, "l"); hik(b, "r"); return b; };
     const zGedan = () => ZB();
-    const zAgeG = () => { const b = zen(-4); age(b, "r"); hik(b, "l"); return b; }; // age uke con il braccio dietro
     const kShuto = () => { const b = kok(); shuto(b, "l"); return b; };
     const kGedan = () => { const b = kok(); gedan(b, "l"); hik(b, "r"); return b; };
     const KB = () => kShuto();
@@ -226,7 +225,6 @@
     Seq.prototype.end = function (b, t = 300, h = 300) { this.fr.push(K(b, t, h)); return this.fr; };
 
     // azioni sulle braccia per lato (lead = gamba avanti dopo il passo)
-    const armsOf = (lead) => ["arm" + lead];
     const pGedan = (b, lead) => gedanPrep(b, lead);
     const pAge = (b, lead) => agePrep(b, lead);
     const pSoto = (b, lead) => sotoPrep(b, lead);
@@ -242,7 +240,6 @@
     const sUchi = side(zUchi);
     const sShuto = side(kShuto);
     const sKGedan = side(kGedan);
-    const sAgeG = side(zAgeG);
     // gyaku zuki con la mano dietro e il kiai (testa attiva)
     const kiaiAct = (lead) => ["arm" + other(lead), "torso", "head"];
 
@@ -278,7 +275,6 @@
     // choku zuki: un pugno parte dal fianco mentre l'altro torna (hikite)
     const hR = () => { const b = yoi(); b.hikite("l"); punch(b, "r", 1.24); return b; };
     const hMid = (s) => { const b = yoi(); hs(b, s, [0.26, -0.24, -sg(s) * 0.12], "fist"); b.elbow(s, [0, -1, sg(s) * 0.4]); hs(b, other(s), [0.24, -0.22, sg(s) * 0.1], "fist"); b.elbow(other(s), [0, -1, -sg(s) * 0.4]); return b; };
-    const hStart = (s) => { const b = hachiK(); if (s === "l") b.mirror(); b.handW(s === "r" ? "r" : "l", 0.12, 1.02, sg(s) * 0.17); return b; };
     const hL = () => hachiK();
     mv("karate.chokuSlow", "Choku zuki in quattro tempi: parte dal fianco, gli avambracci si incrociano, ruota alla fine", [K(hL(), 300, 300), K(hachiK().handW("r", 0.18, 1.05, 0.16, "fist").act("armr"), 500, 300), K(hMid("r").act("armr", "arml"), 500, 300), K(yoi().hikite("l").straight("r", [1.0, 1.24, 0], 0.82).act("armr", "arml"), 500, 300), K(hR().act("armr", "arml", "torso"), 400, 600), K(hMid("l").act("arml", "armr"), 600, 300), K(hL().act("arml", "armr", "torso"), 500, 600)]);
     mv("karate.chokuZuki", "Choku zuki da fermo con kime: destro e sinistro, la mano che torna va al fianco", [K(hL(), 300, 250), K(hR().act("armr", "arml", "torso"), 170, 380), K(hL().act("arml", "armr", "torso"), 170, 380)]);
@@ -738,7 +734,6 @@
     /* ============================================================ AL SACCO */
     const bgK = kg().move(-0.2);
     const bgM = kg().move(-0.45);
-    const bgKiz = (base) => kiz(base);
     const bMae = (ph) => kk(bgM, "r", "front", ph, "mid", gArms, 0.04);
     const bTeep = (ph) => kk(bgM, "r", "teep", ph, "mid", gArms, 0.04);
     const bk = kyo().move(-0.04);
@@ -748,7 +743,6 @@
     mv("karate.bagMaeGeri", "Mae geri al sacco con la gamba quasi tesa, ritorno in caricamento prima di appoggiare", [K(bgM, 300, 150), K(bMae("chamber"), 200, 40), K(bMae("ext"), 160, 260), K(bMae("recoil").act("legr"), 170, 100), K(bgM, 230, 250)], bag);
     mv("karate.bagMaeSole", "Al sacco con la pianta del piede se non sei sicuro dell'avampiede", [K(bgM, 300, 150), K(bTeep("chamber"), 200, 40), K(bTeep("ext"), 170, 260), K(bTeep("recoil").act("legr"), 170, 100), K(bgM, 230, 250)], bag);
     const bRf = place(cp(bgM).mirror(), 0, "l", bgM);
-    const bgykR = place(gyk().mirror(), 0, "l", bRf);
     mv("karate.bagMaeGyaku", "Mae geri, appoggio avanti, gyaku zuki al sacco, poi torna in guardia con le mani alte", [K(bgM, 300, 120), K(bMae("chamber"), 200, 40), K(bMae("ext"), 160, 200), K(bMae("recoil").act("legr"), 160, 40), K(cp(bRf).act("legr"), 200, 60), K(place(gyk(cp(g).move(0, 0)).mirror(), 0, "l", bRf).act("arml", "torso"), 160, 300), K(bRf, 200, 40), K(passG(bRf, bgM), 220, 30), K(bgM, 220, 250)], bag);
     const bMaw = (ph, h = "mid") => kk(bgK, "r", "round", ph, h, gArms, 0.04);
     const bMawFr = (t = 1) => [K(bgK, 300, 150), K(cp(bgK).foot("r", -0.42, 0.08, -40, 30).turn(15).act("legr"), 170 * t, 20), K(bMaw("chamber"), 190 * t, 50 * t), K(bMaw("ext"), 160 * t, 260 * t), K(bMaw("recoil").act("legr"), 170 * t, 80 * t), K(bgK, 230 * t, 250)];
@@ -918,7 +912,6 @@
     const kibGedR = () => { const b = kib().look(-80); hs(b, "r", [0.05, -0.42, 0.3], "fist"); b.elbow("r", [0, 0, 1]); hik(b, "l"); return b; };
     const heiGU = (lowS) => { const b = heisoku(); const hiS = other(lowS); hs(b, lowS, [0.28, -0.48, sg(lowS) * 0.05], "fist"); b.elbow(lowS, [-0.3, 0, sg(lowS)]); uchi(b, hiS); return b; };
     const heiKagi = (s = "r") => { const b = heisoku().look(sg(s) * -60); hc(b, s, [0.3, -0.06, -sg(s) * 0.16], "fist"); b.elbow(s, [0, 0, sg(s)]); hik(b, other(s)); return b; };
-    const heiHik = () => heisoku();
     // versione lato: (lead) => stato
     const S = (fn) => side(fn);
     const sUchiG = S(zUchiG), sMorote = S(zMorote), sNukite = S(zNukite), sTet = S(zTettsui), sJujiG = S(zJujiG), sJujiJ = S(zJujiJ), sEmpiP = S(zEmpiP);
@@ -935,8 +928,6 @@
       q.pose(k("chamber"), 220, 40).pose(k("ext").act("leg" + s), 160, 220).pose(k("recoil").act("leg" + s), 170, 50);
     }
     const yoiEnd = (q, turns = 0) => { const y = yoi(); if (turns) y.spin(360 * turns); q.fr.push(K(y, 400, 400)); if (turns) q.fr.push(K(yoi(), 0, 300)); return q.fr; };
-    const armsKeep = (b) => { b.guard("low"); return b; };
-    const zArms = (lead) => (b) => { if (lead === "l") { gedan(b, "l"); hik(b, "r"); } else { gedan(b, "r"); hik(b, "l"); } return b; };
 
     /* ---------------- Taikyoku Shodan: 20 movimenti, gedan barai e oi zuki, percorso a I */
     function taikyoku(part) {
@@ -1075,7 +1066,6 @@
       const hei = place(heisoku(), -90, "r", q.cur);
       q.pose(hei.act("legl"), 350, 250);
       const seq3 = (s, yaw, keep) => {
-        const kb = (b) => place(b, yaw, keep, q.cur);
         const base = s === "r" ? kibR() : kibR().mirror();
         const ch = s === "r" ? fCham() : fCham().mirror();
         const e = s === "r" ? empiR(kibR()) : empiR(kibR()).mirror();

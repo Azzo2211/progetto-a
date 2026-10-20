@@ -667,7 +667,13 @@
 
   // Firma di una posa (arrotondata) per riconoscere i fotogrammi uguali.
   function sig(f) {
-    const r = (v) => (Array.isArray(v) ? v.map(r) : typeof v === "number" ? Math.round(v * 50) : v && typeof v === "object" ? Object.keys(v).sort().map((k) => [k, r(v[k])]) : v);
+    // gli angoli contano a meno di giri interi (un calcio girato di 360 gradi torna alla stessa posa)
+    const ang = (a) => Math.round((((a % 360) + 540) % 360) - 180);
+    const r = (v, k) => {
+      if (/Yaw$|Roll$/.test(k || "") && typeof v === "number") return ang(v);
+      if (/Yaw$|Roll$/.test(k || "") && v && typeof v === "object") return Object.keys(v).sort().map((x) => [x, ang(v[x])]);
+      return Array.isArray(v) ? v.map((x) => r(x)) : typeof v === "number" ? Math.round(v * 50) : v && typeof v === "object" ? Object.keys(v).sort().map((x) => [x, r(v[x], x)]) : v;
+    };
     return JSON.stringify([r(f.pose), f.partner ? r(f.partner) : 0]);
   }
 

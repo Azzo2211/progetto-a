@@ -685,7 +685,7 @@
     const ssB = st().foot("l", 0, -0.1, 5, 0).foot("r", 0, 0.1, -5, 0).set("pel", [0, 0.94, -0.05]).lean(0, -0.04);
     prop(ssB, "l", 0.02, 1.2, -0.52);
     const ssUp = (k) => legRel(ssB.copy(), "r", mul(norm([0.08, k, 0.85]), 0.85), [0, 1, 0.2], -8, 0, -80).act("legr");
-    mv("taekwondo.sideSwingOpen", "Slanci laterali in apertura: mano al muro, la gamba esterna sale tesa di lato, taglio del piede in alto", [K(ssB, 300, 80), K(ssUp(-0.4), 350, 60), K(ssB, 320, 40), K(ssUp(-0.05), 350, 60), K(ssB, 320, 200)]);
+    mv("taekwondo.sideSwingOpen", "Slanci laterali in apertura: mano al muro, gamba esterna tesa di lato, taglio del piede in alto", [K(ssB, 300, 80), K(ssUp(-0.4), 350, 60), K(ssB, 320, 40), K(ssUp(-0.05), 350, 60), K(ssB, 320, 200)]);
     const bsB = st().foot("l", 0, -0.1, 3, 0).foot("r", 0, 0.1, -3, 0).lean(0.08);
     prop(bsB, "l", 0.48, 1.32, -0.2);
     prop(bsB, "r", 0.48, 1.32, 0.2);
