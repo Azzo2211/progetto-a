@@ -612,5 +612,266 @@
     mv("karate.wallYokoChamber", "Ginocchio alto davanti, piede accanto al ginocchio d'appoggio, taglio verso il bersaglio", [K(wallSt(), 300, 200), K(wallK("chamber").act("legr"), 450, 1400), K(wallSt(), 450, 300)]);
     mv("karate.wallKekomi", "Spinta lenta del tallone di lato, il piede d'appoggio ruota; poi richiama e appoggia", [K(wallSt(), 300, 200), K(wallK("chamber").act("legr"), 400, 300), K(wallK("ext").act("legr", "legl"), 1200, 600), K(wallK("recoil").act("legr"), 700, 200), K(wallSt(), 400, 300)]);
     mv("karate.wallKekomiHold", "Tenuta in estensione: testa, anca e tallone su una linea, tallone più alto delle dita", [K(wallSt(), 300, 200), K(wallK("chamber"), 400, 200), K(wallK("ext").act("legr", "torso"), 600, 2200), K(wallK("recoil"), 500, 150), K(wallSt(), 400, 300)]);
+
+    /* ============================================================ FUMIKOMI, EMPI, URAKEN IN KIBA */
+    const fCham = () => { const b = heisoku().look(-80); const k = b.copy().kick("r", "front", "chamber", "mid", { arms: "none" }); ["pel", "chest", "head"].forEach((x) => { k.p[x] = add(k.p[x], [0, -0.04, 0]); }); const hp = k.hip("r"); k.footAt("r", [hp[0] + 0.12, hp[1] - 0.36, hp[2] + 0.02], -70, 15); k.knee("r", [1, 0.7, 0.5]); k.look(-80); hik(k, "l"); hik(k, "r"); return k; };
+    const kibR = () => { const b = kib().move(0, 0.33).look(-85); return b; };
+    const empiR = (b) => { hc(b, "r", [0.06, -0.04, 0.05], "fist"); b.elbow("r", [0, 0.15, 1]); hik(b, "l"); return b; };
+    const urakR = (b) => { hs(b, "r", [0.06, 0.16, 0.4], "fist"); b.elbow("r", [0, -1, 0.4]); hik(b, "l"); return b; };
+    const fumiR = (slow) => [K(heisoku(), 300, 150), K(fCham().act("legr", "head"), 260 * slow, 120 * slow), K(empiR(kibR()).act("legr", "armr"), 170 * slow, 260 * slow), K(urakR(kibR()).act("armr"), 160 * slow, 240 * slow), K(kibR().act("armr"), 200 * slow, 150 * slow), K(heisoku(), 300, 200)];
+    mv2("karate.fumikomiEmpi", "Fumikomi: il piede pesta di lato in kiba dachi, il gomito colpisce di lato insieme", "Fumikomi ed empi dall'altro lato", [K(heisoku(), 300, 150), K(fCham().act("legr", "head"), 280, 150), K(empiR(kibR()).act("legr", "armr"), 170, 600), K(kibR(), 300, 150), K(heisoku(), 300, 250)]);
+    mv("karate.fumikomiChamber", "Piedi uniti, pugni ai fianchi: il ginocchio sale alto davanti, lo sguardo va di lato", [K(heisoku(), 300, 200), K(heisoku().look(-80).act("head"), 300, 150), K(fCham().act("legr"), 350, 1300), K(heisoku(), 400, 300)]);
+    mv("karate.urakenKiba", "In kiba dachi lo stesso braccio frusta un uraken verticale al viso e torna al fianco", [K(empiR(kibR()), 300, 300), K(urakR(kibR()).act("armr"), 170, 400), K(kibR().act("armr"), 200, 300), K(empiR(kibR()), 400, 300)]);
+    mv("karate.fumikomiSeq", "Fumikomi, empi e uraken a destra, poi lo stesso a sinistra, come nel kata", [...fumiR(1), ...mirF(fumiR(1)).slice(1)]);
+    mv("karate.fumikomiSlow", "In tre tempi: ginocchio su, fumikomi con empi, uraken; poi tutto più fluido", fumiR(2.6));
+    mv("karate.kibaEmpi", "Kiba dachi basso con empi laterali alternati a ritmo", [K(kib(), 300, 150), K(empiR(kib().look(-80)).act("armr", "torso"), 180, 250), K(kib(), 200, 60), K(empiR(kib().look(-80)).mirror().act("arml", "torso"), 180, 250), K(kib(), 200, 200)]);
+    mv("karate.kibaEmpiKiai", "Empi in kiba dachi con kiai sull'ultima tecnica del passaggio", [K(kib(), 300, 150), K(empiR(kib().look(-80)).act("armr", "torso", "head"), 180, 900), K(kib(), 300, 200)]);
+
+    /* ============================================================ CONTATTO PIENO (KYOKUSHIN) */
+    const ky = kyo();
+    const kyT = (s, kind, base = ky) => {
+      const b = cp(base);
+      const ss = sg(s);
+      if (kind === "chudan") { b.turn(s === "l" ? -18 : 30).lean(0.04); if (s === "r") b.heel("r", 28).fyaw("r", -5); b.straight(s, [0.75, 1.2, 0.0], 0.97); }
+      else if (kind === "shita") { b.turn(s === "l" ? -15 : 22).sink(0.03); hc(b, s, [0.34, -0.2, -ss * 0.04], "fist"); b.elbow(s, [-0.4, -1, ss * 0.2]); if (s === "r") b.heel("r", 20); }
+      else { b.turn(s === "l" ? 22 : -24); b.heel(s, 18).fyaw(s, s === "l" ? -35 : 10); hs(b, s, [0.3, -0.26, -ss * 0.2], "fist"); b.elbow(s, [0, 0.1, ss]); }
+      const o = other(s);
+      b.handW(o, 0.22, 1.42, sg(o) * 0.1, "fist"); b.elbow(o, [0, -1, sg(o) * 0.15]);
+      return b.act("arm" + s, ...(kind === "chudan" && s === "r" ? ["legr"] : []));
+    };
+    mv("karate.kyoGuard", "Guardia del contatto pieno: quasi frontale, mani agli zigomi, gomiti sulle costole", [K(st(), 300, 200), K(cp(ky).act("arml", "armr", "legl", "legr"), 500, 1300), K(st(), 400, 300)]);
+    mv("karate.kyoChudan", "Chudan tsuki: pugno dritto al plesso ruotando anca e piede dietro, sinistro e destro", [K(ky, 300, 150), K(kyT("l", "chudan"), 160, 250), K(ky, 180, 60), K(kyT("r", "chudan"), 170, 300), K(ky, 220, 250)]);
+    mv("karate.kyoShita", "Shita tsuki: pugno che sale da sotto al corpo, palmo in su, gomito vicino al fianco", [K(ky, 300, 150), K(kyT("r", "shita"), 180, 300), K(ky, 200, 60), K(kyT("l", "shita"), 180, 300), K(ky, 220, 250)]);
+    mv("karate.kyoMawashi", "Mawashi tsuki: pugno circolare alle costole a gomito piegato, il piede ruota", [K(ky, 300, 150), K(kyT("l", "mawashi"), 190, 300), K(ky, 200, 60), K(kyT("r", "mawashi"), 190, 300), K(ky, 220, 250)]);
+    const chain = (list, t = 1) => [K(ky, 300, 120), ...list.flatMap(([s, k], i) => [K(kyT(s, k), 160 * t, 90 * t), K(ky, 140 * t, i === list.length - 1 ? 250 : 20)])];
+    mv("karate.kyoChain1", "Catena: chudan tsuki sinistro e destro, poi mawashi tsuki; le mani tornano al viso", chain([["l", "chudan"], ["r", "chudan"], ["l", "mawashi"]]));
+    mv("karate.kyoChain2", "Catena: shita tsuki, mawashi tsuki, chudan tsuki; espira corto su ogni pugno", chain([["r", "shita"], ["l", "mawashi"], ["r", "chudan"]]));
+    mv("karate.kyoLight", "Tsuki leggeri al corpo in guardia: chudan tsuki e mawashi tsuki alternati", chain([["l", "chudan"], ["r", "mawashi"], ["r", "chudan"], ["l", "mawashi"]], 1.3));
+    const kyArms = (b) => { b.guard("high"); return b; };
+    const lowK = (s, ph, base = ky, h = 0.55) => kk(base, s, "low", ph, h, kyArms, 0.05);
+    const lowFr = (s = "r", base = ky, t = 1) => [K(base, 300, 150), K(lowK(s, "chamber", base), 200 * t, 40 * t), K(lowK(s, "ext", base), 170 * t, 260 * t), K(lowK(s, "recoil", base).act("leg" + s), 200 * t, 60 * t), K(base, 230 * t, 250)];
+    mv2("karate.gedanMawashi", "Gedan mawashi geri: perno, anca che gira, la tibia attraversa la coscia in diagonale", "Calcio basso con l'altra gamba", lowFr());
+    mv("karate.gedanMawashiSlow", "Calcio basso lento all'esterno coscia: perno completo, tibia in diagonale, mani alte", speed(lowFr(), 2.3));
+    mv("karate.lowKickStart", "Ruota il piede d'appoggio e gira l'anca, il ginocchio dietro sale appena", [K(ky, 300, 200), K(lowK("r", "chamber").act("legr", "legl", "torso"), 400, 1100), K(ky, 400, 300)]);
+    mv("karate.lowKickFollow", "Dopo l'impatto la gamba prosegue un poco e torna in guardia", [K(ky, 300, 150), K(lowK("r", "chamber"), 200, 40), K(lowK("r", "ext"), 170, 100), K(lowK("r", "ext", ky, 0.45).set("hipYaw", 125).set("chestYaw", 85).act("legr"), 200, 300), K(lowK("r", "recoil").act("legr"), 250, 60), K(ky, 250, 250)]);
+    mv("karate.lowKickInside", "Calcio basso con la gamba avanti all'interno coscia, poi di nuovo in guardia", lowFr("l"));
+    mv("karate.tsukiLowKick", "Chudan tsuki e subito calcio basso della gamba dietro", [K(ky, 300, 120), K(kyT("r", "chudan"), 160, 120), K(ky, 140, 20), ...lowFr().slice(1)]);
+    // al muro: mano sinistra appoggiata di lato, l'altra al viso
+    const kyWall = () => { const b = cp(ky); b.handW("l", 0.05, 1.2, -0.5, "open").elbow("l", [0, -1, -0.5]); return b; };
+    const lowW = (ph, h) => { const b = lowK("r", ph, kyWall(), h); b.handW("l", 0.05, 1.2, -0.5, "open").elbow("l", [0, -1, -0.5]); hh(b, "r", [0.15, -0.08, 0.06], "fist"); return b; };
+    mv("karate.lowKickReady", "Di fianco al muro, una mano appoggiata, guardia con l'altra mano al viso", [K(st(), 300, 200), K(kyWall().act("arml"), 500, 1200), K(st(), 400, 300)]);
+    mv("karate.lowKickPivot", "Ruota l'avampiede d'appoggio finché il tallone punta avanti, il ginocchio sale, l'anca gira", [K(kyWall(), 300, 200), K(lowW("chamber").act("legl", "legr", "torso"), 600, 1100), K(kyWall(), 500, 300)]);
+    mv("karate.lowKickSlow", "La tibia scende in diagonale dall'alto verso il basso all'altezza della coscia", [K(kyWall(), 300, 200), K(lowW("chamber"), 500, 200), K(lowW("ext").act("legr"), 900, 500), K(lowW("recoil"), 600, 100), K(kyWall(), 500, 300)]);
+    mv("karate.lowKickHold", "Fermo 2 secondi nel punto d'impatto: tibia inclinata, anca girata, mano al viso", [K(kyWall(), 300, 200), K(lowW("chamber"), 400, 100), K(lowW("ext").act("legr", "torso"), 500, 2000), K(lowW("recoil"), 400, 100), K(kyWall(), 400, 300)]);
+    // hiza geri: le mani afferrano e tirano in basso, il ginocchio sale al corpo
+    const grab = cp(ky).handW("l", 0.48, 1.42, -0.1, "open").handW("r", 0.48, 1.42, 0.1, "open").elbow("l", [0, -1, -0.3]).elbow("r", [0, -1, 0.3]).lean(0.05).act("arml", "armr");
+    const knee = kk(ky, "r", "knee", "ext", "mid", (b) => { b.handW("l", 0.46, 1.12, -0.1, "fist").handW("r", 0.46, 1.12, 0.1, "fist"); b.elbow("l", [0, -1, -0.4]).elbow("r", [0, -1, 0.4]); }, 0.02).act("legr", "arml", "armr");
+    const push = cp(ky).handW("l", 0.55, 1.3, -0.12, "open").handW("r", 0.55, 1.3, 0.12, "open").lean(0.05).act("arml", "armr");
+    mv("karate.hizaGeri", "Hiza geri: le mani afferrano e tirano in basso, il ginocchio sale al corpo", [K(ky, 300, 150), K(grab, 200, 100), K(knee, 200, 400), K(ky, 300, 250)]);
+    // combinazioni da knockdown
+    const kyFwd = place(cp(ky).mirror(), 0, "l", ky);
+    const passBack = (from, to) => { const m = mix(from, to, 0.5); const P = from.p.foot.l; m.p.foot.r = [P[0] - 0.05, ankleY(15), P[2] + 0.18]; m.p.footPitch.r = 15; return noact(m); };
+    mv("karate.kyoCombo1", "Chudan tsuki sinistro, destro, calcio basso della gamba destra all'esterno coscia", [K(ky, 300, 120), K(kyT("l", "chudan"), 160, 80), K(ky, 140, 20), K(kyT("r", "chudan"), 160, 80), K(ky, 140, 20), ...lowFr().slice(1)]);
+    mv("karate.kyoCombo2", "Shita tsuki, mawashi tsuki, calcio basso all'interno coscia con la gamba avanti", [K(ky, 300, 120), K(kyT("r", "shita"), 160, 80), K(ky, 140, 20), K(kyT("l", "mawashi"), 170, 80), K(ky, 140, 20), ...lowFr("l").slice(1)]);
+    const kyMae = (ph) => kk(ky, "r", "front", ph, "mid", kyArms, 0.04);
+    const kyF = (s, k) => place(kyT(other(s), k).mirror(), 0, "l", ky);
+    mv("karate.kyoCombo3", "Mae geri chudan, appoggio avanti, catena di tre pugni al corpo, poi indietro", [K(ky, 300, 120), K(kyMae("chamber"), 200, 40), K(kyMae("ext"), 160, 200), K(kyMae("recoil").act("legr"), 170, 40), K(cp(kyFwd).act("legr"), 200, 100), K(kyF("r", "chudan"), 160, 60), K(kyFwd, 140, 20), K(kyF("l", "chudan"), 160, 60), K(kyFwd, 140, 20), K(kyF("r", "mawashi"), 170, 200), K(passBack(kyFwd, ky), 220, 30), K(ky, 220, 250)]);
+    mv("karate.kyoCombo4", "Mani che afferrano e tirano giù, hiza geri al corpo, spinta e calcio basso", [K(ky, 300, 120), K(grab, 200, 80), K(knee, 200, 250), K(cp(ky).act("legr"), 200, 30), K(push, 160, 150), ...lowFr().slice(1)]);
+    // calcio basso della gamba dietro, appoggio avanti e subito ushiro geri con l'altra gamba (giro al contrario)
+    const pR = (b) => place(b.copy().mirror(), 0, "r", kyFwd);
+    const kyBack = (() => { const b = cp(ky); b.set("hipYaw", -205).set("chestYaw", -200).look(-115); b.fyaw("l", -190).heel("l", 18).fyaw("r", -225).heel("r", 12); b.guard("high"); return b; })();
+    const kyUsh = (ph) => kk(ky, "r", "back", ph, "mid", kyArms, 0.04);
+    mv("karate.kyoCombo5", "Calcio basso della gamba dietro e, appena appoggia, ushiro geri con l'altra", [K(ky, 300, 120), K(lowK("r", "chamber"), 200, 40), K(lowK("r", "ext"), 170, 200), K(cp(kyFwd).act("legr"), 220, 60), K(pR(kyBack).act("head", "torso"), 220, 40), K(pR(kyUsh("chamber")), 200, 40), K(pR(kyUsh("ext")), 170, 250), K(pR(kyUsh("recoil")).act("legl"), 180, 40), K(pR(kyBack), 200, 40), K(kyFwd, 280, 100), K(passBack(kyFwd, ky), 220, 30), K(ky, 220, 250)]);
+
+    /* ============================================================ COMBINAZIONI DA KUMITE */
+    const gIn = gStep(0.22);
+    const exitBack = (from, d = 0.22) => yBack(from).map((f) => K(f.p, f.t, f.h)).concat([]);
+    const kgMawAt = (base, ph, h = "mid") => kk(base, "r", "round", ph, h, gArms, 0.04);
+    const mawAt = (base, t = 1) => [K(cp(base).foot("r", base.p.foot.r[0] - base.p.o[0] - 0.1, base.p.foot.r[2] - base.p.o[1], -40, 30).turn(15).act("legr"), 160 * t, 20), K(kgMawAt(base, "chamber"), 190 * t, 40 * t), K(kgMawAt(base, "ext"), 150 * t, 220 * t), K(kgMawAt(base, "recoil").act("legr"), 160 * t, 60 * t), K(base, 220 * t, 120 * t)];
+    mv("karate.kizamiGyakuMawashi", "Kizami zuki jodan, gyaku zuki chudan, mawashi geri chudan con la gamba dietro", [K(g, 300, 120), K(kizIn(), 160, 80), K(gyk(gIn), 160, 120), K(gIn, 160, 20), ...mawAt(gIn), ...exitBack(gIn), K(g, 200, 200)]);
+    // mae geri della gamba dietro, appoggio avanti in guardia destra, gyaku zuki, poi passo indietro
+    const gRf = place(cp(g).mirror(), 0, "l", g);
+    const passG = (from, to, s = "r") => { const m = mix(from, to, 0.5); const P = from.p.foot[other(s)]; m.p.foot[s] = [P[0] - 0.04, ankleY(15), P[2] + sg(s) * 0.18]; m.p.footPitch[s] = 15; return noact(m); };
+    const gMae = (ph, base = g) => kk(base, "r", "front", ph, "mid", gArms, 0.04);
+    const gykR = () => place(gyk().mirror(), 0, "l", gRf);
+    mv("karate.maeGyakuKumite", "Mae geri con la gamba dietro, appoggio avanti, gyaku zuki chudan, poi fuori", [K(g, 300, 120), K(gMae("chamber"), 200, 40), K(gMae("ext"), 150, 200), K(gMae("recoil").act("legr"), 160, 40), K(cp(gRf).act("legr"), 200, 60), K(gykR().act("arml", "legl", "torso"), 160, 300), K(gRf, 200, 40), K(passG(gRf, g), 220, 30), K(g, 220, 250)]);
+    mv("karate.maeGeriKumite", "Mae geri dalla guardia che tocca il bersaglio con controllo, poi di nuovo in guardia", [K(g, 300, 150), K(gMae("chamber"), 200, 50), K(gMae("ext"), 160, 260), K(gMae("recoil").act("legr"), 170, 60), K(g, 230, 250)]);
+    const urak = (base) => { const b = cp(base).turn(-12).lean(0.05).look(50); b.straight("l", [0.95, 1.5, 0.0], 0.9); b.elbow("l", [0, 0.6, -1]); b.handW("r", 0.16, 1.36, 0.06, "fist"); return b.act("arml", "legl"); };
+    mv("karate.urakenGyakuSide", "Kizami uraken jodan con yori ashi, gyaku zuki chudan, uscita laterale", [K(g, 300, 120), K(urak(gFoot("l", 0.22)), 160, 100), K(gyk(gIn), 160, 200), K(gIn, 180, 30), K(gFoot("l", -0.05, -0.3, gIn).act("legl"), 200, 40), K(gStep(0.17, -0.3).act("legr"), 170, 200), K(gStep(0.08, -0.15), 250, 40), K(g, 250, 200)]);
+    const gLand = gStep(0.3);
+    mv("karate.kekomiGyaku", "Yoko geri kekomi con la gamba avanti, appoggio avanti, gyaku zuki", [K(g, 300, 120), K(gStepUp, 180, 30), K(kekG("chamber"), 190, 40), K(kekG("ext"), 160, 220), K(kekG("recoil").act("legl"), 170, 40), K(gFoot("l", 0.3, 0, gStepUp).act("legl"), 200, 30), K(gyk(gLand), 170, 250), K(gLand, 180, 30), ...yBack(gLand).map((f) => K(f.p, f.t, f.h)), K(gFoot("r", -0.1, 0, gStep(0.1)), 160, 20), K(g, 160, 200)]);
+    const feint = cp(g).turn(-6).handW("l", 0.55, 1.42, -0.02, "fist").lean(0.03).act("arml", "head");
+    const kzmLand = gStep(0.2);
+    mv2("karate.feintKizamiMawashi", "Finta di kizami zuki, kizami mawashi geri, gyaku zuki all'appoggio, uscita", "Finta e kizami mawashi geri dall'altra guardia", [K(g, 300, 120), K(feint, 140, 80), K(g, 120, 10), K(gSlide, 150, 30), K(kzm("chamber"), 170, 30), K(kzm("ext"), 150, 200), K(kzm("recoil").act("legl"), 150, 30), K(gFoot("l", 0.2, 0, kzmLand).act("legl"), 160, 20), K(gyk(kzmLand), 160, 250), K(kzmLand, 160, 30), K(gFoot("r", -0.2, 0, kzmLand), 170, 30), K(g, 160, 200)]);
+    mv("karate.kizamiMawashiGyakuMawashi", "Kizami mawashi geri chudan, subito gyaku zuki, mawashi geri della gamba dietro", [K(g, 300, 120), K(gSlide, 150, 30), K(kzm("chamber"), 170, 30), K(kzm("ext"), 150, 180), K(kzm("recoil").act("legl"), 150, 30), K(gFoot("l", 0.2, 0, kzmLand).act("legl"), 160, 20), K(gyk(kzmLand), 160, 120), K(kzmLand, 150, 20), ...mawAt(kzmLand), K(gFoot("r", -0.2, 0, kzmLand), 170, 30), K(g, 160, 200)]);
+    // ushiro mawashi da una posizione avanzata (base)
+    const umAt = (base, h = 0.95, t = 1) => {
+      const d = sub(base.p.foot.l, g.p.foot.l);
+      const mvB = (b) => b.copy().move(d[0], d[2]);
+      return [K(mvB(gTurn).act("head", "torso"), 200 * t, 30), K(mvB(gBack).act("legl"), 200 * t, 30), K(mvB(uraM("ext", h)), 200 * t, 60 * t), K(mvB(uraM("hook", h)), 180 * t, 200 * t), K(mvB(g360()).act("legr"), 260 * t, 150), K(base, 0, 150)];
+    };
+    mv("karate.gyakuUshiroMawashi", "Gyaku zuki, ushiro mawashi geri basso, uscita", [K(g, 300, 120), K(gFoot("l", 0.22).act("legl"), 160, 20), K(gyk(gIn), 160, 200), K(gIn, 160, 30), ...umAt(gIn, 0.7), ...exitBack(gIn), K(g, 200, 200)]);
+    mv("karate.kizamiGyakuUraMawashi", "Kizami zuki, gyaku zuki, ushiro mawashi geri con la gamba dietro", [K(g, 300, 120), K(kizIn(), 160, 80), K(gyk(gIn), 160, 150), K(gIn, 160, 30), ...umAt(gIn), ...exitBack(gIn), K(g, 200, 200)]);
+    // calcio basso o mawashi geri, appoggio avanti, poi ushiro mawashi con l'altra gamba (giro al contrario)
+    const umMirror = () => {
+      const pl = (b) => place(b.copy().mirror(), 0, "r", gRf);
+      return [K(pl(gTurn).act("head", "torso"), 200, 30), K(pl(gBack).act("legr"), 200, 30), K(pl(uraM("ext")), 200, 60), K(pl(uraM("hook")), 180, 200), K(pl(g360()).act("legl"), 260, 150), K(gRf, 0, 150), K(passG(gRf, g), 220, 30), K(g, 220, 250)];
+    };
+    mv("karate.lowKickUraMawashi", "Calcio basso della gamba dietro e, appena appoggia, ushiro mawashi geri con l'altra", [K(g, 300, 120), K(kgMaw("chamber", 0.6), 190, 30), K(kgMaw("ext", 0.6), 160, 200), K(cp(gRf).act("legr"), 220, 40), ...umMirror()]);
+    mv("karate.mawashiUraMawashi", "Mawashi geri chudan, appoggio avanti, ushiro mawashi geri", [K(g, 300, 120), K(kgMaw("chamber"), 190, 30), K(kgMaw("ext"), 160, 200), K(kgMaw("recoil"), 160, 30), K(cp(gRf).act("legr"), 220, 40), ...umMirror()]);
+    mv("karate.tsugiMawashi", "Dalla linea più lontana: tsugi ashi e mawashi geri chudan con controllo", [K(g, 300, 150), K(cp(g).foot("r", 0.0, 0.06, -45, 20).shift(0.1).act("legr"), 200, 40), K(gStep(0.25).act("legl"), 180, 60), ...mawAt(gStep(0.25)), ...yBack(gStep(0.25)).map((f) => K(f.p, f.t, f.h)), K(gFoot("r", -0.05, 0, gStep(0.05)), 150, 20), K(g, 150, 200)]);
+
+    /* ============================================================ AL SACCO */
+    const bgK = kg().move(-0.2);
+    const bgM = kg().move(-0.45);
+    const bgKiz = (base) => kiz(base);
+    const bMae = (ph) => kk(bgM, "r", "front", ph, "mid", gArms, 0.04);
+    const bTeep = (ph) => kk(bgM, "r", "teep", ph, "mid", gArms, 0.04);
+    const bk = kyo().move(-0.04);
+    const bkLow = kyo().move(-0.12);
+    const bag = { props: [BAG] };
+    mv("karate.bagGuard", "Al sacco in guardia, saltello leggero, distanza da calcio", [K(bgK, 250, 50), K(bounce(bgK).act("legl", "legr"), 170, 40), K(bgK, 170, 40), K(bounce(bgK), 170, 40), K(bgK, 170, 200)], bag);
+    mv("karate.bagMaeGeri", "Mae geri al sacco con la gamba quasi tesa, ritorno in caricamento prima di appoggiare", [K(bgM, 300, 150), K(bMae("chamber"), 200, 40), K(bMae("ext"), 160, 260), K(bMae("recoil").act("legr"), 170, 100), K(bgM, 230, 250)], bag);
+    mv("karate.bagMaeSole", "Al sacco con la pianta del piede se non sei sicuro dell'avampiede", [K(bgM, 300, 150), K(bTeep("chamber"), 200, 40), K(bTeep("ext"), 170, 260), K(bTeep("recoil").act("legr"), 170, 100), K(bgM, 230, 250)], bag);
+    const bRf = place(cp(bgM).mirror(), 0, "l", bgM);
+    const bgykR = place(gyk().mirror(), 0, "l", bRf);
+    mv("karate.bagMaeGyaku", "Mae geri, appoggio avanti, gyaku zuki al sacco, poi torna in guardia con le mani alte", [K(bgM, 300, 120), K(bMae("chamber"), 200, 40), K(bMae("ext"), 160, 200), K(bMae("recoil").act("legr"), 160, 40), K(cp(bRf).act("legr"), 200, 60), K(place(gyk(cp(g).move(0, 0)).mirror(), 0, "l", bRf).act("arml", "torso"), 160, 300), K(bRf, 200, 40), K(passG(bRf, bgM), 220, 30), K(bgM, 220, 250)], bag);
+    const bMaw = (ph, h = "mid") => kk(bgK, "r", "round", ph, h, gArms, 0.04);
+    const bMawFr = (t = 1) => [K(bgK, 300, 150), K(cp(bgK).foot("r", -0.42, 0.08, -40, 30).turn(15).act("legr"), 170 * t, 20), K(bMaw("chamber"), 190 * t, 50 * t), K(bMaw("ext"), 160 * t, 260 * t), K(bMaw("recoil").act("legr"), 170 * t, 80 * t), K(bgK, 230 * t, 250)];
+    mv("karate.bagMawashi", "Mawashi geri al sacco con il collo del piede o la tibia, perno del piede d'appoggio", bMawFr(), bag);
+    mv("karate.bagMawashiSlow", "Mawashi geri lento al sacco: distanza da cui arriva con la gamba quasi tesa", speed(bMawFr(), 2), bag);
+    const bIn = bgK.copy().move(0.24);
+    mv("karate.bagCombo", "Al sacco: kizami zuki, gyaku zuki, mawashi geri, poi esci con un passo e torna in guardia", [K(bgK, 300, 120), K(kiz(gFoot("l", 0.24, 0, bgK)).act("arml", "legl"), 160, 80), K(gyk(bIn), 160, 120), K(bIn, 160, 20), ...yBack(bIn).map((f) => K(f.p, f.t, f.h)), ...bMawFr().slice(1, 5), K(bgK, 220, 60), K(gFoot("r", -0.2, 0, bgK), 180, 30), K(cp(bgK).move(-0.2), 160, 150), K(gFoot("l", 0.2, 0, cp(bgK).move(-0.2)), 180, 30), K(bgK, 160, 200)], bag);
+    const bStepUp = cp(bgK).move(-0.05).foot("r", 0.12, 0.1, -60, 15).shift(0.12);
+    const bKek = (ph) => kk(bStepUp, "l", "side", ph, "mid", gArms, 0.05);
+    mv("karate.bagKekomi", "Yoko geri kekomi al sacco: spinge dritto, il sacco si allontana senza ruotare", [K(bgK, 300, 150), K(cp(bStepUp).act("legr"), 200, 40), K(bKek("chamber"), 200, 50), K(bKek("ext"), 170, 300), K(bKek("recoil").act("legl"), 180, 60), K(bStepUp, 180, 40), K(bgK, 220, 250)], bag);
+    mv("karate.bagPunches", "Al sacco: kizami zuki e gyaku zuki a ritmo più alto, senza perdere la forma", [K(bIn, 300, 100), K(kiz(bIn), 130, 60), K(bIn, 110, 10), K(gyk(bIn), 130, 60), K(bIn, 110, 10), K(kiz(bIn), 130, 60), K(bIn, 110, 10), K(gyk(bIn), 130, 60), K(bIn, 150, 200)], bag);
+    const bkT = (s, k) => kyT(s, k, bk);
+    const bkChain = (list, t = 1) => [K(bk, 300, 100), ...list.flatMap(([s, k], i) => [K(bkT(s, k), 150 * t, 70 * t), K(bk, 130 * t, i === list.length - 1 ? 200 : 15)])];
+    mv("karate.bagKyoChain", "Al sacco a distanza corta: catena di pugni al corpo, le mani tornano al viso", bkChain([["l", "chudan"], ["r", "chudan"], ["l", "mawashi"], ["r", "shita"]]), bag);
+    mv("karate.bagKyoFast", "Raffica di pugni al corpo alla massima velocità, poi di nuovo in guardia", bkChain([["l", "chudan"], ["r", "chudan"], ["l", "chudan"], ["r", "chudan"], ["l", "chudan"], ["r", "chudan"]], 0.6), bag);
+    const bLow = (ph) => lowK("r", ph, bkLow);
+    const bLowFr = [K(bk, 300, 120), K(cp(bkLow).act("legl", "legr"), 200, 60), K(bLow("chamber"), 190, 40), K(bLow("ext"), 170, 260), K(bLow("recoil").act("legr"), 190, 60), K(bkLow, 220, 60), K(bk, 220, 200)];
+    mv("karate.bagLowKick", "Mezzo passo indietro e calcio basso con la tibia alla parte bassa del sacco", bLowFr, bag);
+    mv("karate.bagKyoMix", "Al sacco: chudan tsuki sinistro e destro, poi calcio basso; espira su ogni colpo", [K(bk, 300, 100), K(bkT("l", "chudan").act("arml", "head"), 150, 70), K(bk, 130, 15), K(bkT("r", "chudan").act("armr", "head"), 150, 70), K(bk, 130, 15), ...bLowFr.slice(1)], bag);
+    mv("karate.bagGyakuUraMawashi", "Al sacco: gyaku zuki e poi un ushiro mawashi geri basso e controllato", [K(bgK, 300, 120), K(gFoot("l", 0.24, 0, bgK).act("legl"), 160, 20), K(gyk(bIn), 160, 200), K(bIn, 160, 20), ...yBack(bIn).map((f) => K(f.p, f.t, f.h)), ...umAt(bgK, 0.7)], bag);
+
+    /* ============================================================ GOHON E KIHON IPPON KUMITE (DA SOLO) */
+    const announce = cp(ZB()).act("head", "arml", "legr");
+    mv("karate.gohonStart", "Partenza: passo indietro in zenkutsu con gedan barai e annuncio dell'attacco", [K(yoi(), 300, 200), K(gedanPrep(zen(-30).foot("r", -0.2, 0.15, -30, 10).set("pel", [0.12, 0.84, 0]).set("chest", [0.13, 1.34, 0]).set("head", [0.15, 1.54, 0]), "l"), 300, 50), K(announce, 220, 900)]);
+    const attackSeq = (y) => { const q = new Seq(ZB()); const sb = side(() => zOi(y)); q.step(sb, "r", { prep: pOi, act: ["legr", "armr"], h: 350 }); q.step(sb, "l", { prep: pOi, act: ["legl", "arml"], h: 450 }); return q; };
+    const defendSeq = (from, block, prep) => {
+      const q = new Seq(from, 300, 200); q.lead = "l";
+      q.step(block, "l", { prep, act: ["legl", "armr"], h: 300 });
+      q.step(block, "r", { prep, act: ["legr", "arml"], h: 60 });
+      q.tech(sGyaku, { act: ["armr", "torso", "head"], h: 1100 });
+      q.fr.push(K(ZB(), 500, 700));
+      return q.fr;
+    };
+    const gjA = attackSeq(1.47);
+    const gjAttack = gjA.fr.slice();
+    const gjDef = defendSeq(gjA.cur, sAge, pAge);
+    mv("karate.gohonAttack", "Gohon kumite, chi attacca: oi zuki jodan avanzando, ognuno con kime", gjAttack);
+    mv("karate.gohonDefend", "Chi difende: age uke arretrando, la parata arriva col piede; gyaku zuki, kiai, zanshin", gjDef);
+    mv2("karate.gohonJodan", "Gohon kumite jodan da solo: oi zuki avanzando, age uke arretrando, gyaku zuki e kiai", "Gohon kumite jodan con l'altra gamba avanti", gjAttack.concat(gjDef.slice(1)));
+    const gcA = attackSeq(1.22);
+    mv2("karate.gohonChudan", "Gohon kumite chudan: oi zuki avanzando, soto uke arretrando, gyaku zuki e kiai", "Gohon kumite chudan con l'altra gamba avanti", gcA.fr.concat(defendSeq(gcA.cur, sSoto, pSoto).slice(1)));
+    // kihon ippon: un passo indietro con la parata, gyaku zuki, zanshin, ritorno
+    function ippon(block, prep) {
+      const q = new Seq(ZB());
+      q.step(block, "l", { prep, act: ["legl", "armr"], h: 80 });
+      q.tech(sGyaku, { act: ["arml", "torso"], h: 900 });
+      q.step(sGedan, "l", { lead: "l", prep: pGedan, act: [], tp: 300, t: 260, h: 200 });
+      return q.end(ZB(), 200, 200);
+    }
+    mv("karate.ageGyakuBack", "Arretra con age uke e subito gyaku zuki chudan, poi zanshin", ippon(sAge, pAge));
+    mv("karate.sotoGyakuBack", "Arretra con soto uke e subito gyaku zuki chudan, poi zanshin", ippon(sSoto, pSoto));
+    mv("karate.uchiGyakuBack", "Arretra con uchi uke e subito gyaku zuki chudan, poi zanshin", ippon(sUchi, pUchi));
+    mv("karate.gedanGyakuBack", "Contro il mae geri: arretra con gedan barai e gyaku zuki, poi zanshin", ippon(sGedan, pGedan));
+    mv("karate.shutoGyaku", "Arretra in kokutsu con shuto uke, poi scivola avanti in zenkutsu con gyaku zuki", (() => {
+      const q = new Seq(ZB());
+      q.step(sShuto, "l", { prep: pShuto, act: ["legl", "armr"], h: 250 });
+      const gy2 = place(sGyaku("r"), 0, "r", q.cur).move(0.2);
+      q.pose(gy2.act("arml", "legr", "legl", "torso"), 200, 500);
+      q.step(sGedan, "l", { lead: "l", prep: pGedan, act: [], tp: 300, t: 260, h: 200 });
+      return q.end(ZB(), 250, 200);
+    })());
+    mv("karate.zanshin", "Zanshin: dopo il contrattacco due secondi in guardia, sguardo sull'avversario", [K(ZB(), 300, 200), K(zGyaku().act("armr", "torso"), 180, 400), K(cp(ZB()).act("head"), 600, 1800)]);
+
+    /* ============================================================ RISCALDAMENTO E VARIE */
+    const hopA = st().foot("l", 0, -0.12, 8, 25).foot("r", 0, 0.12, -8, 25).sink(-0.02).handRel("l", 0.15, -0.3, -0.18, "fist").handRel("r", 0.15, -0.3, 0.18, "fist");
+    const hopB = hopA.copy().sink(-0.05).set("foot", { l: [0, ankleY(30) + 0.05, -0.12], r: [0, ankleY(30) + 0.05, 0.12] }).set("footPitch", { l: 30, r: 30 }).act("legl", "legr");
+    const hopC = st().foot("l", 0.12, -0.12, 8, 25).foot("r", -0.1, 0.12, -8, 25).sink(-0.02).handRel("l", 0.15, -0.3, -0.18, "fist").handRel("r", 0.15, -0.3, 0.18, "fist");
+    mv("karate.hop", "Saltelli leggeri sugli avampiedi, cambiando ritmo", [K(hopA, 250, 30), K(hopB, 150, 30), K(hopA, 150, 30), K(hopB, 150, 30), K(hopC.act("legl", "legr"), 150, 30), K(hopB, 150, 30), K(hopA, 150, 200)]);
+    const fistF = (g2) => st().handRel("l", 0.35, -0.12, -0.1, g2).handRel("r", 0.35, -0.12, 0.1, g2).elbow("l", [0, -1, -0.3]).elbow("r", [0, -1, 0.3]);
+    mv("karate.fistPump", "Apri e chiudi i pugni con forza, braccia avanti", [K(fistF("open"), 300, 150), K(fistF("fist").act("arml", "armr"), 160, 150), K(fistF("open"), 160, 150), K(fistF("fist").act("arml", "armr"), 160, 150), K(fistF("open"), 160, 250)]);
+    const ibA = yoi().handW("l", 0.25, 1.3, 0.04, "open").handW("r", 0.25, 1.32, -0.04, "open").set("chest", [0.0, 1.47, 0]).set("head", [0.01, 1.67, 0]);
+    const ibB = yoi().sink(0.03).handW("l", 0.15, 0.95, -0.17, "fist").handW("r", 0.15, 0.95, 0.17, "fist").act("torso", "head", "arml", "armr");
+    mv("karate.ibuki", "Ibuki: inspira dal naso, espira lungo dalla bocca contraendo forte l'addome", [K(yoi(), 300, 200), K(ibA.act("torso"), 1300, 300), K(ibB, 1900, 600), K(yoi(), 500, 300)]);
+    const kneeUp = (s, out) => { const b = st().handPel("l", 0.02, 0.05, -0.18, "open").handPel("r", 0.02, 0.05, 0.18, "open"); const ss = sg(s); const hp = b.hip(s); b.footAt(s, out ? [hp[0] + 0.05, hp[1] - 0.38, hp[2] + ss * 0.38] : [hp[0] + 0.3, hp[1] - 0.4, hp[2]], out ? -ss * 60 : 0, 30); b.knee(s, out ? [0.3, 0.6, ss] : [1, 0.8, 0]); return b.act("leg" + s); };
+    mv("karate.hipGate", "Apri il cancello: ginocchio su davanti, aprilo di lato e appoggia, poi al contrario", [K(st(), 300, 100), K(kneeUp("r", false), 350, 100), K(kneeUp("r", true), 400, 100), K(st(), 350, 100), K(kneeUp("r", true), 350, 100), K(kneeUp("r", false), 400, 100), K(st(), 350, 200)]);
+    mv("karate.kneeRaise", "Sollevamenti lenti del ginocchio, tenuti 2 secondi in alto", [K(st(), 300, 100), K(kneeUp("r", false), 600, 1600), K(st(), 500, 100), K(kneeUp("l", false), 600, 1600), K(st(), 500, 200)]);
+    const yokoUp = (s) => { const b = kg(); const k = yoko(heisoku(), "chamber", "mid", { keage: true }); k.guard("high"); return s === "r" ? k.act("legr") : k.mirror().act("legl"); };
+    mv("karate.yokoChamberRaise", "Sollevamento laterale del ginocchio in caricamento da yoko geri, tenuto un secondo", [K(heisoku(), 300, 150), K(yokoUp("r"), 400, 1000), K(heisoku(), 400, 150), K(yokoUp("l"), 400, 1000), K(heisoku(), 400, 200)]);
+    const pt = (x, y, z) => st().handW("r", x, y, z, "open").elbow("r", [0, -1, 0.5]).act("armr");
+    mv("karate.pointPath", "Disegna con il dito il percorso del kata e segna il punto di partenza", [K(st(), 300, 200), K(pt(0.42, 1.1, 0.12), 400, 200), K(pt(0.42, 1.42, 0.12), 500, 100), K(pt(0.4, 1.42, 0.0), 300, 50), K(pt(0.4, 1.42, 0.24), 400, 100), K(pt(0.4, 1.1, 0.24), 500, 50), K(pt(0.4, 1.1, 0.0), 400, 300), K(st(), 400, 300)]);
+    const lungeZ = (s) => { const b = zen(-10).sink(0.06); hik(b, "l"); hik(b, "r"); return (s === "l" ? b : b.mirror()).act("legl", "legr"); };
+    mv("karate.zenkutsuLunge", "Affondi alternati che scendono esattamente in zenkutsu dachi", [K(st(), 300, 100), K(lungeZ("l"), 500, 300), K(st(), 450, 100), K(lungeZ("r"), 500, 300), K(st(), 450, 200)]);
+    const kibUp = () => kib(0.8).handPel("l", 0.03, 0.06, -0.19, "open").handPel("r", 0.03, 0.06, 0.19, "open");
+    const kibDn = () => kib(0.62).handPel("l", 0.03, 0.06, -0.19, "open").handPel("r", 0.03, 0.06, 0.19, "open");
+    mv("karate.kibaSquat", "Squat in kiba dachi: scendi in 2 secondi, risali in 1, ginocchia in fuori", [K(kibUp(), 300, 200), K(kibDn().act("legl", "legr"), 1600, 200), K(kibUp(), 800, 200), K(kibDn().act("legl", "legr"), 1600, 200), K(kibUp(), 800, 200)]);
+    const kibUpP = (s) => { const b = kib(0.8); punch(b, s, 1.25); hik(b, other(s)); return b; };
+    mv("karate.kibaSquatPunch", "Squat in kiba dachi con un chudan tsuki a ogni salita", [K(kib(0.8), 300, 150), K(kib(0.62).act("legl", "legr"), 700, 100), K(kibUpP("r").act("armr", "legl", "legr"), 400, 250), K(kib(0.62).act("legl", "legr"), 700, 100), K(kibUpP("l").act("arml", "legl", "legr"), 400, 250), K(kib(0.8), 400, 200)]);
+    const kibSide = (s) => { const b = kib(0.66); const ss = sg(s); b.foot(other(s), 0, -ss * 0.5, 0, 0).foot(s, 0, ss * 0.42, 0, 0); b.set("pel", [-0.03, 0.6, ss * 0.22]).set("chest", [0.02, 1.08, ss * 0.18]).set("head", [0.04, 1.28, ss * 0.17]); b.knee(other(s), [0, 0.3, -ss]).knee(s, [0.6, 0, ss]); b.handRel("l", 0.35, -0.1, -0.08, "fist").handRel("r", 0.35, -0.1, 0.08, "fist"); return b.act("legl", "legr"); };
+    mv("karate.kibaSideLunge", "Affondi laterali lenti da kiba dachi: scendi in 3 secondi su un lato, poi sull'altro", [K(kib(), 300, 150), K(kibSide("r"), 1800, 300), K(kib(), 800, 150), K(kibSide("l"), 1800, 300), K(kib(), 800, 200)]);
+    const pf = plank({ forearms: true });
+    const pfPunch = (s) => { const b = plank({ forearms: true }); const sh = b.sh(s); b.hand(s, [sh[0] + 0.55, sh[1] + 0.02, sh[2] * 0.4], "fist"); b.elbow(s, [0, -1, 0]); return b.act("arm" + s, "torso"); };
+    mv("karate.plankPunch", "Plank sugli avambracci, poi un choku zuki avanti alternato senza ruotare il bacino", [K(pf, 300, 600), K(pfPunch("r"), 250, 500), K(pf, 250, 300), K(pfPunch("l"), 250, 500), K(pf, 250, 400)]);
+    mv("karate.plankKime", "Plank con contrazione: ogni 3 secondi espira forte e contrai l'addome", [K(pf, 300, 900), K(cp(pf).act("torso", "head"), 120, 500), K(pf, 300, 900), K(cp(pf).act("torso", "head"), 120, 500), K(pf, 300, 600)]);
+    const pkF = plank().handW("l", 0.2, 0.06, -0.18, "fist").handW("r", 0.2, 0.06, 0.18, "fist");
+    const pkFD = L.pushDown().handW("l", 0.2, 0.06, -0.18, "fist").handW("r", 0.2, 0.06, 0.18, "fist");
+    mv("karate.pushupFist", "Piegamenti sulle nocche, su tappetino morbido, polso dritto", [K(pkF, 300, 200), K(pkFD.act("arml", "armr"), 600, 150), K(pkF, 450, 200), K(pkFD.act("arml", "armr"), 600, 150), K(pkF, 450, 300)]);
+    const hollow = lieBack().set("chest", [-0.44, 0.3, 0]).set("head", [-0.6, 0.42, 0]).footAt("l", [0.8, 0.3, -0.08], 0, -60).footAt("r", [0.8, 0.3, 0.08], 0, -60).handW("l", -0.1, 0.4, -0.2, "open").handW("r", -0.1, 0.4, 0.2, "open").knee("l", [0, 1, 0]).knee("r", [0, 1, 0]);
+    mv("karate.hollowHold", "Hollow hold: lombari a terra, spalle e gambe sollevate, tieni", [K(lieBack(), 300, 200), K(hollow.act("torso", "legl", "legr"), 600, 2000), K(lieBack(), 500, 300)]);
+    const suD = lieBack({ kneesUp: true }).handHead("l", 0.0, -0.02, -0.14, "fist").handHead("r", 0.0, -0.02, 0.14, "fist").elbow("l", [0, 0.5, -1]).elbow("r", [0, 0.5, 1]);
+    const suU = (s) => { const b = lieBack({ kneesUp: true }).set("chest", [-0.1, 0.6, 0]).set("head", [-0.04, 0.8, 0]); b.handHead(other(s), 0.12, -0.12, sg(other(s)) * 0.1, "fist"); b.straight(s, [0.7, 0.95, 0], 0.97); return b.act("torso", "arm" + s); };
+    mv("karate.situpPunch", "Addominali: sali seduto e tira due chudan tsuki in alto, poi scendi lento", [K(suD, 300, 150), K(suU("r"), 600, 150), K(suU("l"), 180, 200), K(suD, 900, 200)]);
+    const pat = (open) => { const b = yoi().sink(0.02); b.handW("r", open ? 0.3 : 0.16, 1.02, 0.02, "open").handW("l", 0.14, 0.9, -0.15, "fist"); return b; };
+    mv("karate.abPat", "In piedi, addome contratto ed espirazione, picchietta l'addome con il palmo, leggero", [K(yoi(), 300, 200), K(pat(true), 300, 50), K(pat(false).act("armr", "torso"), 150, 200), K(pat(true), 200, 50), K(pat(false).act("armr", "torso"), 150, 200), K(yoi(), 300, 200)]);
+    const spl = (up) => { const b = st(); b.set("pel", [-0.18, 0.36, 0]).set("chest", [0.3, 0.52, 0]).set("head", [0.49, 0.58, 0]).set("hipYaw", 0).set("chestYaw", 0).set("chestRoll", -90).set("hipRoll", -90); b.footAt("l", [-1.0, 0.075, 0.0], 0, 0, 90).footAt("r", up ? [-0.95, 0.45, -0.05] : [-1.0, 0.17, 0.0], 0, 0, 90).handW("l", 0.3, 0.04, 0.28, "fist").handW("r", 0.3, 1.25, 0.0, "open").elbow("l", [0, -1, 0]).knee("l", [0, 0, 1]).knee("r", [0, 0, 1]); return b; };
+    mv("karate.sidePlankLeg", "Plank laterale sull'avambraccio con la gamba sopra sollevata", [K(spl(false), 300, 300), K(spl(true).act("torso", "legr"), 500, 1600), K(spl(false), 450, 300)]);
+    const side0 = () => { const b = st(); b.set("pel", [0, 0.2, 0]).set("chest", [-0.5, 0.22, 0]).set("head", [-0.7, 0.26, 0]).set("hipYaw", 0).set("chestYaw", 0).set("hipRoll", 90).set("chestRoll", 90); b.footAt("l", [0.86, 0.08, 0.02], 0, -80, -90).footAt("r", [0.86, 0.2, -0.02], 0, -80, -90); b.handW("l", -0.85, 0.08, 0.05, "open").handW("r", -0.2, 0.08, -0.25, "open"); b.knee("l", [0, 0, -1]).knee("r", [0, 0, -1]); b.elbow("l", [0, 1, 0]); return b; };
+    const sideCh = () => side0().footAt("r", [0.15, 0.32, -0.05], 0, 10, -90).knee("r", [-0.5, 0.2, -1]).act("legr");
+    const sideEx = () => side0().footAt("r", [0.86, 0.32, -0.02], 0, 20, -90).act("legr");
+    mv("karate.sideLyingKick", "Sdraiato sul fianco: ginocchio al petto e spinta della gamba come uno yoko geri", [K(side0(), 300, 200), K(sideCh(), 350, 150), K(sideEx(), 250, 300), K(sideCh(), 300, 100), K(sideEx(), 250, 300), K(side0(), 350, 200)]);
+    const quadS = () => side0().footAt("r", [-0.05, 0.25, -0.1], 180, -40, -90).knee("r", [1, 0, -0.3]).handW("r", -0.08, 0.3, -0.12, "open").act("legr");
+    mv("karate.quadSide", "Quadricipite da sdraiato sul fianco: tallone verso il gluteo, tieni", [K(side0(), 300, 200), K(quadS(), 600, 1800), K(side0(), 500, 300)]);
+    const f4 = () => lieBack({ kneesUp: true }).footAt("l", [0.2, 0.42, -0.08], 0, -20).footAt("r", [0.12, 0.6, 0.06], -70, 0, 80).knee("l", [0.2, 1, 0]).knee("r", [0.1, 0.4, 1]).handW("l", -0.05, 0.42, -0.14, "open").handW("r", -0.05, 0.42, -0.02, "open").set("chest", [-0.42, 0.22, 0]).set("head", [-0.6, 0.3, 0]).act("legl", "legr");
+    mv("karate.figureFour", "Glutei da sdraiato: caviglia sul ginocchio opposto, tira la coscia verso il petto", [K(lieBack({ kneesUp: true }), 300, 200), K(f4(), 700, 1800), K(lieBack({ kneesUp: true }), 600, 300)]);
+    const kc = () => lieBack().footAt("l", [0.15, 0.45, -0.1], 0, -10).footAt("r", [0.15, 0.45, 0.1], 0, -10).knee("l", [-0.3, 1, 0]).knee("r", [-0.3, 1, 0]).set("chest", [-0.45, 0.2, 0]).set("head", [-0.64, 0.27, 0]).handW("l", -0.05, 0.5, -0.12, "open").handW("r", -0.05, 0.5, 0.12, "open").act("legl", "legr");
+    mv("karate.kneesChest", "Zona lombare: sdraiato, ginocchia al petto abbracciate", [K(lieBack(), 300, 200), K(kc(), 700, 1800), K(lieBack(), 600, 300)]);
+    const sg2 = () => sitLong().footAt("r", [0.42, 0.07, -0.25], 0, 0).knee("r", [0.4, 1, 0.2]).handW("l", 0.3, 0.5, -0.12, "open").handW("r", 0.32, 0.48, 0.05, "open").set("chest", [0.1, 0.61, 0]).act("legr", "torso");
+    mv("karate.seatedGlute", "Seduto, una gamba incrociata sopra l'altra, abbraccia il ginocchio verso il petto", [K(sitLong(), 300, 200), K(sg2(), 700, 1800), K(sitLong(), 600, 300)]);
+    const hf2 = () => sitLong().footAt("r", [0.3, 0.07, -0.05], -60, 0, 80).knee("r", [0.3, 0.3, 1]).set("chest", [0.4, 0.44, -0.04]).set("head", [0.56, 0.38, -0.06]).handW("l", 0.8, 0.12, -0.14, "open").handW("r", 0.78, 0.12, -0.06, "open").act("torso", "legl");
+    mv("karate.halfFold", "Posteriori: seduto, una gamba tesa e una piegata, busto avanti dall'anca", [K(sitLong(), 300, 200), K(hf2(), 800, 1800), K(sitLong(), 600, 300)]);
+    const sbc = () => st().foot("l", 0.02, 0.02, 10, 0).foot("r", -0.02, -0.1, -10, 20).lean(0, 0.15, 0.02).handW("l", 0.0, 1.88, 0.12, "open").handW("r", 0.02, 0.88, 0.33, "open").act("torso", "arml");
+    mv("karate.sideBendCross", "Fianco: in piedi a gambe incrociate, braccio sopra la testa e inclinazione laterale", [K(st(), 300, 200), K(sbc(), 700, 1600), K(st(), 600, 300)]);
+    const hfa = () => { const b = st().foot("l", 0.48, -0.12, 0, 0).footAt("r", [-0.55, 0.06, 0.12], 180, 0).knee("r", [0, -1, 0]); b.set("pel", [-0.05, 0.46, 0]).set("chest", [-0.08, 0.96, 0]).set("head", [-0.08, 1.16, 0]); b.handW("l", 0.28, 0.6, -0.13, "open").handW("r", -0.04, 1.48, 0.15, "open"); return b.act("legr", "torso", "armr"); };
+    mv("karate.hipFlexorArm", "Affondo basso con il ginocchio dietro a terra, braccio dello stesso lato in alto", [K(st(), 300, 200), K(hfa(), 800, 1800), K(st(), 600, 300)]);
+    // salto in avanti e atterraggio (anche in kosa dachi)
+    const jumpUp = (dx) => st().sink(-0.12).set("foot", { l: [dx, 0.24, -0.1], r: [dx - 0.04, 0.22, 0.1] }).set("footPitch", { l: 30, r: 30 }).shift(dx).handRel("l", 0.3, 0.1, -0.15, "fist").handRel("r", 0.3, 0.1, 0.15, "fist").knee("l", [1, 0, 0]).knee("r", [1, 0, 0]).act("legl", "legr");
+    const crouchJ = (dx) => st().move(dx).sink(0.12).foot("l", 0, -0.1, 8, 10).foot("r", 0, 0.1, -8, 10).handRel("l", 0.25, -0.25, -0.18, "fist").handRel("r", 0.25, -0.25, 0.18, "fist");
+    const kosaJ = (dx) => { const b = kosa().move(dx); b.handW("l", 0.36, 0.82, 0.02, "fist").handW("r", 0.38, 0.84, -0.04, "fist"); b.elbow("l", [0, -0.3, -1]).elbow("r", [0, -0.3, 1]); return b.act("legl", "legr", "arml", "armr"); };
+    const back2 = (dx) => [K(st().move(dx), 300, 100), K(st().move(dx / 2).foot("r", -dx / 2, 0.11, -8, 20), 250, 50), K(st(), 250, 200)];
+    mv("karate.jumpFwd", "Piccolo salto in avanti a piedi uniti, atterraggio morbido sugli avampiedi", [K(st(), 300, 100), K(crouchJ(0), 300, 80), K(jumpUp(0.2), 200, 30), K(crouchJ(0.4).act("legl", "legr"), 200, 400), ...back2(0.4)]);
+    mv("karate.jumpKosa", "Salto in avanti con atterraggio in kosa dachi, braccia incrociate in basso", [K(st(), 300, 100), K(crouchJ(0), 300, 80), K(jumpUp(0.2), 200, 30), K(kosaJ(0.4), 200, 700), ...back2(0.4)]);
+    mv("karate.jumpKosaLong", "Salto un po' più lungo, solo se l'atterraggio in kosa dachi resta fermo e silenzioso", [K(st(), 300, 100), K(crouchJ(0), 300, 80), K(jumpUp(0.32), 220, 30), K(kosaJ(0.6), 220, 700), ...back2(0.6)]);
+    // mikazuki geri nel palmo
+    const mkW = (ph, h = 0.98) => { const b = chairS().kick("r", ph === "chamber" ? "crescentIn" : "crescentIn", ph, h, { arms: "none" }); b.handW("l", 0.0, 0.98, -0.42, "open").elbow("l", [0, -1, -0.5]); hik(b, "r"); return b; };
+    mv("karate.mikazukiWall", "Mikazuki geri lento con una mano al muro: la gamba fa un arco verso l'interno", [K(chairS(), 300, 200), K(mkW("chamber").act("legr"), 500, 200), K(mkW("ext").act("legr"), 600, 300), K(mkW("recoil").act("legr"), 600, 200), K(chairS(), 500, 300)]);
+    const palm = () => heisoku().handW("l", 0.38, 1.12, -0.05, "open").elbow("l", [0, -1, -0.5]);
+    const mkP = (ph) => { const b = palm().kick("r", "crescentIn", ph, 1.1, { arms: "none" }); b.handW("l", 0.38, 1.12, -0.05, "open").elbow("l", [0, -1, -0.5]); hik(b, "r"); return b; };
+    const empiPalm = () => { const b = kibR().look(0); b.handW("l", 0.35, 1.18, 0.12, "open").elbow("l", [0, -1, -0.5]); hc(b, "r", [0.12, 0.0, -0.12], "fist"); b.elbow("r", [1, 0.1, -0.2]); return b.act("armr", "legr"); };
+    mv("karate.mikazukiEmpi", "Mikazuki geri nel palmo aperto, atterraggio in kiba dachi con empi nel palmo", [K(heisoku(), 300, 150), K(palm(), 300, 100), K(mkP("chamber").act("legr"), 220, 40), K(mkP("ext").act("legr"), 200, 150), K(empiPalm(), 220, 600), K(kibR(), 300, 100), K(heisoku(), 300, 200)]);
   });
 })(typeof window !== "undefined" ? window : globalThis);

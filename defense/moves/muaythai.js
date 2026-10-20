@@ -24,8 +24,7 @@
     M("guardHold", "Guardia thai ferma, peso dietro", [K(g, 400, 1200)]);
     const chin = g.copy().headTo(0.015, -0.025).act("head");
     M("chinDown", "Mento basso, sguardo tra i guanti", [G(300, 200), K(chin, 300, 900), G(300, 200)]);
-    const ft = g.copy().lift("l", 0.1).heel("l", 0).lift("l", 0.0).act("legl");
-    ft.p.foot.l[1] = ankleY(0) + 0.1;
+    const ft = g.copy().heel("l", 0).lift("l", 0.1).act("legl"); // piede avanti alzato di 10 cm
     M("footTest", "Test del piede: alza il piede avanti di 10 cm senza muovere testa e busto", [G(300, 200), K(ft, 250, 500), G(250, 300)]);
 
     /* ---------------- rimbalzo e passi */
@@ -118,8 +117,8 @@
     const hop = g.copy().foot("l", 0.0, -0.13, 0, 25).foot("r", 0.0, 0.15, -15, 25).set("pel", [-0.02, 0.95, 0.02]).set("hipYaw", 0).set("chestYaw", 0).set("chest", [0.0, 1.44, 0.02]).set("head", [0.04, 1.64, 0.02]).guard("thai");
     hop.p.foot.l[1] += 0.04; hop.p.foot.r[1] += 0.04;
     hop.act("legl", "legr");
-    const SW = (s = 1) => [K(hop, 130 * s, 20 * s), K(gM.copy().act("legl", "legr"), 130 * s, 120 * s)];
-    const SWB = (s = 1) => [K(mir(hop), 130 * s, 20 * s), K(g.copy().act("legl", "legr"), 130 * s, 120 * s)];
+    const SW = (s = 1) => [K(hop, 130 * s, 20 * s), K(gM, 130 * s, 120 * s)];
+    const SWB = (s = 1) => [K(mir(hop), 130 * s, 20 * s), K(g, 130 * s, 120 * s)];
     M("switch", "Cambio di guardia con un saltello basso, guanti sempre alla fronte", [G(300, 200), ...SW(), K(gM.copy().sink(0.03), 260, 60), K(gM, 260, 150), ...SWB(), G(250, 200)]);
     M("switchShort", "Cambio corto: i piedi si spostano di pochi centimetri", [G(300, 150), K(hop.copy().sink(0.03), 110, 10), K(gM.copy().act("legl", "legr"), 110, 250), K(mir(hop).sink(0.03), 110, 10), K(g.copy().act("legl", "legr"), 110, 250)]);
     M("kneeBoth", "Ginocchiata dritta destra, cambio di guardia, ginocchiata sinistra", [G(300, 100), ...KR(), ...SW(), K(reachM, 200, 60), K(kneeLUpM, 200, 200), K(gM, 240, 80), ...SWB()]);
@@ -302,7 +301,7 @@
     M("coverElbow", "Copertura alta e subito sok tat di risposta", [G(300, 150), ...COV(), ...STR()]);
     M("parryCross", "Parry sul jab e subito diretto", [G(300, 150), ...PAR(), ...C()]);
     // lean back
-    const leanBack = g.copy().shift(-0.12).lean(-0.13).heel("l", 24).heel("r", 14);
+    const leanBack = g.copy().shift(-0.14).lean(-0.16).heel("l", 26).heel("r", 14);
     leanBack.handHead("l", 0.32, -0.04, -0.04, "fist").handHead("r", 0.13, -0.13, 0.04, "fist").elbow("l", [0, -1, -0.3]).elbow("r", [0, -1, 0.3]).act("torso", "head");
     const LB = (s = 1) => [K(leanBack, 200 * s, 300 * s)];
     M("leanBack", "Lean back: tutto il peso dietro, busto indietro, occhi avanti, guanto avanti a scudo", [G(300, 200), ...LB(), G(260, 300)]);
@@ -423,7 +422,7 @@
     const cs3h = plum(csPull(), paBent);
     M("clinchGrip", "Presa al collo: mani sovrapposte sulla nuca, gomiti stretti, tira giù con il peso", CL([KP(cs0, paUp, 300, 250), KP(cs1, paUp, 350, 300), KP(cs2, paUp, 350, 300), KP(cs3, paBent, 450, 900), KP(cs0, paUp, 450, 300)]));
     M("clinchHold", "Presa doppia tenuta: anche avanti, testa alta, poi rilascia", CL([KP(cs0, paUp, 300, 200), KP(cs2, paUp, 300, 150), KP(cs3, paBent, 400, 1600), KP(cs0, paUp, 400, 300)]));
-    const ckR = plum(csPull().kick("r", "knee", "ext", "mid", { arms: "none" }), paBent).act("legr");
+    const ckR = plum(csPull().kick("l", "knee", "ext", "mid", { arms: "none" }), paBent).act("legl");
     M("clinchKnee", "Dalla presa doppia, ginocchiata dritta leggera senza mollare la presa", CL([KP(cs0, paUp, 300, 150), KP(cs2, paUp, 300, 100), KP(cs3h, paBent, 350, 200), KP(ckR, paBent, 220, 250), KP(cs3h, paBent, 250, 200), KP(cs0, paUp, 400, 250)]));
     // khao chiang e khao noi in clinch (il compagno viene spostato verso il lato della gamba)
     const paSide = (dz) => PA(paLocal(1).move(0, -dz).spin(dz > 0 ? 12 : -12));
@@ -440,19 +439,21 @@
     const NOIL = () => [KP(noiL, paBent, 150, 150), KP(cs3h, paBent, 150, 60)];
     const CIN = [KP(cs0, paUp, 300, 150), KP(cs2, paUp, 300, 80), KP(cs3h, paBent, 320, 150)];
     const COUT = [KP(cs0, paUp, 400, 250)];
-    M("clinchKneeDiag", "In clinch: sposta il compagno verso la gamba, che va in fuori e chiude in diagonale", CL([...CIN, ...CKCR(), ...COUT]));
-    M("clinchKneeShort", "Khao noi: ginocchiata corta alla coscia, il piede quasi non si stacca", CL([...CIN, ...NOIR(), ...NOIL(), ...COUT]));
-    M("clinchNoiChiang", "In clinch: 2 khao noi e 1 khao chiang, cambiando gamba", CL([...CIN, ...NOIR(), ...NOIL(), ...CKCR(), ...COUT]));
-    M("clinchChiangAlt", "In clinch: khao chiang alternate destra e sinistra, presa sempre chiusa", CL([...CIN, ...CKCR(), ...CKCL(), ...CKCR(), ...COUT]));
+    M("clinchKneeDiag", "In clinch: sposta il compagno verso la gamba, che va in fuori e chiude in diagonale", CL([...CIN, ...CKCL(), ...COUT]));
+    M("clinchKneeShort", "Khao noi: ginocchiata corta alla coscia, il piede quasi non si stacca", CL([...CIN, ...NOIL(), ...NOIR(), ...COUT]));
+    M("clinchNoiChiang", "In clinch: 2 khao noi e 1 khao chiang, cambiando gamba", CL([...CIN, ...NOIL(), ...NOIR(), ...CKCL(), ...COUT]));
+    M("clinchChiangAlt", "In clinch: khao chiang alternate destra e sinistra, presa sempre chiusa", CL([...CIN, ...CKCL(), ...CKCR(), ...CKCL(), ...COUT]));
     // giro: passo indietro di lato e perno sul piede avanti, il compagno gira di 90 gradi
     const cx = 0.02;
     const cz = -0.16;
     const meTurn = rotPose(plum(csPull().step("r", -0.12, 0.05), paBent).copy(), cx, cz, -30);
     const paTurn = rotPose(paLocal(1.3).spin(180).move(0.5), cx, cz, -75);
     plum(meTurn, paTurn).act("legr", "arml", "armr", "torso");
-    const meTurnKnee = plum(rotPose(kneeDiag(csPull().step("r", -0.12, 0.05), "close"), cx, cz, -30), paTurn).act("legr");
-    const meTurnWide = plum(rotPose(kneeDiag(csPull().step("r", -0.12, 0.05), "wide"), cx, cz, -30), paTurn).act("legr");
-    const TURN = () => [KP(meTurn, paTurn, 450, 250), KP(meTurnWide, paTurn, 180, 30), KP(meTurnKnee, paTurn, 170, 220), KP(meTurn.copy().act(), paTurn, 220, 100), KP(cs3h, paBent, 450, 150)];
+    const kneeDiagL = (base, ph) => mir(kneeDiag(mir(base), ph));
+    const meTurnKnee = plum(rotPose(kneeDiagL(csPull().step("r", -0.12, 0.05), "close"), cx, cz, -30), paTurn).act("legl");
+    const meTurnWide = plum(rotPose(kneeDiagL(csPull().step("r", -0.12, 0.05), "wide"), cx, cz, -30), paTurn).act("legl");
+    const TURN0 = () => [KP(meTurn, paTurn, 450, 250), KP(meTurnWide, paTurn, 180, 30), KP(meTurnKnee, paTurn, 170, 220), KP(meTurn.copy().act(), paTurn, 220, 100), KP(cs3h, paBent, 450, 150)];
+    const TURN = TURN0;
     M("clinchTurn", "Giro: tira il compagno di lato, passo indietro e perno, poi ginocchiata", CL([...CIN, ...TURN(), ...COUT]));
     // nuoto (pummeling): mani dentro a turno, anche verso il lato della mano che entra
     const psBase = () => standing().foot("l", 0.02, -0.2, 12, 8).foot("r", -0.02, 0.2, -12, 8).set("pel", [0.0, 0.9, 0.0]).set("chest", [0.05, 1.39, 0]).set("head", [0.08, 1.59, 0.06]);
@@ -469,7 +470,7 @@
     const ENTER = 0.22;
     const toTuple = (list, dx) => list.map((f) => KP(f.me.copy().move(dx), f.pa.copy().move(dx), f.t, f.h));
     M("clinchEntry", "Jab, diretto, presa doppia al collo e 3 khao chiang alternate", CL([KP(g, paGuard, 300, 150), KP(jab, paGuard, 150, 150), KP(g, paGuard, 180, 60), KP(cross, paGuard, 170, 150),
-      ...toTuple([KP(cs2, paUp, 350, 100), KP(cs3h, paBent, 250, 100), ...CKCR(), ...CKCL(), ...CKCR()], ENTER), KP(g, paGuard, 500, 250)]));
+      ...toTuple([KP(cs2, paUp, 350, 100), KP(cs3h, paBent, 250, 100), ...CKCL(), ...CKCR(), ...CKCL()], ENTER), KP(g, paGuard, 500, 250)]));
     const tpE = g.copy().move(ENTER).kick("l", "teep", "ext", "body", { arms: "none" }).guard("thai");
     const paPushed = PA(thai().guard("box").lean(-0.06).shift(-0.03), 1.25);
     M("clinchTurnTeep", "In clinch: giro, khao chiang dalla parte aperta, poi spingi via con il teep", CL([KP(g, paGuard, 300, 150),
@@ -486,14 +487,14 @@
     M("kneeHop", "Ginocchiata con saltello: il piede avanti stacca di pochi centimetri", [G(300, 150), K(reachNeck(kStep.copy()), 220, 40), K(kHopKnee, 180, 120), K(kStepKnee.copy().act("legl"), 150, 100), K(kLand, 250, 100), ...BACKSTEP]);
     const flyStep = reachNeck(g.copy().step("l", 0.2).shift(0.1)).act("legl", "arml", "armr");
     const flyPush = reachNeck(g.copy().move(0.2).sink(0.06).heel("l", 25).heel("r", 45)).act("legl", "legr");
-    const flyAir = lift(pullDown(g.copy().move(0.32).kick("r", "knee", "ext", 1.0, { arms: "none" }).footW("l", [0.32 + 0.18, 0.3, -0.12], 0, 55)).knee("l", [1, 0, 0]), 0.16);
+    const flyAir = lift(pullDown(g.copy().move(0.2).kick("r", "knee", "ext", 1.0, { arms: "none" }).footW("l", [0.2 + 0.2, 0.3, -0.12], 0, 55)).knee("l", [1, 0, 0]), 0.16);
     flyAir.p.foot.r = add(flyAir.p.foot.r, [0.06, 0.08, 0]);
     flyAir.act("legr", "legl", "arml", "armr");
-    const flyLand = g.copy().move(0.36).heel("l", 0).sink(0.06).footAt("r", [0.36 - 0.05, 0.32, 0.12], 0, 50).knee("r", [1, 0.3, 0]).act("legl");
-    const flyLand2 = g.copy().move(0.36).act("legr");
-    const FLY = [K(flyStep, 230, 40), K(flyPush, 140, 20), K(flyAir, 180, 260), K(flyLand, 220, 120), K(flyLand2, 220, 200), K(g.copy().move(0.18).act("legl", "legr"), 280, 60), K(g, 280, 200)];
+    const flyLand = g.copy().move(0.3).heel("l", 0).sink(0.06).footAt("r", [0.3 - 0.05, 0.32, 0.12], 0, 50).knee("r", [1, 0.3, 0]).act("legl");
+    const flyLand2 = g.copy().move(0.3).act("legr");
+    const FLY = [K(flyStep, 230, 40), K(flyPush, 140, 20), K(flyAir, 180, 260), K(flyLand, 220, 120), K(flyLand2, 220, 200), K(g, 480, 200)];
     M("flyingKnee", "Khao loi: passo, stacco dal piede avanti, ginocchio dietro al petto, atterraggio morbido", [G(300, 150), ...FLY]);
-    M("flyingKneeSlow", "Khao loi scomposta: passo d'entrata corto, stacco, ginocchio avanti più che in alto", [G(300, 150), K(flyStep, 350, 300), K(flyPush, 250, 200), K(flyAir, 300, 900), K(flyLand, 350, 300), K(flyLand2, 300, 200), K(g.copy().move(0.18), 300, 60), G(300, 200)]);
+    M("flyingKneeSlow", "Khao loi scomposta: passo d'entrata corto, stacco, ginocchio avanti più che in alto", [G(300, 150), K(flyStep, 350, 300), K(flyPush, 250, 200), K(flyAir, 300, 900), K(flyLand, 350, 300), K(flyLand2, 300, 200), G(550, 200)]);
 
     /* ---------------- corda e saltelli */
     const ropeA = standing().foot("l", 0.03, -0.1, 5, 14).foot("r", 0.03, 0.1, -5, 14).handW("l", 0.08, 0.98, -0.27, "fist").handW("r", 0.08, 0.98, 0.27, "fist").elbow("l", [-0.4, -1, -0.2]).elbow("r", [-0.4, -1, 0.2]).sink(0.01);
@@ -532,7 +533,7 @@
     M("neckIso", "Isometrie del collo: la mano spinge su fronte, nuca e tempie, il collo non si muove", [K(ni0, 300, 100), K(niF, 400, 900), K(ni0, 300, 100), K(niB, 400, 900), K(ni0, 300, 100), K(niR, 400, 900), K(ni0, 300, 100), K(niL, 400, 900), K(ni0, 300, 200)]);
     const nm = standing();
     M("neckMob", "Collo lento: avanti e indietro, poi inclinazioni laterali, senza cerchi", [K(nm, 300, 100), K(nm.copy().headTo(0.06, -0.04, 0).act("head"), 600, 250), K(nm.copy().headTo(-0.05, -0.01, 0).act("head"), 700, 250), K(nm, 500, 100), K(nm.copy().headTo(0, -0.015, -0.07).act("head"), 600, 250), K(nm.copy().headTo(0, -0.015, 0.07).act("head"), 700, 250), K(nm, 500, 200)]);
-    const gtw = (d) => g.copy().twist(d).hips(d * 0.3).act("torso");
+    const gtw = (d) => g.copy().twist(d).hips(d * 0.3).guard("thai").act("torso");
     M("guardTwist", "Rotazioni del busto in guardia, a destra e a sinistra", [G(300, 100), K(gtw(35), 450, 150), K(gtw(-30), 600, 150), G(400, 200)]);
     const sq0 = standing().foot("l", 0, -0.5, 20, 0).foot("r", 0, 0.52, -20, 0).set("pel", [-0.04, 0.84, 0]).set("chest", [0.02, 1.33, 0]).set("head", [0.05, 1.53, 0]).handRel("l", 0.3, -0.25, -0.05, "fist").handRel("r", 0.3, -0.25, 0.05, "fist");
     const sqR = sq0.copy().set("pel", [-0.08, 0.6, 0.32]).set("chest", [0.06, 1.08, 0.26]).set("head", [0.12, 1.27, 0.24]).footAt("l", [0.02, 0.1, -0.5], 10, -35).knee("r", [1, 0, 0.6]).knee("l", [0, 1, -0.2]).handRel("l", 0.35, -0.25, -0.05, "fist").handRel("r", 0.35, -0.25, 0.05, "fist").act("legl", "legr");
@@ -562,9 +563,11 @@
     M("bagPush", "Spingi il sacco con le mani lontano da te e torna in guardia", [G(300, 150), K(bagPushP, 300, 250), G(300, 300)], BAGP);
     const tLimit = (b, x) => { if (b.p.foot.l[0] > x) b.p.foot.l = [x, b.p.foot.l[1], b.p.foot.l[2]]; if (b.p.foot.r[0] > x) b.p.foot.r = [x, b.p.foot.r[1], b.p.foot.r[2]]; return b; };
     const teepLBag = tLimit(teepLE.copy(), 0.6).knee("l", [0.4, 1, 0]);
-    const teepRBag = tLimit(teepRE.copy(), 0.58).knee("r", [0.4, 1, 0]);
+    const gBack = g.copy().move(-0.22);
+    const teepRCb = gBack.copy().kick("r", "teep", "chamber", "body", { arms: "none" }).guard("thai");
+    const teepRBag = tLimit(gBack.copy().kick("r", "teep", "ext", "body", { arms: "none" }).guard("thai").handRel("r", 0.02, -0.42, 0.22, "fist").elbow("r", [0, -1, 0.3]), 0.7).knee("r", [0.4, 1, 0]).act("legr", "armr");
     M("teepBagL", "Teep avanti al sacco: spingilo con l'avampiede, aspetta che torni", [G(300, 150), K(teepLC, 200, 60), K(teepLBag, 160, 250), K(teepLC, 180, 40), G(200, 150)], BAGP);
-    M("teepBagR", "Teep dietro al sacco: spinta d'anca, poi torna in guardia", [G(300, 150), K(teepRC, 230, 60), K(teepRBag, 180, 250), K(teepRC, 200, 40), G(230, 150)], BAGP);
+    M("teepBagR", "Teep dietro al sacco: piccolo passo indietro, spinta d'anca, poi torna in guardia", [G(300, 150), K(gBack.copy().act("legl", "legr"), 260, 80), K(teepRCb, 230, 60), K(teepRBag, 180, 250), K(teepRCb, 200, 40), K(gBack, 200, 60), G(260, 150)], BAGP);
     const bagIn = g.copy().move(0.3);
     const bagHands = (b, x = 0.72) => b.hand("l", [x, 1.55, -0.09], "open").hand("r", [x, 1.55, 0.09], "open").elbow("l", [0, -1, -0.2]).elbow("r", [0, -1, 0.2]);
     const bagHold = bagHands(bagIn.copy().foot("l", 0.02, -0.15, 0, 12).foot("r", -0.04, 0.15, -10, 12).set("pel", [0.29, 0.92, 0]).set("hipYaw", 0).set("chestYaw", 0).set("chest", [0.33, 1.41, 0]).set("head", [0.36, 1.61, 0]));

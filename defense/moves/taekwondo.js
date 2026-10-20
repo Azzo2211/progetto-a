@@ -132,7 +132,9 @@
     const chairCh = onChair(apCh);
     mv("taekwondo.chairStance", "Di fianco alla sedia: mano sullo schienale, in guardia con la gamba che lavora dietro", [K(g, 300, 200), K(chairG.copy().act("arml"), 400, 900)]);
     mv("taekwondo.chairChamber", "Alla sedia: ginocchio su davanti in meno di mezzo secondo e tieni", [K(chairG, 300, 200), K(chairCh, 300, 1300), K(chairG, 350, 300)]);
+    mv("taekwondo.chairChamberHold", "Alla sedia: caricamento tenuto fermo, busto dritto, ginocchio d'appoggio morbido, sguardo avanti", [K(chairG, 300, 150), K(chairCh, 300, 2600), K(chairG, 350, 250)]);
     const chairApEx = onChair(apEx);
+    mv("taekwondo.chairApExt", "Alla sedia, tempo 2: dal caricamento la gamba si distende alla cintura, colpisce con l'avampiede", [K(chairG, 300, 150), K(chairCh, 300, 400), K(chairApEx, 220, 1000), K(chairCh, 250, 300), K(chairG, 300, 250)]);
     mv("taekwondo.chairApFour", "Alla sedia, ap chagi in quattro tempi: su, fuori, indietro, giù", [K(chairG, 300, 200), K(chairCh, 300, 600), K(chairApEx, 250, 600), K(chairCh, 250, 600), K(chairG, 300, 400)]);
 
     /* ---------------------------------------------------------------- circolari: dollyo e bandal */
@@ -170,6 +172,7 @@
     mv("taekwondo.dollyoHold", "Dollyo chagi tenuto: busto inclinato di lato, testa sopra l'appoggio, mani in guardia", [K(g, 280, 100), K(apCh, 200, 30), K(dlCh, 200, 30), K(dlEx, 220, 1200), K(dlCh, 220, 60), K(g, 260, 250)]);
     const chairDlCh = onChair(dlCh);
     mv("taekwondo.chairPivot", "Alla sedia: ginocchio su, perno sull'avampiede e ginocchio orizzontale, tieni", [K(chairG, 300, 200), K(chairCh, 300, 500), K(chairDlCh, 400, 1300), K(chairCh, 350, 300), K(chairG, 300, 300)]);
+    mv("taekwondo.chairPivotHold", "Alla sedia: tieni 3 secondi, anca sopra l'appoggio, mani in guardia, poi torna sullo stesso percorso", [K(chairG, 300, 150), K(chairCh, 300, 200), K(chairDlCh, 400, 2600), K(chairCh, 400, 200), K(chairG, 350, 250)]);
     mv("taekwondo.chairDollyo", "Alla sedia, dollyo in quattro tempi: su, perno, distensione, ritorno e giù", [K(chairG, 300, 200), K(chairCh, 300, 500), K(chairDlCh, 300, 600), K(onChair(dlEx), 250, 600), K(chairDlCh, 250, 500), K(chairG, 300, 300)]);
     // atterra avanti in guardia destra, poi il piede avanti torna dietro
     const gDF = gD.copy().move(0.48, 0.0);
@@ -628,6 +631,159 @@
     const hcPrep = nar.copy().handRel("l", 0.26, -0.1, 0.05, "fist").handRel("r", 0.27, -0.12, -0.05, "fist").elbow("l", [0, -1, -0.3]).elbow("r", [0, -1, 0.3]);
     const hcOpen = nar.copy().handRel("l", 0.2, -0.5, -0.28, "fist").handRel("r", 0.2, -0.5, 0.28, "fist").elbow("l", [0, 0, -1]).elbow("r", [0, 0, 1]).act("arml", "armr");
     mv("taekwondo.hecheoMakki", "Parata bassa ad apertura (arae hecheo makki): avambracci incrociati, poi giù ai lati", [K(junbi, 300, 150), K(hcPrep, 500, 250), K(hcOpen, 230, 800), K(junbi, 500, 200)]);
+
+    /* ---------------------------------------------------------------- costruire la guardia */
+    const feetOnly = g.copy().set("hipYaw", -40).set("chestYaw", -30).look(25).heel("l", 0).heel("r", 0).sink(-0.04);
+    feetOnly.handRel("l", 0.03, -0.5, -0.23, "open").handRel("r", 0.03, -0.5, 0.23, "open");
+    const torsoOnly = g.copy().handRel("l", 0.05, -0.5, -0.22, "open").handRel("r", 0.05, -0.5, 0.22, "open");
+    mv("taekwondo.stepToGuard", "Da charyeot, passo indietro con il destro: piedi a una spalla e mezza, piede dietro in fuori", [K(charyeot, 300, 300), K(feetOnly.copy().act("legr"), 600, 1000)]);
+    mv("taekwondo.guardTorso", "Busto di tre quarti, ginocchia morbide, peso a metà, talloni staccati di un dito", [K(feetOnly, 300, 300), K(torsoOnly.copy().act("torso", "legl", "legr"), 600, 1000)]);
+    mv("taekwondo.guardHands", "Mani in guardia: sinistra avanti all'altezza della spalla, destra davanti al petto, gomiti stretti", [K(torsoOnly, 300, 300), K(g.copy().act("arml", "armr"), 500, 1000)]);
+    mv("taekwondo.guardRecall", "Da rilassato in piedi rientra in guardia in un solo tempo e controlla", [K(st(), 300, 500), K(g.copy().act("legl", "legr", "arml", "armr"), 350, 900), K(st(), 450, 400), K(g.copy().act("legl", "legr", "arml", "armr"), 350, 800)]);
+    mv("taekwondo.guardRight", "Guardia destra: piede destro avanti, stessa distanza, stesso angolo, stesse mani", [K(st(), 300, 300), K(gD.copy().act("legl", "legr", "arml", "armr"), 450, 1200), K(st(), 450, 300)]);
+    mv("taekwondo.guardWalk", "Recupero camminando in guardia: passi lenti avanti e indietro", [K(g, 300, 100), K(fw1, 380, 100), K(fw2, 320, 250), K(g.copy().move(0.17).step("r", -0.17).shift(-0.08).act("legr"), 380, 100), K(g.copy().act("legl"), 320, 300)]);
+    const TBAG = Object.assign({}, BAG, { x: 1.02 });
+    mv("taekwondo.bagGuard", "In guardia davanti al sacco, alla distanza del calcio di gamba dietro", [K(g, 300, 1100)], { props: [TBAG] });
+    mv("taekwondo.bagDistance", "Distanza dal sacco: a gamba distesa il collo del piede tocca il sacco, caviglia tesa", [K(g, 280, 120), K(bnCh, 300, 200), K(bnEx, 500, 1000), K(bnCh, 300, 100), K(g, 300, 250)], { props: [TBAG] });
+
+    /* ---------------------------------------------------------------- riscaldamento e mobilità per i calci */
+    const gtB = st().foot("l", 0, -0.1, 8, 0).foot("r", 0, 0.1, -8, 0).set("pel", [0, 0.94, -0.04]).handPel("l", 0.02, 0.06, -0.19, "open").handPel("r", 0.02, 0.06, 0.19, "open");
+    const gtF = legRel(gtB.copy(), "r", [0.3, -0.36, 0.0], [1, 1, 0], 0, 20).act("legr");
+    const gtS = legRel(gtB.copy(), "r", [0.06, -0.36, 0.32], [0.3, 0.8, 1.2], -45, 20).act("legr");
+    mv("taekwondo.gate", "Apri il cancello: ginocchio su davanti, aprilo di lato e appoggia; poi il giro al contrario", [K(gtB, 300, 100), K(gtF, 350, 80), K(gtS, 350, 80), K(gtB, 300, 150), K(gtS, 350, 80), K(gtF, 350, 80), K(gtB, 300, 250)]);
+    const fkB = st().foot("l", 0, -0.1, 5, 0).foot("r", 0, 0.1, -5, 0);
+    const fkR = fkB.copy().set("pel", [-0.02, 0.94, -0.05]).handRel("l", 0.5, -0.04, 0.06, "open").elbow("l", [0, -1, 0]);
+    legRel(fkR, "r", mul(norm([0.6, 0.62, -0.12]), 0.85), [1, 0.2, 0], 0, -10, 0).act("legr");
+    const fkL = fkB.copy().set("pel", [-0.02, 0.94, 0.05]).handRel("r", 0.5, -0.04, -0.06, "open").elbow("r", [0, -1, 0]);
+    legRel(fkL, "l", mul(norm([0.6, 0.62, 0.12]), 0.85), [1, 0.2, 0], 0, -10, 0).act("legl");
+    mv("taekwondo.frankenstein", "Camminata Frankenstein: la gamba tesa sale verso la mano opposta tesa davanti, alternando", [K(fkB, 300, 80), K(fkR, 400, 80), K(fkB, 350, 60), K(fkL, 400, 80), K(fkB, 350, 200)]);
+    const ssB = st().foot("l", 0, -0.1, 5, 0).foot("r", 0, 0.1, -5, 0).set("pel", [0, 0.94, -0.05]).lean(0, -0.04);
+    prop(ssB, "l", 0.02, 1.2, -0.52);
+    const ssUp = (k) => legRel(ssB.copy(), "r", mul(norm([0.08, k, 0.85]), 0.85), [0, 1, 0.2], -8, 0, -80).act("legr");
+    mv("taekwondo.sideSwingOpen", "Slanci laterali in apertura: mano al muro, la gamba esterna sale tesa di lato, taglio del piede in alto", [K(ssB, 300, 80), K(ssUp(-0.4), 350, 60), K(ssB, 320, 40), K(ssUp(-0.05), 350, 60), K(ssB, 320, 200)]);
+    const bsB = st().foot("l", 0, -0.1, 3, 0).foot("r", 0, 0.1, -3, 0).lean(0.08);
+    prop(bsB, "l", 0.48, 1.32, -0.2);
+    prop(bsB, "r", 0.48, 1.32, 0.2);
+    const bsUp = legRel(bsB.copy().lean(0.06), "r", mul(norm([-0.6, -0.62, 0.02]), 0.85), [0, -1, 0], 0, 30, 0).act("legr");
+    const bsFw = legRel(bsB.copy(), "r", mul(norm([0.35, -0.85, 0.02]), 0.85), [1, 0, 0], 0, 20, 0).act("legr");
+    mv("taekwondo.backSwing", "Slanci all'indietro con le mani al muro: gamba tesa che va dietro, busto fermo", [K(bsB, 300, 80), K(bsFw, 320, 20), K(bsUp, 350, 60), K(bsFw, 350, 20), K(bsUp, 350, 60), K(bsB, 350, 200)]);
+    const half = roundPose(g, "r", "ext", 0.95, { hip: 80, chest: 50, sup: 120, k: 0.68 });
+    mv("taekwondo.chamberSwing", "Slancio in caricamento laterale: il ginocchio sale di lato e la gamba si apre a metà", [K(g, 280, 80), K(dlCh, 300, 60), K(half, 260, 100), K(dlCh, 240, 40), K(g, 280, 250)]);
+    const pv = g.copy().set("hipYaw", 15).set("chestYaw", 0).look(0).fyaw("l", 150).heel("l", 25).act("legl", "torso");
+    pv.p.foot.r = [-0.14, 0.13, 0.14];
+    pv.fyaw("r", 0).knee("r", [1, 0.3, 0]).guard("low");
+    mv("taekwondo.pivotDrill", "Perno a vuoto: ruota sull'avampiede avanti finché il tallone guarda in avanti, poi torna", [K(g, 280, 100), K(pv, 500, 400), K(g, 450, 150), K(pv, 500, 400), K(g, 450, 250)]);
+    mv("taekwondo.guardTwist", "Rotazioni del busto in guardia: le spalle girano, i piedi restano fermi", [K(g, 280, 60), K(g.copy().twist(38).look(-5).act("torso"), 400, 60), K(g.copy().twist(-30).look(55).act("torso"), 500, 60), K(g.copy().twist(38).look(-5).act("torso"), 500, 60), K(g, 400, 200)]);
+
+    /* ---------------------------------------------------------------- condizionamento in piedi */
+    const oneLeg = (b) => legRel(b, "r", [0.1, -0.6, 0.02], [1, 0.2, 0], 0, 25);
+    const bpB = oneLeg(st().set("pel", [0, 0.92, -0.07]).foot("l", 0, -0.1, 0, 12).handPel("l", 0.02, 0.06, -0.19, "open").handPel("r", 0.02, 0.06, 0.19, "open"));
+    const bpT = about(bpB.copy(), 90, 0, -0.1).act("legl", "torso");
+    mv("taekwondo.balancePivot", "Equilibrio con perno: su una gamba, ginocchio morbido, ruota lento di un quarto di giro e torna", [K(bpB, 300, 300), K(bpT, 900, 400), K(bpB, 900, 300)]);
+    const crB = st().foot("l", 0, -0.08, 5, 0).set("pel", [0, 0.94, -0.06]);
+    crB.footAt("r", [-0.12, 0.2, -0.03], 0, 40).knee("r", [1, 0, 0]).handRel("r", 0.05, -0.5, 0.22, "open");
+    prop(crB, "l", 0.05, 1.25, -0.5);
+    const crUp = crB.copy().sink(-0.07).heel("l", 40).act("legl");
+    crUp.p.foot.r = add(crUp.p.foot.r, [0, 0.07, 0]);
+    mv("taekwondo.calfRaiseSingle", "Polpaccio su una gamba: un dito al muro, sali sulla punta, tieni in alto e scendi piano", [K(crB, 300, 200), K(crUp, 500, 900), K(crB, 600, 300)]);
+    const sqU = st().foot("l", 0, -0.1, 5, 0).set("pel", [0, 0.94, -0.06]).footAt("r", [0.3, 0.16, 0.08], 0, -20).knee("r", [1, 0.5, 0]).handRel("l", 0.4, -0.1, -0.1, "fist").handRel("r", 0.4, -0.1, 0.1, "fist");
+    const sqD = sqU.copy().set("pel", [-0.2, 0.52, -0.07]).set("chest", [0.08, 0.95, -0.04]).set("head", [0.17, 1.13, -0.03]).footAt("r", [0.52, 0.28, 0.08], 0, -30).knee("l", [1, 0, -0.1]).handRel("l", 0.42, -0.05, -0.1, "fist").handRel("r", 0.42, -0.05, 0.1, "fist").act("legl");
+    mv("taekwondo.singleSquat", "Mezzo squat su una gamba alla sedia: ti siedi sul bordo in 3 secondi e ti rialzi", [K(sqU, 300, 200), K(sqD, 1500, 300), K(sqU, 1100, 300)]);
+    const slB = st().set("pel", [0, 0.94, -0.05]);
+    prop(slB, "l", 0.02, 0.98, -0.4);
+    const slUp = legRel(slB.copy().lean(0, -0.05), "r", mul(norm([0.02, -0.78, 0.6]), 0.86), [1, 0, 0], -5, 0, 0).act("legr");
+    mv("taekwondo.sideLegLift", "Alla sedia: solleva lenta la gamba tesa di lato e tieni 2 secondi in alto", [K(slB, 300, 200), K(slUp, 900, 1100), K(slB, 900, 300)]);
+    const hkG = (s) => {
+      const b = st().sink(-0.02).footAt(s, [0.3, 0.62, sgn(s) * 0.1], 0, 40).knee(s, [1, 1, 0]).foot(other(s), -0.04, -sgn(s) * 0.1, 0, 25);
+      b.handHead("l", 0.2, -0.14, -0.1, "fist").handHead("r", 0.18, -0.16, 0.1, "fist");
+      return b.act("leg" + s);
+    };
+    mv("taekwondo.highKneesGuard", "Skip a ginocchia alte esplosivo sul posto, braccia in guardia", [K(hkG("l"), 200, 20), K(hkG("r"), 180, 20), K(hkG("l"), 180, 20), K(hkG("r"), 180, 20), K(hkG("l"), 180, 20), K(hkG("r"), 180, 120)]);
+    const gS = g.copy().foot("l", 0.13, -0.04, -60, 12).foot("r", -0.13, 0.06, -80, 14);
+    const gKn = (s) => {
+      const b = frontChamber(gS, s);
+      legRel(b, s, [0.2, -0.06, -sgn(s) * 0.02], [1, 1.2, 0], 0, 30, 0);
+      return b.handHead("l", 0.14, -0.15, -0.07, "fist").handHead("r", 0.12, -0.16, 0.07, "fist");
+    };
+    mv("taekwondo.guardKnees", "In guardia, ginocchia al petto alternate il più veloce possibile, mani ferme al mento", [K(g, 250, 40), K(gKn("r"), 170, 20), K(gKn("l"), 170, 20), K(gKn("r"), 170, 20), K(gKn("l"), 170, 20), K(gKn("r"), 170, 20), K(g, 220, 200)]);
+    const skA = (dx) => air(st().move(dx).footAt("r", [0.32, 0.6, 0.1], 0, 40).knee("r", [1, 1, 0]).foot("l", -0.04, -0.1, 0, 30).handRel("l", 0.25, -0.2, -0.2, "fist").handRel("r", -0.1, -0.25, 0.22, "fist"), 0.06).act("legr");
+    const skB = (dx) => air(st().move(dx).footAt("l", [0.32, 0.6, -0.1], 0, 40).knee("l", [1, 1, 0]).foot("r", -0.04, 0.1, 0, 30).handRel("r", 0.25, -0.2, 0.2, "fist").handRel("l", -0.1, -0.25, -0.22, "fist"), 0.06).act("legl");
+    mv("taekwondo.skipHigh", "Skip alto in avanti: il ginocchio guida ogni salto", [K(st(), 250, 40), K(skA(0.12), 220, 30), K(skB(0.3), 220, 30), K(skA(0.48), 220, 30), K(skB(0.66), 220, 30), K(st().move(0.75), 220, 250)]);
+    const skL = st().set("pel", [-0.05, 0.78, -0.3]).set("chest", [0.12, 1.24, -0.27]).set("head", [0.2, 1.43, -0.26]).foot("l", 0, -0.32, 5, 0).footAt("r", [-0.28, 0.24, -0.16], 0, 30).knee("r", [1, 0, 0]).knee("l", [1, 0, -0.2]).handRel("r", 0.3, -0.25, -0.15, "open").handRel("l", -0.1, -0.35, -0.2, "open").act("legl");
+    const skR = skL.copy().mirror();
+    const skMid = air(st().sink(0.05).handRel("l", 0.2, -0.3, -0.2, "open").handRel("r", 0.2, -0.3, 0.2, "open"), 0.12).act("legl", "legr");
+    mv("taekwondo.skater", "Skater: salto laterale da un piede all'altro, atterraggio morbido su un piede, fermo un secondo", [K(st(), 300, 80), K(skL, 350, 700), K(skMid, 220, 0), K(skR, 220, 700), K(skMid, 220, 0), K(skL, 220, 600), K(st(), 400, 200)]);
+    const ljL = lunge("l").handRel("l", 0.15, -0.3, -0.2, "fist").handRel("r", 0.15, -0.3, 0.2, "fist");
+    const ljR = lunge("r").handRel("l", 0.15, -0.3, -0.2, "fist").handRel("r", 0.15, -0.3, 0.2, "fist");
+    const ljAir = air(landMid(ljL, ljR).sink(-0.12), 0.12).act("legl", "legr");
+    mv("taekwondo.jumpLunge", "Affondi saltati bassi: dall'affondo cambia gamba in aria con un salto di pochi centimetri", [K(st(), 300, 60), K(ljL, 400, 200), K(ljAir, 200, 0), K(ljR.copy().act("legl", "legr"), 200, 300), K(ljAir, 200, 0), K(ljL.copy().act("legl", "legr"), 200, 300), K(st(), 400, 200)]);
+    const wkB = st().foot("l", 0, -0.08, 0, 0).foot("r", 0, 0.08, 0, 0).set("chest", [0.12, 1.42, 0]).set("head", [0.2, 1.6, 0]);
+    prop(wkB, "l", 0.5, 1.3, -0.18);
+    prop(wkB, "r", 0.5, 1.3, 0.18);
+    const wkCh = legRel(wkB.copy().set("pel", [0, 0.94, -0.05]), "r", [0.18, -0.25, 0.0], [1, 1, 0], 0, 50, 0).act("legr");
+    const wkEx = legRel(wkB.copy().set("pel", [0, 0.94, -0.05]).lean(0.08), "r", mul(norm([-0.85, -0.42, 0.0]), 0.85), [0, -1, 0], 0, 82, 0).act("legr");
+    mv("taekwondo.wallBackKick", "Fronte al muro: ginocchio al petto e tallone che spinge dritto dietro, punta in basso", [K(wkB, 300, 150), K(wkCh, 350, 250), K(wkEx, 300, 600), K(wkCh, 300, 150), K(wkB, 300, 250)]);
+
+    /* ---------------------------------------------------------------- condizionamento a terra */
+    // sdraiato sul fianco sinistro, testa avanti (come il plank laterale, ma giù)
+    const sideLie = st().set("pel", [-0.2, 0.17, 0]).set("chest", [0.28, 0.2, 0]).set("head", [0.48, 0.27, 0]).set("hipYaw", 0).set("chestYaw", 0).set("chestRoll", -90).set("hipRoll", -90);
+    sideLie.footAt("l", [-1.06, 0.075, 0.0], 0, 0, 90).footAt("r", [-1.06, 0.17, 0.0], 0, 0, 90).knee("l", [0, 0, 1]).knee("r", [0, 0, 1]);
+    sideLie.handW("l", 0.76, 0.05, 0.06, "open").elbow("l", [0, 1, 0]).handW("r", 0.22, 0.05, 0.3, "open").elbow("r", [0, 1, 0]);
+    const sideUp = legRel(sideLie.copy(), "r", mul(norm([-0.85, 0.42, 0.0]), 0.86), [0, 0, 1], 0, 0, 90).act("legr");
+    mv("taekwondo.sideLegRaise", "Sdraiato su un fianco, gambe tese: solleva la gamba di sopra, punta avanti, bacino fermo", [K(sideLie, 300, 200), K(sideUp, 600, 300), K(sideLie, 600, 200), K(sideUp, 600, 300), K(sideLie, 600, 200)]);
+    const clam = sideLie.copy().footAt("l", [-0.72, 0.075, 0.0], 0, 0, 90).footAt("r", [-0.72, 0.17, 0.0], 0, 0, 90).knee("l", [0, 0, 1]).knee("r", [0, 0, 1]);
+    const clamUp = clam.copy().knee("r", [0, 1.2, 0.7]).act("legr");
+    mv("taekwondo.clamshell", "Conchiglia: sul fianco, ginocchia piegate, apri il ginocchio di sopra con i piedi uniti", [K(clam, 300, 200), K(clamUp, 500, 700), K(clam, 500, 200), K(clamUp, 500, 700), K(clam, 500, 200)]);
+    const dbB = lieBack().handW("l", -0.5, 0.66, -0.18, "open").handW("r", -0.5, 0.66, 0.18, "open").elbow("l", [0, 0, -1]).elbow("r", [0, 0, 1]);
+    dbB.footAt("l", [0.42, 0.56, -0.12], 0, 0).footAt("r", [0.42, 0.56, 0.12], 0, 0).knee("l", [-0.2, 1, 0]).knee("r", [-0.2, 1, 0]);
+    const dbE = dbB.copy().handW("r", -1.05, 0.2, 0.2, "open").elbow("r", [0, 1, 0.3]).footAt("l", [0.84, 0.16, -0.12], 0, -20).knee("l", [0, 1, 0]).act("armr", "legl");
+    const dbE2 = dbB.copy().handW("l", -1.05, 0.2, -0.2, "open").elbow("l", [0, 1, -0.3]).footAt("r", [0.84, 0.16, 0.12], 0, -20).knee("r", [0, 1, 0]).act("arml", "legr");
+    mv("taekwondo.deadBug", "Dead bug: braccia e ginocchia in alto, distendi lenti braccio e gamba opposti, schiena a terra", [K(dbB, 300, 200), K(dbE, 800, 300), K(dbB, 700, 100), K(dbE2, 800, 300), K(dbB, 700, 200)]);
+    const hh = lieBack().set("chest", [-0.46, 0.24, 0]).set("head", [-0.62, 0.36, 0]).footAt("l", [0.82, 0.3, -0.06], 0, -50).footAt("r", [0.82, 0.3, 0.06], 0, -50).knee("l", [0, 1, 0]).knee("r", [0, 1, 0]).handW("l", 0.02, 0.32, -0.24, "open").handW("r", 0.02, 0.32, 0.24, "open").elbow("l", [0, 1, -0.4]).elbow("r", [0, 1, 0.4]);
+    mv("taekwondo.hollowHold", "Hollow hold: sulla schiena, gambe e spalle sollevate, zona lombare a terra, tieni", [K(lieBack(), 300, 200), K(hh.act("torso", "legl", "legr"), 600, 1600), K(lieBack(), 600, 200)]);
+    const brS = lieBack({ kneesUp: true }).set("pel", [0.05, 0.38, 0]).set("chest", [-0.42, 0.2, 0]).set("head", [-0.62, 0.14, 0]).footAt("r", [0.78, 0.44, 0.12], 0, -40).knee("r", [0, 1, 0]).act("torso", "legl");
+    mv("taekwondo.bridgeSingle", "Ponte su una gamba: l'altra tesa, spingi i fianchi in alto con il bacino orizzontale", [K(lieBack({ kneesUp: true }), 300, 150), K(brS, 500, 600), K(lieBack({ kneesUp: true }), 450, 200)]);
+    const af = allFours();
+    const dk = af.copy().footAt("r", [-0.72, 0.95, 0.12], 0, -80).knee("r", [-1, -0.3, 0]).act("legr");
+    mv("taekwondo.donkeyKick", "Calcio dell'asino in quadrupedia: tallone verso il soffitto, ginocchio a 90 gradi, schiena ferma", [K(af, 300, 200), K(dk, 450, 400), K(af, 400, 150), K(dk, 450, 400), K(af, 400, 200)]);
+    const qbk = af.copy().footAt("r", [-1.16, 0.5, 0.12], 180, -70).knee("r", [0, -1, 0]).act("legr");
+    mv("taekwondo.quadBackKick", "Calcio all'indietro in quadrupedia: la gamba si distende dritta dietro all'altezza dell'anca", [K(af, 300, 200), K(qbk, 500, 400), K(af, 450, 150), K(qbk, 500, 400), K(af, 450, 200)]);
+    const spl = st().set("pel", [-0.18, 0.36, 0]).set("chest", [0.3, 0.52, 0]).set("head", [0.49, 0.58, 0]).set("hipYaw", 0).set("chestYaw", 0).set("chestRoll", -90).set("hipRoll", -90);
+    spl.footAt("l", [-1.0, 0.075, 0.0], 0, 0, 90).footAt("r", [-1.0, 0.17, 0.0], 0, 0, 90).handW("l", 0.3, 0.04, 0.28, "fist").handW("r", 0.3, 1.2, 0.0, "open").elbow("l", [0, -1, 0]).knee("l", [0, 0, 1]).knee("r", [0, 0, 1]);
+    const splUp = legRel(spl.copy(), "r", mul(norm([-0.85, 0.3, 0.0]), 0.86), [0, 0, 1], 0, 0, 90).act("torso", "legr");
+    mv("taekwondo.sidePlankLeg", "Plank laterale sull'avambraccio con la gamba di sopra sollevata tesa", [K(spl, 300, 200), K(splUp, 500, 1400), K(spl, 500, 200)]);
+    const pf = plank({ forearms: true });
+    const pfR = spl.copy().mirror().act("torso");
+    mv("taekwondo.plankRotate", "Plank con rotazione: dal plank sugli avambracci ruoti in plank laterale e torni, poi dall'altro lato", [K(pf, 300, 400), K(spl.copy().act("torso"), 500, 500), K(pf, 500, 300), K(pfR, 500, 500), K(pf, 500, 300)]);
+    const seat = st().set("pel", [-0.05, 0.52, 0]).set("chest", [-0.08, 1.02, 0]).set("head", [-0.06, 1.22, 0]).foot("l", 0.38, -0.12, 0, 0).foot("r", 0.38, 0.12, 0, 0).knee("l", [1, 0.3, 0]).knee("r", [1, 0.3, 0]);
+    seat.handW("l", -0.08, 0.5, -0.24, "open").handW("r", -0.08, 0.5, 0.24, "open").elbow("l", [-1, 0, 0]).elbow("r", [-1, 0, 0]);
+    const seatUp = seat.copy().set("chest", [-0.16, 1.0, 0]).set("head", [-0.16, 1.2, 0]).footAt("l", [0.12, 0.85, -0.1], 0, 20).footAt("r", [0.12, 0.85, 0.1], 0, 20).knee("l", [0.4, 1, 0]).knee("r", [0.4, 1, 0]).act("legl", "legr", "torso");
+    mv("taekwondo.seatedKneeTuck", "Sul bordo della sedia, mani ai lati: porta le ginocchia al petto e scendi lento", [K(seat, 300, 200), K(seatUp, 450, 300), K(seat, 800, 200), K(seatUp, 450, 300), K(seat, 800, 200)]);
+
+    /* ---------------------------------------------------------------- allungamenti */
+    const hrd = sitLong().footAt("l", [0.3, 0.06, 0.02], 0, 0, -80).knee("l", [0, 0.3, -1]);
+    const hrdF = hrd.copy().set("chest", [0.38, 0.46, 0.06]).set("head", [0.55, 0.42, 0.08]).handW("l", 0.74, 0.12, 0.06, "open").handW("r", 0.74, 0.12, 0.18, "open").act("torso", "legr");
+    mv("taekwondo.hurdlerStretch", "Posteriori da seduto: una gamba tesa, l'altra piegata con il piede all'interno coscia, busto avanti", [K(hrd, 300, 150), K(hrdF, 900, 1500), K(hrd, 700, 200)]);
+    const hsp = st().set("pel", [-0.2, 0.52, 0]).set("chest", [0.22, 0.78, 0]).set("head", [0.4, 0.86, 0]);
+    hsp.footAt("l", [-0.62, 0.07, -0.1], 180, -85).knee("l", [1, -0.3, 0]).footAt("r", [0.55, 0.07, 0.1], 0, -70).knee("r", [0, 1, 0]);
+    hsp.handW("l", 0.4, 0.28, -0.12, "open").handW("r", 0.4, 0.28, 0.26, "open");
+    const hspP = hsp.copy().act("legr");
+    const hspD = hsp.copy().set("chest", [0.26, 0.74, 0]).set("head", [0.45, 0.8, 0]).act("torso", "legr");
+    mv("taekwondo.halfSplit", "Mezza spaccata: in ginocchio, gamba davanti tesa con il tallone a terra, busto lungo in avanti", [K(hsp, 400, 1600), K(hspD, 900, 1200), K(hsp, 700, 300)]);
+    mv("taekwondo.halfSplitPress", "Contrai-rilassa: in mezza spaccata premi il tallone a terra, poi rilassa e scendi un poco", [K(hsp, 400, 800), K(hspP, 300, 1300), K(hsp, 300, 400), K(hspD, 900, 1300), K(hsp, 600, 200)]);
+    const fsp = st().set("pel", [0.0, 0.36, 0]).set("chest", [0.03, 0.86, 0]).set("head", [0.05, 1.06, 0]);
+    fsp.footAt("r", [0.74, 0.07, 0.1], 0, -70).knee("r", [0, 1, 0]).footAt("l", [-0.8, 0.06, -0.1], 180, -80).knee("l", [0, -1, 0]);
+    fsp.handW("l", 0.02, 0.48, -0.42, "open").handW("r", 0.02, 0.48, 0.42, "open").elbow("l", [0, -0.3, -1]).elbow("r", [0, -0.3, 1]);
+    mv("taekwondo.frontSplit", "Spaccata frontale assistita: mani su due sedie, gamba avanti tesa, ginocchio dietro sul cuscino", [K(st(), 300, 100), K(lunge("r").handW("l", 0.02, 0.6, -0.42, "open").handW("r", 0.02, 0.6, 0.42, "open"), 700, 300), K(fsp.act("legl", "legr"), 900, 1600), K(st(), 800, 200)]);
+    const ssp = st().set("pel", [0, 0.6, 0]).set("chest", [0.24, 1.02, 0]).set("head", [0.38, 1.16, 0]).foot("l", 0, -0.79, 0, 0).foot("r", 0, 0.79, 0, 0).knee("l", [1, 0, 0]).knee("r", [1, 0, 0]);
+    ssp.handW("l", 0.3, 0.5, -0.34, "open").handW("r", 0.3, 0.5, 0.34, "open");
+    mv("taekwondo.sideSplit", "Spaccata laterale assistita: tra due sedie apri le gambe di lato, peso sulle mani, punte avanti", [K(st(), 300, 100), K(ssp.act("legl", "legr"), 1000, 1600), K(st(), 900, 200)]);
+    const law = st().foot("l", 0.48, -0.12, 0, 0).footAt("r", [-0.55, 0.06, 0.12], 180, 0).knee("r", [0, -1, 0]).set("pel", [-0.05, 0.48, 0]).set("chest", [-0.06, 0.98, 0]).set("head", [-0.05, 1.18, 0]);
+    law.handW("l", 0.28, 0.6, -0.13, "open").handW("r", -0.06, 1.5, 0.12, "open").elbow("r", [0, 0, 1]);
+    mv("taekwondo.lungeArmUp", "Affondo basso con il ginocchio dietro sul cuscino e il braccio dello stesso lato in alto", [K(st(), 300, 100), K(law.act("legr", "torso", "armr"), 900, 1500), K(st(), 700, 200)]);
+    const f4 = lieBack({ kneesUp: true }).footAt("l", [0.2, 0.52, -0.1], 0, -10).knee("l", [0, 1, 0]).footAt("r", [0.02, 0.56, -0.02], 0, 0).knee("r", [0.2, 0.5, 1]);
+    f4.handW("l", -0.02, 0.4, -0.16, "open").handW("r", -0.04, 0.36, 0.06, "open");
+    mv("taekwondo.figure4", "Figura 4: sdraiato, caviglia sopra il ginocchio opposto, tira piano la coscia verso il petto", [K(lieBack({ kneesUp: true }), 300, 150), K(f4.act("legl", "legr"), 800, 1500), K(lieBack({ kneesUp: true }), 700, 200)]);
 
     mv("taekwondo.mireoDwiHuryeo","Mireo di gamba avanti per fermare, appoggio, dwi huryeo con la gamba dietro", [K(g, 250, 80), K(gHop.copy().act("legr"), 140, 0), K(msCh, 150, 40), K(msEx, 160, 220), K(msCh, 140, 20), K(gFw2.copy().act("legl"), 170, 60), ...dwiHuryeoFrames(gFw2).slice(1), ...backSteps(gFw2, 0.2, "r")]);
   });

@@ -408,7 +408,7 @@
 
     /* ---------------------------------------------------------------- queda de rins */
     const wheelify = (b) => b.copy().set("hipYaw", b.p.hipYaw + 90).set("chestYaw", b.p.chestYaw + 90).set("hipRoll", -90).set("chestRoll", -90);
-    const QH = wheelify(C).set("chest", [0.18, 0.52, 0.18]).set("head", [0.25, 0.69, 0.22]).handW("r", 0.12, 0.035, 0.3, "open").handW("l", 0.27, 0.035, 0.07, "open").elbow("r", [-0.3, 0, 1]).elbow("l", [-0.3, 0, 1]);
+    const QH = wheelify(C).set("chest", [0.18, 0.46, 0.2]).set("head", [0.25, 0.62, 0.25]).handW("r", 0.12, 0.035, 0.3, "open").handW("l", 0.22, 0.035, 0.07, "open").elbow("r", [-0.3, 0, 1]).elbow("l", [-0.3, 0, 1]);
     function queda(full, legsOut) {
       const b = wheel(105, [0, full ? 0.47 : 0.43, -0.05]);
       b.handW("r", 0.08, 0.035, 0.18, "open").elbow("r", [0, 1, -0.75]).handW("l", 0.13, 0.035, 0.5, "open").elbow("l", [-0.2, 0.3, 1]);
@@ -534,7 +534,7 @@
     // accosciata profonda con le mani a terra, il peso passa da un piede all'altro
     const SQ = C.copy().handW("r", 0.33, 0.035, 0.15, "open").elbow("r", [-0.3, 0, 1]);
     const sqShift = (dz) => { const b = SQ.copy(); b.p.pel = add(b.p.pel, [0, 0.02, dz]); b.p.chest = add(b.p.chest, [0, 0, dz * 0.7]); b.p.head = add(b.p.head, [0, 0, dz * 0.6]); b.p.hipRoll = -dz * 60; return b.act("legl", "legr"); };
-    mv("capoeira.squatShift", "Accosciata profonda con le mani a terra: il peso passa da un piede all'altro", [K(SQ, 400, 150), K(sqShift(0.12), 450, 300), K(sqShift(-0.12), 600, 300), K(SQ, 450, 200)]);
+    mv("capoeira.squatShift", "Accosciata profonda con le mani a terra: il peso passa da un piede all'altro", [K(SQ, 400, 150), K(sqShift(0.1), 450, 300), K(sqShift(-0.1), 600, 300), K(SQ, 450, 200)]);
     // cossack squat: giu' su una gamba, l'altra tesa di lato con la punta in alto
     const CS = SL.copy().set("pel", [-0.14, 0.42, 0.26]).set("chest", [0.06, 0.88, 0.24]).set("head", [0.12, 1.07, 0.24]);
     CS.footAt("l", [0.02, 0.08, -0.55], 0, -70).knee("l", [0, 1, 0]).handRel("l", 0.32, -0.05, -0.08, "open").handRel("r", 0.32, -0.05, 0.08, "open");
@@ -542,7 +542,7 @@
 
     /* ---------------------------------------------------------------- polsi, quadrupedia, core */
     const AF = allFours().handW("l", 0.22, 0.035, -0.18, "open").handW("r", 0.22, 0.035, 0.18, "open");
-    const cat = AF.copy().set("chest", [0.19, 0.63, 0]).set("head", [0.34, 0.5, 0]).act("torso");
+    const cat = AF.copy().set("chest", [0.19, 0.61, 0]).set("head", [0.34, 0.49, 0]).act("torso");
     const cow = AF.copy().set("pel", [-0.3, 0.5, 0]).set("chest", [0.2, 0.55, 0]).set("head", [0.4, 0.71, 0]).act("torso", "head");
     mv("capoeira.catCow", "A quattro zampe, gatto-mucca lento: testa giù e schiena su, poi testa su", [K(AF, 300, 150), K(cat, 900, 300), K(cow, 1100, 300), K(AF, 800, 200)]);
     const fwdW = AF.copy().set("pel", [-0.18, 0.53, 0]).set("chest", [0.32, 0.6, 0]).set("head", [0.53, 0.64, 0]).act("arml", "armr");
@@ -580,7 +580,7 @@
     const plankF = plank().move(1.06);
     mv("capoeira.inchworm", "Camminata delle mani: piegati, cammina con le mani fino al plank e torna", [K(standing(), 300, 100), K(fold.copy().act("torso"), 500, 150), K(walkMid.act("arml", "armr"), 450, 80), K(plankF.copy().act("arml", "armr"), 450, 300), K(walkMid, 450, 80), K(fold, 450, 150), K(standing(), 500, 200)]);
     // gambe larghe con le mani a terra (preparazione del compasso)
-    const wide = standing().foot("l", 0, -0.55, 15, 0).foot("r", 0, 0.55, -15, 0).set("pel", [0, 0.87, 0]).set("chest", [0.02, 1.37, 0]).set("head", [0.04, 1.57, 0]);
+    const wide = standing().foot("l", 0, -0.55, 15, 0).foot("r", 0, 0.55, -15, 0).set("pel", [0, 0.84, 0]).set("chest", [0.02, 1.34, 0]).set("head", [0.04, 1.54, 0]);
     const wideBent = wide.copy().set("pel", [-0.15, 0.62, 0]).set("chest", [0.18, 0.33, 0]).set("head", [0.24, 0.15, 0]).handW("l", 0.32, 0.035, -0.18, "open").handW("r", 0.32, 0.035, 0.18, "open").knee("l", [1, 0, -0.4]).knee("r", [1, 0, 0.4]);
     const wideStr = wide.copy().set("pel", [-0.1, 0.8, 0]).set("chest", [0.22, 0.44, 0]).set("head", [0.28, 0.25, 0]).handW("l", 0.34, 0.035, -0.18, "open").handW("r", 0.34, 0.035, 0.18, "open").knee("l", [1, 0, 0]).knee("r", [1, 0, 0]);
     mv("capoeira.wideFold", "Gambe larghe: mani a terra piegando le ginocchia, poi distendi piano", [K(wide, 300, 100), K(wideBent.copy().act("legl", "legr", "torso"), 600, 300), K(wideStr.copy().act("legl", "legr"), 700, 1200), K(wideBent, 500, 100), K(wide, 600, 200)]);
@@ -588,5 +588,150 @@
     mv("capoeira.wideWalk", "Gambe larghe: cammina con le mani verso il piede destro, al centro, verso il sinistro", [K(wideStr, 400, 100), K(wideTo(0.4), 700, 300), K(wideStr, 600, 100), K(wideTo(-0.4), 700, 300), K(wideStr, 600, 200)]);
     const wideLook = wideStr.copy().set("chest", [0.12, 0.42, 0]).set("head", [-0.06, 0.3, 0]).handW("l", 0.3, 0.035, -0.2, "open").handW("r", 0.3, 0.035, 0.2, "open").act("head", "torso");
     mv("capoeira.wideLook", "Mani a terra a gambe larghe: guarda indietro tra le gambe, come nel compasso", [K(wide, 300, 100), K(wideStr, 600, 150), K(wideLook, 500, 1500), K(wideStr, 500, 100), K(wide, 600, 200)]);
+
+    /* ---------------------------------------------------------------- al muro: cerchi della gamba e camere */
+    // muro a sinistra, mano sinistra appoggiata, braccio destro teso davanti; la gamba destra disegna l'arco
+    function wallSide(handH) {
+      const b = standing().foot("l", 0.0, -0.12, 5, 0).foot("r", 0.0, 0.14, -5, 0);
+      b.set("pel", [-0.02, 0.9, -0.08]).set("chest", [0.0, 1.39, -0.07]).set("head", [0.03, 1.59, -0.07]).knee("l", [1, 0, 0]);
+      b.handW("l", 0.0, 1.28, -0.6, "open").elbow("l", [0, -1, -0.3]).handW("r", Math.sqrt(Math.max(0.05, 0.3 - (1.39 - handH) * (1.39 - handH))), handH, 0.12, "open").elbow("r", [0, -1, 0.3]);
+      return b;
+    }
+    function arcFrames(handH, inward) {
+      const W0 = wallSide(handH);
+      const side = legH(wallSide(handH), "r", 0.62, 0.2, 1, 0.97, -40, -10).knee("r", [0.3, 1, 0.2]).act("legr");
+      const top = legH(wallSide(handH), "r", handH + 0.15, 1, 0.12, 0.97, 0, -40).knee("r", [0, 1, 0]).act("legr");
+      const cross = legH(wallSide(handH), "r", inward ? handH - 0.05 : 0.55, 0.75, -0.62, 0.97, 30, -30).knee("r", [0, 1, 0]).act("legr");
+      const seq = inward ? [side, top, cross] : [cross, top, side];
+      return [K(W0, 300, 100), K(seq[0], 330, 40), K(seq[1], 330, 60), K(seq[2], 330, 40), K(W0, 380, 150)];
+    }
+    mv("capoeira.wallSetup", "Mano al muro, gamba d'appoggio un po' piegata, braccio libero teso davanti", [K(wallSide(0.95), 400, 1300)]);
+    mv("capoeira.legArcIn", "Gamba tesa da fuori a dentro: sale di lato, passa sopra la mano e scende", arcFrames(0.95, true));
+    mv("capoeira.legArcOut", "Gamba tesa da dentro a fuori: parte incrociata, passa sopra la mano e si apre", arcFrames(0.95, false));
+    mv("capoeira.legArcHigh", "Cerchi della gamba tesa con la mano più alta, fino al petto", arcFrames(1.25, true).concat(arcFrames(1.25, false).slice(1)));
+    const wallHand = (b) => b.handW("l", 0.05, 1.25, -0.68, "open").elbow("l", [0, -1, -0.3]);
+    const chF = wallHand(G0.copy().kick("r", "teep", "chamber", "body"));
+    const chS = wallHand(G0.copy().kick("r", "round", "chamber", "body"));
+    const G0w = wallHand(G0.copy());
+    mv("capoeira.chambers", "Camere del ginocchio al muro: frontale e laterale, poi un calcio leggero", [
+      K(G0w, 300, 100), K(chF.copy().act("legr"), 300, 500), K(G0w, 300, 80), K(chS.copy().act("legr"), 300, 500), K(G0w, 300, 80), K(wallHand(martEx.copy()).act("legr"), 260, 200), K(G0w, 300, 200)
+    ]);
+
+    /* ---------------------------------------------------------------- martelo e chapa al muro, a tempi */
+    // di fronte al muro con le mani appoggiate: il martelo va di lato, lungo il muro
+    const onWall = (b) => b.handW("l", 0.42, 1.3, -0.36, "open").handW("r", 0.42, 1.3, 0.0, "open").elbow("l", [0, -1, -0.4]).elbow("r", [0, -1, 0.4]);
+    const toSide = (b, chestYaw) => { const w = rotAbout(b.copy(), -90, 0.06, -0.26); w.set("chestYaw", chestYaw).set("headYaw", -50); return onWall(w); };
+    const MW0 = onWall(G0.copy().set("chestYaw", -10).set("hipYaw", -10));
+    const MW2 = toSide(martCh, -25).act("legr", "legl");
+    const MW1 = MW2.copy().fyaw("l", 10).heel("l", 0).set("hipYaw", -25).act("legr");
+    const MW3 = toSide(martEx, -25).act("legr");
+    mv("capoeira.marteloWallSetup", "Di fronte al muro, mani appoggiate alle spalle, piedi in ginga", [K(G0, 300, 100), K(MW0, 400, 1200)]);
+    mv("capoeira.marteloWallKnee", "Tempo 1: il ginocchio sale di lato all'altezza dell'anca", [K(MW0, 300, 100), K(MW1, 400, 1000), K(MW0, 400, 200)]);
+    mv("capoeira.marteloWallPivot", "Tempo 2: il piede d'appoggio ruota, tallone verso il bersaglio, anca sopra", [K(MW0, 300, 100), K(MW1, 350, 300), K(MW2, 400, 1000), K(MW1, 350, 100), K(MW0, 350, 200)]);
+    mv("capoeira.marteloWallExt", "Tempo 3 e 4: la gamba si distende con il collo del piede, poi richiamo", [K(MW0, 300, 100), K(MW2, 400, 300), K(MW3, 350, 700), K(MW2, 300, 200), K(MW0, 350, 200)]);
+    mv("capoeira.marteloWall", "Martelo al muro in quattro tempi: ginocchio, perno, estensione, richiamo", [K(MW0, 300, 100), K(MW1, 350, 400), K(MW2, 350, 400), K(MW3, 300, 400), K(MW2, 300, 300), K(MW0, 350, 200)]);
+    mv("capoeira.marteloWallFast", "Martelo al muro in un unico movimento", [K(MW0, 300, 100), K(MW2, 220, 40), K(MW3, 170, 200), K(MW2, 170, 40), K(MW0, 240, 200)]);
+    // di lato al muro (muro a sinistra), mano sinistra appoggiata: la chapa spinge in avanti lungo il muro
+    const sideWall = (b) => b.handW("l", -0.1, 1.22, -0.62, "open").elbow("l", [0, -1, 0.3]);
+    const CW0 = sideWall(G0.copy());
+    const CW1 = sideWall(bencaoCh.copy()).act("legr");
+    const CW2 = sideWall(chapCh.copy()).act("legr", "legl");
+    const CW3 = sideWall(chapEx.copy()).act("legr");
+    mv("capoeira.chapaWallKnee", "Tempo 1: di lato al muro, ginocchio davanti al petto, piede flesso", [K(CW0, 300, 100), K(CW1, 400, 1000), K(CW0, 400, 200)]);
+    mv("capoeira.chapaWallPivot", "Tempo 2: il piede d'appoggio ruota, anche di profilo", [K(CW0, 300, 100), K(CW1, 350, 300), K(CW2, 400, 1000), K(CW1, 350, 100), K(CW0, 350, 200)]);
+    mv("capoeira.chapaWallPush", "Tempo 3 e 4: spinta lenta in linea retta con pianta e tallone, poi richiamo", [K(CW0, 300, 100), K(CW2, 400, 300), K(CW3, 700, 600), K(CW2, 450, 200), K(CW0, 350, 200)]);
+    mv("capoeira.chapaWall", "Chapa al muro in quattro tempi: ginocchio, perno, spinta, richiamo", [K(CW0, 300, 100), K(CW1, 350, 400), K(CW2, 350, 400), K(CW3, 500, 400), K(CW2, 350, 300), K(CW0, 350, 200)]);
+
+    /* ---------------------------------------------------------------- coppie: schivata e contrattacco */
+    mv("capoeira.cocoBencao", "Dalla cocorinha risali spingendo direttamente la bênção", [K(G0, 300, 100), K(G1, 300, 60), K(C, 320, 500), K(bencaoCh, 300, 40), K(bencaoEx, 180, 280), K(bencaoCh, 200, 40), K(G0, 260, 200)]);
+    const mL = (b) => b.copy().mirror();
+    mv("capoeira.lateralMartelo", "Esquiva lateral a destra, poi martelo con la gamba sinistra, quella distesa", [
+      K(G0, 300, 100), K(G1w, 300, 60), K(LT, 330, 500), K(mL(martCh), 280, 40), K(mL(martEx), 160, 220), K(mL(martCh), 160, 40), K(G2, 240, 80), K(G1, 300, 60), K(G0, 300, 200)
+    ]);
+    // calci in rotazione: l'atterraggio del primo e' il passo del secondo
+    mv("capoeira.meiaLuaArmada", "Meia lua de frente che atterra incrociata, poi subito armada", meiaLuaF.slice(0, 4).concat(armadaF.slice(1)));
+    const landOff = [0.04, -0.23];
+    const martAfter = [mL(martCh), mL(martEx), mL(martCh)].map((b) => spun(b.move(landOff[0], landOff[1]), 360));
+    mv("capoeira.armadaMartelo", "Armada che atterra in ginga, poi la stessa gamba parte in martelo", armadaF.slice(0, 6).concat([
+      K(martAfter[0], 240, 40), K(martAfter[1], 160, 220), K(martAfter[2], 160, 40), K(spun(G2.copy().move(landOff[0], landOff[1]), 360), 240, 60), K(spun(G1.copy().move(0.02, -0.11), 360), 260, 40), K(spun(G0, 360), 280, 120), K(G0, 0, 80)
+    ]));
+    mv("capoeira.queixadaArmada", "Queixada che atterra dietro, il destro passa incrociato e parte l'armada", queixF.slice(0, 6).concat(armadaF.slice(1)));
+    /* ---------------------------------------------------------------- malícia: finte */
+    mv("capoeira.fintaMartelo", "Finta di martelo: il ginocchio sale, il piede si appoggia incrociato e parte l'armada", [K(G0, 300, 100), K(martCh, 220, 200)].concat(armadaF.slice(1)));
+    const halfBaixa = B.of(L.F.lerpPose(G0.done(), BX.done(), 0.5)).act("torso", "legl");
+    mv("capoeira.fintaEsquiva", "Finta di schivata: scendi a metà dell'esquiva baixa e risali con una bênção", [K(G0, 300, 100), K(halfBaixa, 260, 120), K(bencaoCh, 230, 30), K(bencaoEx, 170, 260), K(bencaoCh, 190, 40), K(G0, 260, 200)]);
+    const lookDown = G0.copy().sink(0.08).lean(0.07, 0, 0.06).headTo(0.04, -0.08, 0).act("head", "torso");
+    mv("capoeira.fintaSguardo", "Finta di sguardo: guardi in basso come per una rasteira e calci un martelo alto", [K(G0, 300, 100), K(lookDown, 300, 350), K(martCh, 200, 30), K(martHi, 160, 240), K(martCh, 160, 40), K(G0, 260, 200)]);
+
+    /* ---------------------------------------------------------------- Angola: la chamada */
+    const openArms = standing().foot("l", 0.05, -0.16, 10, 0).foot("r", -0.05, 0.16, -10, 0).handRel("l", 0.18, 0.02, -0.55, "open").handRel("r", 0.18, 0.02, 0.55, "open").elbow("l", [0, -1, -0.2]).elbow("r", [0, -1, 0.2]);
+    mv("capoeira.chamadaCall", "Chamada, chi chiama: fermo in piedi con le braccia aperte, sguardo attento", [K(G0, 300, 100), K(openArms.copy().act("arml", "armr"), 500, 2600), K(G0, 450, 200)]);
+    const ang = (ph, dx) => cover(gv(ph, { sink: 0.12, step: 0.75, wide: 0.9 }), ph === 2 ? "l" : "r").move(dx, 0);
+    const walkP = (lead, dx) => { const b = standing().foot("l", lead === "l" ? 0.16 : -0.14, -0.1, 5, lead === "l" ? 0 : 20).foot("r", lead === "r" ? 0.16 : -0.14, 0.1, -5, lead === "r" ? 0 : 20); b.handRel("l", 0.36, -0.12, -0.15, "open").handRel("r", 0.36, -0.12, 0.15, "open").elbow("l", [0, -1, -0.3]).elbow("r", [0, -1, 0.3]); return b.move(dx, 0).act("legl", "legr"); };
+    mv("capoeira.chamadaReply", "Chamada, chi risponde: ti avvicini in ginga bassa e protetto, tre passi avanti e tre indietro", [
+      K(G0, 300, 100), K(ang(1, 0.15), 450, 60), K(ang(0, 0.3), 450, 150), K(walkP("l", 0.45), 400, 60), K(walkP("r", 0.65), 400, 60), K(walkP("l", 0.85), 400, 150), K(walkP("r", 0.65), 400, 60), K(walkP("l", 0.45), 400, 150), K(G0, 450, 200)
+    ]);
+
+    /* ---------------------------------------------------------------- allungamenti */
+    const s99 = sitLong().set("chest", [0.03, 0.62, 0]).set("head", [0.05, 0.82, 0]);
+    s99.footAt("l", [0.36, 0.07, 0.24], 60, -10, -60).knee("l", [1, 0, -1]).footAt("r", [-0.42, 0.07, 0.48], 180, -20, 60).knee("r", [0.2, 0, 1]);
+    s99.handW("l", 0.22, 0.2, -0.26, "open").handW("r", 0.0, 0.09, 0.3, "open").elbow("l", [0, -1, -0.5]);
+    mv("capoeira.sit9090", "Seduto in 90/90: ginocchio avanti e dietro piegati a 90 gradi, busto alto", [K(sitLong(), 300, 100), K(s99.copy().act("legl", "legr"), 700, 1300), K(sitLong(), 500, 60), K(s99.copy().mirror().act("legl", "legr"), 700, 1300), K(sitLong(), 600, 200)]);
+    const pg = sitLong().set("pel", [-0.05, 0.2, 0.05]).set("chest", [0.12, 0.66, 0.03]).set("head", [0.17, 0.85, 0.02]);
+    pg.footAt("l", [0.3, 0.07, 0.18], 70, 0, -70).knee("l", [1, 0.2, -1]).footAt("r", [-0.86, 0.07, 0.15], 180, 0, 180).knee("r", [0, -1, 0]);
+    pg.handW("l", 0.32, 0.14, -0.24, "open").handW("r", 0.32, 0.14, 0.26, "open");
+    const pgF = pg.copy().set("chest", [0.4, 0.4, 0.04]).set("head", [0.58, 0.33, 0.04]).handW("l", 0.82, 0.035, -0.18, "open").handW("r", 0.82, 0.035, 0.18, "open");
+    mv("capoeira.pigeon", "Piccione: gamba davanti piegata di traverso, l'altra distesa dietro, poi cambia", [K(sitLong(), 300, 100), K(pg.copy().act("legl", "legr"), 700, 700), K(pgF.copy().act("torso"), 600, 800), K(sitLong(), 600, 60), K(pg.copy().mirror().act("legl", "legr"), 700, 700), K(pgF.copy().mirror().act("torso"), 600, 800), K(sitLong(), 600, 200)]);
+    const f4 = lieBack().set("chest", [-0.45, 0.22, 0]).set("head", [-0.63, 0.31, 0]).footAt("l", [0.34, 0.44, -0.1], 0, -20).knee("l", [0.5, 1, 0]).footAt("r", [0.12, 0.55, -0.02], -60, 0, 60).knee("r", [0.3, 0.4, 1]);
+    f4.handW("l", 0.0, 0.42, -0.14, "open").handW("r", 0.0, 0.42, 0.0, "open").elbow("l", [0, -0.3, -1]).elbow("r", [0, -0.3, 1]);
+    mv("capoeira.figure4", "Supino in figura 4: caviglia sul ginocchio opposto, tira la coscia verso il petto", [K(lieBack({ kneesUp: true }), 300, 100), K(f4.copy().act("legl", "legr", "arml", "armr"), 700, 1300), K(lieBack({ kneesUp: true }), 500, 60), K(f4.copy().mirror().act("legl", "legr", "arml", "armr"), 700, 1300), K(lieBack({ kneesUp: true }), 600, 200)]);
+    const tk = lieBack({ kneesUp: true }).footAt("l", [0.36, 0.1, 0.06], 0, 0, 60).footAt("r", [0.34, 0.08, 0.26], 0, 0, 60).knee("l", [0.1, 0.3, 1]).knee("r", [0.1, 0.3, 1]).set("hipRoll", 45).set("headYaw", 60);
+    tk.handW("l", -0.45, 0.05, -0.62, "open").handW("r", -0.45, 0.05, 0.62, "open");
+    mv("capoeira.twistKnees", "Supino, torsione: ginocchia piegate da un lato e sguardo dall'altro", [K(lieBack({ kneesUp: true }), 300, 100), K(tk.copy().act("legl", "legr", "torso"), 800, 1300), K(lieBack({ kneesUp: true }), 600, 60), K(tk.copy().mirror().act("legl", "legr", "torso"), 800, 1300), K(lieBack({ kneesUp: true }), 600, 200)]);
+    const sr = sitLong().footAt("r", [0.28, 0.07, -0.02], -60, 0, 70).knee("r", [0.2, 0.3, 1]).set("chest", [0.38, 0.45, -0.06]).set("head", [0.55, 0.38, -0.08]);
+    sr.handW("l", 0.78, 0.1, -0.16, "open").handW("r", 0.74, 0.14, -0.05, "open");
+    mv("capoeira.seatedReach", "Seduto, una gamba tesa e l'altra piegata: busto lungo verso il piede", [K(sitLong(), 300, 100), K(sr.copy().act("torso", "legl"), 800, 1300), K(sitLong(), 600, 60), K(sr.copy().mirror().act("torso", "legr"), 800, 1300), K(sitLong(), 600, 200)]);
+    const stOpen = sitLong().footAt("l", [0.55, 0.07, -0.62], 30, -80).footAt("r", [0.55, 0.07, 0.62], -30, -80);
+    const stSide = stOpen.copy().set("chest", [0.3, 0.46, -0.26]).set("head", [0.42, 0.42, -0.38]).handW("l", 0.55, 0.1, -0.55, "open").handW("r", 0.52, 0.12, -0.4, "open").act("torso");
+    mv("capoeira.straddleSide", "Seduto a gambe larghe: busto lungo verso un piede, poi verso l'altro", [K(stOpen, 300, 100), K(stSide, 800, 1200), K(stOpen, 600, 60), K(stSide.copy().mirror(), 800, 1200), K(stOpen, 600, 200)]);
+    const lunge0 = standing().foot("l", 0.48, -0.12, 0, 0).footAt("r", [-0.55, 0.06, 0.12], 180, 0).knee("r", [0, -1, 0]).set("pel", [-0.02, 0.46, 0]).set("chest", [-0.04, 0.96, 0]).set("head", [-0.03, 1.16, 0]);
+    lunge0.handW("l", 0.3, 0.6, -0.13, "open").handW("r", 0.28, 0.6, 0.0, "open");
+    const lungeUp = lunge0.copy().handW("r", -0.04, 1.5, 0.14, "open").elbow("r", [0, 0, 1]).act("armr", "torso", "legr");
+    mv("capoeira.lungeArmUp", "Affondo basso con il ginocchio dietro a terra, bacino avanti e braccio in alto", [K(standing(), 300, 100), K(lungeUp, 800, 1300), K(standing(), 600, 60), K(lungeUp.copy().mirror(), 800, 1300), K(standing(), 600, 200)]);
+    const lungeTw = lunge0.copy().twist(40); lungeTw.handRel("r", 0.32, -0.32, -0.12, "open").handRel("l", -0.12, -0.32, -0.24, "open").act("torso");
+    mv("capoeira.lungeTwist", "Affondo basso con il ginocchio a terra e busto ruotato verso la gamba avanti", [K(standing(), 300, 100), K(lungeTw, 800, 1300), K(standing(), 600, 60), K(lungeTw.copy().mirror(), 800, 1300), K(standing(), 600, 200)]);
+    const chd = kneel().set("pel", [-0.3, 0.32, 0]).set("chest", [0.18, 0.22, 0.06]).set("head", [0.38, 0.12, 0.08]).handW("l", 0.64, 0.035, 0.18, "open").handW("r", 0.66, 0.035, 0.42, "open").act("torso", "arml", "armr");
+    mv("capoeira.childSide", "Posizione del bambino con le braccia allungate a destra, poi a sinistra", [K(kneel(), 300, 100), K(chd, 800, 1200), K(chd.copy().mirror(), 800, 1200), K(kneel(), 700, 200)]);
+    const stw = sitLong().footAt("r", [0.34, 0.07, -0.24], -20, 0).knee("r", [0.3, 1, 0.2]).twist(-50).handW("l", 0.3, 0.42, 0.12, "open").handW("r", -0.15, 0.12, 0.2, "open").elbow("l", [0, -1, -0.3]).act("torso");
+    mv("capoeira.seatedTwist", "Torsione da seduto: gamba incrociata sopra l'altra, busto che ruota verso di lei", [K(sitLong(), 300, 100), K(stw, 800, 1300), K(sitLong(), 600, 60), K(stw.copy().mirror(), 800, 1300), K(sitLong(), 600, 200)]);
+    const shd = standing().foot("l", -0.05, -0.12, 5, 0).foot("r", -0.05, 0.12, -5, 0).set("pel", [-0.1, 0.92, 0]).set("chest", [0.3, 0.76, 0]).set("head", [0.48, 0.69, 0]);
+    shd.handW("l", 0.76, 0.52, -0.2, "open").handW("r", 0.76, 0.52, 0.2, "open").knee("l", [1, 0, 0]).knee("r", [1, 0, 0]).act("arml", "armr", "torso");
+    mv("capoeira.shoulderDrop", "Mani su un appoggio basso, petto che scende verso terra a braccia tese", [K(standing(), 300, 100), K(shd, 800, 1500), K(standing(), 700, 200)]);
+    const lw = lieBack().footAt("l", [0.04, 0.96, -0.08], 0, -10).footAt("r", [0.04, 0.96, 0.08], 0, -10).knee("l", [1, 0, 0]).knee("r", [1, 0, 0]).handW("l", -0.18, 0.22, -0.08, "open").handW("r", -0.4, 0.24, 0.06, "open").elbow("l", [0, 0.5, -1]).elbow("r", [0, 0.5, 1]);
+    mv("capoeira.legsWall", "Supino con le gambe appoggiate al muro, respiro lento: 4 dentro, 6 fuori", [K(lw, 400, 300), K(lw.copy().set("chest", [-0.5, 0.15, 0]).act("torso"), 1600, 400), K(lw, 2400, 400)]);
+
+    /* ---------------------------------------------------------------- fasi delle tecniche (per i passi "a tempi") */
+    mv("capoeira.gingaHold", "Ginga con il destro dietro: braccio destro davanti al viso, tallone dietro alto", [K(G0, 400, 1300)]);
+    mv("capoeira.triangle", "Il triangolo: due punti larghi davanti (base parallela) e uno dietro al centro", [K(standing(), 300, 200), K(G1.copy().act("legl", "legr"), 450, 800), K(G0.copy().act("legr"), 450, 800), K(G1, 450, 400)]);
+    const ml = meiaLuaF;
+    mv("capoeira.meiaLuaRise", "La gamba dietro sale tesa verso l'esterno e arriva davanti all'altezza della spalla", [K(G0, 300, 100), K(ml[1].p, 330, 150, ml[1].act), K(ml[2].p, 330, 800, ml[2].act), K(G0, 400, 200)]);
+    mv("capoeira.meiaLuaLand", "L'arco si completa verso sinistra e il piede torna in base parallela", [K(G0, 300, 100), K(ml[2].p, 300, 100, ml[2].act), K(ml[3].p, 300, 100, ml[3].act), K(ml[4].p, 280, 60), K(G1, 300, 800), K(G0, 350, 200)]);
+    mv("capoeira.bencaoChamber", "Il ginocchio sale davanti al petto, dita del piede verso l'alto", [K(G0, 300, 100), K(bencaoCh, 350, 1000), K(G0, 350, 200)]);
+    mv("capoeira.queixadaRise", "Dal passo diagonale la gamba dietro sale tesa incrociata e disegna l'arco", [K(G0, 300, 100), K(queixF[1].p, 300, 150, queixF[1].act), K(queixF[2].p, 300, 100, queixF[2].act), K(queixF[3].p, 280, 700, queixF[3].act), K(queixF[1].p, 380, 100), K(G0, 320, 200)]);
+    mv("capoeira.marteloChamber", "Il ginocchio sale di lato, il piede d'appoggio ruota e l'anca si gira", [K(G0, 300, 100), K(martCh.copy().act("legr", "legl"), 350, 1000), K(G0, 350, 200)]);
+    mv("capoeira.marteloSlow", "Martelo lento: tieni un attimo la gamba distesa alle costole, poi richiama", [K(G0, 300, 100), K(martCh, 350, 200), K(martEx, 300, 900), K(martCh, 300, 150), K(G0, 350, 200)]);
+    mv("capoeira.chapaChamber", "Ginocchio davanti al petto mentre il piede d'appoggio ruota, anche di profilo", [K(G0, 300, 100), K(chapCh.copy().act("legr", "legl"), 350, 1000), K(G0, 350, 200)]);
+    mv("capoeira.chapaSlow", "Chapa lenta: spinta in linea retta, tieni, poi richiama", [K(G0, 300, 100), K(chapCh, 350, 200), K(chapEx, 400, 900), K(chapCh, 300, 150), K(G0, 350, 200)]);
+    mv("capoeira.ponteiraChamber", "Il ginocchio sale davanti al petto con le dita del piede tirate indietro", [K(G0, 300, 100), K(pontCh, 300, 900), K(G0, 300, 200)]);
+    mv("capoeira.ponteiraAlt", "Ponteire alternate a ritmo veloce, destra e sinistra", pontFr.slice(0, 4).concat([K(G0, 200, 30), K(G1, 220, 20)], mirrorFrames(pontFr.slice(1, 4)), [K(G2, 200, 30), K(G1, 220, 20), K(G0, 220, 150)]));
+    mv("capoeira.rasteiraSlide", "Dall'esquiva baixa la gamba dietro scivola avanti radente, piede a uncino", [K(G0, 300, 100), K(BX, 320, 150), K(rastA, 300, 900), K(BX, 300, 100), K(G0, 330, 200)]);
+    mv("capoeira.compassoApex", "Compasso lento: il punto più alto dell'arco arriva quando sei di spalle", compF.map((f, i) => K(f.p, f.t ? f.t + 150 : 0, i === 3 ? 900 : f.h, f.act)));
+    const QE = B.of(L.F.lerpPose(QH.done(), QP.done(), 0.45));
+    { const ax = norm(L.sub(QE.p.chest, QE.p.pel)); QE.p.chest = add(QE.p.pel, mul(ax, 0.47)); QE.p.head = add(QE.p.pel, mul(ax, 0.67)); }
+    mv("capoeira.quedaHands", "Dalla cocorinha entrambe le mani a terra alla tua destra, dita in avanti", [K(C, 300, 100), K(QH.copy().act("arml", "armr"), 400, 1100), K(C, 400, 200)]);
+    mv("capoeira.quedaElbow", "Piega il braccio destro e punta il gomito nel fianco, sopra l'anca", [K(C, 300, 100), K(QH, 350, 150), K(QE.act("armr"), 400, 1000), K(QH, 350, 100), K(C, 350, 200)]);
+    mv("capoeira.quedaLean", "Inclinati sul gomito: la testa si avvicina a terra ma resta sollevata", [K(C, 300, 100), K(QH, 350, 150), K(QP.copy().act("torso", "armr"), 450, 1100), K(QH, 400, 100), K(C, 350, 200)]);
+    mv("capoeira.quedaExit", "Dalla queda de rins esci in negativa, poi in cocorinha", [K(C, 300, 100), K(QH, 350, 100), K(QP, 400, 100), K(QF, 400, 700), K(QP, 350, 60), K(NL.copy().act("legl", "legr"), 400, 600), K(C, 400, 200)]);
+    mv("capoeira.chapaWallSetup", "Di lato al muro, mano appoggiata, gamba esterna libera", [K(G0, 300, 100), K(CW0, 400, 1200)]);
   });
 })(typeof window !== "undefined" ? window : globalThis);

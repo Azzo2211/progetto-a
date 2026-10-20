@@ -588,6 +588,8 @@
     const adF = [K(sq, 260, 80, null, pAd), K(ad1, 260, 250, null, pAd), K(ad2, 260, 200, null, pAd2), K(ad3, 300, 600, null, pAd3), K(sq, 600, 200, null, pAd)];
     mv("lotta.armDrag", "Arm drag: polso e sopra il gomito, tira verso l'anca e passo fuori al suo fianco", adF);
     mv("lotta.armDragR", "Arm drag dall'altro lato, mani invertite", mirrorFrames(adF));
+    mv("lotta.dragReady", "Il suo braccio destro teso verso di te, tu in frontale", [K(sq, 300, 1200, null, pAd)]);
+    mv("lotta.dragWrist", "La mano sinistra prende il suo polso destro", [K(sq, 300, 150, null, pAd), K(sq.copy().hand("l", [0.3, 1.14, -0.18], "fist").elbow("l", [0, -1, -0.3]).act("arml"), 300, 1000, null, pAd), K(sq, 350, 200, null, pAd)]);
     mv("lotta.dragGrip", "La mano sinistra sul suo polso, la destra attraversa e afferra sopra il gomito", [K(sq, 300, 150, null, pAd), K(ad1, 300, 1100, null, pAd), K(sq, 350, 200, null, pAd)]);
     mv("lotta.dragPull", "Tira verso l'anca destra e passo avanti fuori: finisci al suo fianco", [K(ad1, 300, 150, null, pAd), K(ad2, 280, 200, null, pAd2), K(ad3, 320, 900, null, pAd3), K(ad1, 500, 200, null, pAd)]);
 
@@ -673,6 +675,8 @@
     const llA = mk({ pel: [-0.05, 0.5, 0], chest: [0.28, 0.82, 0], head: [0.42, 0.95, 0], fl: toes(-0.47, -0.14, 0, 80), fr: toes(-0.47, 0.14, 0, 80), kl: [1, -1, 0], kr: [1, -1, 0], hl: [0.48, 0.36, -0.02], hr: [0.48, 0.34, 0.02], el: [0, 0, -1], er: [0, 0, 1] });
     const llLow = llA.copy().set("pel", [-0.12, 0.4, 0]).set("chest", [0.24, 0.72, 0]).set("head", [0.38, 0.85, 0]).hand("l", [0.46, 0.3, -0.02]).hand("r", [0.46, 0.28, 0.02]).act("legl", "legr");
     const llUp = llA.copy().set("pel", [0.04, 0.56, 0]).set("chest", [0.3, 0.98, 0]).set("head", [0.4, 1.15, 0]).hand("l", [0.46, 0.5, -0.02]).hand("r", [0.46, 0.48, 0.02]).act("legl", "legr", "torso");
+    mv("lotta.lockKneel", "In ginocchio di fianco al borsone, braccia attorno, mani chiuse sotto", [K(up, 300, 100), K(kneel(), 400, 100), K(llA.copy().act("arml", "armr", "torso"), 400, 1200)]);
+    mv("lotta.lockLiftR", "Lock and lift dall'altro lato", mirrorFrames([K(llA, 300, 200), K(llLow, 300, 200), K(llUp, 300, 600), K(llA, 400, 200)]));
     mv("lotta.lockLift", "In ginocchio, mani chiuse sotto: anche giù, poi spingi e solleva con le anche", [K(llA, 300, 200), K(llLow, 300, 200), K(llUp, 300, 600), K(llA, 400, 200)]);
     // gut wrench a camminata (manichino a pancia in giu')
     const pG0 = bodyRoll(0, 0.0, 0.02);

@@ -75,10 +75,18 @@
     const turnPose = () => st().foot("l", 0, -0.12, 10, 0).foot("r", 0, 0.12, -10, 0).sink(0.02);
     // camminata avanti e indietro: 3 passi, giro a sinistra, 3 passi, giro a destra (fine all'origine)
     function corridor(arms, breath) {
+      // breath = [passi inspirando, passi espirando] oppure false
       const out = [K(g, 300, 100)];
       const step = 0.33;
-      const A = (i) => (breath ? (i % 4 < 2 ? ["torso", "legl", "legr"] : ["legl", "legr"]) : ["legl", "legr"]);
-      const br = (b, i) => (breath ? (i % 4 < 2 ? inhale(b, 0.9) : exhale(b, 0.7)) : b);
+      const cyc = breath ? breath[0] + breath[1] : 1;
+      const isIn = (i) => breath && i % cyc < breath[0];
+      const A = (i) => (breath ? (isIn(i) ? ["torso", "legl", "legr"] : ["head", "legl", "legr"]) : ["legl", "legr"]);
+      const circ = [[0.03, 0.0], [0.0, 0.03], [-0.03, 0.0], [0.0, -0.02]];
+      const br = (b0, i) => {
+        let b = breath ? (isIn(i) ? inhale(b0, 0.9) : exhale(b0, 0.7)) : b0;
+        if (arms === "circle") { const fr = b.frame(); const c = circ[i % 4]; const d = add(mul(fr.fwd, c[0]), [0, c[1], 0]); b = b.copy().set("chest", add(b.p.chest, d)).set("head", add(b.p.head, mul(d, 0.6))); }
+        return b;
+      };
       let i = 0;
       ["l", "r", "l"].forEach((lead, k) => { out.push(K(br(place(walkPose(lead, arms), step * (k + 1), 0, 0), i), 380, 30, A(i))); i += 1; });
       out.push(K(br(place(turnPose(), 1.1, 0, 90), i), 320, 20, A(i))); i += 1;
@@ -88,7 +96,11 @@
       out.push(K(g, 340, 250));
       return out;
     }
-    mv("systema.walkBreath", "Camminata col respiro: 2 passi inspiri dal naso, 2 passi espiri dalla bocca", corridor("swing", true));
+    mv("systema.walkBreath", "Camminata col respiro: 2 passi inspiri dal naso, 2 passi espiri dalla bocca", corridor("swing", [2, 2]));
+    mv("systema.walkBreath1", "Scala del respiro: inspira dal naso per 1 passo, espira dalla bocca per 1 passo", corridor("swing", [1, 1]));
+    mv("systema.walkBreath3", "Scala del respiro: 3 passi inspirando, 3 passi espirando", corridor("swing", [3, 3]));
+    mv("systema.walkBreath24", "Inspira in 2 passi e allunga l'espirazione a 4 passi", corridor("swing", [2, 4]));
+    mv("systema.walkShoulders", "Cammina col respiro 2:2 facendo grandi cerchi con le spalle, braccia molli", corridor("circle", [2, 2]));
     mv("systema.walk", "Camminata naturale avanti e indietro, schiena dritta, ginocchia morbide", corridor("swing", false));
     mv("systema.walkShake", "Cammina sciolto scuotendo le mani, spalle basse", corridor("shake", false));
     mv("systema.walkChest", "Cammina con le mani rilassate davanti al petto", corridor("chest", false));
@@ -177,7 +189,7 @@
       const armL = f.copy().handW("l", 0.02, 0.16, -0.3, "fist").elbow("l", [0, 1, 0]).act("arml");
       const legR = f.copy().footAt("r", [0.86, 0.2, 0.12], 0, -55).act("legr");
       const legL = f.copy().footAt("l", [0.86, 0.2, -0.12], 0, -55).act("legl");
-      mv("systema.tenseLimbs", "Tendi un solo arto alla volta respirando, il resto del corpo resta molle", [K(f, 300, 150), K(armR, 500, 900), K(f, 600, 200), K(armL, 500, 900), K(f, 600, 200), K(legR, 500, 900), K(f, 600, 200), K(legL, 500, 900), K(f, 600, 200)]);
+      mv("systema.tenseLimbs", "Tendi un solo arto alla volta respirando, il resto del corpo resta molle", [K(f, 300, 100), K(armR, 450, 650), K(f, 500, 100), K(armL, 450, 650), K(f, 500, 100), K(legR, 450, 650), K(f, 500, 100), K(legL, 450, 650), K(f, 500, 150)]);
       mv("systema.tenseArmR", "Braccio destro teso al massimo, viso e spalle molli; poi rilascio espirando", [K(f, 300, 200), K(armR, 600, 1500), K(f, 900, 400)]);
       mv("systema.scanLying", "Scansione: a ogni espirazione si scioglie una zona, dai piedi alla testa", [K(f, 300, 200), K(f.copy().act("legl", "legr"), 700, 500), K(f.copy().act("torso"), 700, 500), K(f.copy().act("arml", "armr"), 700, 500), K(f.copy().act("head"), 700, 500), K(f, 600, 200)]);
       mv("systema.heavyLying", "Corpo pesante sul tappeto: a ogni espirazione il peso aumenta", [K(f, 300, 200), K(f.copy().sink(0.01).act("torso", "legl", "legr", "arml", "armr"), 1800, 600), K(f, 1500, 300)]);
@@ -203,7 +215,7 @@
     mv("systema.squatStance", "Piedi alla larghezza delle spalle, punte appena aperte, braccia avanti rilassate", [K(st(), 300, 200), K(sqS(), 600, 900, ["legl", "legr", "arml", "armr"])]);
     mv("systema.slowSquat", "Squat lento: scendi inspirando dal naso, sali espirando dalla bocca, senza fermarti in basso", [K(sqS(), 300, 200), K(sqB().act("legl", "legr", "torso"), 2600, 0), K(sqS().act("legl", "legr", "head"), 2600, 300)]);
     mv("systema.slowSquatRev", "Squat lento al contrario: scendi espirando, sali inspirando", [K(sqS(), 300, 200), K(sqB().act("legl", "legr", "head"), 2600, 0), K(sqS().act("legl", "legr", "torso"), 2600, 300)]);
-    mv("systema.squatVerySlow", "Squat lentissimo: velocità uguale in discesa e in salita, talloni a terra, respiro libero", [K(sqS(), 300, 200), K(sqM().act("legl", "legr"), 2000, 0), K(sqB().act("legl", "legr"), 2000, 0), K(sqM().act("legl", "legr"), 2000, 0), K(sqS(), 2000, 300)]);
+    mv("systema.squatVerySlow", "Squat lentissimo: velocità uguale in discesa e in salita, talloni a terra, respiro libero", [K(sqS(), 300, 200), K(sqM().act("legl", "legr"), 1800, 0), K(sqB().act("legl", "legr"), 1800, 0), K(sqM().act("legl", "legr"), 1800, 0), K(sqS(), 1800, 300)]);
     mv("systema.squatHold", "Tenuta in squat basso respirando, schiena un pezzo solo", [K(sqS(), 300, 100), K(sqB().act("legl", "legr"), 900, 2200), K(sqS(), 900, 200)]);
     mv("systema.squatFast", "Squat a ritmo sostenuto, schiena dritta, per alzare il battito", [K(sqS(), 250, 50), K(sqB().act("legl", "legr"), 420, 40), K(sqS(), 380, 40), K(sqB().act("legl", "legr"), 420, 40), K(sqS(), 380, 40), K(sqB().act("legl", "legr"), 420, 40), K(sqS(), 380, 150)]);
     const sqT = (d) => { const b = sqB().twist(d).hips(d * 0.2); const s = d > 0 ? 1 : -1; b.handRel("l", 0.25, -0.3, -0.18 - 0.05 * s, "open").handRel("r", 0.25, -0.3, 0.18 - 0.05 * s, "open"); return b.act("torso", "arml", "armr"); };
@@ -512,6 +524,7 @@
     const crouchToes = () => crouch().heel("l", 25).heel("r", 25).sink(-0.03).handRel("l", 0.28, -0.18, -0.1, "open").handRel("r", 0.28, -0.18, 0.1, "open");
     mv("systema.crouchToes", "Accovacciato, mani davanti al petto, peso sugli avampiedi", [K(g, 300, 100), K(crouchToes().act("legl", "legr"), 800, 1000)]);
     // caduta laterale bassa sul lato destro, rotolamento sulla schiena e uscita dall'altra parte
+    let FS = null; // pose della caduta laterale, riusate piu' avanti
     (function () {
       const c = crouchToes();
       const s1 = st().set("pel", [-0.12, 0.26, 0.12]).set("chest", [-0.12, 0.74, 0.04]).set("head", [-0.08, 0.93, 0.02]).set("hipRoll", -25).set("chestRoll", -8);
@@ -528,9 +541,11 @@
       const s4 = place(onSide().mirror(), 0.05, 0.25, 0);
       const s5 = place(hipUp().mirror(), 0.1, 0.15, 0);
       const s6 = place(halfKneel("r"), 0.05, 0.1, 0);
-      const seq = [K(c, 300, 100), K(s1.act("legr"), 450, 80), K(s2.act("torso", "armr"), 450, 80), K(s3.act("torso", "legl", "legr"), 450, 150), K(s4.act("torso"), 500, 80), K(s5.act("torso", "arml"), 500, 80), K(s6.act("legl", "legr"), 500, 80), K(c, 500, 200)];
-      mv("systema.fallSideLow", "Caduta laterale bassa: la gamba destra scivola, siedi sulla coscia, poi fianco e schiena", seq.slice(0, 4).concat([K(s2, 600, 50), K(s1, 500, 50), K(c, 500, 200)]));
-      mv("systema.fallSideLowL", "Caduta laterale bassa sul lato sinistro", mirrorAll(seq.slice(0, 4).concat([K(s2, 600, 50), K(s1, 500, 50), K(c, 500, 200)])));
+      FS = { c, s1, s2, s3 };
+      const seq = [K(g, 300, 80), K(c.copy().act("legl", "legr"), 450, 80), K(s1.act("legr"), 450, 80), K(s2.act("torso", "armr"), 450, 80), K(s3.act("torso", "legl", "legr"), 450, 150), K(s4.act("torso"), 500, 80), K(s5.act("torso", "arml"), 500, 80), K(s6.act("legl", "legr"), 500, 80), K(g, 500, 200)];
+      const low = seq.slice(0, 5).concat([K(s2, 550, 50), K(s1, 450, 50), K(c, 450, 50), K(g, 450, 200)]);
+      mv("systema.fallSideLow", "Caduta laterale bassa: la gamba destra scivola, siedi sulla coscia, poi fianco e schiena", low);
+      mv("systema.fallSideLowL", "Caduta laterale bassa sul lato sinistro", mirrorAll(low));
       mv("systema.fallSideSlide", "La gamba destra scivola davanti all'altra: ti siedi sul lato esterno della coscia", [K(c, 300, 150), K(s1.copy().act("legr"), 700, 900), K(c, 600, 200)]);
       mv("systema.fallSideRoll", "Caduta laterale: fianco, schiena, rotola ed esci dall'altra parte, poi rialzati", seq);
       mv("systema.fallSideRollL", "Caduta laterale dal lato sinistro: rotola ed esci dall'altra parte", mirrorAll(seq));
@@ -557,7 +572,7 @@
       b.handRel("l", 0.3, -0.08, -0.14, "open").handRel("r", 0.3, -0.08, 0.14, "open").elbow("l", [0, -1, -0.5]).elbow("r", [0, -1, 0.5]);
       return clampH(b);
     };
-    mv("systema.fallBackLow", "Caduta indietro: siediti vicino ai talloni e rotola sulla schiena tonda, mento al petto", [K(RB.c0, 300, 150), K(RB.b1.copy().act("torso"), 500, 80), K(backRound().act("torso", "head"), 500, 700), K(RB.b1, 600, 80), K(RB.c0, 600, 200)]);
+    mv("systema.fallBackLow", "Caduta indietro: siediti vicino ai talloni e rotola sulla schiena tonda, mento al petto", [K(g, 300, 100), K(RB.c0.copy().act("legl", "legr"), 500, 80), K(RB.b1.copy().act("torso"), 450, 60), K(backRound().act("torso", "head"), 450, 600), K(RB.b1, 550, 60), K(RB.c0, 550, 60), K(g, 500, 200)]);
     mv("systema.rollPunch", "Capriola in avanti, arrivo in ginocchio con le mani davanti e pugno subito, senza caricare", rollSeq(RF, 0).concat([K(rollPunch, 200, 400), K(RF.f5.copy(), 300, 400)]));
 
     /* ================================================================ colpire rilassati */
@@ -664,7 +679,7 @@
 
     /* ================================================================ uscire dalla linea */
     const fh = () => faceHands(natural());
-    function exitSeq(side, dir, strike) {
+    function exitSeq(side, dir, strike, hold = 350) {
       // side -1 = esce a sinistra, +1 = a destra; dir +1 = passo avanti, -1 = indietro
       const lead = side < 0 ? "l" : "r";
       const lean = gc.copy().lean(0.02 * dir, side * 0.12, 0.03).turn(side * 14).act("torso");
@@ -672,7 +687,7 @@
       const st1 = gc.copy().step(lead, dir * 0.17, side * 0.2).shift(dir * 0.08, side * 0.13).lean(0, side * 0.04).turn(side * 14);
       faceHands(st1).act("leg" + lead, "torso");
       const fin = place(fh(), dir * 0.18, side * 0.22, side * 15).act("leg" + (lead === "l" ? "r" : "l"));
-      const out = [K(gc, 300, 150), K(lean, 260, 40), K(st1, 260, 40), K(fin, 260, 350)];
+      const out = [K(gc, 300, 150), K(lean, 260, 40), K(st1, 260, 40), K(fin, 260, hold)];
       if (strike === "punch") out.push(K(place(punchR(fh()), dir * 0.18, side * 0.22, side * 15).act("armr", "head"), 170, 300), K(fin.copy().act(), 280, 150));
       if (strike === "palm") out.push(K(place(punchR(fh()).grip("r", "open"), dir * 0.18, side * 0.22, side * 15).act("armr", "head"), 170, 300), K(fin.copy().act(), 280, 150));
       if (strike === "kick") out.push(K(place(lowExt(), dir * 0.18, side * 0.22, side * 15), 220, 300), K(fin.copy().act(), 300, 150));
@@ -718,7 +733,9 @@
         p1 = hand.copy().twist(-25).act("torso");
         p2 = hand.copy().twist(-30).hips(-15).sink(0.05).set("pel", [-0.03, 0.9, 0]).act("legl", "legr", "torso");
       }
-      return [K(b0, 300, 100), K(hand, 450, 200), K(p1, 500, 80), K(p2, 600, 300), K(hand.copy().act("head"), 800, 200), K(b0, 400, 200)];
+      p1.p.act = p1.p.act.concat(["head"]);
+      p2.p.act = p2.p.act.concat(["head"]);
+      return [K(b0, 300, 100), K(hand, 450, 200), K(p1, 500, 80), K(p2, 600, 300), K(hand.copy().act("torso"), 800, 200), K(b0, 400, 200)];
     }
     mv("systema.waveChest", "Palmo sul petto, spingi piano: cede il petto, poi la pancia, poi bacino e ginocchia", waveSeq("chest"));
     mv("systema.waveShoulder", "Spinta sulla spalla destra: la spalla cede per prima e l'onda scende, i piedi restano fermi", waveSeq("shoulder"));
@@ -869,5 +886,119 @@
     mv("systema.pulse", "Conta il battito al polso con indice e medio per 15 secondi", [K(g, 300, 100), K(pulse().act("arml", "armr", "head"), 500, 1800), K(g, 500, 200)]);
     mv("systema.placeChest", "Sistema l'attrezzo all'altezza del petto davanti a te", [K(g, 300, 100), K(clampH(g.copy().lean(0.05).handRel("l", 0.5, -0.18, -0.1, "open").handRel("r", 0.5, -0.18, 0.1, "open")).act("arml", "armr"), 600, 900), K(g, 600, 200)]);
     mv("systema.bandOn", "Elastico ancorato dietro, all'altezza del petto, appoggiato sulla spalla destra", [K(g, 300, 100), K(g.copy().handRel("l", 0.12, -0.02, 0.16, "open").elbow("l", [0, -1, -0.4]).act("arml"), 600, 1000), K(g, 600, 200)]);
+    mv("systema.checkSpot", "Guarda e controlla il punto a terra davanti a te", [K(g, 300, 100), K(g.copy().lean(0.05).headTo(0.04, -0.06, 0).act("head"), 500, 1300), K(g, 500, 200)]);
+
+    /* ================================================================ varianti e passaggi per i singoli passi */
+    const slowK = (frames, k) => frames.map((f) => K(f.p, Math.round(f.t * k), Math.round(f.h * k), f.act, f.partner));
+    // respiro da sdraiato: solo l'espirazione lunga, e il respiro "a ruota" senza pause
+    (function () {
+      const a = lieK();
+      const bIn = a.copy().handW("l", -0.15, 0.29, -0.05).handW("r", -0.42, 0.3, 0.07).set("pel", [0, 0.135, 0]).set("chest", [-0.5, 0.15, 0]);
+      mv("systema.lieExhale", "Espira dalla bocca, labbra socchiuse, a lungo: la schiena si appoggia di più", [K(a, 300, 150), K(bIn.copy().act("torso"), 700, 100), K(a.copy().set("chest", [-0.5, 0.125, 0]).act("head", "torso"), 2600, 500), K(a, 400, 150)]);
+      mv("systema.lieBreathWheel", "Nessuna pausa tra le fasi: il respiro gira come una ruota", [K(a, 300, 0), K(bIn.copy().act("torso"), 1300, 0), K(a.copy().act("head"), 1700, 0), K(bIn.copy().act("torso"), 1300, 0), K(a.copy().act("head"), 1700, 200)]);
+      const f = lieF();
+      const tense = f.copy().footAt("l", [0.88, 0.09, -0.12], 0, -55).footAt("r", [0.88, 0.09, 0.12], 0, -55).handW("l", -0.02, 0.07, -0.26, "fist").handW("r", -0.02, 0.07, 0.26, "fist").elbow("l", [0, 1, -0.3]).elbow("r", [0, 1, 0.3]).set("head", [-0.71, 0.15, 0]);
+      mv("systema.waveRelease", "Corpo tutto teso, poi un'unica espirazione lunga: lascia andare tutto insieme", [K(f, 300, 100), K(tense.copy().act("legl", "legr", "torso", "arml", "armr", "head"), 700, 700), K(f.copy().act("head"), 2200, 700)]);
+    })();
+    // forma al muro
+    const wallSt = () => tall().foot("l", 0, -0.12, 6, 0).foot("r", 0, 0.12, -6, 0).sink(0.01);
+    mv("systema.wallStand", "Talloni, glutei, scapole e nuca vicino al muro, ginocchia morbide", [K(st(), 300, 150), K(wallSt().act("torso", "head"), 700, 1200)]);
+    mv("systema.lumbarCheck", "La mano scorre dietro la zona lombare: passa appena, senza schiacciare", [K(wallSt(), 300, 200), K(wallSt().handPel("r", -0.15, 0.08, 0.05, "open").elbow("r", [-0.3, -1, 1]).act("armr"), 700, 1300), K(wallSt(), 600, 200)]);
+    mv("systema.headCheck", "Controlla la forma: la testa tende a scivolare avanti, riportala sopra il bacino", [K(wallSt(), 300, 200), K(wallSt().headTo(0.08, -0.02, 0).act("head"), 700, 900), K(wallSt().act("head"), 700, 900), K(wallSt(), 300, 100)]);
+    // squat: in basso inverti piano, come una ruota
+    mv("systema.squatBottom", "In basso non fermarti e non rimbalzare: inverti piano, come una ruota", [K(sqS(), 300, 100), K(sqM().act("legl", "legr"), 1200, 0), K(sqB().set("pel", [-0.16, 0.51, 0]).act("legl", "legr"), 1300, 0), K(sqB().set("pel", [-0.1, 0.54, 0]).act("legl", "legr"), 900, 0), K(sqM().act("legl", "legr"), 1300, 0), K(sqS(), 1200, 300)]);
+    mv("systema.squatBurst", "In tenuta bassa arriva il bruciore: 5-8 raffiche, poi respiro lento", [K(sqS(), 300, 100), K(sqB().act("legl", "legr"), 900, 400), K(inhale(sqB(), 0.7).act("torso"), 150, 40), K(sqB().act("head"), 150, 40), K(inhale(sqB(), 0.7).act("torso"), 150, 40), K(sqB().act("head"), 150, 40), K(inhale(sqB(), 0.7).act("torso"), 150, 40), K(sqB().act("head"), 150, 600), K(sqS(), 900, 200)]);
+    // pugni a terra: controllo del polso e tenuta col respiro
+    mv("systema.fistCheck", "Controlla di lato: dorso della mano e avambraccio in linea dritta", [K(af(), 300, 200), K(af().set("head", [0.4, 0.55, -0.04]).look(-45).act("head", "arml"), 600, 1300), K(af(), 500, 200)]);
+    mv("systema.fistRelax", "A ogni espirazione sciogli un po' di più una zona, senza perdere la forma", [K(fp(), 300, 150), K(inhale(fp(), 0.6).act("torso"), 900, 200), K(fp().act("head"), 1200, 300), K(inhale(fp(), 0.6).act("torso"), 900, 200), K(fp().act("legl", "legr"), 1200, 300), K(fp(), 400, 150)]);
+    mv("systema.pushupTurnR", "Piegamento lento sui pugni, in alto apri il corpo a sinistra e il braccio destro al soffitto", [K(fp(), 300, 150), K(fpDown().act("arml", "armr"), 1800, 0), K(fp().act("arml", "armr"), 1800, 100), K(sidePl().act("torso", "armr"), 900, 900), K(fp(), 800, 200)]);
+    mv("systema.pushupTurnL", "Torna giù e ripeti: apri il corpo dall'altro lato, braccio sinistro al soffitto", [K(fp(), 300, 150), K(fpDown().act("arml", "armr"), 1800, 0), K(fp().act("arml", "armr"), 1800, 100), K(sidePl().mirror().act("torso", "arml"), 900, 900), K(fp(), 800, 200)]);
+    // a terra e su, partendo da sdraiato
+    mv("systema.upAndDown", "Da sdraiato rialzati lento passando dal fianco, poi torna giù", [K(lieDownK(), 300, 150), K(onSide().act("torso"), 700, 100), K(hipUp().act("torso", "armr"), 700, 100), K(kneeUp(), 700, 100), K(g.copy().act("legl", "legr"), 700, 300), K(crouch().act("legl", "legr"), 700, 100), K(sideSit().act("torso", "armr"), 700, 100), K(lieDownK().act("torso"), 700, 300)]);
+    mv("systema.rockForward", "Inspira e torna avanti fino a sederti, mani sugli stinchi, senza spingere a terra", [K(ballBack(), 300, 300), K(ballSit().act("torso"), 900, 900), K(ballBack(), 800, 200)]);
+    mv("systema.halfRollL", "Mezza capriola dall'altro lato, sulla spalla sinistra", mirrorAll([K(RF.hk, 300, 150), K(RF.f1.copy().act("arml", "armr", "head"), 600, 150), K(RF.f2.copy().act("torso", "head"), 600, 100), K(RF.f3.copy().act("torso"), 600, 100), K(halfEnd(RF).act("legl", "legr"), 600, 800)]));
+    mv("systema.halfRollHugL", "Mezza capriola col cuscino sulla spalla sinistra", mirrorAll([K(RH.hk, 300, 150), K(RH.f1.copy().act("head", "torso"), 600, 150), K(RH.f2.copy().act("torso", "head"), 600, 100), K(RH.f3.copy().act("torso"), 600, 100), K(halfEnd(RH).act("legl", "legr"), 600, 800)]));
+    mv("systema.rollHugPrep", "Testa girata a sinistra, la spalla destra scende verso il materasso vicino al ginocchio", [K(RH.hk, 300, 200), K(RH.f1.copy().look(50).act("head", "torso"), 800, 1300), K(RH.hk, 600, 200)]);
+    mv("systema.rollFwdHugL", "Capriola in avanti col cuscino sulla spalla sinistra", mirrorAll(rollSeq(RH, 0)));
+    mv("systema.rollBackHugL", "Capriola indietro col cuscino sopra la spalla sinistra", mirrorAll(rollBSeq(RBH, 0)));
+    mv("systema.toBelly", "Scendi in avanti sulle mani e mettiti a pancia in giù", [K(g, 300, 100), K(crouch().act("legl", "legr"), 500, 80), K(allFours().act("arml", "armr"), 500, 80), K(lieFront().act("torso"), 600, 300)]);
+    mv("systema.kneelUp", "Dal ginocchio alzati in sicurezza, mani al viso, un passo indietro", [K(faceHands(halfKneel("r")), 300, 200), K(place(fh(), -0.3, 0.02, 0).act("legl", "legr"), 700, 400), K(g, 600, 200)]);
+    // flusso a terra: caduta laterale, difesa sulla schiena, alzata di sicurezza
+    (function () {
+      const lie = place(backG(), -0.3, 0.25, -15);
+      const kick = place(heel(), -0.3, 0.25, -15);
+      mv("systema.groundFlow", "Flusso a terra: caduta bassa, piedi verso l'attaccante, spinta, alzata di sicurezza", [
+        K(g, 300, 80), K(FS.c.copy().act("legl", "legr"), 400, 60), K(FS.s1.copy().act("legr"), 400, 60), K(FS.s2.copy().act("torso", "armr"), 400, 60), K(lie.act("torso", "legr"), 450, 200),
+        K(kick, 200, 250), K(lie.copy().act(), 250, 100), K(safeSit(true).act("torso", "armr"), 500, 80), K(safeHips().act("torso", "legl"), 400, 60), K(safeLeg().act("legr"), 400, 60), K(safeEnd().act("legl", "legr"), 450, 300), K(g, 500, 200)
+      ]);
+      // catena: uscita, palmo, caduta laterale, alzata di sicurezza
+      const ex = exitSeq(-1, 1, "palm").slice(0, 5);
+      const at = (b) => place(b, 0.18, -0.22, -15);
+      const chain = ex.concat([K(at(FS.c).act("legl", "legr"), 380, 40), K(at(FS.s1).act("legr"), 380, 40), K(at(FS.s2).act("torso", "armr"), 380, 60), K(at(safeSit(true)).act("torso", "armr"), 450, 60), K(at(safeHips()).act("torso", "legl"), 380, 40), K(at(safeLeg()).act("legr"), 380, 40), K(at(safeEnd()).act("legl", "legr"), 420, 250), K(gc, 600, 200)]);
+      mv("systema.chain", "Catena: esci, colpisci senza caricare, cadi di lato, alzata di sicurezza", chain);
+      mv("systema.chainL", "La catena dall'altro lato: uscita, colpo, caduta, alzata", mirrorAll(chain));
+    })();
+    // colpi e calci
+    mv("systema.palmStrike", "Mano aperta, dita rilassate: colpisci con la base del palmo, polso piegato indietro", [K(gc, 300, 200), K(reach(gc.copy().turn(12).shift(0.05).hand("r", bagPt, "open"), "r").act("armr", "head"), 220, 400), K(gc, 400, 300)], bagP);
+    mv("systema.weightShift", "In piedi, ginocchia morbide, peso sulla gamba sinistra", [K(par(), 300, 200), K(sup(par()).act("legl"), 700, 1200), K(par(), 600, 200)]);
+    mv("systema.pushKickSlowL", "Lo stesso con l'altra gamba: ginocchio alto, spingi col tallone, appoggia piano", mirrorAll([K(par(), 300, 150), K(kneeHi().act("legr"), 700, 200), K(pushExt().act("legr", "head"), 1000, 400), K(kneeHi().act("legr"), 800, 200), K(par(), 700, 300)]));
+    const wrapP = (dy, dz) => g.copy().handRel("r", 0.32, -0.26, 0.04, "fist").handRel("l", 0.3, -0.26 + dy, 0.04 + dz, "open").elbow("r", [0, -1, 0.3]).elbow("l", [0, -1, -0.4]).act("arml");
+    mv("systema.wrapHands", "Prepara bende e guanti: la mano gira attorno al polso", [K(g, 300, 100), K(wrapP(0.06, 0), 350, 0), K(wrapP(0, 0.07), 250, 0), K(wrapP(-0.06, 0), 250, 0), K(wrapP(0, -0.07), 250, 0), K(wrapP(0.06, 0), 250, 0), K(wrapP(0, 0.07), 250, 0), K(wrapP(-0.06, 0), 250, 100), K(g, 400, 200)]);
+    (function () {
+      const R = 0.86;
+      const P = (deg, lead) => { const a = deg * Math.PI / 180; const b = place(chestHands(natural()), R - R * Math.cos(a), -R * Math.sin(a), -deg); if (lead) b.act("leg" + lead); return b; };
+      mv("systema.bagCircle", "Dopo 3-4 colpi muoviti attorno al sacco con passi naturali", [K(gc, 300, 100), K(P(20, "l"), 330, 40), K(P(40, "r"), 330, 40), K(P(60, "l"), 330, 200), K(P(40, "r"), 330, 40), K(P(20, "l"), 330, 40), K(P(0, "r"), 330, 40), K(P(-20, "r"), 330, 40), K(P(-40, "l"), 330, 200), K(P(-20, "r"), 330, 40), K(gc, 330, 200)], bagP);
+      const R2 = 0.8;
+      const P2 = (deg, lead) => { const a = deg * Math.PI / 180; const b = place(chestHands(natural()), R2 - R2 * Math.cos(a), -R2 * Math.sin(a), -deg); if (lead) b.act("leg" + lead); return b; };
+      mv("systema.circleWalk2", "Cammina attorno al punto con passi corti e leggeri, braccia sciolte", [K(gc, 300, 100), K(P2(18, "l"), 330, 40), K(P2(36, "r"), 330, 40), K(P2(54, "l"), 330, 40), K(P2(72, "r"), 330, 40), K(P2(90, "l"), 330, 150), K(P2(60, "r"), 400, 40), K(P2(30, "l"), 400, 40), K(gc, 400, 200)]);
+      const SK = (deg, lead) => { const a = deg * Math.PI / 180; const b = place(sk0(), R2 - R2 * Math.cos(a), -R2 * Math.sin(a), -deg); return skAt(b, deg % 36 === 0 ? 0.3 : 0.42, deg % 36 === 0 ? 0.04 : -0.4, deg % 36 === 0 ? 0.26 : -0.16).act("armr", "leg" + lead); };
+      mv("systema.stickWalk", "Cammina attorno a un oggetto con l'otto del bastone sempre attivo", [K(sk0(), 300, 100), K(SK(18, "l"), 350, 40), K(SK(36, "r"), 350, 40), K(SK(54, "l"), 350, 40), K(SK(36, "r"), 350, 40), K(SK(18, "l"), 350, 40), K(sk0(), 350, 200)]);
+    })();
+    (function () {
+      const outB = faceHands(place(natural(), 0.12, -0.3, -20)).act("legl", "torso");
+      mv("systema.bagDodge", "Il sacco torna: esci in diagonale o ruota, il sacco passa dove eri", [K(gc, 300, 150), K(palmR(gc).act("armr"), 220, 200), K(gc.copy().sink(0.04), 400, 300), K(outB, 280, 600), K(gc, 450, 200)], bagP);
+    })();
+    mv("systema.kneelBag", "Bende e guanti, sacco basso o materasso, tappetino sotto di te", [K(g, 300, 100), K(wrapP(0.06, 0), 350, 0), K(wrapP(0, 0.07), 250, 0), K(wrapP(-0.06, 0), 250, 0), K(wrapP(0, -0.07), 250, 100), K(g, 400, 200)], { props: [{ k: "bag", x: 0.9, z: 0, r: 0.2, y0: 0.1, y1: 1.15 }] });
+    (function () {
+      const LOW = { props: [{ k: "bag", x: 0.9, z: 0, r: 0.2, y0: 0.1, y1: 1.15 }] };
+      const hb = heel().footAt("r", [0.68, 0.42, 0.1], 0, -70);
+      mv("systema.heelPushBag", "Sdraiato: spinta col tallone alla parte bassa del sacco, il piede si ritira subito", [K(backG(), 300, 200), K(hb, 220, 300), K(backG(), 250, 200), K(hb, 220, 300), K(backG(), 250, 200)], LOW);
+      const tk2 = tallKneel();
+      mv("systema.punchKneelBag", "In ginocchio: pugni e palmi al sacco basso, il peso viene dalle anche", [K(tk2, 300, 200), K(reach(tk2.copy().set("pel", [0.08, 0.48, 0]).set("chest", [0.13, 0.98, 0]).set("head", [0.16, 1.18, 0]).turn(14).hand("r", [0.69, 0.95, 0.02], "fist"), "r").act("armr", "torso"), 220, 300), K(tk2, 350, 150), K(reach(tk2.copy().set("pel", [0.08, 0.48, 0]).set("chest", [0.13, 0.98, 0]).set("head", [0.16, 1.18, 0]).turn(-12).hand("l", [0.69, 0.95, -0.02], "open"), "l").act("arml", "torso"), 220, 300), K(tk2, 350, 200)], LOW);
+      const sx2 = place(sitX(), 0.1, 0, 0);
+      mv("systema.punchSeatedBag", "Seduto: il busto ruota e il pugno va al sacco senza caricare", [K(sx2, 300, 200), K(reach(sx2.copy().twist(28).lean(0.05).hand("r", [0.69, 0.6, 0.02], "fist"), "r").act("armr", "torso"), 240, 300), K(sx2, 350, 150), K(reach(sx2.copy().twist(-28).lean(0.05).hand("l", [0.69, 0.6, -0.02], "open"), "l").act("arml", "torso"), 240, 300), K(sx2, 350, 200)], LOW);
+    })();
+    // colonna, onde, elastico, uscite
+    mv("systema.rollDownOnly", "Espira e stacca dal muro testa, spalle e schiena, arrotolandoti fino al bacino", [K(tall(), 300, 150), K(rollDn1, 700, 100), K(rollDn2, 900, 100), K(rollDn3, 1000, 900)]);
+    mv("systema.rollUp", "Inspira e riappoggia dal bacino in su, una vertebra alla volta", [K(rollDn3, 300, 300), K(rollDn2, 1000, 100), K(rollDn1, 900, 100), K(tall().act("torso"), 700, 600)]);
+    mv("systema.feetWide", "In piedi, piedi alla larghezza delle spalle, ginocchia morbide", [K(st(), 300, 150), K(par().sink(0.02).act("legl", "legr"), 600, 1100)]);
+    mv("systema.waveBreath", "Espira mentre l'onda scende, inspira mentre torni in verticale", slowK(waveSeq("chest"), 1.6));
+    (function () {
+      const b0 = par();
+      const hand = par().handRel("r", 0.13, -0.13, -0.02, "open").elbow("r", [0, -1, 0.5]);
+      const p1 = hand.copy().set("chest", [-0.1, 1.43, 0]).set("head", [-0.1, 1.63, 0]).act("torso", "head");
+      const p2 = hand.copy().set("pel", [-0.08, 0.83, 0]).set("chest", [-0.1, 1.31, 0]).set("head", [-0.06, 1.51, 0]).knee("l", [1, 0, 0]).knee("r", [1, 0, 0]).act("legl", "legr", "torso", "head");
+      mv("systema.waveStrong", "Spinta più forte: il corpo assorbe più in basso, i piedi restano fermi", [K(b0, 300, 100), K(hand, 450, 200), K(p1, 400, 60), K(p2, 500, 400), K(hand.copy().act("torso"), 900, 200), K(b0, 400, 200)]);
+      const y3 = place(fh(), -0.08, 0.16, -100);
+      mv("systema.yieldEnd", "Finisci girato di lato verso l'ancoraggio, mani davanti, in equilibrio", [K(gc, 300, 100), K(chestHands(gc.copy().turn(-60).step("r", -0.12, 0.14).shift(-0.04, 0.06)).act("torso", "legr"), 600, 60), K(y3.act("legl"), 500, 1400), K(gc, 700, 200)]);
+    })();
+    mv("systema.exitHold", "Dopo ogni uscita resta fermo un secondo per il controllo", exitSeq(-1, 1, null, 1100));
+    mv("systema.exitHoldR", "Uscita a destra, poi un secondo fermo", exitSeq(1, 1, null, 1100));
+    mv("systema.turnContactSlow", "Ruota senza spingere: la punta scivola e il bastone resta fermo", slowK(M_turn(), 1.4));
+    function M_turn() { return MM.get("systema.turnContact").frames.map((f) => K(L.B.of(f.pose), f.t, f.h, f.act)); }
+    mv("systema.hipEscapeHands", "Le mani spingono via all'altezza delle ginocchia mentre il bacino scappa", [K(lieGuard(), 300, 150), K(shrimp().act("arml", "armr"), 600, 1100), K(lieGuard(), 500, 200)]);
+    // bastone
+    mv("systema.stickGripSoft", "Pollice e indice chiudono, medio, anulare e mignolo accompagnano senza stringere", [K(gc, 300, 100), K(sk0().grip("r", "open").act("armr"), 500, 400), K(sk0().act("armr"), 700, 1000), K(gc, 500, 200)]);
+    mv("systema.stickEightFast", "Otto a velocità media, respiro continuo", [K(sk0(), 300, 50)].concat(slowK(eight(sk0()), 0.6), slowK(eight(sk0()), 0.6), [K(sk0(), 300, 200)]));
+    mv("systema.stickAroundRev", "Passaggi dietro la schiena nell'altro verso, sguardo avanti", mirrorAll(MM.get("systema.stickAround").frames.map((f) => K(L.B.of(f.pose), f.t, f.h, f.act))));
+    mv("systema.stickEightStepL", "Otto con la sinistra e un passo a ogni diagonale", mirrorAll(MM.get("systema.stickEightStep").frames.map((f) => K(L.B.of(f.pose), f.t, f.h, f.act))));
+    mv("systema.stickPalmL", "Bastone nell'altra mano: diagonale al sacco e palmo con la destra", mirrorAll(MM.get("systema.stickPalm").frames.map((f) => K(L.B.of(f.pose), f.t, f.h, f.act))), bagP);
+    mv("systema.stickAirStrike", "Due colpi di bastone nell'aria: il giro continua dopo il colpo", [K(sk0(), 300, 100), K(stHigh, 300, 80), K(stHit, 220, 80), K(stLow, 250, 100), K(hzA, 300, 80), K(hzHit, 220, 80), K(hzB, 250, 100), K(sk0(), 400, 200)]);
+    (function () {
+      const h2 = skAt(sk0(), 0.25, 0.08, -0.2, 20);
+      const hit2 = reach(sk0().turn(-12).handRel("r", 0.45, -0.3, 0.12, "fist"), "r", 0.95).act("armr", "torso", "head");
+      const l2 = skAt(sk0(), 0.35, -0.45, 0.35, -20);
+      mv("systema.stickStrike2", "Diagonale dall'alto a sinistra: colpo, poi il bastone prosegue il giro", [K(sk0(), 300, 100), K(h2, 300, 80), K(hit2, 220, 80), K(l2, 250, 100), K(sk0(), 400, 200)], bagP);
+    })();
   });
 })(typeof window !== "undefined" ? window : globalThis);
