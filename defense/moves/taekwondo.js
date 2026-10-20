@@ -358,7 +358,7 @@
     const dwLow = about(backPose(g, "r", "ext", 0.65), -5, g.p.foot.l[0], g.p.foot.l[2]);
     mv("taekwondo.dwiSlow", "Di spalle, spinta lenta del tallone dritto dietro all'altezza della coscia, punta in basso", [K(g, 280, 100), K(lookOver(g), 220, 60), K(dwChB, 300, 500), K(dwLow, 650, 700), K(dwChB, 450, 200), K(g, 320, 250)]);
     const gBk = g.copy().move(-0.2);
-    mv("taekwondo.stepBackDwi", "Contrattacco: passo indietro sul circolare dell'avversario e subito dwi chagi", [K(g, 250, 60), K(g.copy().step("r", -0.2).shift(-0.1).act("legr"), 180, 20), K(gBk.copy().act("legl"), 160, 40), ...dwiFrames(gBk).slice(1)]);
+    mv("taekwondo.stepBackDwi", "Contrattacco: passo indietro sul circolare dell'avversario e subito dwi chagi", [K(g, 250, 60), K(g.copy().step("r", -0.2).shift(-0.1).act("legr"), 180, 20), K(gBk.copy().act(), 160, 40), ...dwiFrames(gBk, 1.0, true).slice(1)]);
     // sguardo e giro senza calcio
     const backFace = g.copy().set("hipYaw", -168).set("chestYaw", -172).fyaw("l", -190).fyaw("r", -205).set("head", [0.0, 1.59, 0.0]).guard("low").look(-80);
     mv("taekwondo.lookBack", "Sguardo: la testa gira sopra la spalla dietro e il corpo la segue fino a darti di spalle", [K(g, 280, 100), K(lookOver(g), 300, 300), K(backFace.copy().act("torso", "head"), 450, 700), K(lookOver(g), 400, 100), K(g, 300, 250)]);
