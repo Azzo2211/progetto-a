@@ -490,18 +490,18 @@
     // il suo piede destro spazzato verso la tua destra, testa verso la tua sinistra
     const pSwept = P({ pel: [0.76, 0.86, 0.03], chest: [0.79, 1.32, -0.15], head: [0.8, 1.5, -0.23], face: [-1, 0.1, -0.1], fl: flatFoot(0.72, 0.38, 170), fr: [[0.7, 0.17, 0.06], 190, 10], kl: [-1, 0, 0.1], kr: [-1, 0.3, 0.2], hl: [[0.5, 1.0, 0.3], "open"], hr: [[0.48, 1.0, -0.1], "open"], el: [0, -1, 0.3], er: [0, -1, -0.3] });
     const sweepFoot = { dir: [0.85, 0.15, 0.3], down: [0.05, -0.25, 1] };
-    const meSweep = P({ pel: [0.02, 0.86, 0.22], chest: [-0.02, 1.34, 0.24], head: [0.0, 1.53, 0.24], yaw: -10, fr: flatFoot(0.02, 0.42, -15), fl: [[0.6, 0.11, -0.06], sweepFoot], kr: [1, 0, 0.3], kl: [1, 0.3, -0.3] });
+    const meSweep = P({ pel: [0.12, 0.84, 0.2], chest: [0.25, 1.3, 0.12], head: [0.32, 1.48, 0.08], yaw: -10, fr: flatFoot(0.02, 0.42, -15), fl: [[0.58, 0.12, -0.04], sweepFoot], kr: [1, 0, 0.3], kl: [1, 0.3, -0.3] });
     grab(meSweep, pSwept, { l: "sleeve", r: "lapel" });
     meSweep.hand("l", add(meSweep.p.hand.l, [-0.04, -0.12, 0]), "fist");
-    const meSweepIn = P({ pel: [0.02, 0.85, 0.2], chest: [0.03, 1.33, 0.2], head: [0.06, 1.52, 0.2], yaw: 0, fr: flatFoot(0.02, 0.42, -15), fl: [[0.55, 0.12, -0.34], sweepFoot], kr: [1, 0, 0.3], kl: [1, 0.3, -0.3] });
+    const meSweepIn = P({ pel: [0.1, 0.85, 0.15], chest: [0.22, 1.32, 0.1], head: [0.29, 1.5, 0.08], yaw: 0, fr: flatFoot(0.02, 0.42, -15), fl: [[0.52, 0.12, -0.28], sweepFoot], kr: [1, 0, 0.3], kl: [1, 0.3, -0.3] });
     grab(meSweepIn, PF1, { l: "sleeve", r: "lapel" });
     mvP("sambo.podsechka", "Bokovaya podsechka: passo laterale, la pianta spazza il suo piede, le mani girano come un volante", [
       K(meF0, 300, 150, null, PF), K(meF1.copy().act("legr"), 280, 60, null, PF1),
       K(meSweepIn.copy().act("legl"), 180, 0, null, PF1), K(meSweep.copy().act("legl", "arml", "armr"), 200, 450, null, pSwept), K(meF0, 450, 250, null, PF)
     ]);
     const pSwF = P({ pel: [0.76, 0.5, -0.12], chest: [0.77, 0.66, -0.58], head: [0.78, 0.78, -0.78], face: [-0.3, 1, 0], fl: [[0.74, 0.55, 0.38], 180, -30], fr: [[0.72, 0.72, 0.22], 180, -30], kl: [-0.3, 1, 0], kr: [-0.3, 1, 0], hl: [[1.0, 0.6, -0.6], "open"], hr: [[0.45, 0.85, -0.25], "open"], el: [0, 1, 0], er: [0, -1, 0] });
-    const pSwLand = P({ pel: [0.74, 0.13, -0.15], chest: [0.75, 0.15, -0.64], head: [0.77, 0.27, -0.83], face: UP, fl: [[0.72, 0.22, 0.6], 180, -60], fr: [[0.62, 0.4, 0.5], 180, -60], kl: [0, 1, 0], kr: [0, 1, 0], hl: [[1.15, 0.04, -0.45], "open"], hr: [[0.32, 0.55, -0.45], "open"], el: [0, 1, 0], er: [-1, 0, 0] });
-    const meSwEnd = grab(P({ pel: [0.06, 0.8, 0.1], chest: [0.2, 1.24, 0.0], head: [0.28, 1.4, -0.04], yaw: 20, fr: flatFoot(0.02, 0.42, -15), fl: flatFoot(0.32, -0.12, 20), kr: [1, 0, 0.3], kl: [1, 0, -0.2] }), pSwLand, { l: "cuff" }).handRel("r", 0.28, -0.2, 0.12, "open").elbow("l", [0, -1, -0.5]);
+    const pSwLand = P({ pel: [0.74, 0.13, -0.15], chest: [0.75, 0.15, -0.64], head: [0.77, 0.27, -0.83], face: UP, fl: [[0.72, 0.22, 0.6], 180, -60], fr: [[0.62, 0.4, 0.5], 180, -60], kl: [0, 1, 0], kr: [0, 1, 0], hl: [[1.15, 0.04, -0.45], "open"], hr: [[0.38, 0.62, -0.42], "open"], el: [0, 1, 0], er: [-1, 0, 0] });
+    const meSwEnd = grab(P({ pel: [0.1, 0.78, 0.08], chest: [0.35, 1.05, -0.1], head: [0.44, 1.2, -0.14], yaw: 20, fr: flatFoot(0.02, 0.42, -15), fl: flatFoot(0.32, -0.12, 20), kr: [1, 0, 0.3], kl: [1, 0, -0.2] }), pSwLand, { l: "cuff" }).handRel("r", 0.28, -0.2, 0.12, "open").elbow("l", [0, -1, -0.5]);
     mvP("sambo.podsechkaThrow", "Podsechka completa: il piede spazzato vola via e il compagno cade di fianco", [
       K(meF0, 300, 150, null, PF), K(meF1.copy().act("legr"), 280, 60, null, PF1),
       K(meSweepIn.copy().act("legl"), 180, 0, null, PF1), K(meSweep.copy().act("legl", "arml", "armr"), 200, 60, null, pSwept),
@@ -509,7 +509,7 @@
     ]);
     // spazzata da solo (asciugamano sul pavimento liscio, mani sull'elastico): solo i piedi
     const swSolo = (b) => b.handRel("l", 0.36, -0.28, -0.2, "fist").handRel("r", 0.4, 0.05, 0.05, "fist").elbow("l", [0, -1, -0.4]).elbow("r", [0, -1, 0.4]);
-    mv("sambo.sweepSolo", "Spazzata a vuoto: passo laterale, la pianta spazza verso destra, la sinistra tira giù", [K(gF, 300, 150), K(gF.copy().step("r", 0, 0.2).shift(0, 0.09).act("legr"), 280, 60), K(swSolo(meSweepIn.copy().set("hand", {})).act("legl"), 180, 0), K(swSolo(P({ pel: [0.02, 0.86, 0.22], chest: [-0.02, 1.34, 0.24], head: [0.0, 1.53, 0.24], yaw: -10, fr: flatFoot(0.02, 0.42, -15), fl: [[0.6, 0.11, -0.06], sweepFoot], kr: [1, 0, 0.3], kl: [1, 0.3, -0.3] })).act("legl", "arml", "armr"), 200, 450), K(gF, 450, 250)]);
+    mv("sambo.sweepSolo", "Spazzata a vuoto: passo laterale, la pianta spazza verso destra, la sinistra tira giù", [K(gF, 300, 150), K(gF.copy().step("r", 0, 0.2).shift(0, 0.09).act("legr"), 280, 60), K(swSolo(meSweepIn.copy().set("hand", {})).act("legl"), 180, 0), K(swSolo(P({ pel: [0.12, 0.84, 0.2], chest: [0.16, 1.32, 0.16], head: [0.2, 1.51, 0.14], yaw: -10, fr: flatFoot(0.02, 0.42, -15), fl: [[0.58, 0.12, -0.04], sweepFoot], kr: [1, 0, 0.3], kl: [1, 0.3, -0.3] })).act("legl", "arml", "armr"), 200, 450), K(gF, 450, 250)]);
 
     /* ------------------------------------------------------------ perednyaya podnozhka (sgambetto anteriore) */
     const pnMe = (o) => turnBase(Object.assign({ pel: [0.44, 0.78, 0.1], chest: [0.36, 1.24, 0.11], head: [0.32, 1.43, 0.11], fl: flatFoot(0.45, 0.22, 185), fr: [[0.5, ankleY(5), -0.4], 150, 5], kl: [-1, 0, 0.3], kr: [-0.4, 0.2, -1] }, o));
