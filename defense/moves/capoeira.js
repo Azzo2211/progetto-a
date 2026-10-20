@@ -733,5 +733,16 @@
     mv("capoeira.quedaLean", "Inclinati sul gomito: la testa si avvicina a terra ma resta sollevata", [K(C, 300, 100), K(QH, 350, 150), K(QP.copy().act("torso", "armr"), 450, 1100), K(QH, 400, 100), K(C, 350, 200)]);
     mv("capoeira.quedaExit", "Dalla queda de rins esci in negativa, poi in cocorinha", [K(C, 300, 100), K(QH, 350, 100), K(QP, 400, 100), K(QF, 400, 700), K(QP, 350, 60), K(NL.copy().act("legl", "legr"), 400, 600), K(C, 400, 200)]);
     mv("capoeira.chapaWallSetup", "Di lato al muro, mano appoggiata, gamba esterna libera", [K(G0, 300, 100), K(CW0, 400, 1200)]);
+    mv("capoeira.cocorinhaHold", "Fermo in cocorinha: compatto, la testa non sporge oltre le ginocchia", [K(C.copy().act("legl", "legr"), 400, 1800)]);
+    mv("capoeira.esquivaBaixaHold", "Tenuta in esquiva baixa: avambraccio sulla testa, sguardo avanti sotto il braccio", [K(BX.copy().act("arml", "head"), 400, 1800)]);
+    mv("capoeira.gingaBaseWide", "Base parallela larga: piedi più larghi delle spalle, ginocchia piegate", [K(G1w, 400, 1300)]);
+    mv("capoeira.esquivaLateralHold", "Tenuta in esquiva lateral: busto sulla coscia, mano a terra, braccio sulla testa", [K(LT.copy().act("torso", "armr", "arml"), 400, 1800)]);
+    const negMid = B.of(L.F.lerpPose(CL.done(), NL.done(), 0.5));
+    { const ax = norm(L.sub(negMid.p.chest, negMid.p.pel)); negMid.p.chest = add(negMid.p.pel, mul(ax, 0.47)); negMid.p.head = add(negMid.p.pel, mul(ax, 0.66)); }
+    mv("capoeira.negativaSlide", "Peso sulla gamba destra, la sinistra scivola avanti fino a distendersi", [K(CL, 300, 200), K(negMid.act("legl"), 500, 150), K(NL.copy().act("legl"), 450, 700), K(CL, 450, 200)]);
+    mv("capoeira.roleTurn", "Nel rolê le mani reggono il peso e i piedi girano: viso a terra solo un istante", [K(NL, 300, 100), K(R1, 320, 80), K(R2.copy().act("legl", "legr"), 340, 900), K(R1, 340, 80), K(NL, 340, 200)]);
+    mv("capoeira.auEntradaL", "Aú d'entrata verso sinistra, dalla cocorinha al piede del berimbau", mirrorFrames(MM.get("capoeira.auEntrada").frames.map((f) => K(f.pose, f.t, f.h, f.act))).concat([K(G1, 300, 60), K(G0, 300, 200)]));
+    mv("capoeira.bananeiraHold", "Bananeira tenuta: braccia distese, spalle alle orecchie, pancia e glutei stretti", [K(W80, 400, 2200)]);
+    mv("capoeira.bananeiraClimb", "Sali camminando con i piedi sul muro e con le mani verso il muro", [K(PW, 300, 150), K(W20.copy().act("legl", "legr", "arml", "armr"), 600, 100), K(W45.copy().act("legl", "legr", "arml", "armr"), 600, 100), K(W80.copy().act("legl", "legr"), 600, 600), K(W45, 500, 80), K(W20, 450, 80), K(PW, 450, 200)]);
   });
 })(typeof window !== "undefined" ? window : globalThis);

@@ -873,5 +873,319 @@
     const mkP = (ph) => { const b = palm().kick("r", "crescentIn", ph, 1.1, { arms: "none" }); b.handW("l", 0.38, 1.12, -0.05, "open").elbow("l", [0, -1, -0.5]); hik(b, "r"); return b; };
     const empiPalm = () => { const b = kibR().look(0); b.handW("l", 0.35, 1.18, 0.12, "open").elbow("l", [0, -1, -0.5]); hc(b, "r", [0.12, 0.0, -0.12], "fist"); b.elbow("r", [1, 0.1, -0.2]); return b.act("armr", "legr"); };
     mv("karate.mikazukiEmpi", "Mikazuki geri nel palmo aperto, atterraggio in kiba dachi con empi nel palmo", [K(heisoku(), 300, 150), K(palm(), 300, 100), K(mkP("chamber").act("legr"), 220, 40), K(mkP("ext").act("legr"), 200, 150), K(empiPalm(), 220, 600), K(kibR(), 300, 100), K(heisoku(), 300, 200)]);
+
+    /* ============================================================ KATA */
+    // stati aggiuntivi (gamba sinistra avanti, costruiti verso +x)
+    const kokH = (hip) => { const b = kok(); if (hip != null) b.set("hipYaw", hip).set("chestYaw", hip); return b; };
+    const kUchi = () => { const b = kokH(); uchi(b, "l"); hik(b, "r"); return b; };
+    const kMorote = () => { const b = kokH(-45); uchi(b, "l"); const e = add(b.sh("l"), [0.2, -0.2, 0.0]); b.hand("r", add(e, [0.0, -0.04, 0.08]), "fist"); b.elbow("r", [0, -1, 0.5]); return b; };
+    const kDouble = () => { const b = kokH(); hs(b, "l", [0.3, 0.22, -0.06], "open"); b.elbow("l", [0.2, -1, -0.5]); hh(b, "r", [0.12, 0.14, -0.02], "fist"); b.elbow("r", [0.3, 0.2, 1]); return b; };
+    const kUra = () => { const b = kokH(-30); hs(b, "r", [0.38, -0.08, -0.12], "fist"); b.elbow("r", [0, -1, 0.3]); b.hand("l", add(b.sh("r"), [0.12, 0.0, -0.06]), "open"); b.elbow("l", [0, -1, -0.5]); return b; };
+    const kYoko = () => { const b = kokH(-50); punch(b, "l", 1.25); hik(b, "r"); return b; };
+    const kKaki = () => { const b = kokH(-40); hs(b, "l", [0.28, 0.04, -0.12], "fist"); hs(b, "r", [0.28, 0.04, 0.12], "fist"); b.elbow("l", [0, -1, -0.3]).elbow("r", [0, -1, 0.3]); return b; };
+    const kManji = () => { const b = kokH(); gedan(b, "l"); hs(b, "r", [-0.12, 0.2, 0.22], "fist"); b.elbow("r", [-0.3, -1, 0.4]); return b; };
+    const zUchiG = () => { const b = zen(2); uchi(b, "r"); hik(b, "l"); return b; };
+    const zMorote = () => { const b = zen(-38); uchi(b, "l"); const e = add(b.sh("l"), [0.2, -0.2, 0.0]); b.hand("r", add(e, [0.0, -0.04, 0.08]), "fist"); b.elbow("r", [0, -1, 0.5]); return b; };
+    const zNukite = () => { const b = zen(-15); b.straight("l", [1.0, 1.2, 0], 0.97, "blade"); const e = add(b.sh("l"), [0.24, -0.1, 0.0]); b.hand("r", add(e, [-0.02, -0.08, 0.02]), "open"); b.elbow("r", [0, -1, 0.5]); return b; };
+    const zTettsui = () => { const b = zen(-35); hs(b, "l", [0.42, 0.06, 0.03], "fist"); b.elbow("l", [0.2, -1, -0.3]); hik(b, "r"); return b; };
+    const zTettsuiPrep = () => { const b = zen(-35); hh(b, "l", [-0.05, 0.22, -0.05], "fist"); b.elbow("l", [0, 0.3, -1]); hik(b, "r"); return b; };
+    const zJujiG = () => { const b = zen(-5); b.handW("l", 0.44, 0.88, 0.03, "fist").handW("r", 0.42, 0.9, -0.03, "fist"); b.elbow("l", [0, -0.3, -1]).elbow("r", [0, -0.3, 1]); return b; };
+    const zJujiJ = () => { const b = zen(-5); hh(b, "l", [0.2, 0.12, 0.03], "open"); hh(b, "r", [0.2, 0.14, -0.03], "open"); b.elbow("l", [0.3, 0, -1]).elbow("r", [0.3, 0, 1]); return b; };
+    const zEmpiP = () => { const b = zen(5); hs(b, "l", [0.38, -0.1, 0.15], "open"); b.elbow("l", [0, -1, -0.5]); hc(b, "r", [0.12, -0.02, -0.1], "fist"); b.elbow("r", [1, 0.1, -0.2]); return b; };
+    const zShutoB = () => { const b = zen(-20); hs(b, "l", [0.3, -0.42, 0.0], "blade"); b.elbow("l", [0, 0, -1]); hh(b, "r", [0.08, 0.16, 0.0], "blade"); b.elbow("r", [0.2, 0.2, 1]); return b; };
+    const kosaUr = () => { const b = kosa(); hs(b, "r", [0.4, 0.12, -0.1], "fist"); b.elbow("r", [0, -1, 0.3]); hik(b, "l"); return b; };
+    const kosaMor = () => { const b = kosa(); uchi(b, "l"); const e = add(b.sh("l"), [0.2, -0.2, 0.0]); b.hand("r", add(e, [0.0, -0.04, 0.08]), "fist"); b.elbow("r", [0, -1, 0.5]); return b; };
+    const kosaJu = () => { const b = kosa(); b.handW("l", 0.38, 0.84, 0.02, "fist").handW("r", 0.38, 0.86, -0.04, "fist"); b.elbow("l", [0, -0.3, -1]).elbow("r", [0, -0.3, 1]); return b; };
+    const kibTet = () => { const b = kib().look(85); hs(b, "l", [0.05, 0.0, -0.45], "fist"); b.elbow("l", [0, -1, -0.2]); hik(b, "r"); return b; };
+    const kibTate = (s = "r") => { const b = kib().look(sg(s) * -80); hs(b, s, [0.05, 0.08, sg(s) * 0.48], "fist"); b.elbow(s, [0, -1, 0]); hc(b, other(s), [-0.12, -0.08, sg(other(s)) * 0.12], "fist"); b.elbow(other(s), [-1, 0, sg(other(s)) * 0.3]); return b; };
+    const kibGedR = () => { const b = kib().look(-80); hs(b, "r", [0.05, -0.42, 0.3], "fist"); b.elbow("r", [0, 0, 1]); hik(b, "l"); return b; };
+    const heiGU = (lowS) => { const b = heisoku(); const hiS = other(lowS); hs(b, lowS, [0.28, -0.48, sg(lowS) * 0.05], "fist"); b.elbow(lowS, [-0.3, 0, sg(lowS)]); uchi(b, hiS); return b; };
+    const heiKagi = (s = "r") => { const b = heisoku().look(sg(s) * -60); hc(b, s, [0.3, -0.06, -sg(s) * 0.16], "fist"); b.elbow(s, [0, 0, sg(s)]); hik(b, other(s)); return b; };
+    const heiHik = () => heisoku();
+    // versione lato: (lead) => stato
+    const S = (fn) => side(fn);
+    const sUchiG = S(zUchiG), sMorote = S(zMorote), sNukite = S(zNukite), sTet = S(zTettsui), sJujiG = S(zJujiG), sJujiJ = S(zJujiJ), sEmpiP = S(zEmpiP);
+    const sKUchi = S(kUchi), sKMorote = S(kMorote), sKDouble = S(kDouble), sKUra = S(kUra), sKYoko = S(kYoko), sKKaki = S(kKaki), sKManji = S(kManji), sKShuto = sShuto;
+    const kiaiA = (lead) => ["arm" + lead, "torso", "head"];
+    // kata: sequenza con i giri; t = fattore tempo
+    function KataSeq(start) { const q = new Seq(start || yoi(), 300, 300); q.lead = "l"; return q; }
+    const ST = (q, build, mover, lead, yaw, o = {}) => q.step(build, mover, Object.assign({ lead, yaw, prep: o.prep || pGedan, act: o.act || ["leg" + mover, "arm" + lead], tp: o.tp || 240, t: o.t || 210, h: o.h == null ? 260 : o.h }, o.extra || {}));
+    const TE = (q, build, o = {}) => q.tech(build, { act: o.act, prep: o.prep, t: o.t || 190, h: o.h == null ? 260 : o.h, tp: o.tp });
+    // calcio dentro il kata: costruito all'origine dallo stato attuale e messo al suo posto
+    function kataKick(q, state, s, kind, h, arms) {
+      const sup = other(s);
+      const k = (ph) => { const b = kk(state(q.lead), s, kind, ph, h, arms, 0.04); return place(b, q.yaw, sup, q.cur); };
+      q.pose(k("chamber"), 220, 40).pose(k("ext").act("leg" + s), 160, 220).pose(k("recoil").act("leg" + s), 170, 50);
+    }
+    const yoiEnd = (q, turns = 0) => { const y = yoi(); if (turns) y.spin(360 * turns); q.fr.push(K(y, 400, 400)); if (turns) q.fr.push(K(yoi(), 0, 300)); return q.fr; };
+    const armsKeep = (b) => { b.guard("low"); return b; };
+    const zArms = (lead) => (b) => { if (lead === "l") { gedan(b, "l"); hik(b, "r"); } else { gedan(b, "r"); hik(b, "l"); } return b; };
+
+    /* ---------------- Taikyoku Shodan: 20 movimenti, gedan barai e oi zuki, percorso a I */
+    function taikyoku(part) {
+      const q = KataSeq(yoi());
+      const oi = (mover, lead, yaw, kiai) => ST(q, sOi, mover, lead, yaw, { prep: pOi, act: kiai ? ["leg" + mover].concat(kiaiA(lead)) : null, h: kiai ? 700 : 260 });
+      const gd = (mover, lead, yaw) => ST(q, sGedan, mover, lead, yaw, { tp: 280, t: 230, act: ["leg" + mover, "arm" + lead, "head"] });
+      const first = () => { gd("l", "l", 90); oi("r", "r", 90); gd("r", "r", -90); oi("l", "l", -90); gd("l", "l", 0); oi("r", "r", 0); oi("l", "l", 0); oi("r", "r", 0, true); };
+      const second = () => { gd("l", "l", 270); oi("r", "r", 270); gd("r", "r", 90); oi("l", "l", 90); gd("l", "l", 180); oi("r", "r", 180); oi("l", "l", 180); oi("r", "r", 180, true); gd("l", "l", 90); oi("r", "r", 90); gd("r", "r", -90); oi("l", "l", -90); };
+      first();
+      const mid = q.cur;
+      if (part === 1) return { fr: q.fr, mid };
+      second();
+      return { fr: yoiEnd(q), mid };
+    }
+    const tk1 = taikyoku(1);
+    mv("karate.taikyoku1", "Taikyoku Shodan, prima metà lenta: gedan barai e oi zuki fino al primo kiai", speed(tk1.fr, 1.6));
+    const tkFull = taikyoku(3);
+    // seconda metà: dalla posa del primo kiai fino allo yoi finale
+    const secondHalf = tkFull.fr.slice(tk1.fr.length - 1);
+    mv("karate.taikyoku2", "Taikyoku Shodan, seconda metà lenta: dal giro dopo il kiai fino allo yoi", speed(secondHalf, 1.4));
+    mv("karate.taikyokuShodan", "Taikyoku Shodan completo: percorso a I, kiai sui movimenti 8 e 16, ritorno alla partenza", speed(tkFull.fr, 0.82));
+
+    /* ---------------- Heian Shodan: 21 movimenti */
+    function heianShodan() {
+      const q = KataSeq(yoi());
+      const oi = (mover, lead, yaw, kiai) => ST(q, sOi, mover, lead, yaw, { prep: pOi, act: kiai ? ["leg" + mover].concat(kiaiA(lead)) : null, h: kiai ? 700 : 260 });
+      const gd = (mover, lead, yaw) => ST(q, sGedan, mover, lead, yaw, { tp: 280, t: 230, act: ["leg" + mover, "arm" + lead, "head"] });
+      const ag = (mover, lead, kiai) => ST(q, sAge, mover, lead, 0, { prep: pAge, act: kiai ? ["leg" + mover].concat(kiaiA(lead)) : null, h: kiai ? 700 : 260 });
+      const sh = (mover, lead, yaw) => ST(q, sShuto, mover, lead, yaw, { prep: pShuto, tp: 280, t: 240 });
+      gd("l", "l", 90); oi("r", "r", 90); gd("r", "r", -90);
+      // tettsui uchi: il piede avanti si ritira a meta', il braccio sale, poi colpisce a martello
+      {
+        const pr = place(S(zTettsuiPrep)("r"), -90, "l", q.cur);
+        const R0 = q.cur.p.foot.r; const L0 = q.cur.p.foot.l;
+        pr.p.foot.r = [(R0[0] + L0[0]) / 2, ankleY(15), (R0[2] + L0[2]) / 2]; pr.p.footPitch.r = 15;
+        const d = mul(sub(pr.p.foot.r, R0), 0.45); ["pel", "chest", "head"].forEach((k) => { pr.p[k] = add(pr.p[k], [d[0], 0.04, d[2]]); });
+        hh(pr, "r", [-0.05, 0.22, 0.05], "fist");
+        q.pose(pr.act("armr", "legr"), 260, 120);
+      }
+      q.tech(sTet, { act: ["armr", "legr"], h: 300 });
+      oi("l", "l", -90); gd("l", "l", 0); ag("r", "r"); ag("l", "l"); ag("r", "r", true);
+      const mid = q.cur; const n1 = q.fr.length;
+      gd("l", "l", 270); oi("r", "r", 270); gd("r", "r", 90); oi("l", "l", 90); gd("l", "l", 180); oi("r", "r", 180); oi("l", "l", 180); oi("r", "r", 180, true);
+      sh("l", "l", 90); sh("r", "r", 45); sh("r", "r", -90); sh("l", "l", -45);
+      return { fr: yoiEnd(q), n1, mid };
+    }
+    const hs1 = heianShodan();
+    mv("karate.heianShodan1", "Heian Shodan, prima metà lenta: tettsui uchi e tre age uke con kiai", speed(hs1.fr.slice(0, hs1.n1), 1.5));
+    mv("karate.heianShodan2", "Heian Shodan, seconda metà lenta: tre oi zuki con kiai e quattro shuto uke", speed(hs1.fr.slice(hs1.n1 - 1), 1.4));
+    mv("karate.heianShodan", "Heian Shodan completo: 21 movimenti, kiai sul 9 e sul 17, shuto uke finali", speed(hs1.fr, 0.8));
+    // i tre blocchi nuovi da soli
+    mv("karate.tettsuiUchi", "Tettsui uchi: il piede avanti si ritira, il pugno sale e colpisce a martello", (() => {
+      const q = new Seq(ZB()); q.lead = "l";
+      const pr = noact(zTettsuiPrep()); pr.foot("l", 0.05, -0.12, -5, 15); pr.set("pel", [-0.1, 0.84, 0]).set("chest", [-0.08, 1.34, 0]).set("head", [-0.06, 1.54, 0]); hh(pr, "l", [-0.05, 0.22, -0.05], "fist");
+      q.pose(pr.act("arml", "legl"), 350, 200);
+      q.pose(zTettsui().act("arml", "legl"), 220, 600);
+      return q.end(ZB(), 350, 250);
+    })());
+    mv("karate.ageUkeFwd", "Age uke avanzando sulla linea centrale con kiai, poi arretrando", (() => {
+      const q = new Seq(ZB());
+      q.step(sAge, "r", { prep: pAge, act: ["legr", "armr"] });
+      q.step(sAge, "l", { prep: pAge, act: ["legl", "arml", "torso", "head"], h: 700 });
+      q.step(sAge, "l", { prep: pAge, act: ["legl", "armr"] });
+      q.step(sAge, "r", { prep: pAge, act: ["legr", "arml"] });
+      return q.end(ZB(), 250, 200);
+    })());
+    mv("karate.shutoDiag", "I quattro shuto uke finali: di lato, in diagonale, dall'altro lato, in diagonale", (() => {
+      const q = KataSeq(yoi());
+      const sh = (mover, lead, yaw) => ST(q, sShuto, mover, lead, yaw, { prep: pShuto, tp: 300, t: 250, h: 350 });
+      sh("l", "l", 90); sh("r", "r", 45); sh("r", "r", -90); sh("l", "l", -45);
+      return yoiEnd(q);
+    })());
+
+    /* ---------------- Heian Nidan: 26 movimenti */
+    function heianNidan() {
+      const q = KataSeq(yoi());
+      const ks = (b, mover, lead, yaw, o) => ST(q, b, mover, lead, yaw, Object.assign({ prep: pShuto, tp: 280, t: 240 }, o || {}));
+      // blocco 1: doppia parata alta, ura zuki, yoko zuki sui due lati
+      ks(sKDouble, "l", "l", 90, { prep: (b, l) => agePrep(b, l), act: ["legl", "arml", "armr"] });
+      TE(q, sKUra, { act: ["armr", "arml"] }); TE(q, sKYoko, { act: ["arml"] });
+      ks(sKDouble, "r", "r", -90, { prep: (b, l) => agePrep(b, l), act: ["legr", "arml", "armr"] });
+      TE(q, sKUra, { act: ["arml", "armr"] }); TE(q, sKYoko, { act: ["armr"] });
+      // yoko geri keage con uraken a destra, fronte avanti
+      q.pose(place(stackL(heisoku().look(-80)), 0, "l", q.cur).act("head"), 300, 150);
+      q.pose(place(ykCham(), 0, "l", q.cur).act("legr", "armr"), 230, 60);
+      q.pose(place(ykExt(), 0, "l", q.cur).act("legr", "armr"), 160, 250);
+      q.pose(place(ykCham(), 0, "l", q.cur), 170, 60);
+      q.lead = "r";
+      ks(sShuto, "l", "l", 0); ks(sShuto, "r", "r", 0); ks(sShuto, "l", "l", 0);
+      ST(q, sNukite, "r", "r", 0, { prep: pOi, act: ["legr", "armr", "torso", "head"], h: 700 });
+      const n1 = q.fr.length;
+      // blocco 2: quattro shuto uke, uchi uke, mae geri, gyaku zuki
+      ks(sShuto, "l", "l", 270); ks(sShuto, "r", "r", 225); ks(sShuto, "r", "r", 90); ks(sShuto, "l", "l", 135);
+      ST(q, sUchiG, "l", "l", 180, { prep: pUchi, act: ["legl", "armr"] });
+      kataKick(q, sUchiG, "r", "front", "mid", (b) => { uchi(b, "r"); hik(b, "l"); });
+      q.pose(place(sUchiG("r"), 180, "l", q.cur).act("legr"), 200, 40); q.lead = "r";
+      TE(q, sGyaku, { act: ["arml", "torso"] });
+      TE(q, sUchiG, { act: ["arml", "torso"], prep: (l) => S(zUchiG)(l) });
+      kataKick(q, sUchiG, "l", "front", "mid", (b) => { uchi(b, "l"); hik(b, "r"); });
+      q.pose(place(sUchiG("l"), 180, "r", q.cur).act("legl"), 200, 40); q.lead = "l";
+      TE(q, sGyaku, { act: ["armr", "torso"] });
+      const n2 = q.fr.length;
+      // blocco 3: morote uke, gedan barai e age uke in diagonale, secondo kiai
+      ST(q, sMorote, "r", "r", 180, { prep: pUchi, act: ["legr", "armr", "arml"] });
+      ST(q, sGedan, "l", "l", 270, { act: ["legl", "arml", "head"] });
+      ST(q, sAge, "r", "r", 315, { prep: pAge });
+      ST(q, sGedan, "r", "r", 450, { act: ["legr", "armr", "head"] });
+      ST(q, sAge, "l", "l", 405, { prep: pAge, act: ["legl", "arml", "torso", "head"], h: 700 });
+      return { fr: yoiEnd(q, 1), n1, n2 };
+    }
+    const hn = heianNidan();
+    mv("karate.nidan1", "Heian Nidan, blocco 1: parate alte in kokutsu, calcio con uraken, shuto uke, nukite e kiai", speed(hn.fr.slice(0, hn.n1), 1.25));
+    mv("karate.nidan2", "Heian Nidan, blocco 2: quattro shuto uke, poi uchi uke, mae geri e gyaku zuki", speed(hn.fr.slice(hn.n1 - 1, hn.n2), 1.25));
+    mv("karate.nidan3", "Heian Nidan, blocco 3: morote uke, gedan barai e age uke fino al secondo kiai", speed(hn.fr.slice(hn.n2 - 1), 1.3));
+    mv("karate.heianNidan", "Heian Nidan completo: kiai sul nukite e sull'ultimo age uke", speed(hn.fr, 0.62));
+
+    /* ---------------- Heian Sandan: 21 movimenti */
+    function heianSandan() {
+      const q = KataSeq(yoi());
+      ST(q, sKUchi, "l", "l", 90, { prep: pUchi, tp: 280 });
+      // piedi uniti: gedan barai e uchi uke insieme, poi le braccia si scambiano
+      const hp = (b, keep) => place(b, q.yaw, keep, q.cur);
+      q.pose(hp(heiGU("l"), "l").act("arml", "armr", "legr"), 260, 200); q.pose(hp(heiGU("r"), "l").act("arml", "armr"), 230, 260);
+      q.lead = "l"; q.cur = place(sKUchi("l"), 90, "l", q.cur);
+      ST(q, sKUchi, "r", "r", -90, { prep: pUchi, tp: 280 });
+      q.pose(hp(heiGU("r"), "r").act("arml", "armr", "legl"), 260, 200); q.pose(hp(heiGU("l"), "r").act("arml", "armr"), 230, 260);
+      q.cur = place(sKUchi("r"), -90, "r", q.cur); q.lead = "r";
+      ST(q, sKMorote, "l", "l", 0, { prep: pUchi, act: ["legl", "arml", "armr"] });
+      ST(q, sNukite, "r", "r", 0, { prep: pOi });
+      ST(q, (l) => (l === "l" ? kibTet() : kibTet().mirror()), "l", "l", -90, { prep: pGedan, act: ["legl", "arml"], tp: 300 });
+      ST(q, sOi, "r", "r", 0, { prep: pOi, act: ["legr", "armr", "torso", "head"], h: 700 });
+      const n1 = q.fr.length;
+      // blocco 2: piedi uniti, tre fumikomi con empi e uraken, poi il finale in kiba dachi
+      const hei = place(heisoku(), -90, "r", q.cur);
+      q.pose(hei.act("legl"), 350, 250);
+      const seq3 = (s, yaw, keep) => {
+        const kb = (b) => place(b, yaw, keep, q.cur);
+        const base = s === "r" ? kibR() : kibR().mirror();
+        const ch = s === "r" ? fCham() : fCham().mirror();
+        const e = s === "r" ? empiR(kibR()) : empiR(kibR()).mirror();
+        const u = s === "r" ? urakR(kibR()) : urakR(kibR()).mirror();
+        const pk = (b) => place(b, yaw, keep, q.cur);
+        const c0 = pk(ch); q.pose(c0.act("leg" + s, "head"), 240, 80);
+        const e0 = pk(e); q.pose(e0.act("leg" + s, "arm" + s), 170, 220);
+        q.pose(pk(u).act("arm" + s), 160, 200);
+        q.cur = pk(base);
+      };
+      seq3("r", -90, "l");
+      // il piede sinistro passa avanti e il corpo gira: fumikomi a sinistra
+      const turnTo = (s, yaw) => { const h2 = place(heisoku(), yaw, other(s), q.cur); return h2; };
+      q.cur = turnTo("l", 90); seq3("l", 90, "r");
+      q.cur = turnTo("r", -90); seq3("r", -90, "l");
+      q.lead = "r"; q.yaw = -90;
+      q.cur = place(kibR(), -90, "l", q.cur);
+      ST(q, (l) => { const b = zen(-30); hs(b, "l", [0.34, 0.05, 0.02], "blade"); b.elbow("l", [0, -1, -0.3]); hik(b, "r"); return l === "l" ? b : b.mirror(); }, "l", "l", -180, { prep: pShuto, act: ["legl", "arml"], tp: 500, t: 600, h: 400 });
+      ST(q, sOi, "r", "r", -180, { prep: pOi });
+      ST(q, (l) => (l === "l" ? kibTate("r") : kibTate("r").mirror()), "l", "l", -90, { prep: pGedan, act: ["legl", "armr", "arml"], tp: 300 });
+      q.pose(place(kibTate("l"), -90, "l", q.cur).move(0, 0).act("arml", "armr", "torso", "head"), 250, 700);
+      return { fr: yoiEnd(q), n1 };
+    }
+    const hsd = heianSandan();
+    mv("karate.sandan1", "Heian Sandan, blocco 1: uchi uke, parate doppie a piedi uniti, nukite, tettsui, oi zuki e kiai", speed(hsd.fr.slice(0, hsd.n1), 1.25));
+    mv("karate.sandan2", "Heian Sandan, blocco 2: tre fumikomi con empi e uraken, poi il finale in kiba dachi con kiai", speed(hsd.fr.slice(hsd.n1 - 1), 1.2));
+    mv("karate.heianSandan", "Heian Sandan completo: kiai sull'oi zuki e sull'ultimo movimento in kiba dachi", speed(hsd.fr, 0.66));
+
+    /* ---------------- Heian Yondan: 27 movimenti (apertura lenta, calci con empi, kosa dachi, ginocchiata) */
+    function heianYondan() {
+      const q = KataSeq(yoi());
+      const slow = { tp: 700, t: 900, h: 500 };
+      ST(q, (l) => (l === "l" ? kDouble() : kDouble().mirror()), "l", "l", 90, Object.assign({ prep: (b, l) => agePrep(b, l), act: ["legl", "arml", "armr"] }, slow));
+      q.pose(place(cp(kDouble()).mirror(), -90, "l", q.cur).act("arml", "armr", "legl", "legr"), 1200, 500); q.lead = "r"; q.yaw = -90;
+      q.cur = q.fr[q.fr.length - 1].p;
+      ST(q, sJujiG, "l", "l", 0, { prep: pGedan, act: ["legl", "arml", "armr"] });
+      ST(q, sKMorote, "r", "r", 0, { prep: pUchi, act: ["legr", "armr", "arml"] });
+      const n1 = q.fr.length;
+      // yoko geri keage con uraken a sinistra, empi nel palmo; poi a destra
+      const ykL = (b) => place(b.mirror(), 0, "r", q.cur);
+      q.pose(ykL(stackL(heisoku().look(-80))).act("head"), 280, 100);
+      q.pose(ykL(ykCham()).act("legl", "arml"), 220, 50); q.pose(ykL(ykExt()).act("legl", "arml"), 160, 220); q.pose(ykL(ykCham()), 170, 40);
+      q.lead = "r";
+      ST(q, sEmpiP, "l", "l", 90, { prep: pOi, act: ["legl", "armr"], h: 300 });
+      const ykR = (b) => place(b, 0, "l", q.cur);
+      q.pose(ykR(stackL(heisoku().look(-80))).act("head"), 280, 100);
+      q.pose(ykR(ykCham()).act("legr", "armr"), 220, 50); q.pose(ykR(ykExt()).act("legr", "armr"), 160, 220); q.pose(ykR(ykCham()), 170, 40);
+      q.lead = "l";
+      ST(q, sEmpiP, "r", "r", -90, { prep: pOi, act: ["legr", "arml"], h: 300 });
+      ST(q, S(zShutoB), "l", "l", 0, { prep: pShuto, act: ["legl", "arml", "armr"] });
+      kataKick(q, S(zShutoB), "r", "front", "mid", (b) => { hs(b, "l", [0.3, -0.1, 0.0], "blade"); hik(b, "r"); });
+      q.pose(place((() => { const b = kosaUr(); return b; })().mirror(), 0, "r", place(kosa().mirror(), 0, "l", q.cur)).act("armr", "legr", "torso", "head"), 220, 800);
+      q.cur = q.fr[q.fr.length - 1].p; q.lead = "r";
+      const n2 = q.fr.length;
+      // kakiwake, mae geri, oi zuki e gyaku zuki in diagonale (due volte), morote uke, ginocchiata, shuto uke
+      const kaki = { tp: 600, t: 700, h: 350 };
+      const diag = (lead, yaw) => {
+        ST(q, sKKaki, lead, lead, yaw, Object.assign({ prep: (b, l) => uchiPrep(b, l), act: ["leg" + lead, "arml", "armr"] }, kaki));
+        const s = other(lead);
+        kataKick(q, sKKaki, s, "front", "mid", (b) => { hs(b, "l", [0.28, 0.04, -0.12], "fist"); hs(b, "r", [0.28, 0.04, 0.12], "fist"); });
+        q.pose(place(sOi(s), yaw, lead, q.cur).act("leg" + s, "arm" + s), 200, 150); q.lead = s;
+        TE(q, sGyaku, { act: ["arm" + lead, "torso"] });
+      };
+      diag("l", 135); diag("r", 225);
+      ST(q, sKMorote, "l", "l", 180, { prep: pUchi, act: ["legl", "arml", "armr"] });
+      ST(q, sKMorote, "r", "r", 180, { prep: pUchi, act: ["legr", "armr", "arml"] });
+      ST(q, sKMorote, "l", "l", 180, { prep: pUchi, act: ["legl", "arml", "armr"] });
+      const grab2 = place((() => { const b = zen(-10); b.handW("l", 0.5, 1.55, -0.1, "open").handW("r", 0.5, 1.55, 0.1, "open"); return b; })(), 180, "r", q.cur);
+      q.pose(grab2.act("arml", "armr"), 250, 100);
+      const kn = place(kk((() => { const b = zen(-10); return b; })(), "r", "knee", "ext", "mid", (b) => { b.handW("l", 0.46, 1.05, -0.1, "fist").handW("r", 0.46, 1.05, 0.1, "fist"); }, 0.02), 180, "l", q.cur);
+      q.pose(kn.act("legr", "arml", "armr", "torso", "head"), 200, 700);
+      q.pose(place(zen(-10), 180, "l", q.cur), 250, 60);
+      q.lead = "l"; q.cur = place(sKShuto("l"), 180, "l", q.cur);
+      ST(q, sKShuto, "r", "l", 0, { prep: pShuto, act: ["legr", "arml"], tp: 300 });
+      ST(q, sKShuto, "r", "r", 0, { prep: pShuto, act: ["legr", "armr"] });
+      return { fr: yoiEnd(q), n1, n2 };
+    }
+    const hy = heianYondan();
+    mv("karate.yondan1", "Heian Yondan, blocco 1 lento: parate alte a mano aperta, juji uke, morote uke", speed(hy.fr.slice(0, hy.n1), 1.1));
+    mv("karate.yondan2", "Heian Yondan, blocco 2: calcio con uraken ed empi nel palmo sui due lati, uraken in kosa dachi", speed(hy.fr.slice(hy.n1 - 1, hy.n2), 1.2));
+    mv("karate.yondan3", "Heian Yondan, blocco 3: kakiwake, mae geri e pugni, morote uke, ginocchiata, shuto uke", speed(hy.fr.slice(hy.n2 - 1), 1.0));
+    mv("karate.heianYondan", "Heian Yondan completo: apertura lenta, kiai sull'uraken in kosa dachi e sulla ginocchiata", speed(hy.fr, 0.56));
+
+    /* ---------------- Heian Godan: 23 movimenti (movimento lento, juji uke, mikazuki ed empi, salto, manji uke) */
+    function heianGodan() {
+      const q = KataSeq(yoi());
+      const side1 = (lead, yaw) => {
+        ST(q, sKUchi, lead, lead, yaw, { prep: pUchi, tp: 280 });
+        TE(q, (l) => { const b = kokH(-10); punch(b, "r", 1.22); hik(b, "l"); return l === "l" ? b : b.mirror(); }, { act: ["arm" + other(lead), "torso"] });
+        const hk = place(lead === "l" ? heiKagi("r") : heiKagi("r").mirror(), yaw, other(lead), q.cur);
+        q.pose(hk.act("arm" + other(lead), "leg" + lead), 1300, 500);
+        q.cur = hk;
+      };
+      side1("l", 90);
+      q.lead = "l"; q.cur = place(sKUchi("l"), 90, "r", q.cur);
+      side1("r", -90);
+      q.lead = "r"; q.cur = place(sKUchi("r"), -90, "l", q.cur);
+      ST(q, sKMorote, "r", "r", 0, { prep: pUchi, act: ["legr", "armr", "arml"] });
+      ST(q, sJujiG, "l", "l", 0, { prep: pGedan, act: ["legl", "arml", "armr"] });
+      TE(q, sJujiJ, { act: ["arml", "armr"], h: 350 });
+      ST(q, sOi, "r", "r", 0, { prep: pOi, act: ["legr", "armr", "torso", "head"], h: 700 });
+      const n1 = q.fr.length;
+      // kiba dachi con gedan barai, mikazuki geri nel palmo, empi, kosa dachi con morote uke
+      ST(q, (l) => (l === "l" ? kibGedR().mirror() : kibGedR()), "l", "r", -90, { prep: pGedan, act: ["legl", "armr"], tp: 300 });
+      const pl2 = (b) => place(b, -90, "l", q.cur);
+      q.pose(pl2(palm().look(-60)).act("arml"), 900, 300);
+      const mk = (ph) => pl2(mkP(ph));
+      q.pose(mk("chamber").act("legr"), 220, 40); q.pose(mk("ext").act("legr"), 200, 120);
+      q.pose(pl2(empiPalm()).act("armr", "legr"), 220, 400);
+      q.cur = pl2(kibR()); q.lead = "r";
+      const km = place(kosaMor().mirror(), -180, "r", q.cur);
+      q.pose(km.act("armr", "arml", "legl"), 280, 350); q.cur = km;
+      const n2 = q.fr.length;
+      // salto in kosa dachi con juji uke basso, morote uke e kiai, poi manji uke sui due lati
+      const air = place(st().sink(-0.15).set("foot", { l: [0.1, 0.35, -0.1], r: [0.05, 0.33, 0.1] }).set("footPitch", { l: 30, r: 30 }).handW("l", 0.25, 1.6, -0.15, "fist").handW("r", 0.25, 1.6, 0.15, "fist"), -90, null, null).move(q.cur.p.pel[0], q.cur.p.pel[2]);
+      q.pose(air.act("legl", "legr"), 260, 60);
+      const kj = place(kosaJu(), 0, null, null).move(q.cur.p.pel[0] + 0.2, q.cur.p.pel[2]);
+      q.pose(kj.act("legl", "legr", "arml", "armr"), 240, 450); q.cur = kj; q.yaw = 0; q.lead = "l";
+      ST(q, sMorote, "r", "r", 0, { prep: pUchi, act: ["legr", "armr", "arml", "torso", "head"], h: 700 });
+      ST(q, sKManji, "l", "l", 90, { prep: pGedan, act: ["legl", "arml", "armr"], tp: 300 });
+      ST(q, sKManji, "r", "r", 270, { prep: pGedan, act: ["legr", "armr", "arml"], tp: 450, t: 300 });
+      return { fr: yoiEnd(q, 1), n1, n2 };
+    }
+    const hg = heianGodan();
+    mv("karate.godan1", "Heian Godan, blocco 1: uchi uke, gyaku zuki, kagi zuki lento sui due lati, juji uke, oi zuki e kiai", speed(hg.fr.slice(0, hg.n1), 1.05));
+    mv("karate.godan2", "Heian Godan, blocco 2: kiba dachi, mikazuki geri nel palmo, empi, kosa dachi", speed(hg.fr.slice(hg.n1 - 1, hg.n2), 1.2));
+    mv("karate.godan3", "Heian Godan, blocco 3: salto in kosa dachi, morote uke con kiai, manji uke sui due lati", speed(hg.fr.slice(hg.n2 - 1), 1.2));
+    mv("karate.heianGodan", "Heian Godan completo: movimento lento, mikazuki ed empi, salto in kosa dachi, manji uke", speed(hg.fr, 0.62));
+    // un gesto firma di ogni Heian, di fila
+    mv("karate.heianSeries", "I cinque Heian in serie: un passaggio di ognuno, con lo yoi tra un kata e l'altro", [K(yoi(), 300, 300), ...speed(hs1.fr.slice(hs1.n1 - 7, hs1.n1), 0.8).slice(0, 4), K(yoi(), 350, 300), K(stackL(heisoku().look(-80)), 250, 80), K(ykExt().act("legr", "armr"), 200, 250), K(yoi(), 350, 300), ...fumiR(0.9).slice(1, 4), K(yoi(), 350, 300), K(kosaUr().act("armr", "torso", "head"), 300, 400), K(yoi(), 350, 300), K(kosaJ(0).act("legl", "legr", "arml", "armr"), 300, 400), K(yoi(), 350, 400)]);
   });
 })(typeof window !== "undefined" ? window : globalThis);

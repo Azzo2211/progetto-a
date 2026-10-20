@@ -248,16 +248,15 @@
       const b = st();
       b.set("pel", [-0.3, 0.5, -0.12]).set("chest", [0.16, 0.79, -0.18]).set("head", [0.33, 0.89, -0.18]).set("hipRoll", -90).set("chestRoll", -90);
       b.footAt("l", [-1.08, 0.07, -0.06], 0, 0, 90).footAt("r", [-1.1, 0.17, -0.06], 0, 0, 90).knee("l", [0, 0, 1]).knee("r", [0, 0, 1]);
-      b.handW("l", 0.2, 0.06, -0.18, "fist").handW("r", 0.16, 1.32, -0.18, "open").elbow("l", [-1, 0, 0]).elbow("r", [-1, 0, 0]).look(20);
+      b.handW("l", 0.2, 0.06, -0.18, "fist").handW("r", 0.16, 1.5, -0.18, "open").elbow("l", [-1, 0, 0]).elbow("r", [-1, 0, 0]).look(20);
       return b;
     };
-    mv("systema.pushupTurn", "Piegamento lento sui pugni, in alto apri il corpo di lato e un braccio verso il soffitto", [K(fp(), 300, 150), K(fpDown().act("arml", "armr"), 1800, 0), K(fp().act("arml", "armr"), 1800, 100), K(sidePl().act("torso", "armr"), 900, 700), K(fp(), 800, 150), K(fpDown().act("arml", "armr"), 1800, 0), K(fp().act("arml", "armr"), 1800, 100), K(sidePl().mirror().act("torso", "arml"), 900, 700), K(fp(), 800, 200)]);
 
     // sollevamento delle gambe e addominale arrotolato
     (function () {
       const f = lieF().handW("l", -0.1, 0.05, -0.26, "open").handW("r", -0.1, 0.05, 0.26, "open");
       const up = f.copy().footAt("l", [0.05, 0.96, -0.07], 180, -30).footAt("r", [0.05, 0.96, 0.07], 180, -30).knee("l", [-1, 0, 0]).knee("r", [-1, 0, 0]);
-      const mid = f.copy().footAt("l", [0.62, 0.66, -0.07], 180, -70).footAt("r", [0.62, 0.66, 0.07], 180, -70).knee("l", [-1, 1, 0]).knee("r", [-1, 1, 0]);
+      const mid = f.copy().footAt("l", [0.6, 0.72, -0.07], 180, -70).footAt("r", [0.6, 0.72, 0.07], 180, -70).knee("l", [-1, 1, 0]).knee("r", [-1, 1, 0]);
       const low = f.copy().footAt("l", [0.86, 0.17, -0.07], 0, -75).footAt("r", [0.86, 0.17, 0.07], 0, -75);
       mv("systema.legRaise", "Gambe dritte unite: sali fino alla verticale e scendi a sfiorare il pavimento, lombari giù", [K(low, 300, 200), K(mid.act("legl", "legr"), 1200, 0), K(up.act("legl", "legr"), 1200, 200), K(mid.act("legl", "legr"), 1200, 0), K(low.act("legl", "legr"), 1200, 300)]);
       mv("systema.legRaiseSlow", "Sollevamento delle gambe lentissimo, gambe dritte, respiro continuo", [K(low, 300, 200), K(mid.act("legl", "legr"), 2200, 0), K(up.act("legl", "legr"), 2200, 200), K(mid.act("legl", "legr"), 2200, 0), K(low.act("legl", "legr"), 2200, 300)]);
@@ -440,9 +439,10 @@
     ];
     mv("systema.rollFwd", "Capriola in avanti sulla spalla destra: diagonale fino all'anca sinistra, arrivo in ginocchio", rollSeq(RF, 0));
     mv("systema.rollFwdL", "Capriola in avanti sulla spalla sinistra, fino all'anca destra", mirrorAll(rollSeq(RF, 0)));
-    mv("systema.rollFwdSpalla", "Espira, testa girata a sinistra: la parte posteriore della spalla destra tocca per prima", rollSeq(RF, 2));
-    mv("systema.rollFwdDiag", "Attraversa la schiena in diagonale fino all'anca sinistra, tondo come una ruota", rollSeq(RF, 3));
-    mv("systema.rollFwdArrivo", "Fine giro: sinistra piegata sotto, destra davanti, in ginocchio con le mani al viso", rollSeq(RF, 4));
+    mv("systema.rollFwdSpalla", "Espira, testa girata a sinistra: la parte posteriore della spalla destra tocca per prima", [K(RF.hk, 300, 150), K(RF.f1.copy().act("arml", "armr", "head"), 600, 150), K(RF.f2.copy().act("torso", "head", "armr"), 700, 1000), K(RF.f1.copy(), 600, 100), K(RF.hk, 500, 200)]);
+    mv("systema.rollFwdDiag", "Attraversa la schiena in diagonale fino all'anca sinistra, tondo come una ruota", [K(RF.f2.copy(), 300, 250), K(RF.f3.copy().act("torso"), 700, 1000), K(RF.f4.copy().act("legl", "legr"), 600, 400)]);
+    mv("systema.rollFwdArrivo", "Fine giro: sinistra piegata sotto, destra davanti, in ginocchio con le mani al viso", [K(RF.f3.copy(), 300, 250), K(RF.f4.copy().act("legl", "legr"), 600, 200), K(RF.f5.copy().act("legl", "legr", "arml", "armr"), 600, 1100)]);
+    mv("systema.rollFwdSlow", "Capriola in avanti lenta e silenziosa, sulla spalla destra", rollSeq(RF, 0).map((f) => K(f.p, Math.round(f.t * 1.5), Math.round(f.h * 1.5), f.act)));
     mv("systema.rollFwdHug", "Capriola in avanti sulla spalla con un cuscino abbracciato al petto", rollSeq(RH, 0));
     mv("systema.rollSetup", "In ginocchio, destra avanti: braccio destro ad arco a terra, mano sinistra di supporto", [K(g, 300, 100), K(halfKneel("r").act("legl", "legr"), 700, 200), K(RF.f1.copy().act("armr", "arml"), 700, 1000)]);
     mv("systema.rollSetupHug", "In ginocchio, destra avanti, cuscino abbracciato al petto", [K(g, 300, 100), K(hugHands(halfKneel("r")).act("legl", "legr", "arml", "armr"), 800, 1100)]);
@@ -501,10 +501,9 @@
     ];
     mv("systema.crouchChin", "Accosciato, mento al petto, braccia avanti", [K(g, 300, 100), K(RB.c0.copy().act("legl", "legr", "head"), 800, 1100)]);
     mv("systema.rollBack", "Capriola indietro: siediti vicino ai talloni, rotola tondo e passa sopra la spalla destra", rollBSeq(RB, 0));
-    mv("systema.rollBackL", "Capriola indietro sopra la spalla sinistra", mirrorAll(rollBSeq(RB, 0)));
-    mv("systema.rollBackSit", "Siediti vicino ai talloni e rotola indietro con la schiena tonda, espirando", rollBSeq(RB, 1));
-    mv("systema.rollBackSpalla", "Testa inclinata a sinistra, ginocchia verso la spalla destra: il peso passa sulla spalla", rollBSeq(RB, 3));
-    mv("systema.rollBackMani", "Le mani a terra accanto alle spalle accompagnano; atterri sulle ginocchia", rollBSeq(RB, 4));
+    mv("systema.rollBackSit", "Siediti vicino ai talloni e rotola indietro con la schiena tonda, espirando", [K(RB.c0, 300, 150), K(RB.b1.copy().act("torso"), 600, 200), K(RB.b2.copy().act("torso", "legl", "legr"), 700, 900), K(RB.b1.copy(), 600, 100), K(RB.c0, 500, 200)]);
+    mv("systema.rollBackSpalla", "Testa inclinata a sinistra, ginocchia verso la spalla destra: il peso passa sulla spalla", [K(RB.b2.copy(), 300, 250), K(RB.b3.copy().act("torso", "head", "legl", "legr"), 700, 1000), K(RB.b4.copy().act("legl", "legr"), 600, 400)]);
+    mv("systema.rollBackMani", "Le mani a terra accanto alle spalle accompagnano; atterri sulle ginocchia", [K(RB.b3.copy(), 300, 250), K(RB.b4.copy().act("arml", "armr", "legl", "legr"), 600, 900), K(RB.b5.copy().act("legl", "legr"), 600, 700)]);
     mv("systema.rollBackHug", "Capriola indietro sulla spalla con il cuscino al petto, testa inclinata", rollBSeq(RBH, 0));
     (function () {
       const X = -1.2;
@@ -675,7 +674,6 @@
     const rollDn1 = tall().set("head", [0.08, 1.6, 0]).act("head");
     const rollDn2 = tall().set("chest", [0.15, 1.4, 0]).set("head", [0.3, 1.52, 0]).handW("l", 0.12, 0.85, -0.24).handW("r", 0.12, 0.85, 0.24).act("torso", "head");
     const rollDn3 = clampH(tall().set("pel", [-0.04, 0.95, 0]).set("chest", [0.28, 1.25, 0]).set("head", [0.4, 1.1, 0]).handW("l", 0.32, 0.6, -0.2).handW("r", 0.32, 0.6, 0.2).knee("l", [1, 0, 0]).knee("r", [1, 0, 0])).act("torso");
-    mv("systema.rollDown", "Schiena al muro: espira e stacca testa, spalle e schiena, arrotolandoti fino al bacino; poi risali", [K(tall(), 300, 150), K(rollDn1, 600, 100), K(rollDn2, 800, 100), K(rollDn3, 900, 400), K(rollDn2, 900, 100), K(rollDn1, 800, 100), K(tall(), 600, 200)]);
 
     /* ================================================================ uscire dalla linea */
     const fh = () => faceHands(natural());
@@ -904,7 +902,7 @@
     const wallSt = () => tall().foot("l", 0, -0.12, 6, 0).foot("r", 0, 0.12, -6, 0).sink(0.01);
     mv("systema.wallStand", "Talloni, glutei, scapole e nuca vicino al muro, ginocchia morbide", [K(st(), 300, 150), K(wallSt().act("torso", "head"), 700, 1200)]);
     mv("systema.lumbarCheck", "La mano scorre dietro la zona lombare: passa appena, senza schiacciare", [K(wallSt(), 300, 200), K(wallSt().handPel("r", -0.15, 0.08, 0.05, "open").elbow("r", [-0.3, -1, 1]).act("armr"), 700, 1300), K(wallSt(), 600, 200)]);
-    mv("systema.headCheck", "Controlla la forma: la testa tende a scivolare avanti, riportala sopra il bacino", [K(wallSt(), 300, 200), K(wallSt().headTo(0.08, -0.02, 0).act("head"), 700, 900), K(wallSt().act("head"), 700, 900), K(wallSt(), 300, 100)]);
+    mv("systema.headCheck", "Controlla la forma: la testa tende a scivolare avanti, riportala sopra il bacino", [K(wallSt(), 300, 200), K(wallSt().lean(0.03).headTo(0.1, -0.03, 0).act("head"), 700, 900), K(wallSt().act("head"), 700, 900), K(wallSt(), 300, 100)]);
     // squat: in basso inverti piano, come una ruota
     mv("systema.squatBottom", "In basso non fermarti e non rimbalzare: inverti piano, come una ruota", [K(sqS(), 300, 100), K(sqM().act("legl", "legr"), 1200, 0), K(sqB().set("pel", [-0.16, 0.51, 0]).act("legl", "legr"), 1300, 0), K(sqB().set("pel", [-0.1, 0.54, 0]).act("legl", "legr"), 900, 0), K(sqM().act("legl", "legr"), 1300, 0), K(sqS(), 1200, 300)]);
     mv("systema.squatBurst", "In tenuta bassa arriva il bruciore: 5-8 raffiche, poi respiro lento", [K(sqS(), 300, 100), K(sqB().act("legl", "legr"), 900, 400), K(inhale(sqB(), 0.7).act("torso"), 150, 40), K(sqB().act("head"), 150, 40), K(inhale(sqB(), 0.7).act("torso"), 150, 40), K(sqB().act("head"), 150, 40), K(inhale(sqB(), 0.7).act("torso"), 150, 40), K(sqB().act("head"), 150, 600), K(sqS(), 900, 200)]);

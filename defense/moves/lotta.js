@@ -17,6 +17,20 @@
     const around = (b, cx, cz, deg) => { const c = b.copy(); c.p.o = [cx, cz]; c.spin(deg); c.p.o = [0, 0]; return c; };
     const P = (b) => b.done();
     // fotogrammi a specchio (dall'altro lato), compagno compreso
+    // scene a coppia in piedi: la scena intera ruota (del minimo) finche' il compagno sta di fianco
+    // rispetto alla vista 3/4 dell'app (telecamera a 58 gradi), cosi' i due si vedono di profilo
+    const wrap = (d) => ((d + 540) % 360) - 180;
+    const pairF = (frames, ref = 0) => {
+      const fr = frames[ref];
+      const dx = fr.partner.p.pel[0] - fr.p.p.pel[0];
+      const dz = fr.partner.p.pel[2] - fr.p.p.pel[2];
+      const th = (Math.atan2(dz, dx) * 180) / Math.PI;
+      const d1 = wrap(32 - th);
+      const d2 = wrap(-148 - th);
+      const rot = -(Math.abs(d1) <= Math.abs(d2) ? d1 : d2);
+      return frames.map((f) => K(place(f.p, rot, 0, 0), f.t, f.h, f.act, f.partner ? place(f.partner, rot, 0, 0) : undefined));
+    };
+    const mvP = (name, label, frames, ref) => mv(name, label, pairF(frames, ref));
     const mirrorFrames = (frames) => frames.map((f) => K(f.p.copy().mirror(), f.t, f.h, f.act ? f.act.map((a) => a.replace(/(arm|leg)([lr])$/, (m, x, s) => x + (s === "l" ? "r" : "l"))) : f.act, f.partner ? f.partner.copy().mirror() : undefined));
 
     /* ---------------------------------------------------------------- posizioni */
@@ -411,13 +425,13 @@
     const tk0 = topKneel();
     const dlFinish = place(tk0, 90, 0.56, 0.06).act("legl", "legr", "torso");
     const dlF = [K(g, 260, 80, null, pS), K(lv, 160, 20, null, pS), K(s2(p1), 180, 20, null, pS), K(s2(dlKnee), 200, 250, null, s2(pUp)), K(s2(dlStep), 240, 120, null, s2(pDrive)), K(s2(dlCorner), 300, 80, null, s2(pFall)), K(s2(dlFinish), 320, 700, null, s2(pDown)), K(g, 700, 200, null, pS)];
-    mv("lotta.doubleLeg", "Doppia gamba: penetrazione, braccia dietro le ginocchia, testa di lato, giro e a terra", dlF);
-    mv("lotta.doubleLegR", "Doppia gamba con il ginocchio destro a terra", mirrorFrames(dlF));
-    mv("lotta.dlEntry", "Doppia gamba, entrata: livello e penetrazione, il ginocchio tra i suoi piedi", [K(g, 260, 100, null, pS), K(lv, 160, 30, null, pS), K(s2(p1), 180, 30, null, pS), K(s2(dlReach), 220, 800, null, pS), K(g, 450, 200, null, pS)]);
-    mv("lotta.dlWrap", "Mentre il ginocchio scende, le braccia avvolgono le gambe dietro le ginocchia", [K(g, 260, 100, null, pS), K(lv, 160, 30, null, pS), K(s2(dlReach), 240, 60, null, pS), K(s2(dlWrap), 200, 900, null, s2(pUp)), K(g, 450, 200, null, pS)]);
-    mv("lotta.dlHead", "La testa va di lato, l'orecchio contro le sue costole, schiena dritta", [K(g, 260, 100, null, pS), K(lv, 160, 30, null, pS), K(s2(dlWrap), 260, 100, null, s2(pUp)), K(s2(dlKnee), 220, 900, null, s2(pUp)), K(g, 450, 200, null, pS)]);
-    mv("lotta.dlCorner", "Step-up all'esterno, testa che spinge dentro, giro di 90 gradi", [K(s2(dlKnee), 300, 200, null, s2(pUp)), K(s2(dlStep), 260, 150, null, s2(pDrive)), K(s2(dlCorner), 320, 150, null, s2(pFall)), K(s2(dlFinish), 320, 600, null, s2(pDown)), K(s2(dlKnee), 700, 200, null, s2(pUp))]);
-    mv("lotta.dlFinish", "In ginocchio di fianco a lui a terra, petto avanti, poi su in posizione", [K(s2(dlCorner), 300, 100, null, s2(pFall)), K(s2(dlFinish), 320, 1000, null, s2(pDown)), K(g, 600, 300, null, pS)]);
+    mvP("lotta.doubleLeg", "Doppia gamba: penetrazione, braccia dietro le ginocchia, testa di lato, giro e a terra", dlF);
+    mvP("lotta.doubleLegR", "Doppia gamba con il ginocchio destro a terra", mirrorFrames(dlF));
+    mvP("lotta.dlEntry", "Doppia gamba, entrata: livello e penetrazione, il ginocchio tra i suoi piedi", [K(g, 260, 100, null, pS), K(lv, 160, 30, null, pS), K(s2(p1), 180, 30, null, pS), K(s2(dlReach), 220, 800, null, pS), K(g, 450, 200, null, pS)]);
+    mvP("lotta.dlWrap", "Mentre il ginocchio scende, le braccia avvolgono le gambe dietro le ginocchia", [K(g, 260, 100, null, pS), K(lv, 160, 30, null, pS), K(s2(dlReach), 240, 60, null, pS), K(s2(dlWrap), 200, 900, null, s2(pUp)), K(g, 450, 200, null, pS)]);
+    mvP("lotta.dlHead", "La testa va di lato, l'orecchio contro le sue costole, schiena dritta", [K(g, 260, 100, null, pS), K(lv, 160, 30, null, pS), K(s2(dlWrap), 260, 100, null, s2(pUp)), K(s2(dlKnee), 220, 900, null, s2(pUp)), K(g, 450, 200, null, pS)]);
+    mvP("lotta.dlCorner", "Step-up all'esterno, testa che spinge dentro, giro di 90 gradi", [K(s2(dlKnee), 300, 200, null, s2(pUp)), K(s2(dlStep), 260, 150, null, s2(pDrive)), K(s2(dlCorner), 320, 150, null, s2(pFall)), K(s2(dlFinish), 320, 600, null, s2(pDown)), K(s2(dlKnee), 700, 200, null, s2(pUp))]);
+    mvP("lotta.dlFinish", "In ginocchio di fianco a lui a terra, petto avanti, poi su in posizione", [K(s2(dlCorner), 300, 100, null, s2(pFall)), K(s2(dlFinish), 320, 1000, null, s2(pDown)), K(g, 600, 300, null, pS)]);
 
     /* ---------------------------------------------------------------- sprawl e go-behind (compagno a quattro appoggi) */
     function quadP() {
@@ -438,12 +452,12 @@
     })().act("arml", "armr", "legl", "legr");
     const gbSide = place(g, 90, DQ + 0.05, 0.75);
     const gbF = [K(g, 260, 80, null, pQ), K(sprOn, 260, 200, null, pQ), K(sprOnCtl, 200, 200, null, pQ), K(gb1, 280, 60, null, pQ), K(gb2, 280, 60, null, pQ), K(gbBehind, 300, 600, null, pQ), K(gbSide, 450, 60, null, pQ), K(g, 450, 200, null, pQ)];
-    mv("lotta.goBehind", "Sprawl e go-behind: petto sopra, testa giù, blocca il gomito e gira dietro", gbF);
-    mv("lotta.goBehindL", "Go-behind girando dall'altra parte", mirrorFrames(gbF));
-    mv("lotta.sprawlOn", "Sprawl con il petto sopra l'avversario a quattro appoggi, anche basse", [K(g, 260, 100, null, pQ), K(sprOn, 260, 1000, null, pQ), K(g, 400, 200, null, pQ)]);
-    mv("lotta.sprawlControl", "Una mano tiene giù la testa, l'altra blocca il gomito dal lato del giro", [K(sprOn, 300, 200, null, pQ), K(sprOnCtl, 250, 1000, null, pQ), K(sprOn, 300, 200, null, pQ)]);
-    mv("lotta.circleWalk", "I piedi camminano in cerchio a piccoli passi, il petto resta sopra", [K(sprOnCtl, 300, 100, null, pQ), K(gb1, 380, 80, null, pQ), K(gb2, 380, 300, null, pQ), K(gb1, 380, 80, null, pQ), K(sprOnCtl, 380, 200, null, pQ)]);
-    mv("lotta.goBehindEnd", "Dietro: ginocchio accanto alla sua anca, braccio alla vita, petto sulla schiena", [K(gb2, 300, 100, null, pQ), K(gbBehind, 320, 1200, null, pQ), K(gb2, 400, 200, null, pQ)]);
+    mvP("lotta.goBehind", "Sprawl e go-behind: petto sopra, testa giù, blocca il gomito e gira dietro", gbF);
+    mvP("lotta.goBehindL", "Go-behind girando dall'altra parte", mirrorFrames(gbF));
+    mvP("lotta.sprawlOn", "Sprawl con il petto sopra l'avversario a quattro appoggi, anche basse", [K(g, 260, 100, null, pQ), K(sprOn, 260, 1000, null, pQ), K(g, 400, 200, null, pQ)]);
+    mvP("lotta.sprawlControl", "Una mano tiene giù la testa, l'altra blocca il gomito dal lato del giro", [K(sprOn, 300, 200, null, pQ), K(sprOnCtl, 250, 1000, null, pQ), K(sprOn, 300, 200, null, pQ)]);
+    mvP("lotta.circleWalk", "I piedi camminano in cerchio a piccoli passi, il petto resta sopra", [K(sprOnCtl, 300, 100, null, pQ), K(gb1, 380, 80, null, pQ), K(gb2, 380, 300, null, pQ), K(gb1, 380, 80, null, pQ), K(sprOnCtl, 380, 200, null, pQ)]);
+    mvP("lotta.goBehindEnd", "Dietro: ginocchio accanto alla sua anca, braccio alla vita, petto sulla schiena", [K(gb2, 300, 100, null, pQ), K(gbBehind, 320, 1200, null, pQ), K(gb2, 400, 200, null, pQ)]);
 
     /* ---------------------------------------------------------------- gamba singola e high crotch (compagno in sfalsata opposta) */
     const S3 = 0.2;
@@ -456,12 +470,12 @@
     const slUp = slStand.copy().act("legl", "legr", "torso");
     const pSLup = mk({ pel: [0.98, 0.9, 0.06], chest: [0.98, 1.38, 0.06], head: [0.97, 1.58, 0.06], yaw: 180, fl: flat(1.12, 0.22, 175), fr: [0.45, 0.44, -0.11, -170, 30], kl: [-1, 0, 0.2], kr: [-1, 0.6, 0], hl: [0.55, 1.22, 0.06], hr: [0.55, 1.2, -0.28], el: [0, -1, 0.5], er: [0, -1, -0.5] });
     const slF = [K(g, 260, 80, null, pSL), K(lv, 160, 20, null, pSL), K(s3(slStepA), 200, 30, null, pSL), K(s3(slKnee), 200, 300, null, s3(pSLHit)), K(s3(slUp), 360, 800, null, s3(pSLup)), K(g, 600, 200, null, pSL)];
-    mv("lotta.singleLeg", "Gamba singola: entrata d'angolo, testa dentro, mani dietro il ginocchio, su", slF);
-    mv("lotta.singleLegR", "Gamba singola con il ginocchio destro a terra", mirrorFrames(slF));
-    mv("lotta.slEntry", "Passo d'angolo e penetrazione: ginocchio a terra fuori dal suo piede", [K(g, 260, 100, null, pSL), K(lv, 160, 30, null, pSL), K(s3(slStepA), 200, 40, null, pSL), K(s3(slKnee).copy().act("legl", "legr"), 200, 900, null, s3(pSLHit)), K(g, 450, 200, null, pSL)]);
-    mv("lotta.slGrip", "Testa dentro contro il petto, mani chiuse dietro il ginocchio", [K(s3(slStepA), 300, 100, null, pSL), K(s3(slKnee), 250, 1200, null, s3(pSLHit)), K(g, 450, 200, null, pSL)]);
-    mv("lotta.slStepUp", "Step-up: la gamba dietro arriva avanti e ti alzi con la schiena dritta", [K(s3(slKnee).copy().act(), 300, 200, null, s3(pSLHit)), K(s3(slUp), 400, 900, null, s3(pSLup)), K(s3(slKnee).copy().act(), 500, 200, null, s3(pSLHit))]);
-    mv("lotta.slHigh", "Gamba alta: caviglia tra le ginocchia, ginocchio sul fianco, mani chiuse", [K(s3(slStand), 300, 100, null, s3(pSLup)), K(s3(slUp).copy().act("arml", "armr", "legl", "legr"), 300, 1400, null, s3(pSLup)), K(g, 550, 200, null, pSL)]);
+    mvP("lotta.singleLeg", "Gamba singola: entrata d'angolo, testa dentro, mani dietro il ginocchio, su", slF);
+    mvP("lotta.singleLegR", "Gamba singola con il ginocchio destro a terra", mirrorFrames(slF));
+    mvP("lotta.slEntry", "Passo d'angolo e penetrazione: ginocchio a terra fuori dal suo piede", [K(g, 260, 100, null, pSL), K(lv, 160, 30, null, pSL), K(s3(slStepA), 200, 40, null, pSL), K(s3(slKnee).copy().act("legl", "legr"), 200, 900, null, s3(pSLHit)), K(g, 450, 200, null, pSL)]);
+    mvP("lotta.slGrip", "Testa dentro contro il petto, mani chiuse dietro il ginocchio", [K(s3(slStepA), 300, 100, null, pSL), K(s3(slKnee), 250, 1200, null, s3(pSLHit)), K(g, 450, 200, null, pSL)]);
+    mvP("lotta.slStepUp", "Step-up: la gamba dietro arriva avanti e ti alzi con la schiena dritta", [K(s3(slKnee).copy().act(), 300, 200, null, s3(pSLHit)), K(s3(slUp), 400, 900, null, s3(pSLup)), K(s3(slKnee).copy().act(), 500, 200, null, s3(pSLHit))]);
+    mvP("lotta.slHigh", "Gamba alta: caviglia tra le ginocchia, ginocchio sul fianco, mani chiuse", [K(s3(slStand), 300, 100, null, s3(pSLup)), K(s3(slUp).copy().act("arml", "armr", "legl", "legr"), 300, 1400, null, s3(pSLup)), K(g, 550, 200, null, pSL)]);
     // passo d'angolo da solo (segno di nastro)
     const angKnee = slKnee.copy().hand("l", [0.62, 0.78, -0.3]).hand("r", [0.6, 0.76, -0.04]).elbow("l", [0, -1, -0.5]).elbow("r", [0, -1, 0.5]).set("head", [0.7, 1.02, -0.06]).act("legl", "legr");
     const angF = [K(g, 260, 100), K(lv, 160, 30), K(slStepA, 220, 200), K(angKnee, 220, 500), K(slStand.copy().hand("l", [0.5, 0.95, -0.32]).hand("r", [0.48, 0.95, -0.02]).act("legr"), 300, 200), K(g, 400, 200)];
@@ -480,12 +494,12 @@
     const pHCdown = place(lieBack({ kneesUp: true }), 180, 0.95, 0.42);
     const hcFinish = place(tk0, -90, 0.98, -0.04).act("legl", "legr", "torso");
     const hcF = [K(g, 260, 80, null, pSL), K(lv, 160, 20, null, pSL), K(s3(slStepA), 200, 30, null, pSL), K(s3(hcKnee), 200, 300, null, s3(pHC)), K(s3(hcStep), 240, 100, null, s3(pHC)), K(s3(hcTurn), 320, 100, null, s3(pHCfall)), K(s3(hcFinish), 320, 700, null, s3(pHCdown)), K(g, 700, 200, null, pSL)];
-    mv("lotta.highCrotch", "High crotch: testa fuori sull'anca, braccio alto tra le gambe, giro dell'angolo", hcF);
-    mv("lotta.highCrotchR", "High crotch dall'altro lato", mirrorFrames(hcF));
-    mv("lotta.hcEntry", "Passo d'angolo fuori dal suo piede avanti, ginocchio a terra", [K(g, 260, 100, null, pSL), K(lv, 160, 30, null, pSL), K(s3(slStepA), 220, 40, null, pSL), K(s3(hcKnee).copy().act("legl", "legr"), 220, 900, null, s3(pHC)), K(g, 450, 200, null, pSL)]);
-    mv("lotta.hcArms", "Testa fuori sull'anca, braccio interno alto, mano esterna dietro il ginocchio", [K(s3(slStepA), 300, 100, null, pSL), K(s3(hcKnee), 260, 1200, null, s3(pHC)), K(g, 450, 200, null, pSL)]);
-    mv("lotta.hcCorner", "Step-up e giro dell'angolo verso la sua schiena, testa che spinge", [K(s3(hcKnee).copy().act(), 300, 150, null, s3(pHC)), K(s3(hcStep), 260, 120, null, s3(pHC)), K(s3(hcTurn), 340, 150, null, s3(pHCfall)), K(s3(hcFinish), 340, 600, null, s3(pHCdown)), K(s3(hcKnee).copy().act(), 700, 200, null, s3(pHC))]);
-    mv("lotta.hcFinish", "In ginocchio di fianco a lui a terra, poi torna in posizione", [K(s3(hcTurn), 300, 100, null, s3(pHCfall)), K(s3(hcFinish), 320, 1000, null, s3(pHCdown)), K(g, 600, 300, null, pSL)]);
+    mvP("lotta.highCrotch", "High crotch: testa fuori sull'anca, braccio alto tra le gambe, giro dell'angolo", hcF);
+    mvP("lotta.highCrotchR", "High crotch dall'altro lato", mirrorFrames(hcF));
+    mvP("lotta.hcEntry", "Passo d'angolo fuori dal suo piede avanti, ginocchio a terra", [K(g, 260, 100, null, pSL), K(lv, 160, 30, null, pSL), K(s3(slStepA), 220, 40, null, pSL), K(s3(hcKnee).copy().act("legl", "legr"), 220, 900, null, s3(pHC)), K(g, 450, 200, null, pSL)]);
+    mvP("lotta.hcArms", "Testa fuori sull'anca, braccio interno alto, mano esterna dietro il ginocchio", [K(s3(slStepA), 300, 100, null, pSL), K(s3(hcKnee), 260, 1200, null, s3(pHC)), K(g, 450, 200, null, pSL)]);
+    mvP("lotta.hcCorner", "Step-up e giro dell'angolo verso la sua schiena, testa che spinge", [K(s3(hcKnee).copy().act(), 300, 150, null, s3(pHC)), K(s3(hcStep), 260, 120, null, s3(pHC)), K(s3(hcTurn), 340, 150, null, s3(pHCfall)), K(s3(hcFinish), 340, 600, null, s3(pHCdown)), K(s3(hcKnee).copy().act(), 700, 200, null, s3(pHC))]);
+    mvP("lotta.hcFinish", "In ginocchio di fianco a lui a terra, poi torna in posizione", [K(s3(hcTurn), 300, 100, null, s3(pHCfall)), K(s3(hcFinish), 320, 1000, null, s3(pHCdown)), K(g, 600, 300, null, pSL)]);
 
     // whizzer: l'avversario ha preso la gamba avanti (il compagno fa la gamba singola su di te)
     const pSLatk = place(slKnee.copy().mirror(), 180, 0.86, -0.08);
@@ -493,12 +507,12 @@
     const wz = mk({ pel: [-0.14, 0.5, -0.04], chest: [0.08, 0.92, -0.14], head: [0.18, 1.06, -0.1], yaw: 25, cyaw: 30, fl: toes(-0.36, -0.42, 20, 60), fr: flat(-0.2, 0.32, -10, 10), kl: [0.2, -1, -0.5], kr: [1, 0.2, 0.3], hl: [0.22, 0.48, -0.42], hr: [0.24, 0.98, -0.02], el: [-0.2, 1, -0.6], er: [0, -1, 0.5] }).act("arml", "armr", "legl", "torso");
     const pWz = mk({ pel: [0.4, 0.44, -0.12], chest: [0.24, 0.8, -0.12], head: [0.12, 0.88, -0.06], yaw: 160, fl: toes(0.56, -0.3, 160), fr: toes(1.0, -0.02, 165, 65), kl: [-1, -0.4, 0.2], kr: [-0.3, -1, 0], hl: [0.05, 0.42, -0.2], hr: [0.02, 0.48, -0.36], el: [0, -0.3, 1], er: [0, -0.3, -1] });
     const wzF = [K(wzIn, 300, 200, null, pSLatk), K(wzIn.copy().handHead("l", 0.3, -0.25, -0.2).act("arml"), 220, 150, null, pSLatk), K(wz, 320, 600, null, pWz), K(g.copy().act("legl"), 400, 300, null, opp(gR, 1.0))];
-    mv("lotta.whizzer", "Whizzer: braccio sopra il suo, anche giù e ruotate, gamba presa indietro", wzF);
-    mv("lotta.whizzerR", "Whizzer con la gamba destra presa", mirrorFrames(wzF));
-    mv("lotta.legCaught", "L'avversario ti ha preso la gamba avanti con la testa all'interno", [K(g, 300, 200, null, pSL), K(wzIn, 300, 1000, null, pSLatk)]);
-    mv("lotta.whizzerArm", "Il braccio dal lato della gamba presa avvolge il suo da sopra, mano sulla coscia", [K(wzIn, 300, 200, null, pSLatk), K(wzIn.copy().set("chest", [0.22, 1.1, -0.03]).hand("l", [0.22, 0.56, -0.42]).elbow("l", [-0.2, 1, -0.6]).act("arml"), 300, 1000, null, pSLatk), K(wzIn, 400, 200, null, pSLatk)]);
-    mv("lotta.whizzerHips", "Anche giù e ruotate contro di lui, la gamba presa scivola indietro", [K(wzIn, 300, 200, null, pSLatk), K(wz.copy().act("legl", "torso"), 350, 1000, null, pWz), K(wzIn, 450, 200, null, pSLatk)]);
-    mv("lotta.whizzerHead", "L'altra mano spinge la sua testa lontano dal petto", [K(wz, 300, 200, null, pWz), K(wz.copy().hand("r", [0.3, 0.92, 0.02]).elbow("r", [0, -1, 0.5]).act("armr"), 250, 1000, null, pWz), K(wz, 300, 200, null, pWz)]);
+    mvP("lotta.whizzer", "Whizzer: braccio sopra il suo, anche giù e ruotate, gamba presa indietro", wzF);
+    mvP("lotta.whizzerR", "Whizzer con la gamba destra presa", mirrorFrames(wzF));
+    mvP("lotta.legCaught", "L'avversario ti ha preso la gamba avanti con la testa all'interno", [K(g, 300, 200, null, pSL), K(wzIn, 300, 1000, null, pSLatk)], 1);
+    mvP("lotta.whizzerArm", "Il braccio dal lato della gamba presa avvolge il suo da sopra, mano sulla coscia", [K(wzIn, 300, 200, null, pSLatk), K(wzIn.copy().set("chest", [0.22, 1.1, -0.03]).hand("l", [0.22, 0.56, -0.42]).elbow("l", [-0.2, 1, -0.6]).act("arml"), 300, 1000, null, pSLatk), K(wzIn, 400, 200, null, pSLatk)]);
+    mvP("lotta.whizzerHips", "Anche giù e ruotate contro di lui, la gamba presa scivola indietro", [K(wzIn, 300, 200, null, pSLatk), K(wz.copy().act("legl", "torso"), 350, 1000, null, pWz), K(wzIn, 450, 200, null, pSLatk)]);
+    mvP("lotta.whizzerHead", "L'altra mano spinge la sua testa lontano dal petto", [K(wz, 300, 200, null, pWz), K(wz.copy().hand("r", [0.3, 0.92, 0.02]).elbow("r", [0, -1, 0.5]).act("armr"), 250, 1000, null, pWz), K(wz, 300, 200, null, pWz)]);
 
     /* ---------------------------------------------------------------- prese in piedi (frontale, compagno vicino) */
     const cl = mk({ pel: [-0.04, 0.78, 0], chest: [0.1, 1.26, 0], head: [0.2, 1.45, -0.08], fl: flat(0.02, -0.26, 8, 8), fr: flat(0.02, 0.26, -8, 8), kl: [1, 0, -0.25], kr: [1, 0, 0.25] });
@@ -508,7 +522,7 @@
     const pumB = pumA.copy().mirror();
     const pumM2 = pumM.copy().mirror();
     const pumF = [K(sq, 300, 100, null, opp(sq, 0.8)), K(pumA, 300, 200, null, opp(pumA, DC)), K(pumM.copy().act("arml", "armr"), 220, 40, null, opp(pumM, DC)), K(pumB.copy().act("arml", "armr"), 220, 200, null, opp(pumB, DC)), K(pumM2.copy().act("arml", "armr"), 220, 40, null, opp(pumM2, DC)), K(pumA.copy().act("arml", "armr"), 220, 200, null, opp(pumA, DC)), K(sq, 350, 200, null, opp(sq, 0.8))];
-    mv("lotta.pummel", "Pummeling: un braccio passa sotto l'ascella (underhook), l'altro esce, poi cambiano", pumF);
+    mvP("lotta.pummel", "Pummeling: un braccio passa sotto l'ascella (underhook), l'altro esce, poi cambiano", pumF);
     const pumAir = cl.copy().hand("r", [0.5, 1.28, 0.08], "open").elbow("r", [0, -1, 0.6]).hand("l", [0.3, 1.08, -0.2], "open").elbow("l", [-0.2, 0.3, -1]);
     mv("lotta.pummelAir", "Pummeling a vuoto in motion: braccia alternate sotto le ascelle, gomiti stretti", [K(sq, 260, 60), K(pumAir.copy().act("armr"), 220, 100), K(pumM.copy().move(0, 0.12), 200, 30), K(pumAir.copy().mirror().move(0, 0.2).act("arml"), 220, 100), K(pumM2.copy().move(0, 0.1), 200, 30), K(pumAir.copy().act("armr"), 220, 100), K(sq, 260, 200)]);
 
@@ -520,20 +534,20 @@
     const ctPull = ct.copy().hand("r", [0.47, 1.25, 0.05]).sink(0.03).act("armr");
     const pCtPull = opp(ct, DT).sink(0.08).lean(0.0, 0, 0.04).hand("r", [0.22, 1.28, -0.02]).hand("l", [0.36, 1.0, 0.18]);
     const pFar = opp(sq, 0.95);
-    mv("lotta.collarTie", "Collar tie: mano dietro la sua testa, avambraccio sulla clavicola, tira giù", [K(sq, 300, 100, null, pFar), K(ct.copy().act("armr", "arml"), 300, 300, null, pCt), K(ctPull, 220, 600, null, pCtPull), K(sq, 350, 200, null, pFar)]);
+    mvP("lotta.collarTie", "Collar tie: mano dietro la sua testa, avambraccio sulla clavicola, tira giù", [K(sq, 300, 100, null, pFar), K(ct.copy().act("armr", "arml"), 300, 300, null, pCt), K(ctPull, 220, 600, null, pCtPull), K(sq, 350, 200, null, pFar)]);
     // inside tie: mano interna sul suo bicipite, gomito dentro, spingi
     const pIn = opp(sq, DT).hand("l", [0.3, 1.02, -0.22]).hand("r", [0.3, 1.02, 0.22]).elbow("l", [0, -1, 0.3]).elbow("r", [0, -1, -0.3]);
     const it = sqH.copy().hand("r", [0.42, 1.06, 0.13], "open").elbow("r", [0, -1, 0.2]).hand("l", [0.36, 0.98, -0.2], "open").elbow("l", [0, -1, -0.2]);
     const itPush = it.copy().hand("r", [0.5, 1.08, 0.14]).act("armr");
     const pInPush = place(pIn, 0, 0.08, 0).lean(0.04).hand("l", [0.38, 1.02, -0.22]).hand("r", [0.4, 1.0, 0.22]);
-    mv("lotta.insideTie", "Inside tie: mano interna sul suo bicipite, gomito dentro, lo tieni lontano", [K(sq, 300, 100, null, pFar), K(it.copy().act("armr"), 300, 300, null, pIn), K(itPush, 220, 600, null, pInPush), K(sq, 350, 200, null, pFar)]);
+    mvP("lotta.insideTie", "Inside tie: mano interna sul suo bicipite, gomito dentro, lo tieni lontano", [K(sq, 300, 100, null, pFar), K(it.copy().act("armr"), 300, 300, null, pIn), K(itPush, 220, 600, null, pInPush), K(sq, 350, 200, null, pFar)]);
     // two-on-one: due mani su un suo braccio, spalla incollata, tira giù con il peso
     const p21 = opp(sq, 0.8).hand("r", [0.24, 0.98, -0.16]).elbow("r", [0, -1, -0.3]).hand("l", [0.45, 1.0, 0.25]);
     const t21 = mk({ pel: [-0.06, 0.72, -0.02], chest: [0.1, 1.17, -0.08], head: [0.22, 1.32, -0.12], yaw: 30, fl: flat(0.06, -0.3, 20, 8), fr: flat(-0.08, 0.22, -5, 8), kl: [1, 0, -0.3], kr: [1, 0, 0.3], hl: [0.27, 0.97, -0.17], hr: [0.42, 1.1, -0.22], el: [0, -1, -0.4], er: [0, -1, 0.4] });
     const t21Pull = t21.copy().sink(0.12).hand("l", [0.26, 0.82, -0.14]).hand("r", [0.4, 0.96, -0.2]).act("arml", "armr", "legl", "legr");
     const p21Pull = place(p21, 0, -0.04, 0).sink(0.06).lean(-0.06, 0, 0.04).hand("r", [0.26, 0.83, -0.14]);
-    mv("lotta.twoOnOne", "Two-on-one: mano bassa sul polso, mano alta sopra il gomito, tira giù col peso", [K(sq, 300, 100, null, pFar), K(t21.copy().act("arml", "armr"), 320, 300, null, p21), K(t21Pull, 260, 600, null, p21Pull), K(sq, 350, 200, null, pFar)]);
-    mv("lotta.tieChain", "In motion: pummeling, collar tie, inside tie e two-on-one", [K(sq, 260, 60, null, pFar), K(pumA, 260, 100, null, opp(pumA, DC)), K(pumB, 240, 100, null, opp(pumB, DC)), K(ct, 260, 200, null, pCt), K(it, 260, 200, null, pIn), K(t21, 280, 200, null, p21), K(t21Pull, 220, 200, null, p21Pull), K(sq, 320, 200, null, pFar)]);
+    mvP("lotta.twoOnOne", "Two-on-one: mano bassa sul polso, mano alta sopra il gomito, tira giù col peso", [K(sq, 300, 100, null, pFar), K(t21.copy().act("arml", "armr"), 320, 300, null, p21), K(t21Pull, 260, 600, null, p21Pull), K(sq, 350, 200, null, pFar)]);
+    mvP("lotta.tieChain", "In motion: pummeling, collar tie, inside tie e two-on-one", [K(sq, 260, 60, null, pFar), K(pumA, 260, 100, null, opp(pumA, DC)), K(pumB, 240, 100, null, opp(pumB, DC)), K(ct, 260, 200, null, pCt), K(it, 260, 200, null, pIn), K(t21, 280, 200, null, p21), K(t21Pull, 220, 200, null, p21Pull), K(sq, 320, 200, null, pFar)]);
 
     // snap down: tira testa e gomito verso le anche con un passo indietro, lui cade sulle mani
     const ctE = ct.copy().hand("l", [0.36, 1.06, -0.18]);
@@ -541,11 +555,11 @@
     const pSnap = mk({ pel: [0.66, 0.78, 0], chest: [0.28, 0.96, 0], head: [0.12, 0.9, 0], yaw: 180, fl: flat(0.6, 0.22, 175, 30), fr: flat(0.86, -0.22, -175, 20), kl: [-1, 0, 0.2], kr: [-1, 0, -0.2], hl: [0.12, 0.6, 0.2], hr: [0.14, 0.6, -0.2], el: [0.3, -1, 0.3], er: [0.3, -1, -0.3] });
     const fhl = mk({ pel: [-0.2, 0.4, 0], chest: [0.22, 0.66, 0], head: [0.4, 0.76, -0.04], fl: [-0.86, ankleY(60), -0.38, 0, 60], fr: [-0.86, ankleY(60), 0.38, 0, 60], kl: [0, -1, -0.3], kr: [0, -1, 0.3], hl: [0.32, 0.38, -0.2], hr: [0.12, 0.5, 0.02], el: [0, 0.3, -1], er: [0.2, 0, 1] }).act("legl", "legr", "torso", "arml", "armr");
     const snapF = [K(sq, 260, 80, null, pFar), K(ctE, 260, 250, null, pCt), K(snap, 180, 120, null, pSnap), K(fhl, 240, 600, null, pQ), K(sq, 500, 200, null, pFar)];
-    mv("lotta.snapDown", "Snap down: dalla presa al collo tira testa e gomito giù con un passo indietro", snapF);
-    mv("lotta.snapDownR", "Snap down dall'altro lato", mirrorFrames(snapF));
-    mv("lotta.snapTie", "In frontale, braccia piegate, gomiti dentro: presa al collo e al gomito", [K(sq, 300, 100, null, pFar), K(ctE.copy().act("arml", "armr"), 300, 1000, null, pCt), K(sq, 350, 200, null, pFar)]);
-    mv("lotta.snapPull", "Colpo secco: mani verso le anche e passo indietro nello stesso istante", [K(ctE, 300, 200, null, pCt), K(snap, 180, 800, null, pSnap), K(ctE, 400, 200, null, pCt)]);
-    mv("lotta.snapSprawl", "Subito anche giù in uno sprawl corto: lui atterra davanti a te", [K(snap, 300, 100, null, pSnap), K(fhl, 260, 1000, null, pQ), K(sq, 500, 200, null, pFar)]);
+    mvP("lotta.snapDown", "Snap down: dalla presa al collo tira testa e gomito giù con un passo indietro", snapF);
+    mvP("lotta.snapDownR", "Snap down dall'altro lato", mirrorFrames(snapF));
+    mvP("lotta.snapTie", "In frontale, braccia piegate, gomiti dentro: presa al collo e al gomito", [K(sq, 300, 100, null, pFar), K(ctE.copy().act("arml", "armr"), 300, 1000, null, pCt), K(sq, 350, 200, null, pFar)]);
+    mvP("lotta.snapPull", "Colpo secco: mani verso le anche e passo indietro nello stesso istante", [K(ctE, 300, 200, null, pCt), K(snap, 180, 800, null, pSnap), K(ctE, 400, 200, null, pCt)]);
+    mvP("lotta.snapSprawl", "Subito anche giù in uno sprawl corto: lui atterra davanti a te", [K(snap, 300, 100, null, pSnap), K(fhl, 260, 1000, null, pQ), K(sq, 500, 200, null, pFar)]);
     // da solo: asciugamano sopra la sbarra e snap a vuoto
     const twA = sq.copy().hand("l", [0.36, 1.5, -0.08], "fist").hand("r", [0.36, 1.5, 0.08], "fist").elbow("l", [0, -1, -0.6]).elbow("r", [0, -1, 0.6]);
     const twB = sq.copy().move(-0.18).sink(0.08).hand("l", [0.06, 0.95, -0.1], "fist").hand("r", [0.06, 0.95, 0.1], "fist").elbow("l", [-0.3, -1, -0.5]).elbow("r", [-0.3, -1, 0.5]).act("arml", "armr", "legl", "legr");
@@ -558,10 +572,10 @@
     const fhlGo1 = around(fhl, CQ[0], CQ[1], 50).act("legl", "legr");
     const fhlGo2 = around(fhl, CQ[0], CQ[1], 100).act("legl", "legr");
     const fhlF = [K(g, 260, 80, null, pQ), K(fhl, 260, 300, null, pQ), K(fhlGo1, 280, 60, null, pQ), K(fhlGo2, 280, 60, null, pQ), K(gbBehind, 300, 600, null, pQ), K(gbSide, 450, 60, null, pQ), K(g, 450, 200, null, pQ)];
-    mv("lotta.frontHeadlock", "Front headlock: petto sulla sua testa, mano sotto il mento, l'altra sul gomito", [K(g, 260, 100, null, pQ), K(fhl, 280, 1200, null, pQ), K(g, 400, 200, null, pQ)]);
-    mv("lotta.fhlGoBehind", "Dal front headlock: blocca il gomito e cammina fino dietro, petto incollato", fhlF);
-    mv("lotta.fhlGoBehindL", "Go-behind dal front headlock girando dall'altra parte", mirrorFrames(fhlF));
-    mv("lotta.fhlHips", "Anche indietro e basse, gambe larghe, peso sul petto", [K(fhl, 300, 100, null, pQ), K(fhl.copy().set("pel", [-0.26, 0.34, 0]).act("legl", "legr", "torso"), 300, 1000, null, pQ), K(fhl, 300, 200, null, pQ)]);
+    mvP("lotta.frontHeadlock", "Front headlock: petto sulla sua testa, mano sotto il mento, l'altra sul gomito", [K(g, 260, 100, null, pQ), K(fhl, 280, 1200, null, pQ), K(g, 400, 200, null, pQ)]);
+    mvP("lotta.fhlGoBehind", "Dal front headlock: blocca il gomito e cammina fino dietro, petto incollato", fhlF);
+    mvP("lotta.fhlGoBehindL", "Go-behind dal front headlock girando dall'altra parte", mirrorFrames(fhlF));
+    mvP("lotta.fhlHips", "Anche indietro e basse, gambe larghe, peso sul petto", [K(fhl, 300, 100, null, pQ), K(fhl.copy().set("pel", [-0.26, 0.34, 0]).act("legl", "legr", "torso"), 300, 1000, null, pQ), K(fhl, 300, 200, null, pQ)]);
 
     // duck under: solleva il suo gomito, testa sotto l'ascella, passo dietro il suo piede
     const pCtUp = pCt.copy().elbow("r", [0.2, 1, -0.6]).hand("r", [0.26, 1.42, -0.06]);
@@ -571,11 +585,11 @@
     const du3 = mk({ pel: [0.86, 0.82, -0.34], chest: [0.86, 1.31, -0.26], head: [0.86, 1.5, -0.22], yaw: -100, fl: flat(1.0, -0.42, -100), fr: flat(0.72, -0.56, -110), kl: [0.1, 0, 1], kr: [0.1, 0, 1], hl: [0.84, 0.98, 0.15], hr: [0.6, 0.98, 0.1], el: [1, -0.5, 0], er: [-1, -0.5, 0] }).act("legl", "legr", "arml", "armr");
     const pDu3 = mk({ pel: [0.74, 0.86, 0.02], chest: [0.72, 1.35, 0.02], head: [0.7, 1.55, 0.02], yaw: 165, fl: flat(0.72, 0.24, 170), fr: flat(0.7, -0.24, -175), kl: [-1, 0, 0.2], kr: [-1, 0, -0.2], hl: [0.5, 1.0, 0.3], hr: [0.95, 1.38, -0.36], el: [0, -1, 0.3], er: [0, 0.5, -1] });
     const duF = [K(sq, 260, 80, null, pFar), K(ct, 280, 250, null, pCt), K(du1, 220, 200, null, pCtUp), K(du2, 240, 120, null, pDu2), K(du3, 280, 700, null, pDu3), K(sq, 600, 200, null, pFar)];
-    mv("lotta.duckUnder", "Duck under: solleva il gomito, testa sotto l'ascella, passo dietro e mani alla vita", duF);
-    mv("lotta.duckUnderR", "Duck under dall'altro lato", mirrorFrames(duF));
-    mv("lotta.duckLift", "Con la mano interna sollevi il suo gomito", [K(ct, 300, 200, null, pCt), K(du1, 260, 1000, null, pCtUp), K(ct, 350, 200, null, pCt)]);
-    mv("lotta.duckStep", "Livello giù, testa sotto il braccio, passo profondo dietro il suo piede", [K(du1, 300, 200, null, pCtUp), K(du2, 300, 1000, null, pDu2), K(du1, 400, 200, null, pCtUp)]);
-    mv("lotta.duckFinish", "Sali dietro: testa alta, petto sul suo fianco, mani chiuse alla vita", [K(du2, 300, 150, null, pDu2), K(du3, 320, 1200, null, pDu3), K(sq, 600, 200, null, pFar)]);
+    mvP("lotta.duckUnder", "Duck under: solleva il gomito, testa sotto l'ascella, passo dietro e mani alla vita", duF);
+    mvP("lotta.duckUnderR", "Duck under dall'altro lato", mirrorFrames(duF));
+    mvP("lotta.duckLift", "Con la mano interna sollevi il suo gomito", [K(ct, 300, 200, null, pCt), K(du1, 260, 1000, null, pCtUp), K(ct, 350, 200, null, pCt)]);
+    mvP("lotta.duckStep", "Livello giù, testa sotto il braccio, passo profondo dietro il suo piede", [K(du1, 300, 200, null, pCtUp), K(du2, 300, 1000, null, pDu2), K(du1, 400, 200, null, pCtUp)]);
+    mvP("lotta.duckFinish", "Sali dietro: testa alta, petto sul suo fianco, mani chiuse alla vita", [K(du2, 300, 150, null, pDu2), K(du3, 320, 1200, null, pDu3), K(sq, 600, 200, null, pFar)]);
 
     // arm drag: polso con la mano opposta, l'altra afferra sopra il gomito, tira verso l'anca e passo fuori
     const pAd = opp(sq, 0.8).hand("r", [0.24, 1.18, -0.2]).elbow("r", [0, -1, -0.2]);
@@ -586,12 +600,12 @@
     ad3.hand("l", [0.84, 1.05, -0.2], "open").hand("r", [0.72, 0.95, -0.12], "open");
     const pAd3 = mk({ pel: [0.8, 0.82, 0.04], chest: [0.66, 1.26, 0.1], head: [0.58, 1.44, 0.12], yaw: 225, fl: flat(0.86, 0.3, 225, 10), fr: flat(0.62, -0.06, 220, 20), kl: [-1, 0, 0.5], kr: [-1, 0, 0], hl: [0.7, 0.95, 0.35], hr: [0.5, 0.92, -0.08], el: [0, -1, 0.3], er: [0, -1, -0.3] });
     const adF = [K(sq, 260, 80, null, pAd), K(ad1, 260, 250, null, pAd), K(ad2, 260, 200, null, pAd2), K(ad3, 300, 600, null, pAd3), K(sq, 600, 200, null, pAd)];
-    mv("lotta.armDrag", "Arm drag: polso e sopra il gomito, tira verso l'anca e passo fuori al suo fianco", adF);
-    mv("lotta.armDragR", "Arm drag dall'altro lato, mani invertite", mirrorFrames(adF));
-    mv("lotta.dragReady", "Il suo braccio destro teso verso di te, tu in frontale", [K(sq, 300, 1200, null, pAd)]);
-    mv("lotta.dragWrist", "La mano sinistra prende il suo polso destro", [K(sq, 300, 150, null, pAd), K(sq.copy().hand("l", [0.3, 1.14, -0.18], "fist").elbow("l", [0, -1, -0.3]).act("arml"), 300, 1000, null, pAd), K(sq, 350, 200, null, pAd)]);
-    mv("lotta.dragGrip", "La mano sinistra sul suo polso, la destra attraversa e afferra sopra il gomito", [K(sq, 300, 150, null, pAd), K(ad1, 300, 1100, null, pAd), K(sq, 350, 200, null, pAd)]);
-    mv("lotta.dragPull", "Tira verso l'anca destra e passo avanti fuori: finisci al suo fianco", [K(ad1, 300, 150, null, pAd), K(ad2, 280, 200, null, pAd2), K(ad3, 320, 900, null, pAd3), K(ad1, 500, 200, null, pAd)]);
+    mvP("lotta.armDrag", "Arm drag: polso e sopra il gomito, tira verso l'anca e passo fuori al suo fianco", adF);
+    mvP("lotta.armDragR", "Arm drag dall'altro lato, mani invertite", mirrorFrames(adF));
+    mvP("lotta.dragReady", "Il suo braccio destro teso verso di te, tu in frontale", [K(sq, 300, 1200, null, pAd)]);
+    mvP("lotta.dragWrist", "La mano sinistra prende il suo polso destro", [K(sq, 300, 150, null, pAd), K(sq.copy().hand("l", [0.3, 1.14, -0.18], "fist").elbow("l", [0, -1, -0.3]).act("arml"), 300, 1000, null, pAd), K(sq, 350, 200, null, pAd)]);
+    mvP("lotta.dragGrip", "La mano sinistra sul suo polso, la destra attraversa e afferra sopra il gomito", [K(sq, 300, 150, null, pAd), K(ad1, 300, 1100, null, pAd), K(sq, 350, 200, null, pAd)]);
+    mvP("lotta.dragPull", "Tira verso l'anca destra e passo avanti fuori: finisci al suo fianco", [K(ad1, 300, 150, null, pAd), K(ad2, 280, 200, null, pAd2), K(ad3, 320, 900, null, pAd3), K(ad1, 500, 200, null, pAd)]);
 
     /* ---------------------------------------------------------------- finte */
     const hf = g.copy().headTo(0.02, -0.02, 0.14).twist(-10).shift(0, 0.05).act("head", "torso");
@@ -607,9 +621,9 @@
     const blkBack = mk({ pel: [0.12, 0.6, 0.06], chest: [0.4, 0.98, 0.04], head: [0.53, 1.12, 0.02], yaw: -10, fl: flat(0.4, -0.16, -8, 0), fr: toes(-0.2, 0.22, -15, 40), kl: [1, 0.2, 0], kr: [0.4, -1, 0], hl: [0.7, 0.8, -0.12], hr: [0.7, 0.8, 0.14], el: [0, -1, -0.4], er: [0, -1, 0.4] }).act("legl", "legr");
     const pRise = mk({ pel: [1.14, 0.62, 0], chest: [0.8, 0.94, 0], head: [0.64, 1.04, 0], yaw: 180, fl: [1.5, ankleY(45), 0.28, 180, 45], fr: [1.5, ankleY(45), -0.28, 180, 45], kl: [-0.3, -1, 0.3], kr: [-0.3, -1, -0.3], hl: [0.6, 0.6, 0.2], hr: [0.6, 0.6, -0.2], el: [0.3, 0, 1], er: [0.3, 0, -1] });
     const blkF = [K(g, 260, 80, null, pS), K(lv, 160, 20, null, pS), K(s2(dlKnee), 220, 150, null, s2(pUp)), K(s2(dlKnee).copy().act(), 200, 150, null, s2(pSprOnMe)), K(s2(blkHead), 220, 300, null, s2(pSprOnMe)), K(blkBack, 280, 150, null, s2(pRise)), K(g.copy().act("legl", "legr"), 300, 300, null, pS)];
-    mv("lotta.shotBlocked", "Tiro bloccato: lui fa sprawl, testa su contro il petto, anche indietro, su", blkF);
-    mv("lotta.blockHead", "Lui fa sprawl: testa su contro il suo petto, mani che bloccano le anche", [K(s2(dlKnee), 300, 150, null, s2(pUp)), K(s2(dlKnee).copy().act(), 220, 150, null, s2(pSprOnMe)), K(s2(blkHead), 250, 1000, null, s2(pSprOnMe)), K(g, 600, 200, null, pS)]);
-    mv("lotta.blockBack", "Passo indietro, anche indietro e su in posizione senza restare sotto", [K(s2(blkHead), 300, 150, null, s2(pSprOnMe)), K(blkBack, 300, 200, null, s2(pRise)), K(g.copy().act("legl", "legr"), 320, 600, null, pS)]);
+    mvP("lotta.shotBlocked", "Tiro bloccato: lui fa sprawl, testa su contro il petto, anche indietro, su", blkF);
+    mvP("lotta.blockHead", "Lui fa sprawl: testa su contro il suo petto, mani che bloccano le anche", [K(s2(dlKnee), 300, 150, null, s2(pUp)), K(s2(dlKnee).copy().act(), 220, 150, null, s2(pSprOnMe)), K(s2(blkHead), 250, 1000, null, s2(pSprOnMe)), K(g, 600, 200, null, pS)]);
+    mvP("lotta.blockBack", "Passo indietro, anche indietro e su in posizione senza restare sotto", [K(s2(blkHead), 300, 150, null, s2(pSprOnMe)), K(blkBack, 300, 200, null, s2(pRise)), K(g.copy().act("legl", "legr"), 320, 600, null, pS)]);
 
     /* ---------------------------------------------------------------- uscita dal front headlock */
     const meQ = quadP();
@@ -620,11 +634,11 @@
     const heOut = place(g, -40, -0.1, -0.25).act("legl", "legr", "head", "torso");
     const pFhlLost = place(pFhlUp, 0, 0, 0).set("chest", [0.46, 0.84, 0]).set("head", [0.3, 0.9, 0]).hand("l", [0.28, 0.66, 0.18]).hand("r", [0.28, 0.66, -0.18]);
     const heF = [K(meQ, 300, 200, null, pFhl), K(heHands, 260, 250, null, pFhl), K(heFeet, 300, 250, null, pFhlUp), K(heOut, 300, 600, null, pFhlLost), K(meQ, 650, 200, null, pFhl)];
-    mv("lotta.headlockEscape", "Uscita dal front headlock: mani sul polso, piedi sotto, giro e testa fuori", heF);
-    mv("lotta.headlockBottom", "A quattro appoggi dopo lo snap: il suo braccio attorno alla tua testa", [K(meQ, 400, 1200, null, pFhl)]);
-    mv("lotta.headlockHands", "Mani sul suo polso vicino al mento, gomiti stretti, testa su e indietro", [K(meQ, 300, 150, null, pFhl), K(heHands, 300, 1100, null, pFhl), K(meQ, 400, 200, null, pFhl)]);
-    mv("lotta.headlockFeet", "Piedi sotto di te con passi corti: dalle ginocchia ai piedi", [K(heHands, 300, 150, null, pFhl), K(heFeet, 400, 1100, null, pFhlUp), K(heHands, 450, 200, null, pFhl)]);
-    mv("lotta.headlockOut", "Gira verso il lato della tua testa e tirala fuori salendo in posizione", [K(heFeet, 300, 150, null, pFhlUp), K(heOut, 350, 1100, null, pFhlLost), K(heFeet, 500, 200, null, pFhlUp)]);
+    mvP("lotta.headlockEscape", "Uscita dal front headlock: mani sul polso, piedi sotto, giro e testa fuori", heF);
+    mvP("lotta.headlockBottom", "A quattro appoggi dopo lo snap: il suo braccio attorno alla tua testa", [K(meQ, 400, 1200, null, pFhl)]);
+    mvP("lotta.headlockHands", "Mani sul suo polso vicino al mento, gomiti stretti, testa su e indietro", [K(meQ, 300, 150, null, pFhl), K(heHands, 300, 1100, null, pFhl), K(meQ, 400, 200, null, pFhl)]);
+    mvP("lotta.headlockFeet", "Piedi sotto di te con passi corti: dalle ginocchia ai piedi", [K(heHands, 300, 150, null, pFhl), K(heFeet, 400, 1100, null, pFhlUp), K(heHands, 450, 200, null, pFhl)]);
+    mvP("lotta.headlockOut", "Gira verso il lato della tua testa e tirala fuori salendo in posizione", [K(heFeet, 300, 150, null, pFhlUp), K(heOut, 350, 1100, null, pFhlLost), K(heFeet, 500, 200, null, pFhlUp)]);
 
     /* ---------------------------------------------------------------- lotta a terra da sopra (manichino = compagno) */
     // corpo disteso lungo x, ruotato di r gradi sul proprio asse (0 = a pancia in giu', -180 = sulla schiena)

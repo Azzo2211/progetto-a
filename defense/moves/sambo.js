@@ -762,6 +762,132 @@
     mvP("sambo.legDanger", "Pericolo: il piede intrappolato sotto la sua ascella, i suoi fianchi vicini al ginocchio", [K(meTrap, 400, 1600, null, pLeg)]);
     mvP("sambo.legEscape", "Uscita: siediti verso di lui, piede flesso, ritira la gamba piegata, l'altro piede spinge via", [K(meTrap, 300, 300, null, pLeg), K(meSitFwd.copy().act("torso", "legl"), 350, 400, null, pLeg), K(mePush.copy().act("legr", "legl"), 300, 500, null, pLegBack), K(meTrap.copy().set("foot", Object.assign({}, meTrap.p.foot, { l: [0.4, ankleY(0), -0.16] })).set("footPitch", { l: 0, r: 0 }), 450, 250, null, pLegBack)]);
     mvP("sambo.legEscapeFull", "Uscita completa: seduto in avanti, piede flesso, spinta, uscita d'anca e rialzarsi in base", [K(meTrap, 300, 250, null, pLeg), K(meSitFwd.copy().act("torso", "legl"), 300, 250, null, pLeg), K(mePush.copy().act("legr", "legl"), 300, 250, null, pLegBack), K(shrimpSide(0, 0).move(-0.1, -0.2).act("torso"), 450, 150, null, pLegBack), K(bs1.copy().move(-0.35).act("torso"), 400, 150, null, pLegBack), K(bs3.copy().move(-0.35).act("legl", "legr"), 500, 400, null, pLegBack)]);
+    /* ------------------------------------------------------------ condizionamento */
+    // squat fino alla posizione di carico, poi rotazione delle spalle come a fine proiezione (lati alterni)
+    const lsDown = gF.copy().sink(0.24).lean(0.06).handRel("l", 0.34, -0.2, -0.24, "fist").handRel("r", 0.2, -0.28, 0.26, "fist").elbow("l", [0, 0.3, -1]).elbow("r", [0, -0.5, 1]);
+    const lsTurn = gF.copy().sink(0.1).turn(40).lean(0.16, 0.04).handRel("l", 0.12, -0.38, -0.25, "fist").handRel("r", 0.3, -0.2, 0.18, "fist").elbow("l", [0, -0.3, -1]).elbow("r", [0, -1, 0.5]).look(20);
+    mv("sambo.loadSquat", "Squat fino alla posizione di carico, poi rotazione delle spalle; lati alterni", [K(gF, 300, 120), K(lsDown.copy().act("legl", "legr"), 450, 150), K(lsTurn.copy().act("torso", "arml"), 350, 300), K(gF, 400, 120), K(lsDown.copy().mirror().act("legl", "legr"), 450, 150), K(lsTurn.copy().mirror().act("torso", "armr"), 350, 300), K(gF, 400, 200)]);
+    const rowA = gF.copy().handRel("l", 0.52, -0.12, -0.12, "fist").handRel("r", 0.52, -0.12, 0.12, "fist").elbow("l", [0, -1, -0.3]).elbow("r", [0, -1, 0.3]);
+    const rowB = gF.copy().lean(-0.02).handRel("l", 0.08, -0.28, -0.22, "fist").handRel("r", 0.08, -0.28, 0.22, "fist").elbow("l", [-1, -0.3, -0.3]).elbow("r", [-1, -0.3, 0.3]);
+    mv("sambo.bandRow", "Rematore con l'elastico: gomiti stretti che vanno indietro, scapole indietro", [K(rowA, 300, 200), K(rowB.copy().act("arml", "armr", "torso"), 450, 300), K(rowA, 450, 150), K(rowB.copy().act("arml", "armr", "torso"), 450, 300), K(rowA, 450, 200)]);
+    const fw = (s) => { const b = standing().handW("l", 0.02, 0.9, -0.26, "fist").handW("r", 0.02, 0.9, 0.26, "fist").elbow("l", [0, -1, 0]).elbow("r", [0, -1, 0]); return s ? b.foot("l", 0.12, -0.11, 5, 0).foot("r", -0.12, 0.11, -5, 25) : b.foot("l", -0.12, -0.11, 5, 25).foot("r", 0.12, 0.11, -5, 0); };
+    mv("sambo.farmerWalk", "Camminata del contadino: borse appese agli asciugamani, presa a pugno, busto dritto", [K(fw(0), 300, 50), K(fw(1).move(0.15).act("legl", "arml", "armr"), 350, 50), K(fw(0).move(0.3).act("legr", "arml", "armr"), 350, 50), K(fw(1).move(0.45).act("legl", "arml", "armr"), 350, 50), K(fw(0).move(0.6).act("legr", "arml", "armr"), 350, 200)]);
+    const hollow = P({ pel: [0, 0.12, 0], chest: [-0.48, 0.24, 0], head: [-0.66, 0.34, 0], face: [0.25, 1, 0], fl: [[0.84, 0.3, -0.08], 0, -60], fr: [[0.84, 0.3, 0.08], 0, -60], kl: [0, 1, 0], kr: [0, 1, 0], hl: [[-1.0, 0.5, -0.12], "open"], hr: [[-1.0, 0.5, 0.12], "open"], el: [0, 1, 0], er: [0, 1, 0] });
+    mv("sambo.hollowHold", "Barchetta sulla schiena: zona lombare a terra, braccia e gambe distese sollevate", [K(lieKnees, 300, 200), K(hollow.copy().act("torso", "legl", "legr"), 500, 1600), K(lieKnees, 500, 200)]);
+    const wrA = standing().foot("l", 0.05, -0.15, 8, 0).foot("r", -0.05, 0.15, -8, 0).handRel("l", 0.34, -0.2, -0.04, "fist").handRel("r", 0.34, -0.2, 0.08, "fist").elbow("l", [0, -1, -0.4]).elbow("r", [0, -1, 0.4]);
+    const wrB = wrA.copy().handRel("l", 0.34, -0.14, -0.04, "fist").handRel("r", 0.34, -0.26, 0.08, "fist").act("arml", "armr");
+    const wrC = wrA.copy().handRel("l", 0.34, -0.26, -0.04, "fist").handRel("r", 0.34, -0.14, 0.08, "fist").act("arml", "armr");
+    mv("sambo.gripWork", "Lavoro di presa: strizza l'asciugamano o la giacca con le mani a pugno, alternando", [K(wrA, 300, 100), K(wrB, 300, 150), K(wrC, 300, 150), K(wrB, 300, 150), K(wrC, 300, 150), K(wrA, 300, 200)]);
+    // trascinare il manichino lungo il materasso
+    const dragMe = (dx, s) => { const b = P({ pel: [-0.42 + dx, 0.68, 0.0], chest: [0.0 + dx, 0.92, 0.0], head: [0.16 + dx, 1.04, 0.0], yaw: 0, fl: flatFoot(-0.25 + dx + (s ? 0.12 : 0), -0.2, 5), fr: flatFoot(-0.55 + dx + (s ? 0 : 0.12), 0.2, -5), kl: [1, 0, 0], kr: [1, 0, 0] }); return b; };
+    const dragDm = (dx) => xf(dummy({ hl: [[-0.98, 0.3, -0.12], "open"], hr: [[-0.98, 0.3, 0.12], "open"], el: [0, 1, 0], er: [0, 1, 0] }), 0, 1.12 + dx, 0);
+    const dragF = (dx, s) => { const pb = dragDm(dx); const b = dragMe(dx, s); const sk = skel(pb); b.hand("l", add(sk.hand.l, [0, 0.04, 0]), "fist").hand("r", add(sk.hand.r, [0, 0.04, 0]), "fist").elbow("l", [0, -1, -0.3]).elbow("r", [0, -1, 0.3]); return [reachFix(b), pb]; };
+    const dg = [dragF(0, 0), dragF(-0.15, 1), dragF(-0.3, 0), dragF(-0.45, 1)];
+    mvP("sambo.drag", "Trascina il manichino lungo il materasso camminando all'indietro, schiena dritta", [K(dg[0][0], 300, 150, null, dg[0][1]), K(dg[1][0].act("legl", "legr", "arml", "armr"), 400, 80, null, dg[1][1]), K(dg[2][0].act("legl", "legr", "arml", "armr"), 400, 80, null, dg[2][1]), K(dg[3][0].act("legl", "legr", "arml", "armr"), 400, 300, null, dg[3][1])]);
+    // giri a carponi attorno al manichino
+    const crawlAt = (ph) => xf(L.allFours().set("pel", [-0.3, 0.45, 0]).set("chest", [0.18, 0.5, 0]).set("head", [0.38, 0.6, 0]), ph - 90, -0.71 - 0.92 * Math.cos(ph * DEG), 0.92 * Math.sin(ph * DEG));
+    const dmC = dummy();
+    mvG("sambo.crawlAround", "A carponi, petto basso, giri attorno al manichino", [K(crawlAt(-90), 300, 100, null, dmC), K(crawlAt(-45).act("arml", "legr"), 450, 50, null, dmC), K(crawlAt(0).act("armr", "legl"), 450, 50, null, dmC), K(crawlAt(45).act("arml", "legr"), 450, 50, null, dmC), K(crawlAt(90).act("armr", "legl"), 450, 200, null, dmC)]);
+
+    /* ------------------------------------------------------------ combat sambo: guardia alta, pugni e lotta */
+    const cg = L.box().sink(0.04);
+    const cJab = cg.copy().turn(-14).shift(0.04).lean(0.03).straight("l", "head").act("arml");
+    const cCross = cg.copy().turn(48).shift(0.07).lean(0.05).straight("r", "head").heel("r", 30).fyaw("r", -12).act("armr", "legr");
+    const cLow = cg.copy().sink(0.24).lean(0.1).step("l", 0.04, -0.04).step("r", -0.02, 0.05).act("legl", "legr");
+    mv("sambo.cGuard", "Guardia di combat: mani agli zigomi, mento basso, gomiti stretti, ginocchia piegate", [K(standing(), 300, 300), K(cg.copy().act("arml", "armr", "legl", "legr"), 500, 900)]);
+    mv("sambo.cJab", "Jab: la mano davanti parte dritta e torna sulla stessa linea, l'altra resta al viso", [K(cg, 300, 200), K(cJab, 160, 220), K(cg, 220, 200), K(cJab, 160, 220), K(cg, 220, 250)]);
+    mv("sambo.cCross", "Diretto: il piede dietro ruota, l'anca spinge, la mano dietro va dritta", [K(cg, 300, 200), K(cCross, 180, 240), K(cg, 240, 250)]);
+    mv("sambo.cOneTwo", "Uno-due: jab e diretto collegati, poi guardia ferma", [K(cg, 300, 150), K(cJab, 150, 100), K(cg, 140, 30), K(cCross, 170, 220), K(cg, 240, 300)]);
+    mv("sambo.cLevel", "Abbassa il livello come per entrare sulle gambe, poi torna su in guardia", [K(cg, 300, 200), K(cLow, 300, 400), K(cg, 350, 250)]);
+    mv("sambo.cOneTwoLevel", "Uno-due e abbassamento del livello, poi di nuovo in guardia", [K(cg, 300, 150), K(cJab, 150, 80), K(cg, 140, 30), K(cCross, 170, 120), K(cLow, 260, 300), K(cg, 320, 250)]);
+    const cSprawlIn = cg.copy().sink(0.25).lean(0.2).handRel("l", 0.35, -0.35, -0.2, "open").handRel("r", 0.35, -0.35, 0.2, "open");
+    mv("sambo.cSprawl", "Sprawl profondo dalla guardia di combat, fianchi giù, testa alta, e di nuovo in guardia", [K(cg, 300, 150), K(cSprawlIn.copy().act("arml", "armr"), 170, 0), K(sprawlP.copy().act("legl", "legr", "torso"), 220, 400), K(cg, 380, 150), K(cJab, 160, 200), K(cg, 220, 200)]);
+    mv("sambo.cSprawlBehind", "Sprawl e risposta: giri a quattro zampe come per andargli dietro, poi in guardia", [K(cg, 300, 120), K(sprawlP.copy().act("legl", "legr", "torso"), 300, 250), K(pivot(fours, 45, 0.28).act("legl", "legr"), 380, 30), K(foursT.copy().act("legl", "legr"), 320, 250), K(pivot(cg.copy().move(-0.45), 90, 0.28).act("legl", "legr"), 500, 200), K(cg, 500, 250)]);
+    // uno-due e presa delle due gambe (il compagno alza le mani)
+    const cgP = (b) => b.copy();
+    mvP("sambo.cOneTwoDouble", "Uno-due a vuoto, mentre il diretto torna abbassi il livello ed entri sulle gambe", [
+      K(cg, 300, 120, null, PF2), K(cgP(cJab), 150, 60, null, PF2), K(cg, 130, 20, null, PF2up), K(cgP(cCross), 160, 80, null, PF2up),
+      K(cLow.copy().act("legl", "legr"), 220, 30, null, PF2up), K(dl3.copy().act("legr", "arml", "armr", "head"), 260, 200, null, PF2up),
+      K(dl4.copy().act("legl", "torso"), 300, 60, null, pDl1), K(dl5.copy().act("torso"), 300, 600, null, pDlLand), K(cg, 600, 250, null, PF2)
+    ]);
+    // diretto, il braccio avvolge il collo, la sinistra prende il braccio, proiezione d'anca
+    const PFc = toW(gFP.copy().shift(0.05));
+    const cCrossP = cg.copy().turn(48).shift(0.07).lean(0.05).straight("r", [0.64, 1.47, 0.02]).heel("r", 30).fyaw("r", -12).act("armr", "legr");
+    const cWrap = grab(cg.copy().turn(40).shift(0.1).heel("r", 25).fyaw("r", -10), pFwd, { l: "sleeve", r: "collar" }).elbow("r", [0.2, 0.5, 1]).act("armr", "arml");
+    const chIn = grab(turnBase({}), pFwdArm, { l: "sleeve", r: "collar" }).elbow("l", [0, 0.5, 1]).elbow("r", [0.3, 0.5, -1]);
+    const chLoad = grab(hbLoadMe.copy(), pLoadArm, { l: "sleeve", r: "collar" }).elbow("r", [0.3, 0.5, -1]);
+    mvP("sambo.cCrossHip", "Diretto, il braccio avvolge il collo, la sinistra prende la manica, proiezione d'anca", [
+      K(cg, 300, 120, null, PFc), K(cJab.copy(), 150, 60, null, PFc), K(cg, 140, 30, null, PFc), K(cCrossP, 170, 80, null, PFc),
+      K(cWrap, 220, 80, null, pFwd), K(chIn.copy().act("legr", "legl", "torso"), 300, 120, null, pFwdArm), K(chLoad.copy().act("arml", "torso", "legl", "legr"), 280, 450, null, pLoadArm), K(cg, 500, 250, null, PFc)
+    ]);
+    mvP("sambo.cCrossHipThrow", "Diretto, presa al collo e proiezione d'anca completa: il compagno cade davanti", [
+      K(cg, 300, 120, null, PFc), K(cCrossP, 170, 80, null, PFc), K(cWrap, 220, 60, null, pFwd), K(chIn.copy().act("legr", "legl", "torso"), 280, 80, null, pFwdArm),
+      K(chLoad.copy().act("arml", "torso"), 260, 80, null, pLoadArm), K(hbOver.copy().act("legl", "legr", "torso"), 260, 60, null, pOver), K(hbEnd.copy().act("arml"), 280, 700, null, pLandH), K(cg, 600, 250, null, PFc)
+    ]);
+
+    /* ------------------------------------------------------------ allungamenti e respiro del defaticamento */
+    const crossSit = (up = 0) => P({ pel: [0, 0.13, 0], chest: [0.02, 0.63 + up, 0], head: [0.05, 0.83 + up, 0], face: [1, 0, 0], fl: [[0.3, 0.08, 0.14], -60, 0, -70], fr: [[0.26, 0.08, -0.16], 60, 0, 70], kl: [0.5, 0.4, -1], kr: [0.5, 0.4, 1], hl: [[0.32, 0.28, -0.25], "open"], hr: [[0.32, 0.28, 0.25], "open"], el: [0, -1, -0.5], er: [0, -1, 0.5] });
+    mv("sambo.crossLegBreath", "Seduto a gambe incrociate: respiri lenti, l'espirazione più lunga dell'inspirazione", [K(crossSit(), 300, 300), K(crossSit(0.02).act("torso"), 1500, 400), K(crossSit(), 2400, 400)]);
+    const faA = L.kneel().set("pel", [-0.12, 0.4, 0]).set("chest", [0.3, 0.58, 0]).set("head", [0.46, 0.7, 0]).handW("l", 0.45, 0.04, -0.14, "open").handW("r", 0.45, 0.04, 0.14, "open").elbow("l", [-1, 0, -0.2]).elbow("r", [-1, 0, 0.2]);
+    const faB = faA.copy().set("pel", [-0.2, 0.37, 0]).set("chest", [0.25, 0.56, 0]).set("head", [0.39, 0.7, 0]).act("arml", "armr");
+    mv("sambo.forearmStretch", "In ginocchio, palmi a terra con le dita verso di te: porta indietro il peso, poi i dorsi", [K(faA, 300, 300), K(faB, 700, 1100), K(faA, 600, 300), K(faB, 700, 900), K(faA, 600, 200)]);
+    const kc0 = P({ pel: [0, 0.12, 0], chest: [-0.5, 0.13, 0], head: [-0.71, 0.14, 0], face: UP, fl: [[-0.02, 0.5, -0.1], 0, -40], fr: [[-0.02, 0.5, 0.1], 0, -40], kl: [-0.3, 1, 0], kr: [-0.3, 1, 0], hl: [[-0.15, 0.42, -0.12], "open"], hr: [[-0.15, 0.42, 0.12], "open"] });
+    const kcT = (s) => P({ pel: [0, 0.14, 0], chest: [-0.5, 0.13, 0], head: [-0.71, 0.14, 0], face: UP, hipFace: [0, 0.4, s * 1], fl: [[0.15, 0.16, s * 0.42 - 0.05], 0, -20], fr: [[0.15, 0.24, s * 0.42 + 0.05], 0, -20], kl: [-0.5, 0.3, s], kr: [-0.5, 0.3, s], hl: [[-0.45, 0.05, -0.62], "open"], hr: [[-0.45, 0.05, 0.62], "open"] });
+    mv("sambo.kneesChestTwist", "Sdraiato: ginocchia al petto, poi torsione lenta con le ginocchia da un lato e dall'altro", [K(lieKnees, 300, 200), K(kc0.copy().act("legl", "legr"), 500, 800), K(kcT(1).act("legl", "legr", "torso"), 700, 1000), K(kc0, 600, 100), K(kcT(-1).act("legl", "legr", "torso"), 700, 1000), K(lieKnees, 600, 200)]);
+    mv("sambo.kneesTwist", "Sdraiato, ginocchia piegate che scendono da un lato, spalle a terra; poi dall'altro", [K(lieKnees.copy().hand("l", [-0.45, 0.05, -0.62], "open").hand("r", [-0.45, 0.05, 0.62], "open"), 300, 300), K(kcT(1).act("legl", "legr", "torso"), 800, 1300), K(lieKnees.copy().hand("l", [-0.45, 0.05, -0.62], "open").hand("r", [-0.45, 0.05, 0.62], "open"), 600, 100), K(kcT(-1).act("legl", "legr", "torso"), 800, 1300), K(lieKnees, 600, 200)]);
+    const fig4 = P({ pel: [0, 0.12, 0], chest: [-0.5, 0.14, 0], head: [-0.68, 0.24, 0], face: UP, fl: [[0.0, 0.62, -0.12], 0, -40], kl: [-0.2, 1, 0], fr: [[-0.02, 0.48, -0.02], -80, 0, 90], kr: [0, 0.6, 1], hl: [[-0.22, 0.42, -0.2], "open"], hr: [[-0.2, 0.42, 0.0], "open"], el: [0, 0, -1], er: [0, 0, 1] });
+    mv("sambo.figure4", "Sdraiato, caviglia destra sul ginocchio sinistro, tira la gamba verso il petto; poi cambia", [K(lieKnees, 300, 200), K(fig4.copy().act("legl", "legr"), 700, 1300), K(lieKnees, 600, 150), K(fig4.copy().mirror().act("legl", "legr"), 700, 1300), K(lieKnees, 600, 200)]);
+    const halfF = P({ pel: [0, 0.13, 0], chest: [0.36, 0.45, -0.08], head: [0.52, 0.4, -0.1], face: [1, -0.3, 0], fl: [[0.86, 0.08, -0.12], 0, -75], kl: [0, 1, 0], fr: [[0.2, 0.08, -0.04], -80, 0, 80], kr: [0.2, 0.4, 1], hl: [[0.72, 0.1, -0.15], "open"], hr: [[0.7, 0.12, -0.05], "open"] });
+    mv("sambo.halfFold", "Seduto, una gamba distesa e l'altra piegata: piegati sulla gamba distesa, poi cambia", [K(sitLong(), 300, 200), K(halfF.copy().act("torso", "legl"), 800, 1300), K(sitLong(), 600, 150), K(halfF.copy().mirror().act("torso", "legr"), 800, 1300), K(sitLong(), 600, 200)]);
+    const door = standing().foot("l", 0.18, -0.14, 0, 0).foot("r", -0.1, 0.14, 0, 0).handW("r", 0.05, 1.7, 0.46, "open").elbow("r", [0.1, -0.5, 1]).twist(-28).handRel("l", 0.2, -0.38, -0.1, "open");
+    door.handW("r", 0.05, 1.7, 0.46, "open").elbow("r", [0.1, -0.5, 1]);
+    mv("sambo.doorStretch", "Avambraccio allo stipite, gomito all'altezza della spalla: ruota il busto dall'altra parte", [K(standing(), 300, 200), K(door.copy().act("armr", "torso"), 700, 1300), K(standing(), 600, 150), K(door.copy().mirror().act("arml", "torso"), 700, 1300), K(standing(), 600, 200)]);
+    const childS = (s) => L.kneel().set("pel", [-0.3, 0.32, 0]).set("chest", [0.16, 0.22, s * 0.1]).set("head", [0.36, 0.13, s * 0.15]).handW("l", 0.58, 0.04, s * 0.38 - 0.1, "open").handW("r", 0.58, 0.04, s * 0.38 + 0.1, "open");
+    mv("sambo.childSide", "Posizione del bambino con le braccia allungate prima a destra e poi a sinistra", [K(L.kneel(), 300, 200), K(childS(1).act("torso", "arml", "armr"), 800, 1300), K(childS(-1).act("torso", "arml", "armr"), 800, 1300), K(L.kneel(), 600, 200)]);
+    const sq = P({ pel: [0, 0.17, 0], chest: [-0.48, 0.19, 0.02], head: [-0.68, 0.22, 0.02], face: [0, 0, -1], yaw: 0, roll: -90, fr: [[0.62, 0.08, 0.12], { dir: [0, 0, -1], down: [1, 0, 0] }], kr: [0.3, 0, -1], fl: [[-0.08, 0.42, -0.1], { dir: [-0.3, 0.3, -1], down: [-1, 0.3, 0] }], kl: [1, 0, -0.3], hl: [[-0.14, 0.4, -0.16], "open"], hr: [[-0.4, 0.04, 0.0], "open"], el: [-0.5, 0, -1], er: [0, -1, 0] });
+    mv("sambo.sideQuad", "Sdraiato sul fianco: prendi la caviglia della gamba sopra e porta il tallone al gluteo", [K(sq, 400, 300), K(sq.copy().act("legl", "arml"), 500, 1400), K(sq.copy().mirror().act("legr", "armr"), 700, 1400)]);
+    const fgA = standing().handRel("l", 0.32, -0.2, -0.12, "open").handRel("r", 0.32, -0.2, 0.12, "open").elbow("l", [0, -1, -0.3]).elbow("r", [0, -1, 0.3]);
+    const fgB = fgA.copy().handRel("l", 0.32, -0.2, -0.12, "fist").handRel("r", 0.32, -0.2, 0.12, "fist").act("arml", "armr");
+    const fgC = standing().handRel("r", 0.45, -0.12, 0.02, "open").handRel("l", 0.36, -0.08, 0.04, "open").elbow("r", [0, -1, 0.3]).elbow("l", [0, -1, -0.5]).act("arml", "armr");
+    mv("sambo.fingers", "Apri e chiudi le mani lentamente, poi allunga le dita indietro con l'altra mano", [K(fgA, 300, 200), K(fgB, 400, 200), K(fgA, 400, 200), K(fgB, 400, 200), K(fgA, 400, 200), K(fgC, 500, 1000), K(fgC.copy().mirror(), 600, 1000), K(fgA, 500, 200)]);
+    const behind = standing().handPel("r", -0.16, 0.08, -0.02, "open").elbow("r", [-0.2, -1, 1]).handRel("l", 0.12, -0.2, -0.2, "open").act("armr");
+    mv("sambo.armBehind", "Mano dietro la schiena all'altezza della vita, il gomito scende verso il fianco; poi l'altra", [K(standing(), 300, 200), K(behind, 600, 1300), K(standing(), 500, 150), K(behind.copy().mirror(), 600, 1300), K(standing(), 500, 200)]);
+    const lowL = standing().foot("l", 0.48, -0.12, 0, 0).footAt("r", [-0.55, 0.065, 0.12], 180, 0, 180).knee("r", [0, -1, 0]).set("pel", [-0.05, 0.48, 0]).set("chest", [-0.06, 0.98, 0]).set("head", [-0.05, 1.18, 0]).handW("l", 0.3, 0.62, -0.13, "open").handW("r", 0.28, 0.62, 0.02, "open");
+    mv("sambo.lowLunge", "Affondo basso con il ginocchio dietro sul materasso, bacino avanti; poi l'altra gamba", [K(standing(), 300, 150), K(lowL.copy().act("legr", "torso"), 700, 1300), K(standing(), 600, 150), K(lowL.copy().mirror().act("legl", "torso"), 700, 1300), K(standing(), 600, 200)]);
+    const xArm = standing().handRel("r", 0.16, 0.02, -0.36, "open").handRel("l", 0.3, -0.05, -0.05, "open").elbow("r", [0, -0.3, 1]).elbow("l", [0, -1, 0]).act("armr");
+    mv("sambo.crossArm", "Braccio disteso davanti al petto, tirato con l'altro sopra il gomito; poi cambia", [K(standing(), 300, 150), K(xArm, 600, 1300), K(standing(), 500, 150), K(xArm.copy().mirror(), 600, 1300), K(standing(), 500, 200)]);
+    void cgP;
+
+    /* ------------------------------------------------------------ dall'altro lato (a specchio) */
+    // rimette la scena com'era prima della rotazione, la specchia e la rigira (extra: giro in piu')
+    const mvMirror = (src, name, label, rot, extra = 0) => {
+      const m = MM.get(src);
+      mv(name, label, m.frames.map((f) => K(xf(xf(B.of(f.pose), -rot).mirror(), rot + extra), f.t, f.h, undefined, f.partner ? xf(xf(B.of(f.partner), -rot).mirror(), rot + extra) : undefined)), m.props ? { props: m.props } : {});
+    };
+    [["zadnyaya", "Zadnyaya podnozhka a sinistra: piede destro accanto al suo, gamba sinistra dietro"],
+      ["zadnyayaThrow", "Zadnyaya completa a sinistra: il compagno cade all'indietro sopra la tua gamba sinistra"],
+      ["hipEntry", "Proiezione d'anca a vuoto a sinistra: entrata in due passi, carico e rotazione"],
+      ["hipThrow", "Proiezione d'anca completa a sinistra: il compagno cade davanti, tieni la manica"],
+      ["podsechka", "Podsechka a sinistra: il piede destro spazza il suo piede sinistro, mani a volante"],
+      ["perednyaya", "Perednyaya a sinistra: ti giri, la gamba sinistra blocca la sua tibia"],
+      ["seoiEntry", "Cherez spinu a vuoto a sinistra: girata bassa, gomito sinistro sotto l'ascella"],
+      ["seoiThrow", "Cherez spinu completa a sinistra: il compagno passa sopra la spalla sinistra"],
+      ["comboBackFwd", "A sinistra: zadnyaya a metà, poi perednyaya sulla sua spinta"],
+      ["comboFwdBack", "A sinistra: finta d'anca, poi zadnyaya quando si inclina indietro"],
+      ["chainA", "Catena a sinistra: zadnyaya, perednyaya e proiezione d'anca"],
+      ["chainB", "Catena a sinistra: podsechka, proiezione d'anca e zadnyaya"],
+      ["doubleLeg", "Presa delle due gambe dall'altro lato: testa a sinistra del suo fianco"],
+      ["melnitsaEntry", "Mulino a vuoto a sinistra: ginocchio sinistro giù, testa sotto la sua ascella sinistra"],
+      ["melnitsaRoll", "Mulino a sinistra: il manichino rotola giù alla tua destra, tieni la manica"],
+      ["throwToSboku", "A sinistra: proiezione d'anca, tieni la manica e scendi in sboku"],
+      ["legEscapeFull", "Uscita dalla leva alla gamba con l'altra gamba, poi rialzarsi in base"],
+      ["cCrossHip", "Dall'altro lato: diretto sinistro, presa al collo e proiezione d'anca"]
+    ].forEach(([n, lab]) => mvMirror("sambo." + n, "sambo." + n + "L", lab, PY));
+    [["poperekToArmbar", "Dall'altro lato: da poperek isoli il braccio e rotoli nella posizione della leva"],
+      ["armbar", "Posizione della leva al gomito dall'altro lato, senza forza"],
+      ["escapeFull", "Uscita da sotto con il peso dall'altro lato: ponte, anca, ginocchio, in piedi"],
+      ["sboku", "Uderzhanie sboku sul lato sinistro: tieni e adatta le gambe"]
+    ].forEach(([n, lab]) => mvMirror("sambo." + n, "sambo." + n + "L", lab, PY + GY, 180));
     void brkFar; void len; void ankleY; void squat; void lieBack; void sitLong; void kneel; void lerp3; void xf;
   });
 })(typeof window !== "undefined" ? window : globalThis);
