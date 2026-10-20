@@ -492,5 +492,101 @@
       K(q4(0, 0, 0, 0), 300, 100), K(q4(0.22, 0, 0, 0).act("armr"), 260, 40), K(q4(0.22, 0.22, 0, 0).act("arml"), 260, 40), K(q4(0.22, 0.22, 0.22, 0).act("legr"), 260, 40), K(q4(0.22, 0.22, 0.22, 0.22).act("legl"), 260, 120),
       K(q4(0.22, 0, 0.22, 0.22).act("arml"), 260, 40), K(q4(0, 0, 0.22, 0.22).act("armr"), 260, 40), K(q4(0, 0, 0.22, 0).act("legl"), 260, 40), K(q4(0, 0, 0, 0).act("legr"), 260, 200)
     ]);
+
+    /* ---------------------------------------------------------------- varianti della ginga e ritmo */
+    // ph 0/1/2; o.sink abbassa, o.step allunga il passo dietro, o.wide allarga, o.arms "free" | "angola"
+    function gv(ph, o) {
+      const b = (ph === 0 ? G0 : ph === 1 ? G1 : G2).copy();
+      ["l", "r"].forEach((s) => { const f = b.p.foot[s]; b.p.foot[s] = [f[0] < -0.2 ? f[0] * (o.step || 1) : f[0], f[1], f[2] * (o.wide || 1)]; });
+      if (o.sink) b.sink(o.sink);
+      if (o.arms === "free") b.handRel("l", 0.12, -0.42, -0.22, "open").handRel("r", 0.12, -0.42, 0.22, "open").elbow("l", [0, -1, -0.3]).elbow("r", [0, -1, 0.3]);
+      if (o.arms === "angola") b.lean(0.06, 0, 0.03).handRel("l", 0.34, -0.22, -0.12, "open").handRel("r", 0.34, -0.22, 0.12, "open").elbow("l", [0, -1, -0.4]).elbow("r", [0, -1, 0.4]);
+      return b;
+    }
+    const gingaOf = (o, t, h) => [K(gv(0, o), 300, h), K(gv(1, o), t, h), K(gv(2, o).act("legl"), t, h), K(gv(1, o), t, h), K(gv(0, o).act("legr"), t, h + 100)];
+    mv("capoeira.gingaFree", "Ginga leggera senza braccia, passi piccoli", gingaOf({ step: 0.75, wide: 0.85, sink: -0.03, arms: "free" }, 380, 80));
+    mv("capoeira.gingaLow", "Ginga bassa e lenta: cosce quasi parallele al pavimento", gingaOf({ sink: 0.17, step: 1.15, wide: 1.12 }, 520, 120));
+    mv("capoeira.gingaHigh", "Ginga più alta e larga", gingaOf({ sink: -0.05, wide: 1.2, step: 1.05 }, 380, 80));
+    mv("capoeira.gingaFast", "Ginga veloce, sempre con il braccio davanti al viso", gingaOf({}, 230, 30));
+    mv("capoeira.gingaSlow", "Ginga lentissima, poi pronta a esplodere", gingaOf({ sink: 0.04 }, 800, 150));
+    mv("capoeira.gingaAngola", "Ginga dell'Angola: bassa e raccolta, passi corti, mani davanti pronte a scendere", gingaOf({ sink: 0.13, step: 0.75, wide: 0.9, arms: "angola" }, 600, 120));
+
+    const clapA = standing().foot("l", 0, -0.15, 10, 0).foot("r", 0, 0.15, -10, 0).handRel("l", 0.3, -0.12, -0.17, "open").handRel("r", 0.3, -0.12, 0.17, "open").elbow("l", [0, -1, -0.5]).elbow("r", [0, -1, 0.5]);
+    const clapB = clapA.copy().handRel("l", 0.33, -0.1, -0.02, "open").handRel("r", 0.33, -0.1, 0.02, "open").act("arml", "armr");
+    mv("capoeira.palmas", "Palmas: batti le mani sul battito e conta 1-2-3-4", [K(clapA, 300, 60), K(clapB, 150, 260), K(clapA, 200, 60), K(clapB, 150, 260), K(clapA, 200, 60), K(clapB, 150, 260), K(clapA, 200, 60), K(clapB, 150, 260), K(clapA, 200, 100)]);
+    const stepA = clapB.copy().heel("l", 35).sink(-0.01).act("arml", "armr", "legl");
+    const stepB = clapB.copy().heel("r", 35).sink(-0.01).act("arml", "armr", "legr");
+    mv("capoeira.palmasStep", "Palmas e passi sul posto: un passo e un battito di mani", [K(clapA, 300, 60), K(stepA, 160, 250), K(clapA, 200, 60), K(stepB, 160, 250), K(clapA, 200, 60), K(stepA, 160, 250), K(clapA, 200, 60), K(stepB, 160, 250), K(clapA, 200, 100)]);
+
+    /* ---------------------------------------------------------------- altre esquivas e lavoro basso */
+    const CG = C.copy().handHead("l", 0.13, 0.05, 0.06, "open").handHead("r", 0.13, 0.03, -0.05, "open").elbow("l", [0.4, -0.3, -1]).elbow("r", [0.4, -0.3, 1]);
+    mv("capoeira.cocorinhaGuard", "Tenuta in cocorinha con entrambi gli avambracci davanti alla testa", [K(G1, 300, 100), K(CG.copy().act("arml", "armr", "legl", "legr"), 350, 2000), K(G1, 350, 150)]);
+    mv("capoeira.cocorinhaSlow", "Discesa lenta in cocorinha in tre secondi, poi risali in ginga", [K(G0, 300, 100), K(G1, 300, 60), K(C.copy().act("legl", "legr"), 2600, 400), K(G0.copy().act("legr", "legl"), 600, 200)]);
+    mv("capoeira.negativaHold", "Tenuta in negativa: bacino sollevato, gamba distesa a fil di pavimento", [K(NL.copy().act("legr"), 400, 2600)]);
+    mv("capoeira.negativaSwitch", "Negativa alternata: da una gamba distesa all'altra restando bassi", [
+      K(C, 300, 100), K(NL.copy().act("legl", "legr"), 380, 500), K(C, 300, 40), K(NR.copy().act("legl", "legr"), 380, 500), K(C, 300, 40), K(NL.copy().act("legl", "legr"), 380, 500), K(C, 330, 150)
+    ]);
+    // affondo laterale profondo a busto alto, senza mano a terra
+    const SL = G1.copy().foot("r", 0.02, 0.46, -20, 0).foot("l", 0.02, -0.5, 10, 0);
+    SL.set("pel", [-0.12, 0.52, 0.22]).set("chest", [0.0, 1.0, 0.22]).set("head", [0.04, 1.2, 0.22]).set("hipYaw", 0).set("chestYaw", 0).knee("r", [1, 0.1, 0.5]).knee("l", [0.3, 1, 0]);
+    SL.handRel("l", 0.3, -0.1, -0.12, "open").handRel("r", 0.3, -0.1, 0.12, "open").elbow("l", [0, -1, -0.4]).elbow("r", [0, -1, 0.4]);
+    mv("capoeira.sideLunges", "Affondi laterali profondi alternati, busto alto, senza mano a terra", [K(G1w, 300, 80), K(SL.copy().act("legl", "legr"), 450, 250), K(G1w, 400, 50), K(SL.copy().mirror().act("legl", "legr"), 450, 250), K(G1w, 400, 150)]);
+    // accosciata profonda con le mani a terra, il peso passa da un piede all'altro
+    const SQ = C.copy().handW("r", 0.33, 0.035, 0.15, "open").elbow("r", [-0.3, 0, 1]);
+    const sqShift = (dz) => { const b = SQ.copy(); b.p.pel = add(b.p.pel, [0, 0.02, dz]); b.p.chest = add(b.p.chest, [0, 0, dz * 0.7]); b.p.head = add(b.p.head, [0, 0, dz * 0.6]); b.p.hipRoll = -dz * 60; return b.act("legl", "legr"); };
+    mv("capoeira.squatShift", "Accosciata profonda con le mani a terra: il peso passa da un piede all'altro", [K(SQ, 400, 150), K(sqShift(0.12), 450, 300), K(sqShift(-0.12), 600, 300), K(SQ, 450, 200)]);
+    // cossack squat: giu' su una gamba, l'altra tesa di lato con la punta in alto
+    const CS = SL.copy().set("pel", [-0.14, 0.42, 0.26]).set("chest", [0.06, 0.88, 0.24]).set("head", [0.12, 1.07, 0.24]);
+    CS.footAt("l", [0.02, 0.08, -0.55], 0, -70).knee("l", [0, 1, 0]).handRel("l", 0.32, -0.05, -0.08, "open").handRel("r", 0.32, -0.05, 0.08, "open");
+    mv("capoeira.cossack", "Cossack squat: giù su una gamba, l'altra tesa di lato con la punta in alto", [K(G1w, 300, 80), K(CS.copy().act("legl", "legr"), 600, 400), K(G1w, 500, 60), K(CS.copy().mirror().act("legl", "legr"), 600, 400), K(G1w, 500, 150)]);
+
+    /* ---------------------------------------------------------------- polsi, quadrupedia, core */
+    const AF = allFours().handW("l", 0.22, 0.035, -0.18, "open").handW("r", 0.22, 0.035, 0.18, "open");
+    const cat = AF.copy().set("chest", [0.19, 0.63, 0]).set("head", [0.34, 0.5, 0]).act("torso");
+    const cow = AF.copy().set("pel", [-0.3, 0.5, 0]).set("chest", [0.2, 0.55, 0]).set("head", [0.4, 0.71, 0]).act("torso", "head");
+    mv("capoeira.catCow", "A quattro zampe, gatto-mucca lento: testa giù e schiena su, poi testa su", [K(AF, 300, 150), K(cat, 900, 300), K(cow, 1100, 300), K(AF, 800, 200)]);
+    const fwdW = AF.copy().set("pel", [-0.18, 0.53, 0]).set("chest", [0.32, 0.6, 0]).set("head", [0.53, 0.64, 0]).act("arml", "armr");
+    const backW = AF.copy().set("pel", [-0.42, 0.45, 0]).set("chest", [0.06, 0.56, 0]).set("head", [0.27, 0.6, 0]).act("arml", "armr");
+    mv("capoeira.wristLoad", "A quattro zampe: porta il peso avanti sulle mani, piano, e torna", [K(AF, 300, 150), K(fwdW, 700, 600), K(AF, 600, 150), K(fwdW, 700, 600), K(AF, 600, 200)]);
+    mv("capoeira.wristStretch", "A quattro zampe, dita verso le ginocchia: sposta il peso indietro piano", [K(AF, 300, 150), K(backW, 900, 1500), K(AF, 700, 200)]);
+    const bear = (dz, hz, fz) => {
+      const b = allFours().set("pel", [-0.3, 0.55, dz]).set("chest", [0.18, 0.6, dz]).set("head", [0.4, 0.62, dz]);
+      b.footAt("l", [-0.62, ankleY(40), -0.13 + fz], 0, 40).footAt("r", [-0.62, ankleY(40), 0.13 + fz], 0, 40).knee("l", [1, -1, -0.2]).knee("r", [1, -1, 0.2]);
+      b.handW("l", 0.22, 0.035, -0.18 + hz, "open").handW("r", 0.22, 0.035, 0.18 + hz, "open");
+      return b;
+    };
+    mv("capoeira.quadLateral", "Quadrupedia laterale: mani e piedi si spostano di lato, ginocchia sollevate", [
+      K(bear(0, 0, 0), 300, 80), K(bear(0.1, 0.2, 0).act("arml", "armr"), 280, 40), K(bear(0.2, 0.2, 0.2).act("legl", "legr"), 280, 80), K(bear(0.3, 0.4, 0.2).act("arml", "armr"), 280, 40), K(bear(0.4, 0.4, 0.4).act("legl", "legr"), 280, 120),
+      K(bear(0.3, 0.2, 0.4).act("arml", "armr"), 280, 40), K(bear(0.2, 0.2, 0.2).act("legl", "legr"), 280, 80), K(bear(0.1, 0, 0.2).act("arml", "armr"), 280, 40), K(bear(0, 0, 0).act("legl", "legr"), 280, 200)
+    ]);
+    const PL = plank();
+    const tapR = PL.copy().handW("r", 0.18, 0.62, -0.12, "open").elbow("r", [0, -1, 0.5]).set("chest", [0.18, 0.58, -0.04]).act("armr");
+    const tapL = PL.copy().handW("l", 0.18, 0.62, 0.12, "open").elbow("l", [0, -1, -0.5]).set("chest", [0.18, 0.58, 0.04]).act("arml");
+    mv("capoeira.plankTaps", "Plank sulle mani con tocchi alternati delle spalle, bacino fermo", [K(PL, 300, 100), K(tapR, 260, 200), K(PL, 240, 60), K(tapL, 260, 200), K(PL, 240, 60), K(tapR, 260, 200), K(PL, 240, 60), K(tapL, 260, 200), K(PL, 240, 150)]);
+    const PF = plank({ forearms: true });
+    const kneeR = PF.copy().footAt("r", [-0.12, 0.22, 0.24], 0, 20).knee("r", [0.6, 0, 1]).act("legr", "torso");
+    const kneeL = PF.copy().footAt("l", [-0.12, 0.22, -0.24], 0, 20).knee("l", [0.6, 0, -1]).act("legl", "torso");
+    mv("capoeira.plankKnee", "Plank sugli avambracci: ginocchio al gomito alternato", [K(PF, 300, 100), K(kneeR, 350, 200), K(PF, 300, 60), K(kneeL, 350, 200), K(PF, 300, 150)]);
+    const HO = lieBack().set("chest", [-0.46, 0.24, 0]).set("head", [-0.65, 0.33, 0]).footAt("l", [0.82, 0.3, -0.08], 0, -60).footAt("r", [0.82, 0.3, 0.08], 0, -60);
+    HO.handW("l", -0.98, 0.45, -0.14, "open").handW("r", -0.98, 0.45, 0.14, "open").elbow("l", [0, 1, -0.3]).elbow("r", [0, 1, 0.3]).knee("l", [0, 1, 0]).knee("r", [0, 1, 0]);
+    mv("capoeira.hollow", "Tenuta hollow: zona lombare a terra, braccia e gambe distese e sollevate", [K(lieBack(), 300, 100), K(HO.copy().act("torso", "legl", "legr", "arml", "armr"), 500, 1800), K(lieBack(), 450, 200)]);
+    const rockA = HO.copy().set("pel", [0.02, 0.14, 0]).set("chest", [-0.45, 0.32, 0]).set("head", [-0.62, 0.43, 0]).footAt("l", [0.84, 0.16, -0.08], 0, -60).footAt("r", [0.84, 0.16, 0.08], 0, -60).handW("l", -0.95, 0.6, -0.14, "open").handW("r", -0.95, 0.6, 0.14, "open");
+    const rockB = HO.copy().set("pel", [-0.02, 0.14, 0]).set("chest", [-0.5, 0.16, 0]).set("head", [-0.7, 0.2, 0]).footAt("l", [0.74, 0.5, -0.08], 0, -60).footAt("r", [0.74, 0.5, 0.08], 0, -60).handW("l", -1.04, 0.28, -0.14, "open").handW("r", -1.04, 0.28, 0.14, "open");
+    mv("capoeira.hollowRock", "Hollow con dondolio leggero avanti e indietro, corpo compatto", [K(HO, 400, 100), K(rockA.act("torso"), 350, 60), K(rockB.act("torso"), 400, 60), K(rockA.act("torso"), 400, 60), K(rockB.act("torso"), 400, 60), K(HO, 350, 150)]);
+    mv("capoeira.hollowSide", "Hollow con dondolio, poi tenuta laterale sull'avambraccio", [K(HO, 400, 100), K(rockA, 350, 60), K(rockB, 400, 60), K(HO, 350, 300), K(lieBack(), 400, 100)]);
+    // camminata delle mani: dai piedi al plank e ritorno
+    const fold = standing().foot("l", 0, -0.1, 5, 0).foot("r", 0, 0.1, -5, 0).set("pel", [-0.14, 0.9, 0]).set("chest", [0.2, 0.55, 0]).set("head", [0.28, 0.37, 0]).handW("l", 0.35, 0.035, -0.15, "open").handW("r", 0.35, 0.035, 0.15, "open").knee("l", [1, 0, 0]).knee("r", [1, 0, 0]);
+    const walkMid = fold.copy().set("pel", [0.0, 0.74, 0]).set("chest", [0.42, 0.52, 0]).set("head", [0.58, 0.42, 0]).handW("l", 0.72, 0.035, -0.17, "open").handW("r", 0.72, 0.035, 0.17, "open");
+    const plankF = plank().move(1.06);
+    mv("capoeira.inchworm", "Camminata delle mani: piegati, cammina con le mani fino al plank e torna", [K(standing(), 300, 100), K(fold.copy().act("torso"), 500, 150), K(walkMid.act("arml", "armr"), 450, 80), K(plankF.copy().act("arml", "armr"), 450, 300), K(walkMid, 450, 80), K(fold, 450, 150), K(standing(), 500, 200)]);
+    // gambe larghe con le mani a terra (preparazione del compasso)
+    const wide = standing().foot("l", 0, -0.55, 15, 0).foot("r", 0, 0.55, -15, 0).set("pel", [0, 0.87, 0]).set("chest", [0.02, 1.37, 0]).set("head", [0.04, 1.57, 0]);
+    const wideBent = wide.copy().set("pel", [-0.15, 0.62, 0]).set("chest", [0.18, 0.33, 0]).set("head", [0.24, 0.15, 0]).handW("l", 0.32, 0.035, -0.18, "open").handW("r", 0.32, 0.035, 0.18, "open").knee("l", [1, 0, -0.4]).knee("r", [1, 0, 0.4]);
+    const wideStr = wide.copy().set("pel", [-0.1, 0.8, 0]).set("chest", [0.22, 0.44, 0]).set("head", [0.28, 0.25, 0]).handW("l", 0.34, 0.035, -0.18, "open").handW("r", 0.34, 0.035, 0.18, "open").knee("l", [1, 0, 0]).knee("r", [1, 0, 0]);
+    mv("capoeira.wideFold", "Gambe larghe: mani a terra piegando le ginocchia, poi distendi piano", [K(wide, 300, 100), K(wideBent.copy().act("legl", "legr", "torso"), 600, 300), K(wideStr.copy().act("legl", "legr"), 700, 1200), K(wideBent, 500, 100), K(wide, 600, 200)]);
+    const wideTo = (dz) => { const b = wideStr.copy(); b.p.chest = add(b.p.chest, [-0.04, 0, dz * 0.75]); b.p.head = add(b.p.head, [-0.04, 0, dz * 0.9]); return b.handW("l", 0.25, 0.035, dz - 0.15, "open").handW("r", 0.25, 0.035, dz + 0.15, "open").act("arml", "armr", "torso"); };
+    mv("capoeira.wideWalk", "Gambe larghe: cammina con le mani verso il piede destro, al centro, verso il sinistro", [K(wideStr, 400, 100), K(wideTo(0.4), 700, 300), K(wideStr, 600, 100), K(wideTo(-0.4), 700, 300), K(wideStr, 600, 200)]);
+    const wideLook = wideStr.copy().set("chest", [0.12, 0.42, 0]).set("head", [-0.06, 0.3, 0]).handW("l", 0.3, 0.035, -0.2, "open").handW("r", 0.3, 0.035, 0.2, "open").act("head", "torso");
+    mv("capoeira.wideLook", "Mani a terra a gambe larghe: guarda indietro tra le gambe, come nel compasso", [K(wide, 300, 100), K(wideStr, 600, 150), K(wideLook, 500, 1500), K(wideStr, 500, 100), K(wide, 600, 200)]);
   });
 })(typeof window !== "undefined" ? window : globalThis);

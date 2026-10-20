@@ -305,6 +305,13 @@
     raise.lean(0.04);
     mv("taekwondo.activeRaise", "Sollevamento attivo: gamba tesa che sale davanti senza slancio, tieni 2 secondi", [K(chairG, 300, 150), K(raise, 900, 1500), K(chairG, 700, 250)]);
 
+    // parata alta: avambraccio di traverso sopra la fronte, gomito in fuori
+    function highBlk(b, s) {
+      const fr = b.frame();
+      b.handHead(s, 0.14, 0.1, -sgn(s) * 0.08, "fist");
+      return b.elbow(s, add(add(mul(fr.right, sgn(s)), mul(fr.fwd, 0.6)), [0, 0.1, 0]));
+    }
+
     /* ---------------------------------------------------------------- pugni in combattimento */
     const punchRear = (b0) => b0.copy().turn(40).shift(0.06).straight("r", [0.7 + b0.p.o[0], 1.12, 0.02]).heel("r", 26).act("armr", "legr");
     const punchFront = (b0) => b0.copy().turn(-8).shift(0.04).straight("l", [0.72 + b0.p.o[0], 1.12, -0.02]).act("arml");
@@ -487,7 +494,7 @@
     const lowBlock = gB15.copy().turn(-8).handRel("l", 0.3, -0.45, -0.06, "fist").elbow("l", [0, -1, -0.4]).act("arml", "legr");
     const bnB = { ch: bandalCh(gB15, "r", 15), ex: roundPose(gB15, "r", "ext", 1.05, BND) };
     mv("taekwondo.araeCounter", "Contro il frontale: passo indietro con arae makki, poi pugno al corpo e bandal", [K(g, 250, 60), K(lowBlock, 180, 200), K(punchRear(gB15), 150, 120), K(gB15, 120, 0), K(bnB.ch, 140, 0), K(bnB.ex, 120, 140), K(bnB.ch, 120, 10), K(gB15, 160, 120), K(g, 250, 200)]);
-    const highBlock = g.copy().block("l", "high").act("arml");
+    const highBlock = highBlk(g.copy(), "l").act("arml");
     mv("taekwondo.olgulYop", "Contro il calcio alto: olgul makki sopra la fronte, poi laterale di gamba avanti", [K(g, 250, 60), K(highBlock, 150, 220), K(gHop.copy().act("legr"), 120, 0), K(ypChL, 120, 10), K(ypExL, 130, 160), K(ypChL, 120, 10), K(gHop, 130, 40), K(g, 200, 220)]);
     const ypF = { ch: bandalCh(gFw2, "r", 15), ex: roundPose(gFw2, "r", "ext", 1.05, BND) };
     mv("taekwondo.yopBandal", "Laterale di gamba avanti, appoggio avanti, bandal di gamba dietro: lo fermi e lo punisci", [K(g, 240, 60), K(gHop.copy().act("legr"), 120, 0), K(ypChL, 120, 10), K(ypExL, 130, 150), K(ypChL, 120, 0), K(gFw2.copy().act("legl"), 150, 20), K(ypF.ch, 140, 0), K(ypF.ex, 120, 140), K(ypF.ch, 120, 0), K(gFw2, 150, 80), ...backSteps(gFw2, 0.2, "r")]);
@@ -543,7 +550,7 @@
       anPrep: (b, s) => b.handRel(s, 0.0, 0.1, sgn(s) * 0.34, "fist").elbow(s, [0, -1, sgn(s) * 0.5]).handRel(other(s), 0.32, -0.12, 0, "fist"),
       an: (b, s) => b.block(s, "in").hikite(other(s)).act("arm" + s),
       olgulPrep: (b, s) => b.handRel(s, 0.28, -0.3, -sgn(s) * 0.05, "fist").handRel(other(s), 0.3, -0.06, sgn(s) * 0.03, "fist"),
-      olgul: (b, s) => b.block(s, "high").hikite(other(s)).act("arm" + s),
+      olgul: (b, s) => highBlk(b, s).hikite(other(s)).act("arm" + s),
       outPrep: (b, s) => b.handRel(s, 0.12, 0.0, -sgn(s) * 0.16, "fist").elbow(s, [0, -1, 0]).handRel(other(s), 0.3, -0.1, 0, "fist"),
       out: (b, s) => b.handRel(s, 0.28, 0.12, sgn(s) * 0.2, "fist").elbow(s, [0, -1, sgn(s) * 0.3]).hikite(other(s)).act("arm" + s)
     };
@@ -607,7 +614,7 @@
     const koaElb = L.F.solve(koa.done()).elbow.r;
     koa.hand("l", add(koaElb, [0.0, -0.08, -0.02]), "fist").elbow("l", [0, -1, -0.3]).act("armr", "legl", "legr", "head");
     const koaPrep = akL.copy().handRel("r", 0.1, 0.0, -0.15, "fist").elbow("r", [0, -1, 0]);
-    const koaAir = air(landMid(akL, koa), 0.1).act("legl", "legr");
+    const koaAir = air(koa.copy(), 0.1).handRel("r", 0.1, 0.0, -0.15, "fist").handRel("l", 0.25, -0.3, 0, "fist").act("legl", "legr");
     mv("taekwondo.dwitKoa", "Finale: piccolo balzo avanti in dwit koa seogi, pugno a rovescio e kihap", [K(junbi, 300, 150), K(koaPrep, 450, 250), K(koaAir, 200, 0), K(koa, 170, 900), K(junbi, 600, 250)]);
     // Yuk Jang
     const yjCh = roundPose(akL, "r", "chamber", 1.3);

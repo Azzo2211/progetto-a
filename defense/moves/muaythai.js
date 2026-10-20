@@ -18,7 +18,7 @@
     const relaxed = standing();
     const stanceOnly = g.copy().handW("l", 0.06, 0.92, -0.25, "open").handW("r", -0.08, 0.92, 0.25, "open").elbow("l", [0, -1, 0]).elbow("r", [0, -1, 0]);
     const stanceMid = stanceOnly.copy().shift(0.05).heel("l", 0).sink(0.01);
-    M("stance", "Piedi in guardia: sinistro avanti, destro dietro ruotato e con il tallone alzato", [K(relaxed, 300, 300), K(stanceMid.act("legl", "legr"), 500, 700)]);
+    M("stance", "Piedi in guardia: sinistro avanti, destro dietro ruotato e con il tallone alzato", [K(relaxed, 300, 300), K(stanceMid.copy().act("legl", "legr"), 500, 700)]);
     M("weightBack", "Due terzi del peso sul piede dietro: il piede avanti appoggia leggero", [K(stanceMid, 300, 400), K(stanceOnly.copy().act("legl", "legr", "torso"), 500, 800), K(stanceMid, 400, 200)]);
     M("guard", "Guardia thai: guanti alle sopracciglia, gomiti davanti alle costole, bacino quasi frontale", [K(relaxed, 300, 300), K(stanceOnly, 400, 150), K(g.copy().act("arml", "armr"), 450, 900)]);
     M("guardHold", "Guardia thai ferma, peso dietro", [K(g, 400, 1200)]);
@@ -61,8 +61,8 @@
     {
       const fr = hook.frame();
       const sh = hook.sh("l");
-      hook.hand("l", add(add(sh, mul(fr.fwd, 0.33)), add(mul(fr.right, 0.24), [0, 0.0, 0])), "fist");
-      hook.elbow("l", add(add(mul(fr.right, -1), [0, 0.15, 0]), mul(fr.fwd, -0.1)));
+      hook.hand("l", add(add(sh, mul(fr.fwd, 0.37)), add(mul(fr.right, 0.22), [0, 0.02, 0])), "fist");
+      hook.elbow("l", add(add(mul(fr.right, -1), [0, 0.3, 0]), mul(fr.fwd, -0.15)));
     }
     const upR = g.copy().sink(0.02).turn(40).shift(0.03).heel("r", 30).fyaw("r", -12).upper("r", "chin").act("armr", "legr");
     const upL = g.copy().sink(0.02).turn(-14).shift(0.03).upper("l", "chin").act("arml", "legl");
@@ -108,11 +108,10 @@
     const pullDown = (b, f = 0.36, u = -0.22, dz = 0) => b.handRel("l", f, u, -0.08 + dz, "open").handRel("r", f, u, 0.08 + dz, "open").elbow("l", [-0.2, -1, -0.6]).elbow("r", [-0.2, -1, 0.6]);
     const reach = reachNeck(g.copy().shift(0.02)).act("arml", "armr");
     const kneeRUp = pullDown(g.copy().kick("r", "knee", "ext", "mid", { arms: "none" })).act("legr", "arml", "armr");
-    const kneeRLoad = reachNeck(g.copy().kick("r", "knee", "chamber", "mid", { arms: "none" }).set("pel", g.p.pel).set("chest", add(g.p.chest, [0.02, 0, 0])).set("head", add(g.p.head, [0.03, 0, 0])));
     const KR = (s = 1) => [K(reach, 200 * s, 60 * s), K(kneeRUp, 200 * s, 200 * s), K(g, 240 * s, 80 * s)];
     M("kneeR", "Khao trong: mani sulla nuca, tira giù e ginocchio dietro avanti, anche avanti", [G(300, 150), ...KR()]);
     M("kneeRHold", "Ginocchiata dritta ferma 2 secondi nella posizione d'impatto", [G(300, 150), K(reach, 300, 200), K(kneeRUp, 350, 1700), G(350, 200)]);
-    M("kneeRSlow", "Ginocchiata dritta lenta: tallone d'appoggio alto, punta del piede in basso", [G(300, 150), K(reach, 350, 250), K(kneeRLoad.act("legr"), 300, 100), K(kneeRUp, 300, 700), G(380, 200)]);
+    M("kneeRSlow", "Ginocchiata dritta lenta: tallone d'appoggio alto, punta del piede in basso", [G(300, 150), K(reach, 350, 350), K(kneeRUp, 450, 900), G(400, 200)]);
     const reachM = mir(reach);
     const kneeLUpM = mir(kneeRUp);
     // cambio di guardia (saltello basso): i piedi si scambiano
@@ -196,7 +195,7 @@
     /* ---------------- esercizi al muro */
     const wallFront = (b, x = 0.46) => b.handW("l", x, 1.38, -0.2, "open").handW("r", x, 1.38, 0.2, "open").elbow("l", [0, -1, -0.6]).elbow("r", [0, -1, 0.6]);
     const wf0 = wallFront(g.copy());
-    const pivot1 = wallFront(g.copy().fyaw("l", 95).heel("l", 28).hips(40).twist(25).heel("r", 30).shift(0.03, 0.01)).act("legl", "torso");
+    const pivot1 = wallFront(g.copy().fyaw("l", 95).heel("l", 28).hips(40).twist(25).heel("r", 30).shift(0.03, 0.01)).act("legl", "legr");
     const pivot2 = wallFront(g.copy().kick("r", "round", "chamber", "mid", { arms: "none" })).act("legl", "legr");
     M("pivotWall", "Mani al muro: ruota sull'avampiede avanti, tallone verso il muro, anca dietro su", [K(wf0, 300, 300), K(pivot1, 500, 600), K(wf0, 450, 300)]);
     M("pivotWallKnee", "Mani al muro: rotazione sull'avampiede e ginocchio dietro di lato, coscia orizzontale", [K(wf0, 300, 300), K(pivot1, 400, 150), K(pivot2, 400, 700), K(wf0, 450, 300)]);
@@ -204,12 +203,12 @@
     const tw0 = wallL(g.copy());
     const tw1 = wallL(g.copy().fyaw("l", 100).heel("l", 25).hips(25)).act("legl");
     const tw2 = wallL(g.copy().kick("r", "round", "chamber", "mid")).act("legr");
-    const tw3 = wallL(g.copy().kick("r", "round", "ext", "mid")).act("legr", "torso");
+    const tw3 = wallL(g.copy().kick("r", "round", "ext", "mid")).act("legr");
     M("kickWall", "Calcio al muro in quattro tempi: rotazione, ginocchio su, anca sopra e tibia orizzontale, ritorno", [K(tw0, 300, 300), K(tw1, 400, 500), K(tw2, 400, 500), K(tw3, 450, 1600), K(tw2, 400, 300), K(tw0, 400, 300)]);
     M("kickWallSmooth", "Calcio al muro in un unico gesto lento", [K(tw0, 300, 200), K(tw2, 500, 50), K(tw3, 450, 500), K(tw2, 450, 50), K(tw0, 450, 300)]);
-    const twH = wallL(g.copy().kick("r", "round", "ext", 1.42).lean(-0.06, 0.03), 1.3).act("legr", "torso");
+    const twH = wallL(g.copy().kick("r", "round", "ext", 1.42).lean(-0.06, 0.03), 1.3).act("legr");
     M("highKickWall", "Calcio alto lento al muro: ruota, gira l'anca, distendi in alto e tieni 3 secondi", [K(tw0, 300, 200), K(tw1, 400, 300), K(tw2, 450, 300), K(twH, 700, 2000), K(tw2, 500, 200), K(tw0, 450, 300)]);
-    const twB = wallL(g.copy().kick("r", "round", "ext", 1.12).heel("l", 32)).act("legr", "torso");
+    const twB = wallL(g.copy().kick("r", "round", "ext", 1.12).heel("l", 32)).act("legr");
     M("bodyKickWall", "Calcio al corpo lento con la mano al muro, fermo 2 secondi in alto", [K(tw0, 300, 200), K(tw2, 450, 200), K(twB, 500, 1500), K(tw2, 450, 200), K(tw0, 450, 300)]);
     // ginocchiata diagonale (gamba destra): ginocchio largo, poi chiude in diagonale
     function kneeDiag(base, phase) {
@@ -551,7 +550,7 @@
     M("neckStretch", "Seduto dritto: orecchio verso la spalla, la mano appoggiata sulla testa senza tirare", [K(kn, 300, 150), K(ns, 700, 1300), K(kn, 600, 150), K(mir(ns), 700, 1300), K(kn, 600, 200)]);
     const lw = L.lieBack().footAt("l", [0.12, 0.95, -0.1], 0, -80).footAt("r", [0.12, 0.95, 0.1], 0, -80).knee("l", [1, 0, 0]).knee("r", [1, 0, 0]).handW("l", -0.2, 0.05, -0.32, "open").handW("r", -0.2, 0.05, 0.32, "open");
     const lwB = lw.copy().set("chest", [-0.5, 0.15, 0]).act("torso");
-    M("legsWall", "Sdraiato con le gambe appoggiate in alto al muro, respiri lunghi", [K(L.lieBack(), 300, 150), K(lw.act("legl", "legr"), 800, 300), K(lwB, 1500, 300), K(lw, 1800, 300), K(L.lieBack(), 700, 200)]);
+    M("legsWall", "Sdraiato con le gambe appoggiate in alto al muro, respiri lunghi", [K(L.lieBack(), 300, 150), K(lw.copy().act("legl", "legr"), 800, 300), K(lwB, 1500, 300), K(lw, 1800, 300), K(L.lieBack(), 700, 200)]);
     const smB = L.sitLong().footAt("l", [0.45, 0.07, -0.13], 0, 0).footAt("r", [0.45, 0.07, 0.13], 0, 0).knee("l", [0, 1, 0]).knee("r", [0, 1, 0]).set("chest", [0.12, 0.6, 0]).set("head", [0.2, 0.78, 0]);
     const smLo = smB.copy().handW("l", 0.4, 0.17, -0.13, "open").handW("r", 0.4, 0.17, 0.13, "open").act("arml", "armr");
     const smHi = smB.copy().handW("l", 0.27, 0.4, -0.13, "open").handW("r", 0.27, 0.4, 0.13, "open").act("arml", "armr");

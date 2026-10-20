@@ -734,5 +734,83 @@
     mv("lotta.mrLow", "Abbassa le anche finché sono sotto lo zaino, petto incollato", [K(mrHold, 300, 100), K(mrLow, 400, 1000), K(mrHold, 400, 200)]);
     mv("lotta.mrLift", "Spingi con le gambe, solleva di poco e ruota di 90 gradi", [K(mrLow, 300, 100), K(mrLift, 320, 150), K(mrTurn, 300, 600), K(mrHold, 500, 200)]);
     mv("lotta.mrDown", "Scendi in ginocchio e accompagna lo zaino a terra di lato, petto sopra", [K(mrTurn, 300, 100), K(mrDown, 450, 1000), K(mrHold, 600, 200)]);
+
+    /* ---------------------------------------------------------------- condizionamento */
+    const armsUp = up.copy().hand("l", [0.0, 1.98, -0.22], "fist").hand("r", [0.0, 1.98, 0.22], "fist").elbow("l", [0, 0, -1]).elbow("r", [0, 0, 1]);
+    const hang = mk({ pel: [0, 1.06, 0], chest: [0, 1.56, 0], head: [0.02, 1.75, 0], fl: [0.03, 0.2, -0.1, 0, 40], fr: [0.03, 0.2, 0.1, 0, 40], kl: [1, 0, 0], kr: [1, 0, 0], hl: [0.0, 2.1, -0.22, "fist"], hr: [0.0, 2.1, 0.22, "fist"], el: [0, 0, -1], er: [0, 0, 1] });
+    mv("lotta.hang", "Appeso alla sbarra a braccia tese, spalle attive e lontane dalle orecchie", [K(up, 300, 100), K(armsUp, 350, 150), K(hang.copy().act("arml", "armr"), 300, 1500), K(armsUp, 300, 100), K(up, 350, 200)]);
+    const tHang = hang.copy().hand("l", [0.02, 2.08, -0.07], "fist").hand("r", [0.02, 2.08, 0.07], "fist").elbow("l", [0, 0, -1]).elbow("r", [0, 0, 1]);
+    mv("lotta.towelHang", "Appeso agli asciugamani piegati sulla sbarra, braccia tese, presa stretta", [K(up, 300, 100), K(armsUp.copy().hand("l", [0.02, 1.96, -0.07]).hand("r", [0.02, 1.96, 0.07]), 350, 150), K(tHang.copy().act("arml", "armr"), 300, 1500), K(up, 400, 200)]);
+    const pull = tHang.copy().set("pel", [0, 1.42, 0]).set("chest", [0.02, 1.9, 0]).set("head", [0.08, 2.05, 0]).footW("l", [0.05, 0.6, -0.1], 0, 40).footW("r", [0.05, 0.6, 0.1], 0, 40).elbow("l", [0.3, -1, -0.8]).elbow("r", [0.3, -1, 0.8]).act("arml", "armr");
+    mv("lotta.pullUp", "Trazione agli asciugamani: da appeso, tira il petto verso le mani", [K(tHang, 300, 200), K(pull, 500, 300), K(tHang, 500, 200)]);
+    const wrA = up.copy().hand("l", [0.32, 1.12, -0.03], "fist").hand("r", [0.32, 1.02, 0.03], "fist").elbow("l", [0, -1, -0.6]).elbow("r", [0, -1, 0.6]);
+    const wrB = up.copy().hand("l", [0.32, 1.02, -0.03], "fist").hand("r", [0.32, 1.12, 0.03], "fist").elbow("l", [0, -1, -0.6]).elbow("r", [0, -1, 0.6]);
+    mv("lotta.towelWring", "Strizza l'asciugamano bagnato con tutta la forza, mani che girano opposte", [K(up, 300, 100), K(wrA.copy().act("arml", "armr"), 300, 200), K(wrB.copy().act("arml", "armr"), 300, 200), K(wrA.copy().act("arml", "armr"), 300, 200), K(wrB.copy().act("arml", "armr"), 300, 200), K(up, 300, 200)]);
+    const fw = (x, s) => {
+      const b = up.copy().hand("l", [0, 0.9, -0.25], "fist").hand("r", [0, 0.9, 0.25], "fist").elbow("l", [0, 0, -1]).elbow("r", [0, 0, 1]);
+      if (s > 0) b.foot("l", x + 0.08, -0.1, 5, 0).foot("r", x - 0.08, 0.1, -5, 25); else b.foot("l", x - 0.08, -0.1, 5, 25).foot("r", x + 0.08, 0.1, -5, 0);
+      return b.shift(x);
+    };
+    mv("lotta.farmerWalk", "Camminata del contadino: due pesi, passi corti, spalle basse, busto dritto", [K(fw(0, 1), 300, 50), K(fw(0.15, -1).act("legr", "arml", "armr"), 300, 40), K(fw(0.3, 1).act("legl", "arml", "armr"), 300, 40), K(fw(0.45, -1).act("legr", "arml", "armr"), 300, 40), K(fw(0.6, 1).act("legl"), 300, 150)]);
+    const sw1 = (x, s) => fw(x, s).hand("l", [x + 0.05, 1.0, -0.35], "open").elbow("l", [0, -1, -0.5]);
+    mv("lotta.suitcaseWalk", "Camminata con un peso solo: busto dritto, poi cambia mano", [K(sw1(0, 1), 300, 50), K(sw1(0.15, -1).act("armr", "legr"), 300, 40), K(sw1(0.3, 1).act("armr", "legl"), 300, 150), K(sw1(0.3, 1).copy().mirror(), 400, 100), K(sw1(0.45, -1).copy().mirror().act("arml", "legl"), 300, 40), K(sw1(0.6, 1).copy().mirror().act("arml", "legr"), 300, 150)]);
+    const sdw = mk({ pel: [-0.17, 0.58, 0], chest: [0.15, 0.95, 0], head: [0.28, 1.1, 0], fl: flat(0, -0.2, 10), fr: flat(0, 0.2, -10), kl: [1, 0, -0.3], kr: [1, 0, 0.3], hl: [0.22, 0.42, -0.27, "fist"], hr: [0.22, 0.42, 0.27, "fist"], el: [0, 0, -1], er: [0, 0, 1] }).act("legl", "legr");
+    mv("lotta.setDown", "Appoggia i pesi piegando le gambe, schiena dritta", [K(fw(0, 1), 300, 100), K(sdw, 500, 700), K(up, 450, 200)]);
+    const rowA = mk({ pel: [-0.15, 0.85, 0], chest: [0.25, 1.15, 0], head: [0.42, 1.25, 0], fl: flat(0, -0.17, 8), fr: flat(0, 0.17, -8), kl: [1, 0, -0.2], kr: [1, 0, 0.2], hl: [0.32, 0.64, -0.1, "fist"], hr: [0.32, 0.64, 0.1, "fist"], el: [0, 0, -1], er: [0, 0, 1] });
+    const rowB = rowA.copy().hand("l", [0.1, 0.95, -0.12]).hand("r", [0.1, 0.95, 0.12]).elbow("l", [-1, 0.6, -0.4]).elbow("r", [-1, 0.6, 0.4]).act("arml", "armr");
+    mv("lotta.row", "Rematore con lo zaino: busto inclinato, schiena dritta, tira verso l'ombelico", [K(up, 300, 100), K(rowA, 400, 200), K(rowB, 400, 300), K(rowA, 400, 200), K(rowB, 400, 300), K(rowA, 400, 100), K(up, 400, 200)]);
+    const pumpA = up.copy().hand("l", [0.5, 1.32, -0.14], "open").hand("r", [0.5, 1.32, 0.14], "open").elbow("l", [0, -1, -0.3]).elbow("r", [0, -1, 0.3]);
+    mv("lotta.handPump", "Braccia avanti: apri e chiudi le mani veloce", [K(up, 250, 50), K(pumpA, 250, 60), K(pumpA.copy().fists().act("arml", "armr"), 120, 60), K(pumpA, 120, 60), K(pumpA.copy().fists().act("arml", "armr"), 120, 60), K(pumpA, 120, 60), K(pumpA.copy().fists().act("arml", "armr"), 120, 60), K(up, 250, 100)]);
+    const lgT = (side) => {
+      const b = L.lunge(side, 1).twist(side === "l" ? 35 : -35);
+      b.handRel("l", 0.3, -0.15, -0.02, "fist").handRel("r", 0.3, -0.15, 0.02, "fist");
+      return b.act("legl", "legr", "torso");
+    };
+    mv("lotta.lungeTwist", "Affondo con il busto che ruota verso la gamba avanti, poi l'altra gamba", [K(up, 300, 100), K(lgT("l"), 600, 400), K(up, 450, 100), K(lgT("r"), 600, 400), K(up, 450, 200)]);
+    // burpee da lotta: sprawl, su, penetrazione con ginocchio a terra, su
+    mv("lotta.burpee", "Burpee da lotta: sprawl, su in posizione, penetrazione con ginocchio a terra, su", [K(g, 240, 40), K(sprMid, 140, 0), K(spr, 160, 150), K(hop, 200, 30), K(g, 160, 40), K(lv, 140, 20), K(pk, 220, 120), K(su, 220, 40), K(after, 220, 150), K(g, 380, 150)]);
+    mv("lotta.burpeeR", "Burpee da lotta con la penetrazione sul ginocchio destro", mirrorFrames([K(g, 240, 40), K(sprMid, 140, 0), K(spr, 160, 150), K(hop, 200, 30), K(g, 160, 40), K(lv, 140, 20), K(pk, 220, 120), K(su, 220, 40), K(after, 220, 150), K(g, 380, 150)]));
+    const brOne = lbArms.copy().set("pel", [0.02, 0.4, 0]).set("chest", [-0.44, 0.22, 0]).set("head", [-0.64, 0.14, 0]).footAt("l", [0.78, 0.52, -0.1], 0, -20).knee("l", [0, 1, 0]).handW("l", -0.15, 0.04, -0.3, "open").handW("r", -0.15, 0.04, 0.3, "open").act("torso", "legr");
+    mv("lotta.bridgeOneLeg", "Ponte di glutei su una gamba: l'altra distesa, peso su spalle e piede", [K(lbArms, 300, 150), K(brOne, 450, 400), K(lbArms, 400, 100), K(brOne.copy().mirror(), 450, 400), K(lbArms, 400, 200)]);
+
+    /* ---------------------------------------------------------------- allungamenti e defaticamento */
+    const nn = mk({ pel: [0, 0.13, 0], chest: [0.08, 0.63, -0.02], head: [0.12, 0.83, -0.02], yaw: 10, fl: [0.42, 0.07, 0.18, 80, 0, -80], fr: [-0.38, 0.07, 0.42, 170, 0, 80], kl: [0.4, 0.2, -0.6], kr: [0.1, 0.2, 1], hl: [0.22, 0.12, -0.22], hr: [0.08, 0.1, 0.3], el: [0, 0, -1], er: [0, 0, 1] });
+    mv("lotta.ninety", "Seduto in 90/90: gamba avanti e dietro piegate a 90 gradi, busto alto", [K(sitLong(), 300, 100), K(nn.copy().act("legl", "legr", "torso"), 600, 1300), K(nn.copy().mirror().act("legl", "legr", "torso"), 700, 1300), K(sitLong(), 600, 200)]);
+    const kcA = lieBack().footAt("l", [-0.02, 0.5, -0.1], 0, -20).footAt("r", [-0.02, 0.5, 0.1], 0, -20).knee("l", [-1, 1, 0]).knee("r", [-1, 1, 0]).handW("l", -0.18, 0.44, -0.13, "open").handW("r", -0.18, 0.44, 0.13, "open").elbow("l", [0, 0, -1]).elbow("r", [0, 0, 1]);
+    mv("lotta.kneesChest", "Sdraiato sulla schiena, ginocchia al petto tenute con le mani, respiro lento", [K(lieBack(), 300, 100), K(kcA.copy().act("legl", "legr"), 500, 800), K(kcA.copy().set("chest", [-0.5, 0.14, 0]).act("torso"), 1500, 400), K(kcA, 1500, 200)]);
+    const kc1 = lieBack().footAt("l", [-0.02, 0.5, -0.1], 0, -20).knee("l", [-1, 1, 0]).handW("l", -0.18, 0.44, -0.13, "open").handW("r", -0.18, 0.44, -0.05, "open").elbow("l", [0, 0, -1]).elbow("r", [0, 0, 1]);
+    mv("lotta.kneeChestOne", "Sdraiato, un ginocchio al petto e l'altra gamba distesa, poi cambia", [K(lieBack(), 300, 100), K(kc1.copy().act("legl"), 500, 1300), K(lieBack(), 400, 100), K(kc1.copy().mirror().act("legr"), 500, 1300), K(lieBack(), 400, 200)]);
+    const sideLie = mk({ pel: [0, 0.2, 0], chest: [0.5, 0.21, 0], head: [0.71, 0.23, 0.03], hroll: -90, croll: -90, fl: [-0.86, 0.09, 0.02, -90, 0, -90], fr: [-0.84, 0.2, 0.02, -90, 0, -90], kl: [0, 0, 1], kr: [0, 0, 1], hl: [0.92, 0.07, 0.04], hr: [0.5, 0.06, 0.3], el: [0, 0, 1], er: [0, 0.5, 1] });
+    const sqd = sideLie.copy().footW("r", [0.02, 0.3, -0.18], 180, 0, -90).knee("r", [-1, 0, 0.3]).hand("r", [0.04, 0.32, -0.21]).elbow("r", [0, 0.5, -1]).act("legr", "armr");
+    mv("lotta.sideQuad", "Quadricipite da sdraiato sul fianco: tallone verso il gluteo, ginocchia vicine", [K(sideLie, 400, 200), K(sqd, 500, 1500), K(sideLie, 450, 200)]);
+    const lh = lieBack().footAt("r", [0.12, 0.95, 0.1], 0, -10).knee("r", [1, 0, 0]).handW("l", -0.2, 0.52, -0.02, "fist").handW("r", -0.2, 0.52, 0.08, "fist").elbow("l", [0, 0, -1]).elbow("r", [0, 0, 1]);
+    mv("lotta.lyingHamstring", "Sdraiato, gamba tesa in alto tenuta con l'asciugamano dietro al piede", [K(lieBack(), 300, 100), K(lh.copy().act("legr"), 600, 1300), K(lieBack(), 450, 100), K(lh.copy().mirror().act("legl"), 600, 1300), K(lieBack(), 450, 200)]);
+    const faA = up.copy().hand("l", [0.5, 1.4, -0.08], "open").elbow("l", [0, -1, 0]).hand("r", [0.48, 1.34, -0.04], "open").elbow("r", [0, -1, 0.4]).act("arml");
+    const faB = up.copy().hand("l", [0.5, 1.4, -0.08], "open").elbow("l", [0, -1, 0]).hand("r", [0.47, 1.47, -0.04], "open").elbow("r", [0, -1, 0.4]).act("arml");
+    mv("lotta.forearmStretch", "Avambraccio: braccio teso, l'altra mano tira piano le dita; palmo su, poi giù", [K(up, 300, 100), K(faA, 500, 1200), K(up, 400, 100), K(faB, 500, 1200), K(up, 400, 200)]);
+    const frog = mk({ pel: [-0.24, 0.32, 0], chest: [0.24, 0.3, 0], head: [0.45, 0.34, 0], fl: [-0.54, 0.07, -0.44, 180, 0, 180], fr: [-0.54, 0.07, 0.44, 180, 0, 180], kl: [0.2, -1, -1], kr: [0.2, -1, 1], hl: [0.52, 0.05, -0.12], hr: [0.52, 0.05, 0.12], el: [0, -1, 0], er: [0, -1, 0] });
+    mv("lotta.frog", "Rana: ginocchia larghe, avambracci a terra, anche che vanno indietro piano", [K(L.allFours(), 300, 100), K(frog.copy().act("legl", "legr"), 600, 400), K(frog.copy().set("pel", [-0.36, 0.3, 0]).act("torso"), 1200, 1000), K(L.allFours(), 600, 200)]);
+    const af = L.allFours();
+    const cat = af.copy().set("pel", [-0.3, 0.56, 0]).set("chest", [0.18, 0.61, 0]).set("head", [0.3, 0.46, 0]).act("torso", "head");
+    const cow = af.copy().set("chest", [0.2, 0.54, 0]).set("head", [0.4, 0.72, 0]).act("torso", "head");
+    mv("lotta.catCow", "Gatto e cammello: schiena che si arrotonda e si allunga, piano", [K(af, 300, 100), K(cat, 900, 300), K(cow, 1000, 300), K(cat, 1000, 300), K(af, 700, 200)]);
+    const bookA = sideLie.copy().footW("l", [-0.3, 0.09, 0.42], -90, 0, -90).footW("r", [-0.3, 0.22, 0.42], -90, 0, -90).knee("l", [0.3, 0, 1]).knee("r", [0.3, 0, 1]).hand("l", [0.5, 0.07, 0.5]).hand("r", [0.5, 0.2, 0.52]).elbow("l", [0, 1, 0.5]).elbow("r", [0, 1, 0]);
+    const bookB = bookA.copy().set("chestRoll", -165).hand("r", [0.5, 0.08, -0.55]).elbow("r", [0, 1, 0]).act("torso", "armr");
+    mv("lotta.openBook", "Libro aperto sul fianco: ginocchia unite, il braccio sopra si apre dall'altra parte", [K(bookA, 400, 200), K(bookB, 900, 1300), K(bookA, 800, 200)]);
+    const f4 = lieBack({ kneesUp: true }).footAt("r", [0.16, 0.48, 0.12], 0, -30).knee("r", [0, 1, 0.2]).footAt("l", [0.26, 0.58, 0.02], 80, 0, -70).knee("l", [0.3, 0.4, -1]).handW("l", -0.05, 0.4, 0.04, "open").handW("r", -0.05, 0.4, 0.18, "open").elbow("l", [0, 0, -1]).elbow("r", [0, 0, 1]);
+    mv("lotta.figureFour", "Figura quattro: caviglia sul ginocchio opposto, tira la coscia verso il petto", [K(lieBack({ kneesUp: true }), 300, 100), K(f4.copy().act("legl", "legr"), 600, 1300), K(lieBack({ kneesUp: true }), 450, 100), K(f4.copy().mirror().act("legl", "legr"), 600, 1300), K(lieBack({ kneesUp: true }), 450, 200)]);
+    const lat = mk({ pel: [-0.1, 0.92, 0], chest: [0.38, 0.84, 0], head: [0.56, 0.8, 0], fl: flat(-0.05, -0.15, 5), fr: flat(-0.05, 0.15, -5), kl: [1, 0, 0], kr: [1, 0, 0], hl: [0.92, 0.88, -0.15], hr: [0.92, 0.88, 0.15], el: [0, -1, -0.3], er: [0, -1, 0.3] }).act("torso", "arml", "armr");
+    mv("lotta.latStretch", "Dorsale: mani sullo schienale, anche indietro, petto verso il pavimento", [K(up, 300, 100), K(lat, 700, 1500), K(up, 600, 200)]);
+    const door = up.copy().foot("l", 0.22, -0.12, 5, 0).shift(0.06).hand("r", [0.02, 1.7, 0.46], "open").elbow("r", [0, -1, 1]).act("armr", "torso");
+    mv("lotta.doorChest", "Petto allo stipite: avambraccio a 90 gradi sullo stipite, piccolo passo avanti", [K(up, 300, 100), K(door, 600, 1300), K(up, 450, 100), K(door.copy().mirror(), 600, 1300), K(up, 450, 200)]);
+    const wk = af.copy().set("pel", [-0.42, 0.42, 0]).set("chest", [0.02, 0.6, 0]).set("head", [0.2, 0.7, 0]).handW("l", 0.18, 0.04, -0.16).handW("r", 0.18, 0.04, 0.16).act("arml", "armr");
+    mv("lotta.wristKneel", "Avambracci in ginocchio: palmi a terra con le dita verso di te, anche indietro", [K(af, 300, 100), K(wk, 800, 1400), K(af, 600, 200)]);
+    const kd = (sgn) => lieBack({ kneesUp: true }).footAt("l", [0.38, 0.1, -0.06 + sgn * 0.12], 0, 0, sgn * 40).footAt("r", [0.38, 0.1, 0.18 + sgn * 0.12], 0, 0, sgn * 40).knee("l", [0, 0.4, sgn]).knee("r", [0, 0.4, sgn]).set("hipRoll", -sgn * 35).handW("l", -0.45, 0.05, -0.62, "open").handW("r", -0.45, 0.05, 0.62, "open").act("legl", "legr");
+    mv("lotta.kneeDrops", "Sdraiato, ginocchia piegate che cadono piano a destra e a sinistra", [K(lieBack({ kneesUp: true }).handW("l", -0.45, 0.05, -0.62, "open").handW("r", -0.45, 0.05, 0.62, "open"), 300, 200), K(kd(1), 900, 600), K(kd(-1), 1200, 600), K(lieBack({ kneesUp: true }).handW("l", -0.45, 0.05, -0.62, "open").handW("r", -0.45, 0.05, 0.62, "open"), 900, 200)]);
+    const lo = lieBack().handW("l", -0.4, 0.05, -0.66, "open").handW("r", -0.4, 0.05, 0.66, "open").elbow("l", [0, 1, 0]).elbow("r", [0, 1, 0]);
+    mv("lotta.lieOpen", "Sdraiato a pancia in su, braccia aperte, respiro lento", [K(lo, 400, 300), K(lo.copy().set("chest", [-0.5, 0.16, 0]).act("torso"), 1600, 400), K(lo, 2000, 300)]);
+    mv("lotta.breathe46", "Sdraiato: inspira in 4 secondi, espira in 6, senza apnee", [K(lieBack({ kneesUp: true }), 400, 200), K(lieBack({ kneesUp: true }).set("chest", [-0.5, 0.17, 0]).act("torso"), 2400, 200), K(lieBack({ kneesUp: true }), 3600, 300)]);
+    mv("lotta.film", "Prepara lo spazio e il telefono, poi torna in posizione", [K(up, 300, 300), K(up.copy().foot("l", 0.12, -0.12, 0, 0).set("chest", [0.12, 1.42, 0]).set("head", [0.22, 1.58, 0]).hand("r", [0.42, 1.2, 0.1], "open").elbow("r", [0, -1, 0.4]).act("armr"), 400, 800), K(g, 500, 600)]);
+    mv("lotta.review", "Rivedi il video e conta: riposa e respira", [K(up.copy().hand("l", [0.3, 1.18, -0.05], "open").hand("r", [0.3, 1.18, 0.05], "open").elbow("l", [0, -1, -0.5]).elbow("r", [0, -1, 0.5]).set("head", [0.04, 1.63, 0]), 400, 1500)]);
   });
 })(typeof window !== "undefined" ? window : globalThis);

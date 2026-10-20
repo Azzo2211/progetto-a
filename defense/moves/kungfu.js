@@ -41,8 +41,8 @@
       tanForm: (b, s, y = 0) => el(ex(b, s, -0.06, 0, 0.72, "open", y), s, 0, -1, -sg(s) * 0.9, y),
       bong: (b, s, y = 0) => el(ex(b, s, -0.06, 0, 0.68, "blade", y), s, 0.3, 0.8, sg(s), y),
       fook: (b, s, y = 0, u = -0.06) => el(ex(b, s, u, 0, 0.78, "blade", y), s, 0, -0.7, -sg(s), y),
-      pakPrep: (b, s, y = 0) => el(hd(b, s, 0.26, -0.05, sg(s) * 0.15, "open", y), s, 0, -1, sg(s) * 0.2, y),
-      pak: (b, s, y = 0) => el(ex(b, s, -0.05, -sg(s) * 0.04, 0.72, "open", y), s, 0, -1, -sg(s) * 0.4, y),
+      pakPrep: (b, s, y = 0) => el(hd(b, s, 0.28, -0.03, sg(s) * 0.21, "open", y), s, 0, -1, sg(s) * 0.4, y),
+      pak: (b, s, y = 0) => el(ex(b, s, -0.04, -sg(s) * 0.04, 0.78, "open", y), s, 0, -1, -sg(s) * 0.4, y),
       lapReach: (b, s, y = 0) => el(ex(b, s, 0.0, 0, 0.83, "open", y), s, 0, -1, -sg(s) * 0.2, y),
       lapPull: (b, s, y = 0) => el(hd(b, s, 0.14, -0.36, sg(s) * 0.1, "fist", y), s, -1, -0.5, sg(s) * 0.6, y),
       gaun: (b, s, y = 0) => el(ex(b, s, -0.44, sg(s) * 0.2, 0.95, "blade", y), s, 0, -0.3, sg(s), y),
@@ -416,7 +416,7 @@
 
     /* =============== 11. bong-lap in rotazione */
     const bl0 = H.wu(H.man(g.copy(), "l"), "r");
-    const bl1 = pivot(H.wuBy(H.bong(wcStance(), "l"), "r"), 45).act("arml", "legl", "legr", "torso");
+    const bl1 = pivot(H.wuBy(H.bong(wcStance(), "l"), "r"), 45).act("arml", "legl", "legr");
     const bl2 = H.punch(H.lapPull(wcStance(), "r"), "l").act("arml", "armr", "legl", "legr");
     mv("kungfu.bongTurn", "Juen ma verso il braccio avanti: il braccio rotola in bong sao, wu sao vicino al gomito", [K(bl0, 300, 200), K(bl1, 400, 1000), K(g, 400, 300)]);
     mv2("kungfu.bongLapTurn", "Bong-lap in rotazione: juen ma con bong sao, poi torna frontale con lap e pugno", "Bong-lap in rotazione dall'altro lato", [K(bl0, 300, 200), K(bl1, 300, 350), K(bl2, 260, 400), K(g, 300, 300)]);
