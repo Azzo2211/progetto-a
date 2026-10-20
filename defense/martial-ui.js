@@ -46,7 +46,8 @@
     timerAt: 0,       // ultimo comando del timer
     player: null,     // il video dell'omino dell'esercizio mostrato
     playerId: null,
-    playerState: null // dove era arrivato il video (per riprendere dopo un nuovo disegno)
+    playerState: null, // dove era arrivato il video (per riprendere dopo un nuovo disegno)
+    peek: null        // esercizio aperto per guardarlo nella scheda dello stile
   };
 
   const $ = (id) => document.getElementById(id);
@@ -258,7 +259,8 @@
         ${nav}
       </div>
       ${body}`;
-    if (l.current && ui.view === "today" && !M.isStale(l)) { paintTimer(); mountDemo(box); }
+    if (l.current && ui.view === "today" && !M.isStale(l)) paintTimer();
+    mountDemo(box);
     ui.renderedAt = Date.now();
     if (focus) focusHeading(box.querySelector(".ma-body") || box);
   }
@@ -383,6 +385,7 @@
     if (F && MM && Array.isArray(spec) && spec.length === e.steps.length) {
       try {
         const demo = MM.demoFor(spec);
+        demo.steps.forEach((st) => { st.label = String(st.label).replace(/"([^"]*)"/g, "“$1”").replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ0-9])/g, "$1’$2"); });
         if (demo.steps.length === e.steps.length) {
           const seq = demo.steps.map((st) => {
             const keys = MM.keyFrames(st.frames, 6);
@@ -418,6 +421,15 @@
     return `<div class="ma-seq" role="group" aria-label="Immagini del passo ${i + 1}">
       <button type="button" class="ma-seq-play" data-mact="demo-step" data-step="${i}" aria-label="Guarda solo il passo ${i + 1} nel video" title="Guarda solo questo passo"><span class="ma-tri" aria-hidden="true"></span></button>
       ${s.items.map((it, n) => `<button type="button" class="ma-seq-img" data-mact="demo-frame" data-step="${i}" data-frame="${it.k}" data-key="${n}" aria-label="Passo ${i + 1}, immagine ${n + 1} di ${s.items.length}: ${esc(it.label)}" title="${esc(it.label)}">${it.html}</button>`).join("")}
+    </div>`;
+  }
+
+  // "Come si fa": il video e i passi con le immagini (o solo i passi, se manca la dimostrazione)
+  function howMarkup(e, dm) {
+    if (!dm) return `<ol class="def-steps">${e.steps.map((x) => `<li>${prose(x)}</li>`).join("")}</ol>`;
+    return `<div class="ma-howgrid">
+      <div class="ma-demo" data-demo="${esc(e.id)}"></div>
+      <ol class="def-steps has-seq">${e.steps.map((x, i) => `<li data-step="${i}"><div class="ma-step"><span class="ma-step-text">${prose(x)}</span>${seqMarkup(dm, i)}</div></li>`).join("")}</ol>
     </div>`;
   }
 
@@ -524,10 +536,7 @@
             ${e.watch ? `<div class="ma-watch"><strong>Osserva</strong><p>${prose(e.watch)}</p>${video}</div>` : ""}
             <p class="ma-how">${prose(e.how)}</p>
             <h4 class="ma-sub">Come si fa</h4>
-            ${dm ? `<div class="ma-howgrid">
-              <div class="ma-demo" data-demo="${esc(e.id)}"></div>
-              <ol class="def-steps has-seq">${e.steps.map((x, i) => `<li data-step="${i}"><div class="ma-step"><span class="ma-step-text">${prose(x)}</span>${seqMarkup(dm, i)}</div></li>`).join("")}</ol>
-            </div>` : `<ol class="def-steps">${e.steps.map((x) => `<li>${prose(x)}</li>`).join("")}</ol>`}
+            ${howMarkup(e, dm)}
             <h4 class="ma-sub">Punti chiave</h4>
             <ul class="def-keys">${e.cues.map((x) => `<li>${prose(x)}</li>`).join("")}</ul>
             ${e.errors && e.errors.length ? `<div class="ma-errors"><h4 class="ma-sub">Errori tipici</h4><ul>${e.errors.map((x) => `<li><strong>${prose(x.e)}</strong><span>${prose(x.fix)}</span></li>`).join("")}</ul></div>` : ""}
@@ -878,10 +887,15 @@
       const cls = lv.level === p.level ? "now" : lv.level < p.level || (lv.level === p.level && l.mastered[d.id]) ? "past" : "";
       const sess = (lv.sessions || []).map((s, i) => {
         const list = listOf(lv, i);
-        return `<details class="ma-lvl-sess"${lv.level === p.level && i === p.step ? " open" : ""}>
+        const peekHere = list.some((e) => e.id === ui.peek);
+        return `<details class="ma-lvl-sess"${(lv.level === p.level && i === p.step) || peekHere ? " open" : ""}>
           <summary><span class="ma-sess-n">${i + 1}</span><strong>${esc(TYPE[s.type] || s.type)}: ${esc(s.title)}</strong><em>${plural(list.length, "esercizio", "esercizi")} · circa ${M.sessionMinutes(list)} min${lv.level === p.level && i === p.step ? " · la prossima" : ""}</em></summary>
           <p>${prose(s.focus)}</p>
-          <ol>${list.map((e) => `<li><span class="ma-kind k-${e.kind}">${KIND[e.kind] || e.kind}</span>${esc(e.name)}<em>${esc(doseText(e.dose, e.kind))}</em></li>`).join("")}</ol>
+          <ol>${list.map((e) => {
+            const dm = demoOf(e);
+            const open = ui.peek === e.id && dm;
+            return `<li><span class="ma-kind k-${e.kind}">${KIND[e.kind] || e.kind}</span>${esc(e.name)}<em>${esc(doseText(e.dose, e.kind))}</em>${dm ? `<button type="button" class="ma-peek-btn" data-mact="peek" data-ex="${esc(e.id)}" aria-expanded="${!!open}">${open ? "Chiudi" : "Guarda come si fa"}</button>` : "<span></span>"}</li>${open ? `<li class="ma-peek-li"><div class="ma-peek">${e.goal ? `<p class="ma-goal">${prose(e.goal)}</p>` : ""}${howMarkup(e, dm)}</div></li>` : ""}`;
+          }).join("")}</ol>
         </details>`;
       }).join("");
       return `
@@ -1066,6 +1080,13 @@
     if (tooSoon(act)) return;
     const l = lab();
     switch (act) {
+      case "peek": {
+        const id = el.dataset.ex;
+        ui.peek = ui.peek === id ? null : id;
+        render(false);
+        focusAct(`[data-mact="peek"][data-ex="${id}"]`);
+        break;
+      }
       case "demo-step":
         if (ui.player) { ui.player.loopStep(Number(el.dataset.step)); ui.player.play(); showDemo(); }
         break;
@@ -1268,6 +1289,7 @@
       case "open-style":
         ui.view = "styles";
         ui.open = el.dataset.disc;
+        ui.peek = null;
         render(true);
         scrollTop();
         break;

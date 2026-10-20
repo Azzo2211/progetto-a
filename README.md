@@ -148,10 +148,16 @@ La scheda **Arti marziali** è la parte principale della pagina Difesa. Il tema 
 | `defense/martial-lookism.js` | Riferimenti a Lookism: il metodo, chi usa quale stile nel webtoon e cosa copiarne, la scheda "In Lookism" degli stili, i ranghi. |
 | `defense/martial.js` | Settimana a rotazione, livelli, rotazione delle sessioni, storico. Senza DOM, testato in `tests/martial.test.js`. |
 | `defense/martial-ui.js`, `defense/martial.css` | Le viste Oggi, Settimana, Stili, Lookism, Progressi. |
+| `defense/figure3d.js` | L'omino 3D: scheletro con cinematica inversa a due ossa (gomiti e ginocchia piegati verso una direzione), quattro viste (3/4, lato, fronte, da dietro), disegno SVG con il lato vicino chiaro, quello lontano più scuro e la parte che lavora in ambra, frecce del movimento, sacco e compagno; il lettore animato (riproduci, passo per passo, ripeti un passo, al rallentatore, trascina per girare l'omino); il controllo delle pose impossibili. |
+| `defense/moves.js` | Il costruttore delle pose (guardie, colpi dritti, ganci, montanti, gomitate, parate, calci con caricamento ed estensione, posizioni a terra, specchio per l'altro lato), le posizioni di base dei 9 stili e il registro dei movimenti; da una lista di passi crea la dimostrazione e sceglie le immagini della sequenza. |
+| `defense/moves/*.js` | I movimenti: `comuni.js` (riscaldamento, condizionamento, allungamenti, respirazione, cadute) e uno per stile. |
+| `defense/martial-demos.js` | Per ogni esercizio, una riga per passo: didascalia e movimenti da mostrare. |
 
 **Settimana**: di base 5 giorni (lunedì-venerdì, modificabili). Ogni giorno uno stile diverso; le discipline cambiano di settimana in settimana (prima quelle che non fai da più tempo). Lo stile di oggi si cambia con un tocco dalla vista Oggi, gli altri giorni dal loro menu nel calendario. Gli stili si possono togliere dalla rotazione.
 
 **Allenamento**: le sessioni del livello ruotano (impara → ripeti → prova); oggi puoi sceglierne un'altra con un tocco. Ogni esercizio ha il timer (serie a tempo o a ripetizioni, recupero, cambio lato, compito del round annunciato a voce, segnali casuali per shadow e sacco). Per ogni esercizio segni "Riuscito" o "Non ancora". Dopo la prova l'app consiglia di salire se hai almeno l'80% riuscito, ma decidi sempre tu; puoi salire anche dopo una sessione normale. All'ultimo livello si può dichiarare lo stile "copiato al 100%". Il livello si cambia con un tocco anche dalla scheda dello stile.
+
+**L'omino che mostra come si fa**: in ogni esercizio, sotto "Come si fa", c'è il video dell'omino che esegue tutti i passi uno dopo l'altro, con la didascalia del passo; accanto a ogni passo c'è la sequenza di immagini delle mosse (tocca un'immagine per fermare il video lì, tocca ▶ per ripetere solo quel passo). L'omino si guarda da quattro lati o si gira trascinandolo. Con "riduci movimento" attivo nel sistema il video non parte da solo.
 
 **Progressi**: settimana in corso, settimane complete di fila, allenamenti e minuti, quanto hai copiato di ogni stile, prove superate, calendario delle ultime 8 settimane, cambi di livello e ultimi allenamenti. Il rango (vista Lookism) è la media di quanto hai copiato di tutti gli stili. Gli allenamenti contano anche per Tecnica e Costanza nel profilo della Difesa.
 
@@ -184,6 +190,7 @@ node tests/scenarios.test.js
 node tests/culture.test.js
 node tests/defense.test.js
 node tests/martial.test.js
+node tests/omino.test.js
 node tests/aim.test.js
 node tools/verify-lessons.js           # controlla esempi ed esercizi delle lezioni con Stockfish
 node tools/calibrate.js self:8 6       # precisione media del livello 8 su 6 partite bot contro bot
