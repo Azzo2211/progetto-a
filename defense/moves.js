@@ -10,7 +10,7 @@
  * Coordinate: x avanti, y su, z a destra della figura; yaw positivo = girato verso la propria
  * sinistra. Destrimano in guardia ortodossa: piede e mano sinistri avanti ("l" = anteriore).
  *
- * window.MartialMoves = { add, get, has, names, catalog, demoFor, lib }
+ * window.MartialMoves = { add, get, has, names, catalog, demoFor, keyFrames, lib }
  */
 (function (root, factory) {
   const F = typeof module === "object" && module.exports ? require("./figure3d.js") : root.MartialFigure;
@@ -369,6 +369,26 @@
       return this;
     }
     act(...parts) { this.p.act = parts; return this; }
+    // a specchio (destra <-> sinistra): per la guardia mancina e per ripetere dall'altro lato
+    mirror() {
+      const p = this.p;
+      const mz = (v) => (Array.isArray(v) ? [v[0], v[1], -v[2]] : v);
+      const swap = (o, f = (x) => x) => { if (!o) return o; const l = o.l; const r = o.r; const n = Object.assign({}, o); delete n.l; delete n.r; if (r !== undefined) n.l = f(r); if (l !== undefined) n.r = f(l); return n; };
+      ["pel", "chest", "head"].forEach((k) => { p[k] = mz(p[k]); });
+      p.o = [p.o[0], -p.o[1]];
+      ["hipYaw", "chestYaw", "headYaw", "hipRoll", "chestRoll"].forEach((k) => { if (p[k]) p[k] = -p[k]; });
+      p.hand = swap(p.hand, mz);
+      p.foot = swap(p.foot, mz);
+      p.footYaw = swap(p.footYaw, (y) => -y);
+      p.footRoll = swap(p.footRoll, (y) => -y);
+      p.footPitch = swap(p.footPitch);
+      p.grip = swap(p.grip);
+      const pole = {};
+      Object.keys(p.pole || {}).forEach((k) => { pole[k[0] + (k[1] === "l" ? "r" : "l")] = mz(p.pole[k]); });
+      p.pole = pole;
+      if (p.act) p.act = p.act.map((a) => a.replace(/(arm|leg)([lr])$/, (m, x, s) => x + (s === "l" ? "r" : "l")));
+      return this;
+    }
   }
 
   /* ------------------------------------------------------------ posizioni di base */
@@ -637,7 +657,7 @@
         const one = MOVES.get(m[1]);
         if (!one) return;
         const times = m[2] ? Number(m[2]) : 1;
-        for (let i = 0; i < times; i += 1) one.frames.forEach((f) => frames.push({ pose: f.pose, t: f.t, h: f.h, act: f.act, partner: f.partner }));
+        for (let i = 0; i < times; i += 1) one.frames.forEach((f) => frames.push({ pose: f.pose, t: f.t, h: f.h, act: f.act, partner: f.partner, rep: i, mv: m[1] }));
         if (one.props) out.props = one.props;
       });
       if (frames.length) out.steps.push({ label: st[0], frames });
@@ -645,5 +665,33 @@
     return out;
   }
 
-  return { add: addStyle, get, has, names, catalog, demoFor, lib, B };
+  // Firma di una posa (arrotondata) per riconoscere i fotogrammi uguali.
+  function sig(f) {
+    const r = (v) => (Array.isArray(v) ? v.map(r) : typeof v === "number" ? Math.round(v * 50) : v && typeof v === "object" ? Object.keys(v).sort().map((k) => [k, r(v[k])]) : v);
+    return JSON.stringify([r(f.pose), f.partner ? r(f.partner) : 0]);
+  }
+
+  // Le immagini della sequenza di un passo: i fotogrammi diversi tra loro, senza le ripetizioni
+  // ("mossa*3" conta una volta) e senza i ritorni alla posa gia' vista. Al massimo "max".
+  function keyFrames(frames, max = 6) {
+    const seen = new Set();
+    const out = [];
+    (frames || []).forEach((f, i) => {
+      if (f.rep) return;
+      const s = sig(f);
+      if (seen.has(s)) return;
+      seen.add(s);
+      out.push(i);
+    });
+    if (out.length <= max) return out;
+    // troppi: tiene il primo e l'ultimo e sceglie gli altri distribuiti, preferendo quelli in azione
+    const keep = new Set([out[0], out[out.length - 1]]);
+    const acting = out.filter((i) => frames[i].act && frames[i].act.length && !keep.has(i));
+    const pool = acting.length >= max - 2 ? acting : out.filter((i) => !keep.has(i));
+    const need = max - 2;
+    for (let k = 0; k < need && k < pool.length; k += 1) keep.add(pool[Math.round((k * (pool.length - 1)) / Math.max(1, need - 1))]);
+    return [...keep].sort((a, b) => a - b);
+  }
+
+  return { add: addStyle, get, has, names, catalog, demoFor, keyFrames, lib, B };
 });
