@@ -82,7 +82,7 @@
     const bk2 = g.copy().move(-0.17).act("legl");
     mv("taekwondo.stepBack", "Passo indietro: il piede dietro arretra e l'avanti lo segue, stessa distanza", [K(g, 250, 120), K(bk1, 200, 60), K(bk2, 180, 250)]);
     // indietro di d partendo da una guardia b (dietro = lato "rear"): due fotogrammi
-    const backSteps = (b, d, rear) => [K(b.copy().step(rear, -d).shift(-d / 2).act("leg" + rear), 220, 40), K(b.copy().move(-d).act("leg" + other(rear)), 200, 120)];
+    const backSteps = (b, d, rear) => [K(b.copy().step(rear, -d).shift(-d / 2).act(), 220, 40), K(b.copy().move(-d), 200, 120)];
     const sl1 = g.copy().step("r", 0.3).heel("r", 25).shift(0.15).act("legr");
     const sl2 = g.copy().move(0.3).act("legl");
     mv("taekwondo.slideStep", "Passo scivolato: il piede dietro raggiunge il tallone avanti, che subito avanza", [K(g, 250, 100), K(sl1, 200, 40), K(sl2, 170, 250), ...backSteps(g.copy().move(0.3), 0.3, "r")]);
@@ -177,7 +177,7 @@
     // atterra avanti in guardia destra, poi il piede avanti torna dietro
     const gDF = gD.copy().move(0.48, 0.0);
     const landMid = (from, to) => { const m = new L.B(L.F.lerpPose(from.done(), to.done(), 0.5)); return m; };
-    const stepHome = (from, to, side) => { const m = landMid(from, to); m.p.foot[side] = add(m.p.foot[side], [0, 0.1, 0]); return [K(m.act("leg" + side), 170, 0), K(to.copy().act("leg" + side), 160, 200)]; };
+    const stepHome = (from, to, side) => { const m = landMid(from, to); m.p.foot[side] = add(m.p.foot[side], [0, 0.1, 0]); return [K(m.act(), 170, 0), K(to.copy(), 160, 200)]; };
     mv("taekwondo.dollyoLandFwd", "Dollyo e appoggio avanti in guardia destra, poi il piede torna dietro", [K(g, 280, 100), K(apCh, 170, 20), K(dlCh, 150, 20), K(dlEx, 140, 150), K(dlCh, 150, 20), K(gDF.copy().act("legr"), 220, 300), ...stepHome(gDF, g, "r")]);
 
     // bandal: il ginocchio sale dritto davanti in diagonale, l'anca gira solo all'ultimo, perno ridotto
@@ -232,9 +232,8 @@
     mv("taekwondo.yopHold", "Yop chagi tenuto: linea tallone-anca-spalla, sguardo sopra la spalla", [K(g, 280, 100), K(ypCh, 220, 60), K(ypEx, 260, 1200), K(ypCh, 220, 60), K(g, 260, 250)]);
     const ypChS = sidePose(gSl, "l", "chamber");
     const ypExS = sidePose(gSl, "l", "ext", 1.0);
-    both("taekwondo.slideYop", "Passo scivolato e laterale di gamba avanti: il calcio d'arresto",
-      [K(g, 250, 60), slideIn, K(ypChS, 140, 20), K(ypExS, 140, 180), K(ypChS, 140, 20), K(gFw.copy().act("legl"), 170, 120), ...backSteps(gFw, 0.3, "r")],
-      "Passo scivolato e laterale di gamba avanti dalla guardia destra");
+    mv("taekwondo.slideYop", "Passo scivolato e laterale di gamba avanti: il calcio d'arresto",
+      [K(g, 250, 60), slideIn, K(ypChS, 140, 20), K(ypExS, 140, 180), K(ypChS, 140, 20), K(gFw.copy().act("legl"), 170, 120), ...backSteps(gFw, 0.3, "r")]);
     const ypChL = sidePose(gHop, "l", "chamber");
     const ypExL = sidePose(gHop, "l", "ext", 1.0);
     mv("taekwondo.yopFront", "Laterale veloce di gamba avanti: caricamento e spinta in un tempo", [K(g, 230, 60), K(gHop.copy().act("legr"), 120, 0), K(ypChL, 120, 10), K(ypExL, 130, 160), K(ypChL, 120, 10), K(gHop, 130, 40), K(g, 200, 220)]);
@@ -332,15 +331,13 @@
     const punchFront = (b0) => b0.copy().turn(-8).shift(0.04).straight("l", [0.72 + b0.p.o[0], 1.12, -0.02]).act("arml");
     // la stessa posa in guardia destra, avanzata di 0,48 (dopo un calcio appoggiato avanti)
     const fwdD = (b) => b.copy().mirror().move(0.48, 0);
-    both("taekwondo.punchBody", "Momtong jireugi in guardia: pugno dritto al corpo con la mano dietro, l'anca spinge",
-      [K(g, 250, 80), K(punchRear(g), 150, 220), K(g, 200, 250)], "Pugno al corpo con la mano dietro dalla guardia destra");
 
     /* ---------------------------------------------------------------- calcio all'indietro (dwi chagi) */
     function backPose(base, s, phase, H = 1.0) { return base.copy().kick(s, "back", phase, H, { arms: "low" }).act("leg" + s); }
     const lookOver = (base) => base.copy().twist(-18).look(-75).act("head");
     // dwi chagi di gamba dietro da una guardia sinistra "base": testa, perno, tallone dritto, atterraggio avanti
     // in guardia destra, poi il piede avanti torna dietro (giro completo: alla fine la posa e' identica a "base")
-    function dwiFrames(base, H = 1.0) {
+    function dwiFrames(base, H = 1.0, quiet = false) {
       const lx = base.p.foot.l[0];
       const lz = base.p.foot.l[2];
       const ch = about(backPose(base, "r", "chamber"), -20, lx, lz);
@@ -348,7 +345,8 @@
       const re = about(backPose(base, "r", "chamber"), -60, lx, lz);
       const land = yawAdd(fwdD(base), -360);
       const home = yawAdd(base.copy(), -360);
-      return [K(base, 260, 60), K(lookOver(base), 150, 10), K(ch, 170, 20), K(ex, 150, 200), K(re, 150, 10), K(land.copy().act("legr"), 180, 220), ...stepHome(land, home, "r"), K(base, 0, 150)];
+      const lk = quiet ? lookOver(base).act() : lookOver(base);
+      return [K(base, 260, 60), K(lk, 150, 10), K(ch, 170, 20), K(ex, 150, 200), K(re.act(), 150, 10), K(land.copy().act("legr"), 180, 220), ...stepHome(land, home, "r"), K(base, 0, 150)];
     }
     const dwChB = about(backPose(g, "r", "chamber"), -20, g.p.foot.l[0], g.p.foot.l[2]);
     both("taekwondo.dwiChagi", "Dwi chagi: la testa gira, perno, tallone dritto al bersaglio, atterraggio avanti",
@@ -405,7 +403,7 @@
     mv("taekwondo.chairHookExt", "Alla sedia: la gamba si distende poco a lato del bersaglio, all'altezza della coscia", [K(onChairR(g), 300, 150), K(onChairR(huCh0), 320, 300), K(onChairR(huEx0), 350, 1000), K(onChairR(huCh0), 320, 150), K(onChairR(g), 320, 250)]);
     mv("taekwondo.slideHookChamber", "Passo scivolato e caricamento della gamba avanti come per il laterale", [K(g, 250, 60), slideIn, K(huChS, 180, 900), K(gSl, 220, 60), K(g, 250, 250)]);
     mv("taekwondo.huryeoSlow", "Huryeo lento: gamba distesa oltre il bersaglio, poi il tallone aggancia in orizzontale", [K(g, 250, 60), K(gHop.copy().act("legr"), 150, 0), K(huCh, 220, 200), K(huEx, 280, 500), K(huHk, 260, 600), K(huCh, 250, 100), K(gHop, 180, 40), K(g, 250, 250)]);
-    function dwiHuryeoFrames(base, H = 1.1) {
+    function dwiHuryeoFrames(base, H = 1.1, quiet = false) {
       const lx = base.p.foot.l[0];
       const lz = base.p.foot.l[2];
       const ch = about(backPose(base, "r", "chamber"), -20, lx, lz);
@@ -414,7 +412,8 @@
       const home = yawAdd(base.copy(), -360);
       const fol = landMid(hk, home);
       fol.p.foot.r = add(fol.p.foot.r, [0, 0.2, 0]);
-      return [K(base, 260, 60), K(lookOver(base), 150, 10), K(ch, 170, 10), K(ex, 160, 20), K(hk, 130, 160), K(fol.act("legr"), 170, 10), K(home.act("legr"), 180, 250), K(base, 0, 150)];
+      const lk = quiet ? lookOver(base).act() : lookOver(base);
+      return [K(base, 260, 60), K(lk, 150, 10), K(ch, 170, 10), K(ex, 160, 20), K(hk, 130, 160), K(fol.act(), 170, 10), K(home, 180, 250), K(base, 0, 150)];
     }
     both("taekwondo.dwiHuryeo", "Dwi huryeo chagi: giro, gamba oltre il bersaglio, aggancio di tallone e atterraggio in guardia",
       dwiHuryeoFrames(g), "Dwi huryeo chagi dalla guardia destra: calcia la gamba sinistra");
@@ -457,13 +456,14 @@
     mv("taekwondo.tuckJump", "Salto raccolto basso: ginocchia al petto, atterraggio morbido e un secondo di stop", [K(par, 250, 60), K(parDn, 200, 30), K(tj, 180, 40), K(parDn.copy().sink(0.04).act("legl", "legr"), 180, 900), K(par, 280, 200)]);
 
     /* ---------------------------------------------------------------- doppio circolare alternato (narae chagi) */
-    function naraeFrames(base) {
+    function naraeFrames(base, quiet = false) {
       const bD = fwdD(base);
       const c1 = air(bandalCh(base, "r", 15), 0.03);
       const e1 = roundPose(base, "r", "ext", 1.05, BND);
       const c2 = air(bandalCh(bD, "l", -15), 0.02);
       const e2 = roundPose(bD, "l", "ext", 1.05, BND);
-      return [K(base, 240, 50), K(c1, 140, 0), K(e1, 110, 60), K(c2, 120, 0), K(e2, 110, 120), K(bD.copy().act("legl"), 160, 200), ...stepHome(bD, base, "r")];
+      if (quiet) { c1.act(); c2.act(); }
+      return [K(base, 240, 50), K(c1, 140, 0), K(e1, 110, 60), K(c2, 120, 0), K(e2, 110, 120), K(bD.copy().act(), 160, 200), ...stepHome(bD, base, "r")];
     }
     both("taekwondo.naraeChagi", "Narae chagi: due bandal a gambe alternate, il secondo parte mentre il primo piede scende",
       naraeFrames(g), "Narae chagi dalla guardia destra");
@@ -493,51 +493,51 @@
     /* ---------------------------------------------------------------- combinazioni */
     // calcio di gamba dietro che appoggia avanti (in guardia destra) e frame di uscita
     const bnD = { ch: bandalCh(gDF, "l", -15), ex: roundPose(gDF, "l", "ext", 1.05, BND) };
-    const landD = K(gDF.copy().act("legr"), 190, 120);
+    const R = (b, t, h) => K(b.copy().act(), t, h); // ritorno: fotogramma di passaggio
+    const landD = R(gDF, 190, 120);
     const home = stepHome(gDF, g, "r");
     both("taekwondo.apPunch", "Ap chagi che appoggia avanti e, nello stesso istante, pugno al corpo con la mano dietro",
-      [K(g, 260, 80), K(apCh, 170, 20), K(apEx, 140, 140), K(apCh, 130, 10), K(fwdD(punchRear(g)), 190, 300), K(gDF, 180, 200), ...home],
+      [K(g, 260, 80), K(apCh, 170, 20), K(apEx, 140, 140), R(apCh, 130, 10), K(fwdD(punchRear(g)), 190, 300), K(gDF, 180, 200), ...home],
       "Ap chagi e pugno dalla guardia destra");
-    mv("taekwondo.apPunch2", "Ap chagi, appoggio avanti, due pugni al corpo e uscita con un passo indietro", [K(g, 260, 80), K(apCh, 170, 20), K(apEx, 140, 140), K(apCh, 130, 10), K(fwdD(punchRear(g)), 190, 150), K(gDF, 130, 20), K(fwdD(punchFront(g)), 140, 200), K(gDF, 160, 100), ...home]);
+    mv("taekwondo.apPunch2", "Ap chagi, appoggio avanti, due pugni al corpo e uscita con un passo indietro", [K(g, 260, 80), K(apCh, 170, 20), K(apEx, 140, 140), R(apCh, 130, 10), K(fwdD(punchRear(g)), 190, 150), K(gDF, 130, 20), K(fwdD(punchFront(g)), 140, 200), K(gDF, 160, 100), ...home]);
     both("taekwondo.comboApBandal", "Ap chagi di gamba dietro, appoggio avanti, bandal con l'altra gamba e passo indietro",
-      [K(g, 250, 60), K(apCh, 160, 10), K(apEx, 130, 120), K(apCh, 120, 0), landD, K(bnD.ch, 140, 0), K(bnD.ex, 120, 140), K(bnD.ch, 120, 0), K(gDF, 150, 100), ...home],
+      [K(g, 250, 60), K(apCh, 160, 10), K(apEx, 130, 120), R(apCh, 120, 0), landD, K(bnD.ch, 140, 0), K(bnD.ex, 120, 140), R(bnD.ch, 120, 0), K(gDF, 150, 100), ...home],
       "Ap chagi e bandal dalla guardia destra");
     const bnF = { ch: bandalCh(gFw, "r", 15), ex: roundPose(gFw, "r", "ext", 1.05, BND) };
     both("taekwondo.comboSlideBandal", "Bandal di gamba avanti con passo scivolato, appoggio, subito bandal di gamba dietro",
-      [K(g, 250, 60), slideIn, K(bnChS, 120, 0), K(bnExS, 120, 120), K(bnChS, 110, 0), K(gFw.copy().act("legl"), 150, 20), K(bnF.ch, 140, 0), K(bnF.ex, 120, 140), K(bnF.ch, 120, 0), K(gFw, 150, 80), ...backSteps(gFw, 0.3, "r")],
+      [K(g, 250, 60), slideIn, K(bnChS, 120, 0), K(bnExS, 120, 120), R(bnChS, 110, 0), K(gFw.copy().act("legl"), 150, 20), K(bnF.ch, 140, 0), K(bnF.ex, 120, 140), R(bnF.ch, 120, 0), K(gFw, 150, 80), ...backSteps(gFw, 0.3, "r")],
       "Gamba avanti e gamba dietro dalla guardia destra");
     both("taekwondo.comboBandalPunch", "Bandal di gamba dietro, appoggio avanti, pugno al corpo, bandal con l'altra gamba",
-      [K(g, 250, 60), K(bnCh, 150, 0), K(bnEx, 120, 120), K(bnCh, 120, 0), K(fwdD(punchRear(g)), 180, 160), K(gDF, 130, 0), K(bnD.ch, 140, 0), K(bnD.ex, 120, 140), K(bnD.ch, 120, 0), K(gDF, 150, 100), ...home],
+      [K(g, 250, 60), R(bnCh, 150, 0), K(bnEx, 120, 120), R(bnCh, 120, 0), K(fwdD(punchRear(g)), 180, 160), K(gDF, 130, 0), K(bnD.ch, 140, 0), K(bnD.ex, 120, 140), R(bnD.ch, 120, 0), K(gDF, 150, 100), ...home],
       "Bandal, pugno e bandal dalla guardia destra");
-    both("taekwondo.bandalSwitch", "Bandal che appoggia avanti cambiando guardia, poi bandal con l'altra gamba",
-      [K(g, 250, 60), K(bnCh, 150, 0), K(bnEx, 120, 120), K(bnCh, 120, 0), landD, K(bnD.ch, 140, 0), K(bnD.ex, 120, 140), K(bnD.ch, 120, 0), K(gDF, 150, 100), ...home],
-      "Bandal alternati dalla guardia destra");
-    mv("taekwondo.bandalAlt", "Bandal alternati destro e sinistro alla massima velocità, sempre di ritorno in guardia", [K(g, 220, 40), K(bnCh, 120, 0), K(bnEx, 100, 80), K(bnCh, 100, 0), K(g, 130, 20), K(air(gHop.copy(), 0.03), 100, 0), K(bnChL, 100, 0), K(bnExL, 100, 80), K(bnChL, 100, 0), K(g, 160, 200)]);
+    mv("taekwondo.bandalSwitch", "Bandal che appoggia avanti cambiando guardia, poi bandal con l'altra gamba",
+      [K(g, 250, 60), K(bnCh, 150, 0), K(bnEx, 120, 120), R(bnCh, 120, 0), landD, K(bnD.ch, 140, 0), K(bnD.ex, 120, 140), R(bnD.ch, 120, 0), K(gDF, 150, 100), ...home]);
+    mv("taekwondo.bandalAlt", "Bandal alternati destro e sinistro alla massima velocità, sempre di ritorno in guardia", [K(g, 220, 40), K(bnCh, 120, 0), K(bnEx, 100, 80), R(bnCh, 100, 0), K(g, 130, 20), K(air(gHop.copy(), 0.03), 100, 0), K(bnChL, 100, 0), K(bnExL, 100, 80), R(bnChL, 100, 0), K(g, 160, 200)]);
     // difesa e risposta
     const outBlock = g.copy().turn(12).handRel("r", 0.16, -0.06, 0.2, "fist").elbow("r", [0, -1, 0.15]).act("armr");
     both("taekwondo.bakkatBandal", "Parata corta: momtong bakkat makki con il braccio dietro, gomito sulle costole, subito bandal",
-      [K(g, 250, 60), K(outBlock, 140, 220), K(bnCh, 150, 0), K(bnEx, 120, 140), K(bnCh, 120, 10), K(g, 180, 240)],
+      [K(g, 250, 60), K(outBlock, 140, 220), K(bnCh, 150, 0), K(bnEx, 120, 140), R(bnCh, 120, 10), K(g, 180, 240)],
       "Parata esterna e bandal dalla guardia destra");
     const gB15 = g.copy().move(-0.15);
     const lowBlock = gB15.copy().turn(-8).handRel("l", 0.3, -0.45, -0.06, "fist").elbow("l", [0, -1, -0.4]).act("arml", "legr");
     const bnB = { ch: bandalCh(gB15, "r", 15), ex: roundPose(gB15, "r", "ext", 1.05, BND) };
-    mv("taekwondo.araeCounter", "Contro il frontale: passo indietro con arae makki, poi pugno al corpo e bandal", [K(g, 250, 60), K(lowBlock, 180, 200), K(punchRear(gB15), 150, 120), K(gB15, 120, 0), K(bnB.ch, 140, 0), K(bnB.ex, 120, 140), K(bnB.ch, 120, 10), K(gB15, 160, 120), K(g, 250, 200)]);
+    mv("taekwondo.araeCounter", "Contro il frontale: passo indietro con arae makki, poi pugno al corpo e bandal", [K(g, 250, 60), K(lowBlock, 180, 200), K(punchRear(gB15), 150, 120), K(gB15, 120, 0), K(bnB.ch, 140, 0), K(bnB.ex, 120, 140), R(bnB.ch, 120, 10), K(gB15, 160, 120), K(g, 250, 200)]);
     const highBlock = highBlk(g.copy(), "l").act("arml");
-    mv("taekwondo.olgulYop", "Contro il calcio alto: olgul makki sopra la fronte, poi laterale di gamba avanti", [K(g, 250, 60), K(highBlock, 150, 220), K(gHop.copy().act("legr"), 120, 0), K(ypChL, 120, 10), K(ypExL, 130, 160), K(ypChL, 120, 10), K(gHop, 130, 40), K(g, 200, 220)]);
+    mv("taekwondo.olgulYop", "Contro il calcio alto: olgul makki sopra la fronte, poi laterale di gamba avanti", [K(g, 250, 60), K(highBlock, 150, 220), K(gHop.copy().act("legr"), 120, 0), K(ypChL, 120, 10), K(ypExL, 130, 160), R(ypChL, 120, 10), K(gHop, 130, 40), K(g, 200, 220)]);
     const ypF = { ch: bandalCh(gFw2, "r", 15), ex: roundPose(gFw2, "r", "ext", 1.05, BND) };
-    mv("taekwondo.yopBandal", "Laterale di gamba avanti, appoggio avanti, bandal di gamba dietro: lo fermi e lo punisci", [K(g, 240, 60), K(gHop.copy().act("legr"), 120, 0), K(ypChL, 120, 10), K(ypExL, 130, 150), K(ypChL, 120, 0), K(gFw2.copy().act("legl"), 150, 20), K(ypF.ch, 140, 0), K(ypF.ex, 120, 140), K(ypF.ch, 120, 0), K(gFw2, 150, 80), ...backSteps(gFw2, 0.2, "r")]);
+    mv("taekwondo.yopBandal", "Laterale di gamba avanti, appoggio avanti, bandal di gamba dietro: lo fermi e lo punisci", [K(g, 240, 60), K(gHop.copy().act("legr"), 120, 0), K(ypChL, 120, 10), K(ypExL, 130, 150), R(ypChL, 120, 0), K(gFw2.copy().act("legl"), 150, 20), K(ypF.ch, 140, 0), K(ypF.ex, 120, 140), R(ypF.ch, 120, 0), K(gFw2, 150, 80), ...backSteps(gFw2, 0.2, "r")]);
     both("taekwondo.slideYopBandal", "Laterale di gamba avanti con passo scivolato, appoggio, bandal di gamba dietro",
-      [K(g, 240, 60), slideIn, K(ypChS, 130, 10), K(ypExS, 130, 150), K(ypChS, 120, 0), K(gFw.copy().act("legl"), 150, 20), K(bnF.ch, 140, 0), K(bnF.ex, 120, 140), K(bnF.ch, 120, 0), K(gFw, 150, 80), ...backSteps(gFw, 0.3, "r")],
+      [K(g, 240, 60), slideIn, K(ypChS, 130, 10), K(ypExS, 130, 150), R(ypChS, 120, 0), K(gFw.copy().act("legl"), 150, 20), K(bnF.ch, 140, 0), K(bnF.ex, 120, 140), R(bnF.ch, 120, 0), K(gFw, 150, 80), ...backSteps(gFw, 0.3, "r")],
       "Laterale e bandal dalla guardia destra");
     const axDf = { k: axePose(gDF, "l", "knee"), t: axePose(gDF, "l", "top"), d: axePose(gDF, "l", "down") };
     both("taekwondo.comboBandalNaeryo", "Bandal di gamba dietro, appoggio avanti, ascia con l'altra gamba",
-      [K(g, 250, 60), K(bnCh, 150, 0), K(bnEx, 120, 120), K(bnCh, 120, 0), landD, K(axDf.k, 160, 20), K(axDf.t, 160, 60), K(axDf.d, 180, 100), K(gDF.copy().act("legl"), 180, 120), ...home],
+      [K(g, 250, 60), R(bnCh, 150, 0), K(bnEx, 120, 120), R(bnCh, 120, 0), landD, K(axDf.k, 160, 20), K(axDf.t, 160, 60), K(axDf.d, 180, 100), R(gDF, 180, 120), ...home],
       "Bandal e ascia dalla guardia destra");
-    mv("taekwondo.comboNaeryoPunch", "Passo scivolato, ascia di gamba avanti, appoggio, doppio pugno al corpo e uscita", [K(g, 250, 60), slideIn, K(axKS, 150, 20), K(axTS, 150, 50), K(axDS, 170, 100), K(gFw.copy().act("legl"), 170, 20), K(punchRear(gFw), 140, 80), K(gFw, 100, 0), K(punchFront(gFw), 130, 160), K(gFw, 150, 80), ...backSteps(gFw, 0.3, "r")]);
+    mv("taekwondo.comboNaeryoPunch", "Passo scivolato, ascia di gamba avanti, appoggio, doppio pugno al corpo e uscita", [K(g, 250, 60), R(gSl, 170, 0), R(axKS, 150, 20), K(axTS, 150, 50), K(axDS, 170, 100), R(gFw, 170, 20), K(punchRear(gFw), 140, 80), K(gFw, 100, 0), K(punchFront(gFw), 130, 160), K(gFw, 150, 80), ...backSteps(gFw, 0.3, "r")]);
     const bnSw = mirrorFrames(bnFr());
     mv("taekwondo.switchBandal", "Cambio di guardia saltato e subito bandal con la gamba che è diventata dietro", [K(g, 220, 60), K(swAir, 150, 0), K(gD, 150, 40), ...bnSw.slice(1, 4), K(gD, 160, 60), K(swAir, 150, 0), K(g, 150, 240)]);
     const msF = { ch: bandalCh(gFw2, "r", 15), ex: roundPose(gFw2, "r", "ext", 1.05, BND) };
-    mv("taekwondo.mireoBandal", "Mireo che spinge lontano, poi bandal di gamba dietro quando l'avversario torna", [K(g, 250, 80), K(gHop.copy().act("legr"), 140, 0), K(msCh, 150, 40), K(msEx, 160, 240), K(msCh, 140, 20), K(gFw2.copy().act("legl"), 170, 250), K(msF.ch, 140, 0), K(msF.ex, 120, 150), K(msF.ch, 120, 0), K(gFw2, 150, 80), ...backSteps(gFw2, 0.2, "r")]);
+    mv("taekwondo.mireoBandal", "Mireo che spinge lontano, poi bandal di gamba dietro quando l'avversario torna", [K(g, 250, 80), K(gHop.copy().act("legr"), 140, 0), K(msCh, 150, 40), K(msEx, 160, 240), R(msCh, 140, 20), K(gFw2.copy().act("legl"), 170, 250), K(msF.ch, 140, 0), K(msF.ex, 120, 150), R(msF.ch, 120, 0), K(gFw2, 150, 80), ...backSteps(gFw2, 0.2, "r")]);
     const gB30 = g.copy().move(-0.3);
     mv("taekwondo.backNarae", "Passo indietro lungo e subito doppio mentre l'avversario continua ad avanzare", [K(g, 250, 60), K(g.copy().step("r", -0.3).shift(-0.15).act("legr"), 180, 0), K(gB30.copy().act("legl"), 160, 40), ...naraeFrames(gB30).slice(1)]);
     const io1 = g.copy().step("r", 0.25).heel("r", 22).shift(0.12).act("legr");
@@ -549,14 +549,14 @@
     const angT = about(g.copy().move(0.04, -0.26), -55, 0.28, -0.3).act("legr", "torso");
     mv("taekwondo.angleStep", "Angolo: il piede avanti fa un passo di lato e il corpo ruota, l'avversario resta fuori linea", [K(g, 250, 60), K(angS, 200, 30), K(angT, 250, 500), K(g, 380, 250)]);
     const fk = bandalCh(gHop, "l", -85);
-    const feint = [K(g, 240, 60), K(gHop.copy().act("legr"), 110, 0), K(fk, 130, 120), K(g.copy().act("legl"), 150, 30)];
-    both("taekwondo.feintDwi", "Finta di bandal di gamba avanti (sale solo il ginocchio), appoggio e subito dwi chagi", [...feint, ...dwiFrames(g).slice(1)], "Finta di gamba avanti e dwi chagi dalla guardia destra");
-    mv("taekwondo.feintDwiHuryeo", "Finta di gamba avanti, appoggio e dwi huryeo con la gamba dietro", [...feint, ...dwiHuryeoFrames(g).slice(1)]);
-    const dwiD = mirrorFrames(dwiFrames(g.copy().move(0.48))); // dwi con la gamba sinistra dalla guardia destra avanzata
-    mv("taekwondo.naraeDwi", "Doppio alternato, atterraggio e dwi chagi: lo raggiungi girando mentre arretra", [...naraeFrames(g).slice(0, 6), ...dwiD.slice(1), ...home]);
-    mv("taekwondo.bandalDwi", "Bandal di gamba dietro, appoggio avanti, dwi chagi con l'altra gamba", [K(g, 250, 60), K(bnCh, 150, 0), K(bnEx, 120, 120), K(bnCh, 120, 0), landD, ...dwiD.slice(1), ...home]);
+    const feint = [K(g, 240, 60), R(gHop, 110, 0), K(fk, 130, 120), R(g, 150, 30)];
+    both("taekwondo.feintDwi", "Finta di bandal di gamba avanti (sale solo il ginocchio), appoggio e subito dwi chagi", [...feint, ...dwiFrames(g, 1.0, true).slice(1)], "Finta di gamba avanti e dwi chagi dalla guardia destra");
+    mv("taekwondo.feintDwiHuryeo", "Finta di gamba avanti, appoggio e dwi huryeo con la gamba dietro", [...feint, ...dwiHuryeoFrames(g, 1.1, true).slice(1)]);
+    const dwiD = mirrorFrames(dwiFrames(g.copy().move(0.48), 1.0, true)); // dwi con la gamba sinistra dalla guardia destra avanzata
+    mv("taekwondo.naraeDwi", "Doppio alternato, atterraggio e dwi chagi: lo raggiungi girando mentre arretra", [...naraeFrames(g, true).slice(0, 6), ...dwiD.slice(1), ...home]);
+    mv("taekwondo.bandalDwi", "Bandal di gamba dietro, appoggio avanti, dwi chagi con l'altra gamba", [K(g, 250, 60), R(bnCh, 150, 0), K(bnEx, 120, 120), R(bnCh, 120, 0), landD, ...dwiD.slice(1), ...home]);
     const huF = { ch: bandalCh(gFw, "r", 15), ex: roundPose(gFw, "r", "ext", 1.05, BND) };
-    mv("taekwondo.huryeoBandal", "Huryeo di gamba avanti con passo scivolato, appoggio, bandal di gamba dietro", [K(g, 250, 60), slideIn, K(huChS, 130, 10), K(huExS, 130, 30), K(huHkS, 110, 140), K(huChS, 120, 0), K(gFw.copy().act("legl"), 150, 20), K(huF.ch, 140, 0), K(huF.ex, 120, 140), K(huF.ch, 120, 0), K(gFw, 150, 80), ...backSteps(gFw, 0.3, "r")]);
+    mv("taekwondo.huryeoBandal", "Huryeo di gamba avanti con passo scivolato, appoggio, bandal di gamba dietro", [K(g, 250, 60), R(gSl, 170, 0), R(huChS, 130, 10), K(huExS, 130, 30), K(huHkS, 110, 140), R(huChS, 120, 0), R(gFw, 150, 20), K(huF.ch, 140, 0), K(huF.ex, 120, 140), R(huF.ch, 120, 0), K(gFw, 150, 80), ...backSteps(gFw, 0.3, "r")]);
     /* ---------------------------------------------------------------- forme: posizioni e tecniche di braccia */
     const charyeot = st().foot("l", 0, -0.07, 12, 0).foot("r", 0, 0.07, -12, 0).handRel("l", 0.02, -0.52, -0.23, "fist").handRel("r", 0.02, -0.52, 0.23, "fist");
     const junbi = ready().foot("l", 0, -0.15, 4, 0).foot("r", 0, 0.15, -4, 0);
@@ -619,7 +619,7 @@
     // due laterali consecutivi: il primo appoggia avanti prima del secondo
     const ypD = { ch: sidePose(gDF, "l", "chamber"), ex: sidePose(gDF, "l", "ext", 1.0) };
     const g96 = g.copy().move(0.96);
-    mv("taekwondo.doubleYop", "Due laterali consecutivi: il primo appoggia avanti, subito il secondo con l'altra gamba", [K(g, 260, 80), K(ypCh, 200, 30), K(ypEx, 170, 180), K(ypCh, 160, 10), K(gDF.copy().act("legr"), 190, 60), K(ypD.ch, 190, 30), K(ypD.ex, 170, 180), K(ypD.ch, 160, 10), K(g96.copy().act("legl"), 190, 120), ...backSteps(g96, 0.48, "r"), ...backSteps(g.copy().move(0.48), 0.48, "r")]);
+    mv("taekwondo.doubleYop", "Due laterali consecutivi: il primo appoggia avanti, subito il secondo con l'altra gamba", [K(g, 260, 80), K(ypCh, 200, 30), K(ypEx, 170, 180), K(ypCh, 160, 10), K(gDF.copy().act(), 190, 60), K(ypD.ch, 190, 30), K(ypD.ex, 170, 180), K(ypD.ch, 160, 10), K(g96.copy().act(), 190, 120), ...backSteps(g96, 0.48, "r"), ...backSteps(g.copy().move(0.48), 0.48, "r")]);
     // O Jang
     const oen = st().foot("l", 0.26, -0.02, -5, 0).foot("r", -0.26, 0.06, -88, 0);
     oen.set("pel", [-0.02, 0.92, 0.01]).set("hipYaw", -45).set("chestYaw", -55).set("chest", [-0.01, 1.42, 0.01]).set("head", [0.02, 1.62, 0]).look(45).hikite("l").hikite("r");
@@ -810,6 +810,6 @@
     f4.handW("l", -0.02, 0.4, -0.16, "open").handW("r", -0.04, 0.36, 0.06, "open");
     mv("taekwondo.figure4", "Figura 4: sdraiato, caviglia sopra il ginocchio opposto, tira piano la coscia verso il petto", [K(lieBack({ kneesUp: true }), 300, 150), K(f4.act("legl", "legr"), 800, 1500), K(lieBack({ kneesUp: true }), 700, 200)]);
 
-    mv("taekwondo.mireoDwiHuryeo","Mireo di gamba avanti per fermare, appoggio, dwi huryeo con la gamba dietro", [K(g, 250, 80), K(gHop.copy().act("legr"), 140, 0), K(msCh, 150, 40), K(msEx, 160, 220), K(msCh, 140, 20), K(gFw2.copy().act("legl"), 170, 60), ...dwiHuryeoFrames(gFw2).slice(1), ...backSteps(gFw2, 0.2, "r")]);
+    mv("taekwondo.mireoDwiHuryeo","Mireo di gamba avanti per fermare, appoggio, dwi huryeo con la gamba dietro", [K(g, 250, 80), K(gHop.copy().act("legr"), 140, 0), R(msCh, 150, 40), K(msEx, 160, 220), R(msCh, 140, 20), R(gFw2, 170, 60), ...dwiHuryeoFrames(gFw2, 1.1, true).slice(1), ...backSteps(gFw2, 0.2, "r")]);
   });
 })(typeof window !== "undefined" ? window : globalThis);

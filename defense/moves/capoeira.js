@@ -1,7 +1,7 @@
 /*
  * Progetto A - Difesa: movimenti della capoeira (prefisso "capoeira.").
  * Posizione di base: la ginga con il destro dietro (G0) e il braccio destro davanti al viso.
- * La ginga completa e' G0 -> G1 (base parallela) -> G2 (sinistro dietro) -> G1 -> G0.
+ * La ginga completa è G0 -> G1 (base parallela) -> G2 (sinistro dietro) -> G1 -> G0.
  */
 (function (root) {
   "use strict";
@@ -265,7 +265,7 @@
     mv("capoeira.armadaGiro", "Giro dell'armada senza calcio: passo incrociato, testa, perno sull'avampiede", giroF);
     mv("capoeira.armadaGiroL", "Giro dell'armada dall'altro lato, sul sinistro", otherSide(giroF));
     mv("capoeira.armadaHalf", "Giro dell'armada lento con una pausa a metà per l'equilibrio", giroF.map((f, i) => K(f.p, f.t ? f.t + 120 : 0, i === 2 ? 1100 : f.h, f.act)));
-    mv("capoeira.armadaCross", "Il destro passa davanti al sinistro, incrociato, punta girata a sinistra", [K(G0, 300, 100), giroF[1], K(giroF[1].p, 0, 700), K(G0, 330, 200)]);
+    mv("capoeira.armadaCross", "Il destro passa davanti al sinistro, incrociato, punta girata a sinistra", [K(G0, 300, 100), K(giroF[1].p, 260, 900, giroF[1].act), K(G0, 330, 200)]);
     mv("capoeira.armadaLook", "Dal passo incrociato la testa gira e guarda sopra la spalla sinistra", [K(G0, 300, 100), giroF[1], K(giroF[2].p, 300, 900, ["head"]), giroF[1], K(G0, 330, 200)]);
 
     /* ---------------------------------------------------------------- meia lua de compasso (giro verso destra sul sinistro) */
@@ -410,11 +410,12 @@
     const wheelify = (b) => b.copy().set("hipYaw", b.p.hipYaw + 90).set("chestYaw", b.p.chestYaw + 90).set("hipRoll", -90).set("chestRoll", -90);
     const QH = wheelify(C).set("chest", [0.18, 0.46, 0.2]).set("head", [0.25, 0.62, 0.25]).handW("r", 0.12, 0.035, 0.3, "open").handW("l", 0.22, 0.035, 0.07, "open").elbow("r", [-0.3, 0, 1]).elbow("l", [-0.3, 0, 1]);
     function queda(full, legsOut) {
-      const b = wheel(105, [0, full ? 0.47 : 0.43, -0.05]);
-      b.handW("r", 0.08, 0.035, 0.18, "open").elbow("r", [0, 1, -0.75]).handW("l", 0.13, 0.035, 0.5, "open").elbow("l", [-0.2, 0.3, 1]);
+      const b = wheel(full ? 115 : 103, [0, full ? 0.5 : 0.43, -0.05]);
+      if (full) b.handW("r", 0.06, 0.035, 0.12, "open").elbow("r", [0, 1, -0.8]).handW("l", 0.1, 0.035, 0.5, "open").elbow("l", [-0.2, 0.3, 1]);
+      else b.handW("r", 0.08, 0.035, 0.18, "open").elbow("r", [0, 1, -0.75]).handW("l", 0.13, 0.035, 0.5, "open").elbow("l", [-0.2, 0.3, 1]);
       if (!full) b.foot("r", 0.04, 0.12, -10, 20).foot("l", 0.04, -0.16, 10, 20).knee("r", [1, 0.3, 0]).knee("l", [1, 0.3, 0]);
-      else if (!legsOut) { const hr = b.hip("r"); const hl = b.hip("l"); b.footW("r", add(hr, [0.16, 0.06, -0.3]), 0, 30).footW("l", add(hl, [0.18, 0.08, -0.28]), 0, 30).knee("r", [1, 0, 0.6]).knee("l", [1, 0.2, 0.6]); }
-      else { legTo(b, "r", [0.25, 0.15, -0.95], 0.97, 0, -10); legTo(b, "l", [0.3, 0.3, -0.9], 0.97, 0, -10); b.knee("r", [0, 1, 0]).knee("l", [0, 1, 0]); }
+      else if (!legsOut) { const hr = b.hip("r"); const hl = b.hip("l"); b.footW("r", add(hr, [0.2, 0.07, -0.16]), 0, 30).footW("l", add(hl, [0.22, 0.08, -0.14]), 0, 30).knee("r", [0.8, -0.25, 0.55]).knee("l", [0.8, -0.1, 0.55]); }
+      else { legTo(b, "r", [0.28, 0.4, -0.9], 0.97, 0, -10); legTo(b, "l", [0.3, 0.55, -0.82], 0.97, 0, -10); b.knee("r", [0, 1, 0]).knee("l", [0, 1, 0]); }
       return b;
     }
     const QP = queda(false);
@@ -646,7 +647,7 @@
     mv("capoeira.lateralMartelo", "Esquiva lateral a destra, poi martelo con la gamba sinistra, quella distesa", [
       K(G0, 300, 100), K(G1w, 300, 60), K(LT, 330, 500), K(mL(martCh), 280, 40), K(mL(martEx), 160, 220), K(mL(martCh), 160, 40), K(G2, 240, 80), K(G1, 300, 60), K(G0, 300, 200)
     ]);
-    // calci in rotazione: l'atterraggio del primo e' il passo del secondo
+    // calci in rotazione: l'atterraggio del primo è il passo del secondo
     mv("capoeira.meiaLuaArmada", "Meia lua de frente che atterra incrociata, poi subito armada", meiaLuaF.slice(0, 4).concat(armadaF.slice(1)));
     const landOff = [0.04, -0.23];
     const martAfter = [mL(martCh), mL(martEx), mL(martCh)].map((b) => spun(b.move(landOff[0], landOff[1]), 360));
@@ -721,7 +722,7 @@
     mv("capoeira.chapaChamber", "Ginocchio davanti al petto mentre il piede d'appoggio ruota, anche di profilo", [K(G0, 300, 100), K(chapCh.copy().act("legr", "legl"), 350, 1000), K(G0, 350, 200)]);
     mv("capoeira.chapaSlow", "Chapa lenta: spinta in linea retta, tieni, poi richiama", [K(G0, 300, 100), K(chapCh, 350, 200), K(chapEx, 400, 900), K(chapCh, 300, 150), K(G0, 350, 200)]);
     mv("capoeira.ponteiraChamber", "Il ginocchio sale davanti al petto con le dita del piede tirate indietro", [K(G0, 300, 100), K(pontCh, 300, 900), K(G0, 300, 200)]);
-    mv("capoeira.ponteiraAlt", "Ponteire alternate a ritmo veloce, destra e sinistra", pontFr.slice(0, 4).concat([K(G0, 200, 30), K(G1, 220, 20)], mirrorFrames(pontFr.slice(1, 4)), [K(G2, 200, 30), K(G1, 220, 20), K(G0, 220, 150)]));
+    mv("capoeira.ponteiraAlt", "Ponteiras alternate a ritmo veloce, destra e sinistra", pontFr.slice(0, 4).concat([K(G0, 200, 30), K(G1, 220, 20)], mirrorFrames(pontFr.slice(1, 4)), [K(G2, 200, 30), K(G1, 220, 20), K(G0, 220, 150)]));
     mv("capoeira.rasteiraSlide", "Dall'esquiva baixa la gamba dietro scivola avanti radente, piede a uncino", [K(G0, 300, 100), K(BX, 320, 150), K(rastA, 300, 900), K(BX, 300, 100), K(G0, 330, 200)]);
     mv("capoeira.compassoApex", "Compasso lento: il punto più alto dell'arco arriva quando sei di spalle", compF.map((f, i) => K(f.p, f.t ? f.t + 150 : 0, i === 3 ? 900 : f.h, f.act)));
     const QE = B.of(L.F.lerpPose(QH.done(), QP.done(), 0.45));

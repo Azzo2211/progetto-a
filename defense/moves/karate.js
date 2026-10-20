@@ -373,6 +373,10 @@
       q.step(sShuto, "r", { prep: pShuto, act: ["legr", "arml"], tp: 300 });
       return q.end(KB(), 200, 200);
     })());
+    const kbP = () => { const b = kok(); shutoPrep(b, "l"); return b; };
+    mv("karate.shutoPrep", "Kokutsu sinistro: mano aperta all'orecchio opposto, l'altra tesa avanti, poi il taglio", [K(KB(), 300, 200), K(kbP().act("arml", "armr"), 600, 1300), K(KB().act("arml", "armr"), 600, 900)]);
+    mv("karate.shutoUke", "Shuto uke: il taglio si ferma all'altezza della spalla, l'altra mano al plesso", [K(KB(), 300, 200), K(kbP(), 300, 120), K(KB().act("arml", "armr"), 220, 500), K(kbP(), 300, 120), K(KB().act("arml", "armr"), 220, 400)]);
+    mv("karate.shutoLineSlow", "Shuto uke lenti in kokutsu avanzando e arretrando, peso dietro", speed(MM.get("karate.shutoLine").frames.map((f) => K(B.of(f.pose), f.t, f.h)), 1.6));
     mv("karate.shutoBackLine", "Shuto uke in kokutsu arretrando, peso dietro; poi di nuovo avanti", lineBack(sShuto, null, pShuto, { start: KB() }));
     mv("karate.kokutsuStep", "Passo in kokutsu: il piede dietro passa vicino all'altro, ruota e ti siedi dietro", (() => {
       const q = new Seq(KB());
@@ -457,6 +461,7 @@
     const chairMaw = (ph, h) => { const b = kk(chairG(), "r", "round", ph, h || "mid", null, 0.03); b.p.chestYaw = Math.min(b.p.chestYaw, 20); b.p.chest = add(b.p.pel, [0.04, 0.48, 0]); b.p.head = add(b.p.chest, [0.03, 0.2, 0]); b.look(-10); b.handW("l", 0.42, 1.02, -0.18, "open").handW("r", 0.42, 1.02, 0.14, "open"); b.elbow("l", [0, -1, -0.3]).elbow("r", [0, -1, 0.3]); return b; };
     mv("karate.chairGuard", "Di fronte alla sedia, mani sullo schienale, piedi in guardia", [K(st(), 300, 200), K(chairG().act("arml", "armr"), 500, 1200), K(st(), 400, 300)]);
     mv("karate.mawashiPivot", "Ruota sull'avampiede finché il tallone punta la sedia e solleva il ginocchio di lato", [K(chairG(), 300, 200), K(cp(chairG()).fyaw("l", 30).foot("r", -0.15, 0.06, -40, 30).act("legl"), 400, 300), K(chairMaw("chamber").act("legr", "legl"), 400, 1200), K(chairG(), 450, 300)]);
+    mv("karate.mawashiChamberChair", "Caricamento alla sedia: coscia orizzontale, piede all'altezza del ginocchio, dita indietro", [K(chairG(), 300, 200), K(chairMaw("chamber").act("legr"), 450, 1600), K(chairG(), 450, 300)]);
     mv("karate.mawashiSlowChair", "Caricamento tenuto, gamba stesa lenta in orizzontale, richiamo prima di appoggiare", [K(chairG(), 300, 200), K(chairMaw("chamber").act("legr"), 450, 900), K(chairMaw("ext").act("legr"), 900, 700), K(chairMaw("recoil").act("legr"), 800, 300), K(chairG(), 450, 300)]);
 
     /* ============================================================ YOKO GERI */
@@ -613,6 +618,10 @@
     // al muro: mani appoggiate davanti, calcio verso destra
     const wallSt = () => heisoku().handW("l", 0.45, 1.3, -0.2, "open").handW("r", 0.45, 1.3, 0.2, "open").elbow("l", [0, -1, -0.4]).elbow("r", [0, -1, 0.4]);
     const wallK = (ph, h = "mid", hold) => { const b = yoko(wallSt(), ph, h, {}); b.p.chestYaw = 30; b.p.chest = add(b.p.pel, [0.08, 0.47, -0.04]); b.p.head = add(b.p.chest, [0.03, 0.2, 0]); b.look(-50); b.handW("l", 0.45, 1.3, -0.2, "open").handW("r", 0.45, 1.3, 0.12, "open").elbow("l", [0, -1, -0.4]).elbow("r", [0, -1, 0.4]); return b; };
+    // al muro: sguardo oltre la spalla e spinta del tallone dritta dietro
+    const wallBackK = (ph) => { const b = wallSt().spin(180).kick("r", "back", ph, ph === "ext" ? 0.95 : "mid", { arms: "none" }); b.spin(180); ["pel", "chest", "head"].forEach((k) => { b.p[k] = add(b.p[k], [0, -0.03, 0]); }); b.p.chestYaw = b.p.hipYaw + 150; b.look(-60); b.handW("l", 0.42, 1.27, -0.18, "open").handW("r", 0.4, 1.27, 0.16, "open").elbow("l", [0, -1, -0.4]).elbow("r", [0, -1, 0.4]); return b; };
+    mv("karate.wallLookBack", "Fronte al muro, mani al petto: guarda oltre la spalla dalla parte della gamba che calcia", [K(wallSt(), 300, 200), K(wallSt().look(-100).twist(-12).act("head"), 450, 1300), K(wallSt(), 400, 300)]);
+    mv("karate.wallUshiro", "Ginocchio al petto vicino all'altra gamba, punta in basso, tallone spinto dritto dietro", [K(wallSt(), 300, 200), K(wallBackK("chamber").act("legr"), 350, 150), K(wallBackK("ext").act("legr"), 300, 900), K(wallBackK("recoil").act("legr"), 300, 100), K(wallSt(), 350, 300)]);
     mv("karate.wallReady", "Fronte al muro, mani appoggiate all'altezza del petto, il bersaglio è di lato", [K(st(), 300, 200), K(wallSt().act("arml", "armr"), 450, 1200), K(st(), 400, 300)]);
     mv("karate.wallYokoChamber", "Ginocchio alto davanti, piede accanto al ginocchio d'appoggio, taglio verso il bersaglio", [K(wallSt(), 300, 200), K(wallK("chamber").act("legr"), 450, 1400), K(wallSt(), 450, 300)]);
     mv("karate.wallKekomi", "Spinta lenta del tallone di lato, il piede d'appoggio ruota; poi richiama e appoggia", [K(wallSt(), 300, 200), K(wallK("chamber").act("legr"), 400, 300), K(wallK("ext").act("legr", "legl"), 1200, 600), K(wallK("recoil").act("legr"), 700, 200), K(wallSt(), 400, 300)]);
@@ -943,7 +952,7 @@
       return { fr: yoiEnd(q), mid };
     }
     const tk1 = taikyoku(1); tk1.fr = compress(tk1.fr);
-    mv("karate.taikyoku1", "Taikyoku Shodan, prima metà lenta: gedan barai e oi zuki fino al primo kiai", speed(tk1.fr, 1.6));
+    mv("karate.taikyoku1", "Taikyoku Shodan, prima metà lenta: gedan barai e oi zuki fino al primo kiai", speed(tk1.fr, 1.4));
     const tkFull = taikyoku(3); tkFull.fr = compress(tkFull.fr);
     // seconda metà: dalla posa del primo kiai fino allo yoi finale
     const secondHalf = tkFull.fr.slice(tk1.fr.length - 1);
@@ -1197,6 +1206,6 @@
     mv("karate.heianGodan", "Heian Godan completo: movimento lento, mikazuki ed empi, salto in kosa dachi, manji uke", speed(hg.fr, 0.58));
     ZLEN = 0.9;
     // un gesto firma di ogni Heian, di fila
-    mv("karate.heianSeries", "I cinque Heian in serie: un passaggio di ognuno, con lo yoi tra un kata e l'altro", [K(yoi(), 300, 300), ...speed(hs1.fr.slice(hs1.n1 - 7, hs1.n1), 0.8).slice(0, 4), K(yoi(), 350, 300), K(stackL(heisoku().look(-80)), 250, 80), K(ykExt().act("legr", "armr"), 200, 250), K(yoi(), 350, 300), ...fumiR(0.9).slice(1, 4), K(yoi(), 350, 300), K(kosaUr().act("armr", "torso", "head"), 300, 400), K(yoi(), 350, 300), K(kosaJ(0).act("legl", "legr", "arml", "armr"), 300, 400), K(yoi(), 350, 400)]);
+    mv("karate.heianSeries", "Nidan, Sandan, Yondan e Godan in serie: un passaggio di ognuno, con lo yoi in mezzo", [K(yoi(), 300, 300), K(stackL(heisoku().look(-80)), 250, 80), K(ykExt().act("legr", "armr"), 200, 250), K(yoi(), 350, 300), ...fumiR(0.9).slice(1, 4), K(yoi(), 350, 300), K(kosaUr().act("armr", "torso", "head"), 300, 400), K(yoi(), 350, 300), K(kosaJ(0).act("legl", "legr", "arml", "armr"), 300, 400), K(yoi(), 350, 400)]);
   });
 })(typeof window !== "undefined" ? window : globalThis);
