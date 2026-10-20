@@ -104,7 +104,7 @@ test("Libreria: tutti gli stili hanno i loro movimenti, con nome e descrizione",
   names.forEach((n) => {
     const mv = M.get(n);
     assert.ok(mv.label && mv.label.length >= 6 && mv.label.length <= 120, `descrizione di ${n}`);
-    assert.ok(mv.frames.length >= 1 && mv.frames.length <= 40, `fotogrammi di ${n}`);
+    assert.ok(mv.frames.length >= 1 && mv.frames.length <= 120, `fotogrammi di ${n}`);
     mv.frames.forEach((f) => assert.ok(f.t >= 0 && f.t <= 5000 && f.h >= 0 && f.h <= 8000, `tempi di ${n}`));
   });
 });

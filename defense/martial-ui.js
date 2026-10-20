@@ -388,7 +388,9 @@
         demo.steps.forEach((st) => { st.label = String(st.label).replace(/"([^"]*)"/g, "“$1”").replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ0-9])/g, "$1’$2"); });
         if (demo.steps.length === e.steps.length) {
           const seq = demo.steps.map((st) => {
-            const keys = MM.keyFrames(st.frames, 6);
+            // passo senza movimento (prepara il telefono, annota...): niente immagini, basta il video
+            const still = st.frames.every((f) => !f.act || !f.act.length) && MM.keyFrames(st.frames, 2).length <= 1;
+            const keys = still ? [] : MM.keyFrames(st.frames, 6);
             const box = F.demoBox({ steps: [st], props: demo.props }, "tq");
             const items = keys.map((k) => {
               const f = st.frames[k];
