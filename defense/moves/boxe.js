@@ -153,7 +153,8 @@
     combo("boxe.hookFlurry", "Ganci corti alternati veloci, con la rotazione di piedi e anca", [[hook, 150, 30], [rhook, 160, 30], [hook, 150, 30], [rhook, 160, 30], [hook, 150, 30], [rhook, 160, 150]]);
 
     // montanti: piccolo piegamento delle ginocchia, poi il pugno sale davanti al centro
-    const dipL = guardUp(g.copy().sink(0.09).lean(0.03, -0.05).turn(8));
+    // caricamento: il pugno che colpisce scende davanti al petto, cosi' si vede la salita verticale
+    const dipL = guardUp(g.copy().sink(0.09).lean(0.03, -0.05).turn(8)).handRel("l", 0.2, -0.26, -0.04, "fist").elbow("l", [0, -1, -0.3]);
     function leadUpper(tx = 0.48, d = 0.27, ty = 1.46) {
       const b = g.copy().sink(0.03).lean(0.03, -0.02).turn(-16).heel("l", 16).fyaw("l", -30);
       b.hand("l", reach(b, "l", P(b, tx, ty, 0.0), d), "fist").elbow("l", [0.4, -1, -0.15]);
@@ -164,9 +165,9 @@
       b.hand("r", reach(b, "r", P(b, tx, ty, 0.0), d), "fist").elbow("r", [0.4, -1, 0.15]);
       return cheek(b, "l").act("armr", "legr");
     }
-    const upL = leadUpper();
-    const dipR = guardUp(g.copy().sink(0.09).lean(0.03, 0.05).turn(-8));
-    const upR = rearUpper();
+    const upL = leadUpper(0.5, 0.36, 1.5);
+    const dipR = guardUp(g.copy().sink(0.09).lean(0.03, 0.05).turn(-8)).handRel("r", 0.16, -0.28, 0.06, "fist").elbow("r", [0, -1, 0.3]);
+    const upR = rearUpper(0.5, 0.4, 1.5);
     mv("boxe.upper", "Montante sinistro (5): peso sul piede anteriore, l'anca ruota e il pugno sale", [K(g, 300, 150), K(dipL, 200, 80), K(upL, 180, 240), K(g, 240, 300)]);
     mv("boxe.rupper", "Montante destro (6): ginocchia piegate, il piede posteriore ruota e spinge su", [K(g, 300, 150), K(dipR, 200, 80), K(upR, 180, 240), K(g, 240, 300)]);
     mv("boxe.rupperSlow", "Montante destro lento: il pugno si ferma all'altezza del mento, braccio piegato", [K(g, 300, 200), K(dipR, 350, 250), K(upR, 450, 900), K(g, 400, 300)]);

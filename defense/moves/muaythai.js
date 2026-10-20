@@ -485,13 +485,13 @@
     const BACKSTEP = [K(kBack1, 240, 60), K(g.copy().act("legl"), 240, 200)];
     M("kneeStep", "Ginocchiata con passo: passo avanti, sali sulla punta e khao trong dietro", [G(300, 150), K(reachNeck(kStep.copy()), 220, 40), K(kStepKnee, 200, 250), K(kLand, 250, 100), ...BACKSTEP]);
     M("kneeHop", "Ginocchiata con saltello: il piede avanti stacca di pochi centimetri", [G(300, 150), K(reachNeck(kStep.copy()), 220, 40), K(kHopKnee, 180, 120), K(kStepKnee.copy().act("legl"), 150, 100), K(kLand, 250, 100), ...BACKSTEP]);
-    const flyStep = reachNeck(g.copy().step("l", 0.2).shift(0.1)).act("legl", "arml", "armr");
-    const flyPush = reachNeck(g.copy().move(0.2).sink(0.06).heel("l", 25).heel("r", 45)).act("legl", "legr");
-    const flyAir = lift(pullDown(g.copy().move(0.2).kick("r", "knee", "ext", 1.0, { arms: "none" }).footW("l", [0.2 + 0.2, 0.3, -0.12], 0, 55)).knee("l", [1, 0, 0]), 0.16);
+    const flyStep = reachNeck(g.copy().step("l", 0.1).shift(0.05)).act("legl", "arml", "armr");
+    const flyPush = reachNeck(g.copy().move(0.04).sink(0.06).heel("l", 25).heel("r", 45)).act("legl", "legr");
+    const flyAir = lift(pullDown(g.copy().move(0.04).kick("r", "knee", "ext", 1.0, { arms: "none" }).footW("l", [0.04 + 0.2, 0.3, -0.12], 0, 55)).knee("l", [1, 0, 0]), 0.16);
     flyAir.p.foot.r = add(flyAir.p.foot.r, [0.06, 0.08, 0]);
     flyAir.act("legr", "legl", "arml", "armr");
-    const flyLand = g.copy().move(0.3).heel("l", 0).sink(0.06).footAt("r", [0.3 - 0.05, 0.32, 0.12], 0, 50).knee("r", [1, 0.3, 0]).act("legl");
-    const flyLand2 = g.copy().move(0.3).act("legr");
+    const flyLand = g.copy().move(0.12).heel("l", 0).sink(0.06).footAt("r", [0.12 - 0.05, 0.32, 0.12], 0, 50).knee("r", [1, 0.3, 0]).act("legl");
+    const flyLand2 = g.copy().move(0.12).act("legr");
     const FLY = [K(flyStep, 230, 40), K(flyPush, 140, 20), K(flyAir, 180, 260), K(flyLand, 220, 120), K(flyLand2, 220, 200), K(g, 480, 200)];
     M("flyingKnee", "Khao loi: passo, stacco dal piede avanti, ginocchio dietro al petto, atterraggio morbido", [G(300, 150), ...FLY]);
     M("flyingKneeSlow", "Khao loi scomposta: passo d'entrata corto, stacco, ginocchio avanti più che in alto", [G(300, 150), K(flyStep, 350, 300), K(flyPush, 250, 200), K(flyAir, 300, 900), K(flyLand, 350, 300), K(flyLand2, 300, 200), G(550, 200)]);

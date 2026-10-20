@@ -732,12 +732,13 @@
       out.push(i);
     });
     if (out.length <= max) return out;
-    // troppi: tiene il primo e l'ultimo e sceglie gli altri distribuiti, preferendo quelli in azione
-    const keep = new Set([out[0], out[out.length - 1]]);
-    const acting = out.filter((i) => frames[i].act && frames[i].act.length && !keep.has(i));
-    const pool = acting.length >= max - 2 ? acting : out.filter((i) => !keep.has(i));
-    const need = max - 2;
-    for (let k = 0; k < need && k < pool.length; k += 1) keep.add(pool[Math.round((k * (pool.length - 1)) / Math.max(1, need - 1))]);
+    // troppi: tiene il primo e poi i fotogrammi in azione (le tecniche); i passaggi solo se avanza posto
+    const pick = (list, n) => (list.length <= n ? list : Array.from({ length: n }, (_, k) => list[Math.round((k * (list.length - 1)) / Math.max(1, n - 1))]));
+    const rest = out.slice(1);
+    const acting = rest.filter((i) => frames[i].act && frames[i].act.length);
+    const still = rest.filter((i) => !(frames[i].act && frames[i].act.length));
+    const keep = new Set([out[0], ...pick(acting, max - 1)]);
+    if (keep.size < max) pick(still, max - keep.size).forEach((i) => keep.add(i));
     return [...keep].sort((a, b) => a - b);
   }
 
