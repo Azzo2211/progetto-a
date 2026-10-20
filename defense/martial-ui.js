@@ -43,7 +43,10 @@
     pick: {},         // sessione scelta a mano oggi, per stile: { key: giorno, idx }
     swapOpen: false,  // riquadro "un altro stile oggi" aperto
     swapAt: 0,        // ultimo cambio di schermata (contro i doppi clic)
-    timerAt: 0        // ultimo comando del timer
+    timerAt: 0,       // ultimo comando del timer
+    player: null,     // il video dell'omino dell'esercizio mostrato
+    playerId: null,
+    playerState: null // dove era arrivato il video (per riprendere dopo un nuovo disegno)
   };
 
   const $ = (id) => document.getElementById(id);
@@ -230,6 +233,7 @@
   function render(focus) {
     const box = $("defPanel-martial");
     if (!box || !M) return;
+    dropDemo();
     if (!DISC.length) { box.innerHTML = `<p class="def-note">Discipline non caricate.</p>`; return; }
     const l = lab();
     const views = [["today", "Oggi"], ["week", "Settimana"], ["styles", "Stili"], ["lookism", "Lookism"], ["progress", "Progressi"]];
@@ -254,7 +258,7 @@
         ${nav}
       </div>
       ${body}`;
-    if (l.current && ui.view === "today" && !M.isStale(l)) paintTimer();
+    if (l.current && ui.view === "today" && !M.isStale(l)) { paintTimer(); mountDemo(box); }
     ui.renderedAt = Date.now();
     if (focus) focusHeading(box.querySelector(".ma-body") || box);
   }
@@ -366,6 +370,102 @@
     return `<div class="ma-strip-wrap"><h3 class="def-section-title">Questa settimana</h3><ol class="ma-strip">${cells}</ol><button type="button" class="def-ghost" data-mact="view" data-view="week">Apri il calendario</button></div>`;
   }
 
+  /* ------------------------------------------- l'omino che mostra come si fa */
+  // Per ogni esercizio: la dimostrazione animata (defense/martial-demos.js + movimenti) e, per ogni
+  // passo, la sequenza di immagini. Calcolate una volta sola e tenute da parte.
+  const demoCache = new Map();
+  function demoOf(e) {
+    if (demoCache.has(e.id)) return demoCache.get(e.id);
+    let out = null;
+    const F = window.MartialFigure;
+    const MM = window.MartialMoves;
+    const spec = window.MartialDemos && window.MartialDemos[e.id];
+    if (F && MM && Array.isArray(spec) && spec.length === e.steps.length) {
+      try {
+        const demo = MM.demoFor(spec);
+        if (demo.steps.length === e.steps.length) {
+          const seq = demo.steps.map((st) => {
+            const keys = MM.keyFrames(st.frames, 6);
+            const box = F.demoBox({ steps: [st], props: demo.props }, "tq");
+            const items = keys.map((k) => {
+              const f = st.frames[k];
+              const one = f.mv ? MM.get(f.mv) : null;
+              return { k, label: one ? one.label : st.label, html: F.svg(f.pose, { view: "tq", box, prev: k ? st.frames[k - 1].pose : null, act: f.act, props: demo.props, partner: f.partner }) };
+            });
+            // per evidenziare l'immagine giusta mentre il video scorre: fotogramma -> immagine
+            const sig = (f) => JSON.stringify([f.pose, f.partner || 0]);
+            const keySig = items.map((it) => sig(st.frames[it.k]));
+            const toKey = st.frames.map((f, j) => {
+              const same = keySig.indexOf(sig(f));
+              if (same >= 0) return same;
+              let before = 0;
+              items.forEach((it, n) => { if (it.k <= j) before = n; });
+              return before;
+            });
+            return { items, toKey };
+          });
+          out = { demo, seq };
+        }
+      } catch (err) { out = null; }
+    }
+    demoCache.set(e.id, out);
+    return out;
+  }
+
+  function seqMarkup(dm, i) {
+    const s = dm.seq[i];
+    if (!s || !s.items.length) return "";
+    return `<div class="ma-seq" role="group" aria-label="Immagini del passo ${i + 1}">
+      <button type="button" class="ma-seq-play" data-mact="demo-step" data-step="${i}" aria-label="Guarda solo il passo ${i + 1} nel video" title="Guarda solo questo passo"><span class="ma-tri" aria-hidden="true"></span></button>
+      ${s.items.map((it, n) => `<button type="button" class="ma-seq-img" data-mact="demo-frame" data-step="${i}" data-frame="${it.k}" data-key="${n}" aria-label="Passo ${i + 1}, immagine ${n + 1} di ${s.items.length}: ${esc(it.label)}" title="${esc(it.label)}">${it.html}</button>`).join("")}
+    </div>`;
+  }
+
+  // monta il video dopo ogni disegno della pagina (riprende da dove era, se e' lo stesso esercizio)
+  function mountDemo(box) {
+    const host = box.querySelector(".ma-demo[data-demo]");
+    if (!host || !window.MartialFigure) return;
+    const id = host.dataset.demo;
+    const dm = demoCache.get(id);
+    if (!dm) return;
+    const keep = ui.playerState && ui.playerState.id === id ? ui.playerState.state : null;
+    const list = box.querySelector(".def-steps.has-seq");
+    let curStep = -1;
+    ui.playerId = id;
+    ui.player = window.MartialFigure.player(host, dm.demo, {
+      view: "tq",
+      reduced,
+      state: keep,
+      onStep(si) {
+        curStep = si;
+        if (!list) return;
+        list.querySelectorAll("li[data-step]").forEach((li) => li.classList.toggle("is-playing", Number(li.dataset.step) === si));
+      },
+      onFrame(si, k) {
+        if (!list) return;
+        const key = dm.seq[si] ? dm.seq[si].toKey[k] : -1;
+        list.querySelectorAll(".ma-seq-img[aria-current]").forEach((b) => b.removeAttribute("aria-current"));
+        const b = list.querySelector(`.ma-seq-img[data-step="${si}"][data-key="${key}"]`);
+        if (b && si === curStep) b.setAttribute("aria-current", "true");
+      }
+    });
+  }
+
+  function dropDemo() {
+    if (!ui.player) return;
+    ui.playerState = { id: ui.playerId, state: ui.player.state() };
+    ui.player.destroy();
+    ui.player = null;
+  }
+
+  // se il video non si vede (telefono, passi lunghi), lo riporta in vista
+  function showDemo() {
+    const stage = $("defPanel-martial").querySelector(".ma-demo .mf-stage");
+    if (!stage) return;
+    const r = stage.getBoundingClientRect();
+    if (r.bottom < 40 || r.top > window.innerHeight - 40) stage.scrollIntoView({ block: "nearest", behavior: reduced ? "auto" : "smooth" });
+  }
+
   /* ---------------------------------------------------------- allenamento */
   function sessionView(l) {
     const c = l.current;
@@ -392,6 +492,7 @@
     }).join("");
     const result = c.results[e.id];
     const last = lastResult(l, e.id);
+    const dm = demoOf(e);
     const video = `<a class="ma-video" href="https://www.youtube.com/results?search_query=${encodeURIComponent(e.video)}" target="_blank" rel="noopener noreferrer">Guarda il video di riferimento<span class="def-sr"> (si apre in una nuova scheda)</span></a>`;
     const variants = [
       e.easier ? `<details class="ma-var easy"><summary>Troppo difficile? Versione più facile</summary><p>${prose(e.easier)}</p></details>` : "",
@@ -423,7 +524,10 @@
             ${e.watch ? `<div class="ma-watch"><strong>Osserva</strong><p>${prose(e.watch)}</p>${video}</div>` : ""}
             <p class="ma-how">${prose(e.how)}</p>
             <h4 class="ma-sub">Come si fa</h4>
-            <ol class="def-steps">${e.steps.map((x) => `<li>${prose(x)}</li>`).join("")}</ol>
+            ${dm ? `<div class="ma-howgrid">
+              <div class="ma-demo" data-demo="${esc(e.id)}"></div>
+              <ol class="def-steps has-seq">${e.steps.map((x, i) => `<li data-step="${i}"><div class="ma-step"><span class="ma-step-text">${prose(x)}</span>${seqMarkup(dm, i)}</div></li>`).join("")}</ol>
+            </div>` : `<ol class="def-steps">${e.steps.map((x) => `<li>${prose(x)}</li>`).join("")}</ol>`}
             <h4 class="ma-sub">Punti chiave</h4>
             <ul class="def-keys">${e.cues.map((x) => `<li>${prose(x)}</li>`).join("")}</ul>
             ${e.errors && e.errors.length ? `<div class="ma-errors"><h4 class="ma-sub">Errori tipici</h4><ul>${e.errors.map((x) => `<li><strong>${prose(x.e)}</strong><span>${prose(x.fix)}</span></li>`).join("")}</ul></div>` : ""}
@@ -962,6 +1066,12 @@
     if (tooSoon(act)) return;
     const l = lab();
     switch (act) {
+      case "demo-step":
+        if (ui.player) { ui.player.loopStep(Number(el.dataset.step)); ui.player.play(); showDemo(); }
+        break;
+      case "demo-frame":
+        if (ui.player) { ui.player.showFrame(Number(el.dataset.step), Number(el.dataset.frame)); showDemo(); }
+        break;
       case "view":
         if (ui.view === "today" && el.dataset.view !== "today" && ui.timer && ui.timer.running) timerPause();
         ui.view = el.dataset.view;
@@ -1198,6 +1308,7 @@
     render,
     stop() {
       if (ui.timer && ui.timer.running) timerPause();
+      if (ui.player) ui.player.pause();
       if ("speechSynthesis" in window) try { window.speechSynthesis.cancel(); } catch (e) { /* niente */ }
     },
     // per il riquadro in alto della pagina Difesa

@@ -356,6 +356,73 @@
 .ma-recent strong { font-variant-numeric: tabular-nums; }
 .ma-up { color: var(--d-go); font-size: 0.78rem; text-align: right; }
 
+/* ---------- l'omino che mostra come si fa (defense/figure3d.js) ---------- */
+.ma-ex { container-type: inline-size; }
+.ma-howgrid { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "demo" "steps"; gap: 14px; align-items: start; }
+.ma-howgrid .ma-demo { grid-area: demo; min-width: 0; width: 100%; max-width: 640px; }
+.ma-howgrid .def-steps { grid-area: steps; min-width: 0; }
+@container (min-width: 760px) {
+  .ma-howgrid { grid-template-columns: minmax(0, 1fr) minmax(300px, 46%); grid-template-areas: "steps demo"; }
+  .ma-howgrid .ma-demo { position: sticky; top: 12px; max-width: none; }
+}
+.mf-player { border: 1px solid var(--d-line); border-radius: 14px; background: var(--d-inset); overflow: hidden; }
+.mf-stage { aspect-ratio: 16 / 10; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.mf-stage:active { cursor: grabbing; }
+.mf-stage:focus-visible { outline: 2px solid var(--d-amber); outline-offset: -2px; }
+.mf-stage svg { display: block; width: 100%; height: 100%; }
+.mf-cap { display: flex; gap: 10px; align-items: baseline; margin: 0; padding: 9px 12px 8px; border-top: 1px solid var(--d-line); font-weight: 650; line-height: 1.35; min-height: 2.9em; }
+.mf-step { flex-shrink: 0; color: var(--d-amber); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.mf-ctrl { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 10px 10px; }
+.mf-btn { min-width: 38px; min-height: 38px; padding: 0 10px; border: 1px solid var(--d-line-strong); border-radius: 9px; background: var(--d-panel-2); color: var(--d-ink); font: inherit; font-size: 0.82rem; font-weight: 650; cursor: pointer; }
+.mf-btn:hover { border-color: var(--d-amber); }
+.mf-btn[aria-pressed="true"] { border-color: var(--d-amber); background: var(--d-amber-soft); color: var(--d-ink); }
+.mf-play { display: grid; place-items: center; background: var(--d-amber); border-color: var(--d-amber); }
+.mf-play .mf-ico { width: 0; height: 0; border-left: 12px solid #15110a; border-top: 7px solid transparent; border-bottom: 7px solid transparent; margin-left: 3px; }
+.mf-play.on .mf-ico { width: 11px; height: 13px; margin: 0; border: 0; border-left: 4px solid #15110a; border-right: 4px solid #15110a; }
+.mf-btn[data-mf="prev"], .mf-btn[data-mf="next"] { font-size: 1.15rem; line-height: 1; }
+.mf-views { display: flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+@container (max-width: 420px) {
+  .mf-ctrl { gap: 5px; padding: 0 8px 8px; }
+  .mf-btn { min-width: 36px; padding: 0 8px; }
+  .mf-views { margin-left: 0; width: 100%; }
+  .mf-views .mf-btn { flex: 1 1 0; }
+}
+.mf-views .mf-btn { min-width: 0; padding: 0 9px; }
+/* colori dell'omino: chiaro il lato vicino, piu' scuro quello lontano, ambra la parte che lavora */
+.mf .mf-ol line, .mf .mf-ol polygon { stroke: #07090c; fill: #07090c; stroke-linecap: round; stroke-linejoin: round; }
+.mf .mf-ol circle { fill: #07090c; }
+.mf .mf-fill line, .mf .mf-fill polygon { stroke-linecap: round; stroke-linejoin: round; }
+.mf .mf-near line, .mf .mf-near polygon, .mf .mf-near circle { stroke: #eef1f4; fill: #eef1f4; }
+.mf .mf-far line, .mf .mf-far polygon, .mf .mf-far circle { stroke: #8a95a1; fill: #8a95a1; }
+.mf .mf-body line, .mf .mf-body polygon, .mf .mf-body circle { stroke: #c5cdd6; fill: #c5cdd6; }
+.mf .mf-act line, .mf .mf-act polygon, .mf .mf-act circle { stroke: var(--d-amber); fill: var(--d-amber); }
+.mf .mf-partner.mf-near line, .mf .mf-partner.mf-near polygon, .mf .mf-partner.mf-near circle { stroke: #86a9c8; fill: #86a9c8; }
+.mf .mf-partner.mf-far line, .mf .mf-partner.mf-far polygon, .mf .mf-partner.mf-far circle { stroke: #4e6880; fill: #4e6880; }
+.mf .mf-partner.mf-body line, .mf .mf-partner.mf-body polygon, .mf .mf-partner.mf-body circle { stroke: #6d8eab; fill: #6d8eab; }
+.mf .mf-fill .mf-belt { stroke: #222a33; }
+.mf .mf-fill .mf-eye { fill: #07090c; stroke: none; }
+.mf .mf-mat { fill: rgba(255, 255, 255, 0.035); stroke: rgba(255, 255, 255, 0.1); stroke-width: 0.01; }
+.mf .mf-matline { stroke: rgba(255, 255, 255, 0.06); stroke-width: 0.006; }
+.mf .mf-shadow { fill: rgba(0, 0, 0, 0.38); }
+.mf .mf-arrow { fill: none; stroke: var(--d-amber); stroke-width: 0.022; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; }
+.mf .mf-arrowhead { fill: var(--d-amber); }
+.mf .mf-bag { fill: #7a3b32; stroke: #07090c; stroke-width: 0.02; }
+.mf .mf-bagtop { fill: #934a3f; stroke: #07090c; stroke-width: 0.015; }
+.mf .mf-chain { stroke: #8a95a1; stroke-width: 0.012; }
+/* i passi con la sequenza di immagini */
+.def-steps.has-seq { gap: 12px; }
+.def-steps.has-seq li { transition: color 0.2s; }
+.def-steps.has-seq li.is-playing::before { background: var(--d-amber); border-color: var(--d-amber); color: #15110a; }
+.ma-step { min-width: 0; display: grid; gap: 6px; }
+.ma-seq { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: thin; overscroll-behavior-x: contain; }
+.ma-seq-play, .ma-seq-img { flex: 0 0 auto; border: 1px solid var(--d-line); border-radius: 9px; background: var(--d-inset); cursor: pointer; padding: 0; }
+.ma-seq-play { display: grid; place-items: center; width: 38px; color: var(--d-amber); }
+.ma-tri { width: 0; height: 0; border-left: 11px solid var(--d-amber); border-top: 7px solid transparent; border-bottom: 7px solid transparent; margin-left: 3px; }
+.ma-seq-img { width: 84px; height: 92px; }
+.ma-seq-img svg { display: block; width: 100%; height: 100%; }
+.ma-seq-play:hover, .ma-seq-img:hover { border-color: var(--d-line-strong); }
+.ma-seq-img[aria-current="true"] { border-color: var(--d-amber); box-shadow: inset 0 0 0 1px var(--d-amber); }
+
 /* ---------- schermi stretti ---------- */
 @media (max-width: 1100px) {
   .ma-week { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -413,6 +480,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .ma-ring-fg { transition: none; }
+  .def-steps.has-seq li { transition: none; }
   .ma-timer.signal { animation: none; outline: 3px solid var(--d-amber); }
 }
 

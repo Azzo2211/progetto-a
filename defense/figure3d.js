@@ -30,7 +30,7 @@
     tq: { name: "3/4", yaw: 58, pitch: 12 },
     side: { name: "Lato", yaw: 90, pitch: 6 },
     front: { name: "Fronte", yaw: 4, pitch: 8 },
-    back: { name: "Da dietro", yaw: 155, pitch: 14 }
+    back: { name: "Dietro", yaw: 155, pitch: 14 }
   };
 
   /* ------------------------------------------------------------ vettori */
@@ -438,7 +438,7 @@
       st.frames.forEach((f, fi) => {
         const t = items.length ? (f.t == null ? 450 : f.t) : 0;
         const h = f.h == null ? 250 : f.h;
-        items.push({ pose: f.pose, act: f.act || f.pose.act || null, start: time, t, h, step: si, first: fi === 0, partner: f.partner || null, props: f.props || null });
+        items.push({ pose: f.pose, act: f.act || f.pose.act || null, start: time, t, h, step: si, local: fi, first: fi === 0, partner: f.partner || null, props: f.props || null });
         time += t + h;
       });
       // pausa a fine passo
@@ -481,24 +481,34 @@
   }
 
   /*
-   * Lettore animato. opts: { view, speed, autoplay, reduced, onStep(i), labelFor(i) }
-   * Restituisce { play, pause, toggle, goStep(i), setView(v), setSpeed(k), destroy, isPlaying }
+   * Lettore animato. opts: { view, speed, autoplay, reduced, fps, state, onStep(i), onFrame(passo, fotogramma) }
+   * Restituisce { play, pause, toggle, goStep(i), showFrame(passo, fotogramma), loopStep(i|null),
+   *               setView(v), state(), destroy, isPlaying, step }
    */
   function player(container, demo, opts = {}) {
-    const tl = timeline(demo);
-    let viewKey = opts.view && VIEWS[opts.view] ? opts.view : "tq";
-    let custom = null; // vista girata a mano
-    let speed = opts.speed || 1;
+    const full = timeline(demo);
+    const perStep = [];
+    const tlOf = (i) => perStep[i] || (perStep[i] = timeline({ steps: [demo.steps[i]], props: demo.props }));
+    const saved = opts.state || {};
+    const n = demo.steps.length;
+    let loop = saved.loop != null && saved.loop < n ? saved.loop : null; // passo ripetuto da solo
+    let tl = loop != null ? tlOf(loop) : full;
+    let viewKey = saved.view && VIEWS[saved.view] ? saved.view : opts.view && VIEWS[opts.view] ? opts.view : "tq";
+    let custom = saved.custom || null; // vista girata a mano
+    let speed = saved.speed || opts.speed || 1;
     let playing = false;
-    let clock = 0;
+    let clock = saved.clock || 0;
     let last = 0;
+    let lastDraw = 0;
     let raf = 0;
     let stepShown = -1;
+    let frameShown = "";
     let visible = true;
+    const minGap = 1000 / (opts.fps || 30) - 2;
     const props = demo.props || [];
     const boxes = {};
-    const skels = tl.items.map((it) => solve(it.pose));
-    const partners = tl.items.filter((it) => it.partner).map((it) => solve(it.partner));
+    const skels = full.items.map((it) => solve(it.pose));
+    const partners = full.items.filter((it) => it.partner).map((it) => solve(it.partner));
     const boxFor = (cam, key) => {
       if (key && boxes[key]) return boxes[key];
       const b = boundsOf(skels.concat(partners), cam, props);
@@ -515,20 +525,21 @@
     container.innerHTML = `
       <div class="mf-player">
         <div class="mf-stage" tabindex="0" role="img" aria-label="Dimostrazione animata"></div>
-        <p class="mf-cap" aria-live="polite"></p>
+        <p class="mf-cap" aria-live="polite"><span class="mf-step"></span><span class="mf-captext"></span></p>
         <div class="mf-ctrl">
-          <button type="button" class="mf-btn mf-play" data-mf="toggle" aria-label="Pausa"></button>
+          <button type="button" class="mf-btn mf-play" data-mf="toggle" aria-label="Riproduci"><span class="mf-ico" aria-hidden="true"></span></button>
           <button type="button" class="mf-btn" data-mf="prev" aria-label="Passo precedente">‹</button>
-          <span class="mf-step"></span>
           <button type="button" class="mf-btn" data-mf="next" aria-label="Passo successivo">›</button>
-          <button type="button" class="mf-btn mf-slow" data-mf="slow" aria-pressed="${speed < 1}">Lento</button>
-          <span class="mf-views" role="group" aria-label="Vista">${Object.keys(VIEWS).map((k) => `<button type="button" class="mf-btn" data-mf="view" data-v="${k}" aria-pressed="${k === viewKey}">${VIEWS[k].name}</button>`).join("")}</span>
+          <button type="button" class="mf-btn mf-txt" data-mf="loop" aria-pressed="${loop != null}" aria-label="Ripeti il passo" title="Ripeti solo questo passo">Ripeti</button>
+          <button type="button" class="mf-btn mf-txt" data-mf="slow" aria-pressed="${speed < 1}" title="Al rallentatore">Lento</button>
+          <span class="mf-views" role="group" aria-label="Vista">${Object.keys(VIEWS).map((k) => `<button type="button" class="mf-btn mf-txt" data-mf="view" data-v="${k}" aria-pressed="${!custom && k === viewKey}">${VIEWS[k].name}</button>`).join("")}</span>
         </div>
       </div>`;
     const stage = container.querySelector(".mf-stage");
-    const cap = container.querySelector(".mf-cap");
+    const capText = container.querySelector(".mf-captext");
     const stepEl = container.querySelector(".mf-step");
     const playBtn = container.querySelector(".mf-play");
+    const loopBtn = container.querySelector('[data-mf="loop"]');
 
     function viewNow() { return custom || VIEWS[viewKey]; }
     function draw() {
@@ -536,57 +547,81 @@
       const cam = camera(v);
       const st = poseAt(tl, clock);
       const it = tl.items[st.index];
-      // frecce: dal fotogramma prima a quello a cui si sta arrivando (solo verso la fine del movimento)
+      const step = loop != null ? loop : st.step;
+      // frecce: dal fotogramma prima a quello a cui si sta arrivando
       const prevItem = tl.items[st.index - 1];
-      const html = svg(st.pose, { view: v, box: boxFor(cam, custom ? null : viewKey), act: st.act, props, partner: st.partner, floorAt, prev: prevItem && clock % tl.total < it.start + it.t + it.h ? prevItem.pose : null });
-      stage.innerHTML = html;
-      if (st.step !== stepShown) {
-        stepShown = st.step;
-        const label = demo.steps[st.step] ? demo.steps[st.step].label : "";
-        cap.textContent = label;
-        stepEl.textContent = `${st.step + 1}/${demo.steps.length}`;
-        stage.setAttribute("aria-label", `Dimostrazione animata, passo ${st.step + 1} di ${demo.steps.length}: ${label}`);
-        if (opts.onStep) opts.onStep(st.step);
+      stage.innerHTML = svg(st.pose, { view: v, box: boxFor(cam, custom ? null : viewKey), act: st.act, props, partner: st.partner, floorAt, prev: prevItem && clock % tl.total < it.start + it.t + it.h ? prevItem.pose : null });
+      if (step !== stepShown) {
+        stepShown = step;
+        const label = demo.steps[step] ? demo.steps[step].label : "";
+        capText.textContent = label;
+        stepEl.textContent = `${step + 1}/${n}`;
+        stage.setAttribute("aria-label", `Dimostrazione animata, passo ${step + 1} di ${n}: ${label}`);
+        if (opts.onStep) opts.onStep(step);
+      }
+      const fk = `${step}:${it.local}`;
+      if (fk !== frameShown) {
+        frameShown = fk;
+        if (opts.onFrame) opts.onFrame(step, it.local);
       }
     }
     function frameLoop(now) {
       if (!playing) return;
       const dt = Math.min(100, now - (last || now));
       last = now;
-      if (visible) { clock += dt * speed; draw(); }
+      clock += dt * speed;
+      if (visible && now - lastDraw >= minGap) { lastDraw = now; draw(); }
       raf = requestAnimationFrame(frameLoop);
+    }
+    function setPlayBtn() {
+      playBtn.setAttribute("aria-label", playing ? "Pausa" : "Riproduci");
+      playBtn.classList.toggle("on", playing);
     }
     function play() {
       if (playing) return;
       playing = true;
       last = 0;
-      playBtn.setAttribute("aria-label", "Pausa");
-      playBtn.classList.add("on");
+      setPlayBtn();
       raf = requestAnimationFrame(frameLoop);
     }
     function pause() {
       playing = false;
       cancelAnimationFrame(raf);
-      playBtn.setAttribute("aria-label", "Riproduci");
-      playBtn.classList.remove("on");
+      setPlayBtn();
     }
     function stepStart(i) {
-      const it = tl.items.find((x) => x.step === i);
+      const it = full.items.find((x) => x.step === i);
       return it ? it.start + it.t : 0;
     }
     function goStep(i, keepPlaying = true) {
-      const n = demo.steps.length;
       const k = ((i % n) + n) % n;
-      clock = stepStart(k);
+      if (loop != null) { loop = k; tl = tlOf(k); clock = 0; } else clock = stepStart(k);
       stepShown = -1;
       draw();
       if (!keepPlaying) pause();
+    }
+    // mostra un fotogramma preciso di un passo, fermo
+    function showFrame(step, local) {
+      const k = Math.max(0, Math.min(n - 1, step));
+      pause();
+      let it;
+      if (loop != null) { loop = k; tl = tlOf(k); it = tl.items[local] || tl.items[0]; } else it = full.items.find((x) => x.step === k && x.local === local) || full.items.find((x) => x.step === k);
+      clock = it ? it.start + it.t : 0;
+      draw();
+    }
+    // ripete solo il passo i (null = tutta la dimostrazione)
+    function loopStep(i) {
+      const cur = stepShown < 0 ? 0 : stepShown;
+      if (i == null) { loop = null; tl = full; clock = stepStart(cur); } else { loop = ((i % n) + n) % n; tl = tlOf(loop); clock = 0; }
+      loopBtn.setAttribute("aria-pressed", String(loop != null));
+      stepShown = -1;
+      draw();
     }
     function onClick(e) {
       const b = e.target.closest("[data-mf]");
       if (!b) return;
       const a = b.dataset.mf;
-      if (a === "toggle") { if (playing) pause(); else play(); } else if (a === "prev") goStep(stepShown - 1, playing); else if (a === "next") goStep(stepShown + 1, playing); else if (a === "slow") { speed = speed < 1 ? 1 : 0.45; b.setAttribute("aria-pressed", String(speed < 1)); } else if (a === "view") {
+      if (a === "toggle") { if (playing) pause(); else play(); } else if (a === "prev") goStep(stepShown - 1, playing); else if (a === "next") goStep(stepShown + 1, playing); else if (a === "loop") { loopStep(loop != null ? null : stepShown); } else if (a === "slow") { speed = speed < 1 ? 1 : 0.45; b.setAttribute("aria-pressed", String(speed < 1)); } else if (a === "view") {
         viewKey = b.dataset.v;
         custom = null;
         container.querySelectorAll('[data-mf="view"]').forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
@@ -595,7 +630,7 @@
     }
     // trascina per girare l'omino
     let drag = null;
-    function onDown(e) { drag = { x: e.clientX, yaw: viewNow().yaw, pitch: viewNow().pitch }; stage.setPointerCapture && stage.setPointerCapture(e.pointerId); }
+    function onDown(e) { drag = { x: e.clientX, yaw: viewNow().yaw, pitch: viewNow().pitch }; if (stage.setPointerCapture && e.pointerId != null) try { stage.setPointerCapture(e.pointerId); } catch (err) { /* niente */ } }
     function onMove(e) {
       if (!drag) return;
       const dx = e.clientX - drag.x;
@@ -620,12 +655,14 @@
       io.observe(stage);
     }
     draw();
-    if (opts.autoplay !== false && !opts.reduced) play(); else pause();
+    const auto = saved.playing != null ? saved.playing : opts.autoplay !== false && !opts.reduced;
+    if (auto) play(); else pause();
     return {
-      play, pause, goStep,
+      play, pause, goStep, showFrame, loopStep,
       toggle() { if (playing) pause(); else play(); },
       isPlaying: () => playing,
       setView(v) { if (VIEWS[v]) { viewKey = v; custom = null; draw(); } },
+      state: () => ({ view: viewKey, custom, speed, clock, loop, playing }),
       get step() { return stepShown; },
       destroy() { pause(); if (io) io.disconnect(); container.removeEventListener("click", onClick); container.innerHTML = ""; }
     };
