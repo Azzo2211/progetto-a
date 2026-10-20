@@ -8,7 +8,7 @@
   "use strict";
   const MM = root.MartialMoves;
   if (!MM) return;
-  MM.add(function (L) {
+  MM.add("systema", function (L) {
     const { mv, K, standing, natural, squat, plank, lieBack, lieFront, allFours, kneel, add, sub, mul, norm, len, ankleY, ARM, BAG } = L;
     // mano d'appoggio: se la spalla e' troppo lontana, il busto si avvicina al punto (frac del braccio)
     const reach = (b, s, frac = 0.97) => {

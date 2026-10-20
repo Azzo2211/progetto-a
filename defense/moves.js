@@ -5,7 +5,8 @@
  *   { pose, t: ms per arrivarci, h: ms di sosta, act: parti che lavorano (arml, armr, legl, legr, torso, head) }
  * Le pose si costruiscono con il costruttore B a partire dalle posizioni di base (in questo file):
  * guardie e posizioni dei vari stili, colpi dritti, ganci, montanti, calci, parate, terra.
- * I movimenti dei singoli stili stanno in defense/moves/*.js e si aggiungono con MartialMoves.add(fn).
+ * I movimenti dei singoli stili stanno in defense/moves/*.js e si aggiungono con MartialMoves.add("stile", fn):
+ * le pose di uno stile vengono costruite solo quando servono la prima volta.
  *
  * Coordinate: x avanti, y su, z a destra della figura; yaw positivo = girato verso la propria
  * sinistra. Destrimano in guardia ortodossa: piede e mano sinistri avanti ("l" = anteriore).
@@ -635,29 +636,70 @@
     lieBack, lieFront, plank, pushDown, squat, sitLong, kneel, allFours, lunge
   };
 
-  // I file degli stili aggiungono i loro movimenti con add(function (L) { ... }).
-  function addStyle(fn) { fn(lib); }
+  // I file degli stili aggiungono i loro movimenti con add("stile", function (L) { ... }).
+  // Le pose di uno stile si costruiscono solo la prima volta che servono (all'avvio non si calcola niente).
+  const PENDING = new Map();
+  function addStyle(key, fn) {
+    if (typeof key === "function") { fn = key; key = "*"; }
+    if (!PENDING.has(key)) PENDING.set(key, []);
+    PENDING.get(key).push(fn);
+  }
+  function runStyle(key) {
+    const list = PENDING.get(key);
+    if (!list) return;
+    PENDING.delete(key);
+    list.forEach((fn) => {
+      try { fn(lib); } catch (err) { if (typeof console !== "undefined") console.error(`Movimenti "${key}":`, err); }
+    });
+  }
+  function ensure(key) {
+    runStyle("*");
+    runStyle("gen");
+    if (key) runStyle(key); else [...PENDING.keys()].forEach(runStyle);
+  }
+  const styleOf = (name) => String(name).split(".")[0];
 
   /* ------------------------------------------------------------ API */
-  function get(name) { return MOVES.get(name) || null; }
-  function has(name) { return MOVES.has(name); }
-  function names() { return [...MOVES.keys()]; }
+  function get(name) { ensure(styleOf(name)); return MOVES.get(name) || null; }
+  function has(name) { ensure(styleOf(name)); return MOVES.has(name); }
+  function names() { ensure(null); return [...MOVES.keys()]; }
   function catalog() { return names().map((n) => ({ name: n, label: MOVES.get(n).label, frames: MOVES.get(n).frames.length })); }
 
   // Una dimostrazione da una lista di passi: [[didascalia, "mossa", "mossa*2", ...], ...]
+  // Sposta una posa (e il suo punto di partenza) di dx, dz sul pavimento.
+  function moved(pose, dx, dz) {
+    if (!pose || (!dx && !dz)) return pose;
+    const q = clone(pose);
+    const tr = (v) => (Array.isArray(v) ? [v[0] + dx, v[1], v[2] + dz] : v);
+    ["pel", "chest", "head"].forEach((k) => { q[k] = tr(q[k]); });
+    ["hand", "foot"].forEach((k) => { if (q[k]) Object.keys(q[k]).forEach((s) => { q[k][s] = tr(q[k][s]); }); });
+    q.o = [(q.o || [0, 0])[0] + dx, (q.o || [0, 0])[1] + dz];
+    return q;
+  }
+
   function demoFor(steps) {
     const out = { steps: [], props: null };
     (steps || []).forEach((st) => {
       if (!Array.isArray(st) || typeof st[0] !== "string") return;
       const frames = [];
+      // dentro un passo, una mossa riparte da dove e' finita la precedente (passi avanti, uscite...)
+      let at = null;
       st.slice(1).forEach((spec) => {
         if (spec === "@bag") { out.props = [Object.assign({}, BAG)]; return; }
         const m = /^([a-z]+\.[A-Za-z0-9]+)(?:\*(\d))?$/.exec(String(spec));
         if (!m) return;
-        const one = MOVES.get(m[1]);
+        const one = get(m[1]);
         if (!one) return;
         const times = m[2] ? Number(m[2]) : 1;
-        for (let i = 0; i < times; i += 1) one.frames.forEach((f) => frames.push({ pose: f.pose, t: f.t, h: f.h, act: f.act, partner: f.partner, rep: i, mv: m[1] }));
+        const o0 = one.frames[0].pose.o || [0, 0];
+        const o1 = one.frames[one.frames.length - 1].pose.o || [0, 0];
+        for (let i = 0; i < times; i += 1) {
+          let dx = 0;
+          let dz = 0;
+          if (at && Math.hypot(at[0] - o0[0], at[1] - o0[1]) > 0.005) { dx = at[0] - o0[0]; dz = at[1] - o0[1]; }
+          one.frames.forEach((f) => frames.push({ pose: moved(f.pose, dx, dz), t: f.t, h: f.h, act: f.act, partner: moved(f.partner, dx, dz), rep: i, mv: m[1] }));
+          at = [o1[0] + dx, o1[1] + dz];
+        }
         if (one.props) out.props = one.props;
       });
       if (frames.length) out.steps.push({ label: st[0], frames });

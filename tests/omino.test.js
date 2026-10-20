@@ -128,6 +128,19 @@ test("Dimostrazione: ripetizioni, sacco e mosse sconosciute", () => {
   assert.ok(d.props && d.props[0].k === "bag");
 });
 
+test("Dimostrazione: dentro un passo la mossa riparte da dove e' finita la precedente", () => {
+  const d = M.demoFor([["Avanti, fermo, indietro", "boxe.stepFwd", "boxe.guardHold", "boxe.stepBack"], ["Tre passi", "boxe.stepFwd*3"], ["Di nuovo da capo", "boxe.guardHold"]]);
+  const o = (f) => f.pose.o;
+  const a = d.steps[0].frames;
+  const end1 = o(a[M.get("boxe.stepFwd").frames.length - 1]);
+  near(end1[0], 0.18, 1e-6, "dopo il passo avanti");
+  near(o(a[M.get("boxe.stepFwd").frames.length])[0], 0.18, 1e-6, "la guardia resta dove sei arrivato");
+  near(o(a[a.length - 1])[0], 0, 1e-6, "il passo indietro riporta al punto di partenza");
+  near(o(d.steps[1].frames[d.steps[1].frames.length - 1])[0], 0.54, 1e-6, "tre passi avanti");
+  near(o(d.steps[2].frames[0])[0], 0, 1e-6, "ogni passo riparte dal centro");
+  near(d.steps[1].frames[d.steps[1].frames.length - 1].pose.pel[0] - d.steps[1].frames[0].pose.pel[0], 0.54, 0.02, "il corpo si sposta davvero");
+});
+
 test("Immagini della sequenza: senza ripetizioni e senza doppioni, al massimo 6", () => {
   const d = M.demoFor([["Jab tre volte", "boxe.jab*3"]]);
   const keys = M.keyFrames(d.steps[0].frames, 6);

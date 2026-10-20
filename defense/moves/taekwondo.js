@@ -7,7 +7,7 @@
   "use strict";
   const MM = root.MartialMoves;
   if (!MM) return;
-  MM.add(function (L) {
+  MM.add("taekwondo", function (L) {
     const { mv, K, standing, ready, tkd, zenkutsu, kokutsu, add, sub, mul, norm, ankleY, BAG, lieBack, lieFront, sitLong, kneel, allFours, plank, squat, lunge } = L;
 
     /* ---------------------------------------------------------------- aiuti */

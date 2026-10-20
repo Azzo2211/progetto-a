@@ -7,7 +7,7 @@
   "use strict";
   const MM = root.MartialMoves;
   if (!MM) return;
-  MM.add(function (L) {
+  MM.add("capoeira", function (L) {
     const { mv, K, B, ginga, standing, ankleY, add, mul, norm, LEG, plank, allFours, lieBack, lieFront, sitLong, kneel, squat } = L;
     const DEG = Math.PI / 180;
 

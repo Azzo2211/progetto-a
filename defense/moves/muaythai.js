@@ -6,7 +6,7 @@
   "use strict";
   const MM = root.MartialMoves;
   if (!MM) return;
-  MM.add(function (L) {
+  MM.add("muaythai", function (L) {
     const { mv, K, standing, thai, add, mul, ankleY } = L;
     const M = (name, label, frames, extra) => mv("muaythai." + name, label, frames, extra);
     const g = thai();

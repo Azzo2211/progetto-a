@@ -8,7 +8,7 @@
   "use strict";
   const MM = root.MartialMoves;
   if (!MM) return;
-  MM.add(function (L) {
+  MM.add("kungfu", function (L) {
     const { mv, K, B, standing, wcStance, plank, pushDown, lieBack, squat, add, sub, mul, dot, ARM } = L;
     const D = Math.PI / 180;
     const sg = (s) => (s === "l" ? -1 : 1);

@@ -5,7 +5,7 @@
   "use strict";
   const MM = root.MartialMoves;
   if (!MM) return;
-  MM.add(function (L) {
+  MM.add("boxe", function (L) {
     const { mv, K, standing, box, boxStance, ankleY, add, sub, mul, norm, len, lieBack, plank, sitLong, BAG } = L;
     const DEG = Math.PI / 180;
     const g = box();

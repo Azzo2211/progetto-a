@@ -8,7 +8,7 @@
   "use strict";
   const MM = root.MartialMoves;
   if (!MM) return;
-  MM.add(function (L) {
+  MM.add("karate", function (L) {
     const { B, mv, K, F, add, sub, mul, norm, standing, ready, kumite, kiba, ankleY, BAG, lieBack, lieFront, plank, sitLong, kneel } = L;
     const DEG = Math.PI / 180;
     const other = (s) => (s === "l" ? "r" : "l");

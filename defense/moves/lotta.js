@@ -7,7 +7,7 @@
   "use strict";
   const MM = root.MartialMoves;
   if (!MM) return;
-  MM.add(function (L) {
+  MM.add("lotta", function (L) {
     const { mv, K, standing, wrestle, allFours, lieBack, lieFront, kneel, sitLong, ankleY } = L;
 
     /* ---------------------------------------------------------------- aiuti */

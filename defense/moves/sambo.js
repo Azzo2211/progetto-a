@@ -7,7 +7,7 @@
   "use strict";
   const MM = root.MartialMoves;
   if (!MM) return;
-  MM.add(function (L) {
+  MM.add("sambo", function (L) {
     const { mv, K, B, F, standing, sambo, squat, sitLong, facing, add, sub, mul, norm, len, dot, ankleY } = L;
     const DEG = Math.PI / 180;
     const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];

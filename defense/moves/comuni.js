@@ -6,7 +6,7 @@
   "use strict";
   const MM = root.MartialMoves;
   if (!MM) return;
-  MM.add(function (L) {
+  MM.add("gen", function (L) {
     const { mv, K, standing, ready, squat, lunge, plank, pushDown, lieBack, lieFront, sitLong, kneel, allFours, ankleY } = L;
     const st = () => standing();
 
