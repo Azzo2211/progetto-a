@@ -247,7 +247,7 @@
   const WEAPONS = {
     operator: { id: "operator", name: "Operator", price: 4700, rps: 0.6, zooms: [2.5, 5], dmg: { head: 255, body: 150, legs: 120 }, mag: 5, scopedMove: 0.72, pen: "alta", unscope: true },
     marshal: { id: "marshal", name: "Marshal", price: 950, rps: 1.5, zooms: [3.5], dmg: { head: 202, body: 101, legs: 85 }, mag: 5, scopedMove: 0.9, pen: "media", unscope: true },
-    outlaw: { id: "outlaw", name: "Outlaw", price: 2400, rps: 2.75, zooms: [3.5], dmg: { head: 238, body: 140, legs: 119 }, mag: 2, scopedMove: 0.8, pen: "alta", unscope: false, info: true }
+    outlaw: { id: "outlaw", name: "Outlaw", price: 2400, rps: 2.75, zooms: [3.5], dmg: { head: 238, body: 140, legs: 119 }, mag: 2, scopedMove: 0.8, pen: "media", unscope: false, info: true }
   };
   const HP = 150;
   // Modello dell'app (non un dato di Valorant): lo scope entra in 0,15 s; prima i colpi sono imprecisi.
@@ -340,7 +340,7 @@
       up: { key: "win", min: 85 }
     },
     {
-      id: "opflick", name: "Flick con lo scope", weapon: "operator", trains: "Arrivare sul nemico, entrare nello scope e sparare", duration: 0, reps: 15,
+      id: "opflick", name: "Flick con lo scope", weapon: "operator", trains: "Arrivare sul nemico, entrare nello scope e sparare", duration: 0, reps: 16,
       text: "Un nemico fermo compare lontano, in un punto a caso. Sei senza scope: gira il mirino verso di lui, entra nello scope con il tasto destro e colpiscilo prima che spari lui. Con l'Operator basta il busto.",
       tip: "Fai il grosso del movimento senza scope ed entra nello scope quando il mirino è già quasi sul nemico: nello scope sistemi solo di poco.",
       levels: ["Vicino, ti lascia 2,4 secondi", "Più largo, 1,9 secondi", "Tutto lo schermo, 1,5 secondi"],
@@ -348,7 +348,7 @@
       up: { key: "win", min: 85 }
     },
     {
-      id: "ophold", name: "Tieni l'angolo", weapon: "operator", trains: "Mirino pronto sul passaggio, un clic quando esce", duration: 0, reps: 15,
+      id: "ophold", name: "Tieni l'angolo", weapon: "operator", trains: "Mirino pronto sul passaggio, un clic quando esce", duration: 0, reps: 16,
       text: "Entra nello scope sul passaggio tra i due muri. Un nemico lo attraversa: spara quando entra nel mirino. Un colpo sul muro o a vuoto ti costa il caricamento, e lui passa.",
       tip: "Non inseguirlo: tieni il mirino fermo vicino al bordo da cui esce, all'altezza del petto, e clicca appena lo vedi. Dopo il colpo rientra subito nello scope.",
       levels: ["Cammina, passaggio largo", "Corre, passaggio medio", "Corre, passaggio stretto e più lontano"],
@@ -369,7 +369,7 @@
     },
     {
       id: "quickscope", name: "Quickscope", weapon: "marshal", trains: "Scope e colpo veloci, senza anticipare", duration: 0, reps: 20,
-      text: "Un nemico compare vicino al mirino e resta poco. Entra nello scope e spara subito, ma non prima che lo scope sia entrato: un colpo sparato a metà va storto. Serve la testa o due colpi al corpo.",
+      text: "Un nemico compare vicino al mirino e resta poco. Entra nello scope e spara subito, ma non prima che lo scope sia entrato: un colpo sparato a metà va storto. Serve la testa: resta troppo poco per un secondo colpo.",
       tip: "Due tempi: tasto destro, poi clic appena l'immagine si ingrandisce. Con l'allenamento il secondo tempo si accorcia, ma non si salta.",
       levels: ["Resta 1,2 secondi", "Resta 0,9 secondi", "Resta 0,65 secondi"],
       lv: { 1: { life: 1.2, yaw: [3, 8], dist: [12, 18] }, 2: { life: 0.9, yaw: [3, 10], dist: [14, 22] }, 3: { life: 0.65, yaw: [4, 12], dist: [16, 26] } },
@@ -744,10 +744,13 @@
         }
         sc.wait -= dt;
         if (sc.wait <= 0 && !sc.done) {
+          // dentro la stanza: a destra e sinistra al massimo 22 m dal centro
+          const dist = between(P.dist[0], P.dist[1]);
+          const lim = Math.min(80, Math.asin(Math.min(1, 22 / dist)) / DEG);
           let side = rand() < 0.5 ? -1 : 1;
           const amount = between(P.yaw[0], P.yaw[1]);
-          if (Math.abs(a.yaw + side * amount) > 80) side = -side;
-          const p = spherePoint(a.yaw + side * amount, 0, between(P.dist[0], P.dist[1]));
+          if (Math.abs(a.yaw + side * amount) > lim) side = -side;
+          const p = spherePoint(clamp(a.yaw + side * amount, -lim, lim), 0, dist);
           sc.bots.push({ id: sc.nextId++, x: p[0], z: p[2], hp: HP, crouch: false, visible: true, born: sc.time });
           sc.resetPath = true;
         }
@@ -829,10 +832,13 @@
         }
         sc.wait -= dt;
         if (sc.wait <= 0 && !sc.done) {
+          // dentro la stanza: a destra e sinistra al massimo 22 m dal centro
+          const dist = between(P.dist[0], P.dist[1]);
+          const lim = Math.min(80, Math.asin(Math.min(1, 22 / dist)) / DEG);
           let side = rand() < 0.5 ? -1 : 1;
           const amount = between(P.yaw[0], P.yaw[1]);
-          if (Math.abs(a.yaw + side * amount) > 80) side = -side;
-          const p = spherePoint(a.yaw + side * amount, 0, between(P.dist[0], P.dist[1]));
+          if (Math.abs(a.yaw + side * amount) > lim) side = -side;
+          const p = spherePoint(clamp(a.yaw + side * amount, -lim, lim), 0, dist);
           sc.bots.push({ id: sc.nextId++, x: p[0], z: p[2], hp: HP, crouch: false, visible: true, born: sc.time });
           sc.resetPath = true;
         }
@@ -992,7 +998,7 @@
       const tWall = sc.covers.reduce((m, c) => { const t = rayBox(f, { min: rel(c.min), max: rel(c.max) }); return t >= 0 && t < m ? t : m; }, Infinity);
       const tg = anglesTo(headC);
       const rDeg = Math.atan2(parts.head.r, len(headC)) / DEG;
-      addBias(a, anglesTo(rel([b.x, -0.45, b.z])), Math.atan2(0.3, len(headC)) / DEG);
+      // niente "punto medio dei colpi": con l'Operator testa e busto valgono entrambi, il centro non e' definito
       const hits = [["head", tHead], ["body", tTorso], ["legs", tLegs]].filter(([, t]) => t >= 0 && t < tWall).sort((x, y) => x[1] - y[1]);
       if (!hits.length) {
         sc.misses += 1;

@@ -407,6 +407,19 @@ test("Cecchino: giocatore perfetto in tutti gli esercizi e livelli; caricamento 
   near(sc.boltLeft(), 1 / 0.6, 1e-9, "caricamento dell'Operator");
 });
 
+test("Cecchino: i nemici compaiono sempre dentro la stanza", () => {
+  ["opflick", "quickscope"].forEach((id) => [1, 2, 3].forEach((lv) => {
+    for (let seed = 1; seed <= 60; seed += 1) {
+      const sc = A.createScenario(id, { seed, lv });
+      const yaw = (seed % 2 ? 1 : -1) * 70;
+      for (let i = 0; i < 600 && !sc.bots.length; i += 1) sc.update(1 / 60, { yaw, pitch: 0 });
+      const b = sc.bots[0];
+      assert.ok(b, `${id} ${lv}: nemico comparso`);
+      assert.ok(Math.abs(b.x) <= 22.01 && b.z > 0 && b.z < A.ROOM.z[1], `${id} ${lv} seme ${seed}: x ${b.x.toFixed(1)} z ${b.z.toFixed(1)}`);
+    }
+  }));
+});
+
 test("Cecchino: Operator busto uccide, gambe no; Marshal busto no; senza scope si sbaglia", () => {
   const body = playSniper("opflick", { part: "body" }).st;
   assert.strictEqual(body.win, 100, "Operator al busto");

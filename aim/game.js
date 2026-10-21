@@ -172,6 +172,8 @@
     }
     function scopeClick() {
       if (!W) return;
+      // durante il caricamento lo scope non entra: si entra appena il colpo e' pronto
+      if (g.sc.boltLeft() > 0 && !g.scope.on) { g.scope.pending = !o.scopeHold ? !g.scope.pending : true; return; }
       if (o.scopeHold) { setScope(true, 0); return; }
       // a scatti, come in Valorant: primo ingrandimento, secondo (se c'e'), poi fuori
       if (!g.scope.on) setScope(true, 0);
@@ -307,7 +309,7 @@
       if (o.sound) shotSound();
       const k = scopeK();
       const r = g.sc.shoot(W ? { yaw: g.yaw, pitch: g.pitch, scoped: g.scope.on, ready: g.scope.on && k >= 1, scopeT: g.scope.on ? (performance.now() - g.scope.at) / 1000 : null } : { yaw: g.yaw, pitch: g.pitch });
-      if (W && r.unscope) setScope(false);
+      if (W && r.unscope) { setScope(false); g.scope.pending = false; }
       if (r.early && o.sound) blip(220, 120, 0.05, "square");
       if (r.hit && o.sound) { if (r.head) { blip(1320, 70, 0.06, "triangle"); blip(1760, 90, 0.05, "triangle", 0.05); } else blip(1180, 60, 0.05); }
       g.flash = { t: performance.now(), hit: r.hit, head: r.head };
@@ -664,7 +666,8 @@
         g.sc.update(dt, { yaw: g.yaw, pitch: g.pitch, holding: g.mouseDown, move: moveDir() });
         if (W) {
           // tenuto premuto: finito il caricamento, se il tasto destro e' ancora giu' si rientra nello scope
-          if (o.scopeHold && g.rmb && !g.scope.on && g.sc.boltLeft() <= 0) setScope(true, 0);
+          if (!g.scope.on && g.sc.boltLeft() <= 0 && ((o.scopeHold && g.rmb) || (!o.scopeHold && g.scope.pending))) setScope(true, 0);
+          if (g.scope.on || g.sc.boltLeft() <= 0) g.scope.pending = false;
           if (o.sound && g.boltWas > 0 && g.sc.boltLeft() <= 0) blip(880, 35, 0.02, "triangle");
           g.boltWas = g.sc.boltLeft();
           g.sc.hint = def.id === "ophold" && !g.scope.on && !g.sc.bots.length ? "Entra nello scope (tasto destro)" : "";

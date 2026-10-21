@@ -147,10 +147,13 @@
     ["Operator (Liquipedia)", "https://liquipedia.net/valorant/Operator"],
     ["Prezzi della patch 3.0: Marshal 950, Operator 4700 (Dexerto)", "https://www.dexerto.com/valorant/valorant-update-3-0-patch-notes-1597515/"],
     ["Patch 2.03: zoom del Marshal 3,5x e movimento nello scope (Sportskeeda)", "https://www.sportskeeda.com/valorant/valorant-tweaks-weapons-compensate-run-n-gun-ability-massively-buffs-marshall"],
-    ["Outlaw (TheSpike)", "https://www.thespike.gg/valorant/weapons/snipers/valorant-outlaw-gun"]
+    ["Outlaw (TheSpike)", "https://www.thespike.gg/valorant/weapons/snipers/valorant-outlaw-gun"],
+    ["Marshal: danni e cadenza (Dodge.gg, 2026)", "https://www.dodge.gg/en-US/valorant/news/marshal-weapon-guide-2026"],
+    ["Patch 13.00-13.08: Operator e Marshal senza modifiche, Outlaw ritoccato nella 13.01 (Metammo)", "https://metammo.com/valorant-guide/updates"],
+    ["Zoom e sens nello scope: campo visivo 103 / ingrandimento, moltiplicatore 1 ai bordi dello schermo (game-sens.jor.dev)", "https://game-sens.jor.dev/"]
   ];
   const SNIPER_TIPS = [
-    ["Mirino già sull'angolo", "Con il fucile di precisione non si insegue: si mette il mirino dove il nemico deve passare, all'altezza della testa o del petto, e si clicca quando entra. Gli esercizi \"Tieni l'angolo\" e \"Flick con lo scope\" allenano proprio questo."],
+    ["Mirino già sull'angolo", "Con il fucile di precisione non si insegue: si mette il mirino dove il nemico deve passare, all'altezza della testa o del petto, e si clicca quando entra. L'esercizio \"Tieni l'angolo\" allena proprio questo."],
     ["Movimento grande senza scope", "Il flick lungo si fa senza scope, dove la sens è piena e il campo visivo largo. Lo scope serve solo per l'ultimo aggiustamento, piccolo."],
     ["Operator: basta il busto", "Il colpo al busto fa 150 danni e toglie tutti i 150 punti di vita e scudo pesante. Alle gambe fa 120 e non basta: mira dal petto in su."],
     ["Marshal: serve la testa", "Al busto fa 101 danni, alla testa 202. Contro chi ha lo scudo pesante, un colpo al busto non basta: tieni il mirino all'altezza della testa. In compenso spara 1,5 colpi al secondo, più del doppio dell'Operator (0,6)."],
@@ -176,7 +179,7 @@
     const row = (label, f) => `<tr><th scope="row">${label}</th>${weapons.map((w) => `<td>${f(w)}</td>`).join("")}</tr>`;
     const cm = A.cm360(s.dpi, s.sens);
     const zooms = [2.5, 3.5, 5];
-    const scopeRows = zooms.map((z) => `<tr><th scope="row">${fmt(z, 1)}x<em>${z === 2.5 ? "Operator" : z === 3.5 ? "Marshal, Outlaw" : "Operator, secondo zoom"}</em></th><td>${fmt(A.scopeFov(z), 1)}°</td><td>${fmt(cm / A.scopeFactor(z, s.scopeMult), 0)} cm</td><td>${fmt(A.zeroMatch(z), 2)}</td></tr>`).join("");
+    const scopeRows = zooms.map((z) => `<tr><th scope="row">${fmt(z, 1)}x<em>${z === 2.5 ? "Operator" : z === 3.5 ? "Marshal, Outlaw" : "Operator, secondo zoom"}</em></th><td>${fmt(A.scopeFov(z), 1)}°</td><td data-scope-cm="${z}">${fmt(cm / A.scopeFactor(z, s.scopeMult), 0)} cm</td><td>${fmt(A.zeroMatch(z), 2)}</td></tr>`).join("");
     return `
       <div class="aim-body">
         ${finePointer() ? "" : `<p class="aim-note warn">Per allenarti serve il computer con il mouse: qui puoi leggere i dati e i consigli.</p>`}
@@ -196,10 +199,10 @@
           <article class="aim-panel">
             <h3 class="aim-h3">La sens nello scope</h3>
             <div class="aim-form">
-              <label><span>Moltiplicatore dello scope (come in Valorant)</span><input type="number" inputmode="decimal" min="0.1" max="3" step="0.01" value="${s.scopeMult}" data-aim-input="scopeMult"></label>
+              <label><span>Moltiplicatore dello scope (come in Valorant, da 0,1 a 3)</span><input type="number" inputmode="decimal" min="0.1" max="3" step="0.01" value="${s.scopeMult}" data-aim-input="scopeMult" aria-describedby="aimScopeHelp"></label>
             </div>
             <div class="aim-toggles"><button type="button" class="aim-toggle" data-aim="toggle" data-key="scopeHold" aria-pressed="${s.scopeHold}">Scope tenendo premuto il tasto</button></div>
-            <p class="aim-hint">Spento: un clic entra nello scope (con l'Operator il secondo passa al 5x, il terzo esce). Acceso: resti nello scope finché tieni premuto.</p>
+            <p class="aim-hint" id="aimScopeHelp">Spento: un clic entra nello scope (con l'Operator il secondo passa al 5x, il terzo esce). Acceso: resti nello scope finché tieni premuto.</p>
             <div class="aim-table-wrap"><table class="aim-table"><thead><tr><th scope="col">Zoom</th><th scope="col">Campo visivo</th><th scope="col">Un giro nello scope</th><th scope="col">Uguale vicino al mirino</th></tr></thead><tbody>${scopeRows}</tbody></table></div>
             <p class="aim-hint">In Valorant lo zoom divide il campo visivo (103° / 2,5 = 41,2°). Con il moltiplicatore a 1, il valore predefinito, anche la sens nello scope si divide per lo zoom: un movimento sposta il mirino della stessa distanza sullo schermo, misurata ai bordi. Per sentire uguali i piccoli movimenti vicino al mirino servirebbe il valore dell'ultima colonna (circa 0,75 per il 2,5x, calcolato da noi). Non c'è un valore giusto per tutti: tieni quello che usi in partita.</p>
           </article>
@@ -348,7 +351,7 @@
       add("Senza scope", fmt(run.unscoped || 0), "colpi che vanno quasi a caso");
       add("A scope non entrato", fmt(run.earlyScope || 0), "colpi storti");
       if (num(run.lost)) add("Ti ha colpito prima lui", fmt(run.lost));
-      if (num(run.wall)) add("Colpi sul muro", fmt(run.wall), "sparati prima che uscisse");
+      if (num(run.wall)) add("Colpi sul muro", fmt(run.wall), "il muro ha fermato il colpo");
       if (num(run.scopeT)) add("Dallo scope al colpo", `${fmt(run.scopeT)} ms`, "media sui nemici colpiti");
     }
     if (num(run.vert)) add("Errore in altezza", `${fmt(run.vert, 2)}°`, num(run.vertBias) && Math.abs(run.vertBias) >= 0.05 ? `di solito ${run.vertBias > 0 ? "sopra" : "sotto"} la linea delle teste` : "centrato sulla linea");
@@ -1437,8 +1440,14 @@
         l.settings.scopeMult = Math.round(v * 1000) / 1000;
         el.removeAttribute("aria-invalid");
         save();
-        if (final && ui.tab === "sniper") { render(false); const f = document.querySelector('#aim [data-aim-input="scopeMult"]'); if (f) f.focus({ preventScroll: true }); }
-      } else if (final) { el.value = String(l.settings.scopeMult); el.removeAttribute("aria-invalid"); }
+        // si aggiornano solo i centimetri per giro, senza ridisegnare la pagina
+        const cm = A.cm360(l.settings.dpi, l.settings.sens);
+        document.querySelectorAll("#aim [data-scope-cm]").forEach((td) => { td.textContent = `${fmt(cm / A.scopeFactor(Number(td.dataset.scopeCm), l.settings.scopeMult), 0)} cm`; });
+      } else if (final) {
+        el.value = String(l.settings.scopeMult);
+        el.removeAttribute("aria-invalid");
+        announce("Il moltiplicatore va da 0,1 a 3: resta quello di prima");
+      } else el.setAttribute("aria-invalid", "true");
     } else if (key.startsWith("ch-")) {
       const k = key.slice(3);
       l.settings.crosshair[k] = Math.round(v);
