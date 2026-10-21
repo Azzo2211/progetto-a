@@ -191,6 +191,8 @@ test("Corsi: struttura completa, link https, domande ben formate, id unici", () 
     const qs = c.lessons.flatMap((l) => l.quiz);
     const longest = qs.filter((q) => { const lens = q.options.map((o) => o.length); const m = Math.max(...lens); return lens[q.answer] === m && lens.filter((x) => x === m).length === 1; }).length;
     assert.ok(longest / qs.length <= 0.35, `${c.id}: la giusta è la più lunga nel ${Math.round((longest / qs.length) * 100)}% delle domande`);
+    const shortest = qs.filter((q) => { const lens = q.options.map((o) => o.length); const m = Math.min(...lens); return lens[q.answer] === m && lens.filter((x) => x === m).length === 1; }).length;
+    assert.ok(shortest / qs.length <= 0.4, `${c.id}: la giusta è la più corta nel ${Math.round((shortest / qs.length) * 100)}% delle domande`);
   });
   assert.ok(faculties.size >= 8, `${faculties.size} facoltà`);
   assert.ok(lessons >= 80, `${lessons} lezioni`);
