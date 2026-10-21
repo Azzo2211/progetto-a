@@ -119,6 +119,7 @@
     box.disabled = due === 0;
     const tab = document.querySelector('#culture [data-cult-tab="review"]');
     if (tab) tab.innerHTML = `Ripasso${due ? ` <b class="cult-badge">${due}</b>` : ""}`;
+    if (window.UniUI && window.UniUI.syncTab) window.UniUI.syncTab();
   }
 
   function render() {

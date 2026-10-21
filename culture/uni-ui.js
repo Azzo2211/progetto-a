@@ -64,9 +64,14 @@
   }
   // la prima frase di un testo (per i riquadri brevi)
   function firstSentence(t) {
-    const m = /^(.{40,260}?[.!?])\s/.exec(String(t || "") + " ");
-    return m ? m[1] : String(t || "");
+    const text = String(t || "").trim();
+    const m = /^(.{40,220}?[.!?])(\s|$)/.exec(text);
+    if (m) return m[1];
+    if (text.length <= 220) return text;
+    const cut = text.slice(0, 220);
+    return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), 160)).replace(/[\s,;:]+$/, "")}…`;
   }
+  const lessonNum = (c, l) => c.lessons.indexOf(l) + 1;
   function dueText(t) {
     const days = Math.round((U.addDays(t, 0) - U.addDays(Date.now(), 0)) / 86400000);
     return days <= 0 ? "oggi" : days === 1 ? "domani" : `tra ${days} giorni`;
@@ -93,7 +98,7 @@
     }).join("");
     const hero = due.length
       ? `<div class="cult-hero due"><div><span class="cult-kicker">Ripasso dell'università</span><h2>${plural(due.length, "lezione da ripassare", "lezioni da ripassare")}</h2><p>Due domande per lezione: se rispondi giusto il prossimo ripasso si allontana, se sbagli torna presto.</p></div><button class="primary-action" type="button" data-uni="review" data-autofocus>Ripassa adesso</button></div>`
-      : sug ? `<div class="cult-hero" style="--area:${fac(sug.c).color}"><div><span class="cult-kicker">${sug.p.started ? "Continua da qui" : "Per cominciare"}</span><h2>${esc(sug.c.title)}${sug.p.next ? `: ${esc(sug.p.next.title)}` : ""}</h2><p>${esc(sug.c.source.inst)} · ${esc(sug.c.source.prof)}. ${sug.p.started ? `Lezione ${sug.p.done + 1} di ${sug.p.total}.` : prose(firstSentence(sug.c.summary))}</p></div><button class="primary-action" type="button" data-uni="${sug.p.next ? "lesson" : "course"}" data-id="${esc(sug.p.next ? sug.p.next.id : sug.c.id)}">${sug.p.started ? "Riprendi" : "Inizia il corso"}</button></div>` : "";
+      : sug ? `<div class="cult-hero" style="--area:${fac(sug.c).color}"><div><span class="cult-kicker">${sug.p.started ? "Continua da qui" : "Per cominciare"}</span><h2>${esc(sug.c.title)}${sug.p.next ? `: ${esc(sug.p.next.title)}` : ""}</h2><p>${esc(sug.c.source.inst)} · ${esc(sug.c.source.prof)}. ${sug.p.started ? `${sug.p.next ? `Lezione ${lessonNum(sug.c, sug.p.next)} di ${sug.p.total}` : `${sug.p.done} lezioni su ${sug.p.total}`}.` : prose(firstSentence(sug.c.summary))}</p></div><button class="primary-action" type="button" data-uni="${sug.p.next ? "lesson" : "course"}" data-id="${esc(sug.p.next ? sug.p.next.id : sug.c.id)}">${sug.p.started ? "Riprendi" : "Inizia il corso"}</button></div>` : "";
     return `
       <div class="uni">
         <div class="uni-intro">
@@ -145,7 +150,7 @@
             <h2 data-focus tabindex="-1">${esc(c.title)}</h2>
             <p class="cult-lead">${prose(c.summary)}</p>
             <div class="uni-progress"><span class="uni-bar"><i style="width:${p.pct}%"></i></span><span>${p.done} di ${p.total} lezioni</span></div>
-            <div class="cult-actions">${p.next ? `<button class="primary-action" type="button" data-uni="lesson" data-id="${esc(p.next.id)}">${p.done ? `Continua: lezione ${p.done + 1}` : "Inizia dalla lezione 1"}</button>` : ""}</div>
+            <div class="cult-actions">${p.next ? `<button class="primary-action" type="button" data-uni="lesson" data-id="${esc(p.next.id)}">${p.done ? `Continua: lezione ${lessonNum(c, p.next)}` : "Inizia dalla lezione 1"}</button>` : ""}</div>
             <h3>Le lezioni</h3>
             <ol class="uni-lessons">${rows}</ol>
           </article>
@@ -162,7 +167,7 @@
             <div class="cult-facts uni-exam-box">
               <h3>Esame finale</h3>
               ${ex ? `<p class="uni-vote ${ex.passed ? "ok" : "ko"}">${esc(U.voteLabel(ex))}</p><p class="cult-small">Miglior risultato: ${ex.pct}% il ${dateIt(ex.t)} · ${plural(ex.attempts, "tentativo", "tentativi")}.</p>` : ""}
-              <p class="cult-small">${U.EXAM_SIZE} domande da tutte le lezioni, senza aiuti. Si passa con il 60% (18/30); tutto giusto è 30 e lode. Puoi ripeterlo: resta il voto migliore.</p>
+              <p class="cult-small">${U.EXAM_SIZE} domande da tutte le lezioni, senza aiuti. Si passa con ${U.minCorrect(U.EXAM_SIZE)} risposte giuste (18/30); ogni risposta in più alza il voto e tutto giusto è 30 e lode. Puoi ripeterlo: resta il voto migliore.</p>
               <button class="${p.examOpen ? "primary-action" : "ghost-action"}" type="button" data-uni="exam" data-id="${esc(c.id)}" ${p.examOpen ? "" : "disabled"}>${ex ? "Ridai l'esame" : "Dai l'esame"}</button>
               ${p.examOpen ? "" : `<p class="cult-small">Si sblocca quando hai superato tutte le lezioni (${p.done}/${p.total}).</p>`}
             </div>
@@ -256,8 +261,8 @@
   function doneHtml(c, l, index) {
     const r = ui.quiz.result;
     const correct = ui.quiz.answers.filter(Boolean).length;
-    const next = c.lessons[index + 1];
     const p = U.courseProgress(uni(), c);
+    const next = p.next && p.next.id !== l.id ? p.next : null;
     return `
       <article class="cult-done">
         <div class="cult-done-score"><strong>${correct}/${l.quiz.length}</strong><span>${r.passed ? "superata" : "da rifare"}</span></div>
@@ -266,7 +271,7 @@
           <p>${r.passed ? (r.first ? `Entra nel ripasso: la rivedrai ${dueText(r.due)}, con due domande.` : `Il tuo miglior risultato su questa lezione è ${U.lessonState(uni(), l.id).best}%.`) : `Serve almeno il ${Math.round(U.PASS * 100)}% delle risposte giuste. Rileggi le sezioni su cui hai sbagliato e rifai la verifica.`}</p>
           ${p.examOpen && r.first ? `<p><strong>Hai finito tutte le lezioni del corso: puoi dare l'esame.</strong></p>` : ""}
           <div class="cult-actions">
-            ${!r.passed ? `<button class="primary-action" type="button" data-uni="lesson" data-id="${esc(l.id)}" data-autofocus>Rileggi la lezione</button>` : next ? `<button class="primary-action" type="button" data-uni="lesson" data-id="${esc(next.id)}" data-autofocus>Lezione ${index + 2}: ${esc(next.title)}</button>` : p.examOpen ? `<button class="primary-action" type="button" data-uni="exam" data-id="${esc(c.id)}" data-autofocus>Vai all'esame</button>` : ""}
+            ${!r.passed ? `<button class="primary-action" type="button" data-uni="lesson" data-id="${esc(l.id)}" data-autofocus>Rileggi la lezione</button>` : next ? `<button class="primary-action" type="button" data-uni="lesson" data-id="${esc(next.id)}" data-autofocus>Lezione ${lessonNum(c, next)}: ${esc(next.title)}</button>` : p.examOpen ? `<button class="primary-action" type="button" data-uni="exam" data-id="${esc(c.id)}" data-autofocus>Vai all'esame</button>` : ""}
             <button class="ghost-action" type="button" data-uni="course" data-id="${esc(c.id)}">Torna al corso</button>
           </div>
         </div>
@@ -278,16 +283,20 @@
     const c = byId.get(ui.courseId);
     const e = ui.exam;
     const f = fac(c);
-    const bar = `<div class="cult-read-bar"><button class="ghost-action small" type="button" data-uni="course" data-id="${esc(c.id)}">← ${esc(c.title)}</button><span class="cult-meta"><span class="cult-dot"></span>Esame finale</span></div>`;
+    const running = e.started && !e.done;
+    const bar = `<div class="cult-read-bar"><button class="ghost-action small" type="button" data-uni="${running ? "exam-leave" : "course"}" data-id="${esc(c.id)}">← ${esc(c.title)}</button><span class="cult-meta"><span class="cult-dot"></span>Esame finale</span></div>
+      ${running && e.leaving ? `<div class="cult-feedback ko uni-leave" role="alert"><strong>Vuoi uscire dall'esame?</strong><p>Le risposte date finora si perdono e l'esame non conta: potrai ricominciarlo quando vuoi.</p><div class="cult-actions"><button class="primary-action" type="button" data-uni="exam-stay" data-autofocus>Continua l'esame</button><button class="ghost-action" type="button" data-uni="course" data-id="${esc(c.id)}">Esci</button></div></div>` : ""}`;
     if (e.done) {
       const g = e.grade;
       const wrong = e.questions.map((q, i) => ({ q, a: e.answers[i] })).filter((x) => x.a !== x.q.answer);
+      const best = e.result.best;
+      const keepBest = !!(best && best.passed && (!g.passed || best.vote > g.vote || (best.vote === g.vote && best.lode && !g.lode)));
       return `<div class="uni cult-read" style="--area:${f.color}">${bar}
         <article class="cult-done">
           <div class="cult-done-score"><strong>${g.passed ? (g.lode ? "30L" : g.vote) : "—"}</strong><span>${g.passed ? "su 30" : "non superato"}</span></div>
           <div>
             <h2 data-focus tabindex="-1">${g.passed ? `Esame superato: ${esc(U.voteLabel(g))}` : "Esame non superato"}</h2>
-            <p>${e.correct} risposte giuste su ${e.questions.length} (${g.pct}%). ${g.passed ? "Il voto è sul libretto." : `Serve il ${Math.round(U.PASS * 100)}%: ripassa le lezioni delle domande sbagliate e riprova.`}${e.result.best && e.result.best.passed && (!g.passed || e.result.best.vote > g.vote) ? ` Sul libretto resta il voto migliore: ${esc(U.voteLabel(e.result.best))}.` : ""}</p>
+            <p>${e.correct} risposte giuste su ${e.questions.length} (${g.pct}%). ${keepBest ? `Sul libretto resta il tuo voto migliore: ${esc(U.voteLabel(best))}.` : g.passed ? "Il voto è sul libretto." : ""}${g.passed ? "" : ` Servono almeno ${U.minCorrect(e.questions.length)} risposte giuste su ${e.questions.length}: ripassa le lezioni delle domande sbagliate e riprova.`}</p>
             <div class="cult-actions"><button class="primary-action" type="button" data-uni="course" data-id="${esc(c.id)}" data-autofocus>Torna al corso</button><button class="ghost-action" type="button" data-uni="home">Libretto</button></div>
           </div>
         </article>
@@ -299,7 +308,7 @@
         <article class="cult-review-empty">
           <span class="cult-kicker">${esc(c.source.inst)} · ${esc(c.source.code)}</span>
           <h2 data-focus tabindex="-1">Esame: ${esc(c.title)}</h2>
-          <p>${e.questions.length} domande prese da tutte le lezioni, in ordine casuale. Nessuna spiegazione durante l'esame: le correzioni arrivano alla fine. Si passa con il 60% (18/30); tutto giusto vale 30 e lode.</p>
+          <p>${e.questions.length} domande prese da tutte le lezioni, in ordine casuale. Nessuna spiegazione durante l'esame: le correzioni arrivano alla fine. Si passa con ${U.minCorrect(e.questions.length)} risposte giuste su ${e.questions.length} (18/30); tutto giusto vale 30 e lode.</p>
           <div class="cult-actions"><button class="primary-action" type="button" data-uni="exam-start" data-autofocus>Comincia</button><button class="ghost-action" type="button" data-uni="course" data-id="${esc(c.id)}">Non adesso</button></div>
         </article></div>`;
     }
@@ -307,8 +316,8 @@
     return `<div class="uni cult-read" style="--area:${f.color}">${bar}
       <article class="cult-quiz">
         <div class="cult-quiz-head"><span class="cult-kicker">Domanda ${e.qi + 1} di ${e.questions.length}</span><span class="cult-type">Esame</span></div>
-        <div class="cult-steps">${e.questions.map((_, i) => `<i class="${i < e.answers.length ? "ok" : i === e.qi ? "now" : ""}"></i>`).join("")}</div>
-        <h3 class="cult-question" tabindex="-1" data-autofocus>${prose(q.q)}</h3>
+        <div class="cult-steps">${e.questions.map((_, i) => `<i class="${i < e.answers.length ? "seen" : i === e.qi ? "now" : ""}"></i>`).join("")}</div>
+        <h3 class="cult-question" tabindex="-1" ${e.leaving ? "" : "data-autofocus"}>${prose(q.q)}</h3>
         <div class="cult-options" role="group" aria-label="Risposte">${optionsHtml(q, q.order, null, "exam-answer")}</div>
         <p class="cult-hint">Tasti 1–4 o A–D per rispondere. La risposta non si può cambiare.</p>
       </article></div>`;
@@ -348,8 +357,10 @@
         return;
       }
       box.innerHTML = loading === "error"
-        ? `<div class="cult-review-empty"><h2>Corsi non caricati</h2><p>Serve la connessione la prima volta che apri l'università; poi i corsi restano salvati anche senza rete.</p><div class="cult-actions"><button class="primary-action" type="button" data-uni="retry">Riprova</button></div></div>`
+        ? `<div class="cult-review-empty"><h2 data-focus tabindex="-1">Corsi non caricati</h2><p>Serve la connessione la prima volta che apri l'università; poi i corsi restano salvati anche senza rete.</p><div class="cult-actions"><button class="primary-action" type="button" data-uni="retry">Riprova</button></div></div>`
         : `<p class="cult-empty">Corsi non caricati.</p>`;
+      ui.at = Date.now();
+      if (focus) { const h = box.querySelector("[data-focus]"); if (h) h.focus({ preventScroll: true }); }
       return;
     }
     let html;
@@ -365,7 +376,23 @@
       if (el) { if (!el.hasAttribute("tabindex") && !/^(BUTTON|A|TEXTAREA)$/.test(el.tagName)) el.setAttribute("tabindex", "-1"); el.focus({ preventScroll: true }); }
       const top = box.getBoundingClientRect().top;
       if (top < 0) window.scrollTo({ top: Math.max(0, window.scrollY + top - 12), behavior: "auto" });
+      const fb = box.querySelector(".cult-feedback");
+      if (fb) {
+        const r = fb.getBoundingClientRect();
+        const room = window.innerHeight || document.documentElement.clientHeight;
+        if (r.bottom > room) window.scrollBy({ top: Math.min(r.bottom - room + 16, Math.max(0, r.top - 12)), behavior: "auto" });
+      }
     }
+    syncTab();
+  }
+
+  // numerino sulla scheda "Università": lezioni da ripassare oggi
+  function syncTab() {
+    const tab = document.querySelector('#culture [data-cult-tab="uni"]');
+    if (!tab || typeof state === "undefined") return;
+    const n = U.dueCount(U.ensure(state.cultureUni));
+    const html = `Università${n ? ` <b class="cult-badge">${n}<span class="cult-sr"> ${n === 1 ? "lezione da ripassare" : "lezioni da ripassare"}</span></b>` : ""}`;
+    if (tab.innerHTML !== html) tab.innerHTML = html;
   }
 
   function openLesson(id) {
@@ -432,6 +459,7 @@
     }
     if (ui.view === "exam" && ui.exam && ui.exam.started && !ui.exam.done) {
       const e = ui.exam;
+      e.leaving = false;
       e.answers.push(index);
       if (e.answers.length >= e.questions.length) {
         e.correct = e.questions.filter((q, i) => e.answers[i] === q.answer).length;
@@ -454,12 +482,20 @@
     return false;
   }
 
+  // un doppio clic su un pulsante non deve premere anche quello che compare al suo posto
+  function tooFast(event) {
+    return event.detail > 1 || Date.now() - ui.at < 300;
+  }
+  function onGuard(event) {
+    const a = event.target.closest("a[href]");
+    if (a && tooFast(event)) event.preventDefault();
+  }
+
   function onClick(event) {
     const el = event.target.closest("[data-uni]");
     if (!el || !$("cultPanel-uni").contains(el)) return;
     const act = el.dataset.uni;
-    // contro i doppi clic sulle risposte subito dopo un nuovo disegno
-    if (/answer$/.test(act) && (event.detail > 1 || Date.now() - ui.at < 300)) return;
+    if (tooFast(event)) return;
     switch (act) {
       case "home": ui.view = "home"; ui.exam = null; render(true); break;
       case "retry": loading = null; render(true); break;
@@ -477,6 +513,8 @@
       case "finish": finishLesson(); render(true); break;
       case "exam": startExam(el.dataset.id); render(true); break;
       case "exam-start": if (ui.exam) { ui.exam.started = true; render(true); } break;
+      case "exam-leave": if (ui.exam) { ui.exam.leaving = true; render(true); } break;
+      case "exam-stay": if (ui.exam) { ui.exam.leaving = false; render(true); } break;
       case "review": startReview(); render(true); break;
       case "review-next": {
         const r = ui.review;
@@ -512,6 +550,7 @@
 
   window.UniUI = {
     render,
+    syncTab,
     dueCount: () => (COURSES.length ? U.dueLessons(uni(), COURSES).length : 0),
     stats: () => U.stats(uni(), COURSES)
   };
@@ -519,7 +558,11 @@
   document.addEventListener("DOMContentLoaded", () => {
     const panel = $("cultPanel-uni");
     if (!panel) return;
+    panel.addEventListener("click", onGuard, true);
     panel.addEventListener("click", onClick);
+    panel.addEventListener("input", (event) => {
+      if (event.target && event.target.id === "uniExplainInput" && ui.quiz && !ui.quiz.compared) ui.quiz.note = event.target.value;
+    });
     document.addEventListener("keydown", onKey);
   });
 })();

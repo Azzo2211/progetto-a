@@ -55,10 +55,13 @@
   padding: 4px;
   width: fit-content;
   max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
   border-radius: 12px;
   background: var(--surface);
   border: 1px solid var(--line);
 }
+.cult-tabs::-webkit-scrollbar { display: none; }
 .cult-tab {
   min-height: 38px;
   padding: 0 18px;
@@ -73,6 +76,7 @@
   align-items: center;
   gap: 6px;
 }
+.cult-tab { flex: 0 0 auto; white-space: nowrap; }
 .cult-tab:hover { color: var(--ink); }
 .cult-tab.active { background: var(--ink); color: #fff; }
 .cult-badge { min-width: 20px; padding: 1px 6px; border-radius: 999px; background: var(--teal); color: #fff; font-size: 0.76rem; }
@@ -235,6 +239,7 @@
 .cult-steps i.now { background: var(--area, var(--teal)); }
 .cult-steps i.ok { background: var(--cult-ok); }
 .cult-steps i.ko { background: var(--cult-ko); }
+.cult-steps i.seen { background: #8fa3b0; }
 .cult-question { margin: 6px 0 14px; font-family: var(--cult-serif); font-size: 1.3rem; line-height: 1.45; font-weight: 600; }
 
 .cult-options { display: grid; gap: 8px; }
@@ -477,6 +482,12 @@
   .uni-lessons li { grid-template-columns: 30px minmax(0, 1fr); }
   .uni-lessons li .ghost-action { grid-column: 2; justify-self: start; }
   .uni-progress { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 420px) {
+  .cult-tabs { gap: 2px; padding: 3px; }
+  .cult-tab { padding: 0 6px; gap: 4px; font-size: 0.88rem; }
+  .cult-badge { min-width: 18px; padding: 1px 5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

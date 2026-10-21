@@ -85,11 +85,17 @@
       reviews: Number.isInteger(x.reviews) && x.reviews >= 0 ? x.reviews : 0
     };
     if (typeof x.note === "string" && x.note.trim()) out.note = x.note.slice(0, 3000);
+    // lezione superata ma con dati mancanti: voto minimo e ripasso dal giorno dopo
+    if (out.done) {
+      if (out.best == null || out.best < PASS * 100) out.best = Math.round(PASS * 100);
+      if (out.due == null) out.due = addDays(out.done, 1);
+      if (out.box < 1) out.box = 1;
+    }
     return out;
   }
   function cleanExam(x) {
     if (!isObj(x)) return null;
-    const attempts = Array.isArray(x.attempts) ? x.attempts.filter((a) => isObj(a) && num(a.t) && Number.isInteger(a.correct) && Number.isInteger(a.total) && a.total > 0 && a.correct >= 0 && a.correct <= a.total).slice(-20).map((a) => ({ t: a.t, correct: a.correct, total: a.total })) : [];
+    const attempts = Array.isArray(x.attempts) ? x.attempts.filter((a) => isObj(a) && num(a.t) && a.t > 0 && Number.isInteger(a.correct) && Number.isInteger(a.total) && a.total > 0 && a.correct >= 0 && a.correct <= a.total).slice(-20).map((a) => ({ t: a.t, correct: a.correct, total: a.total })) : [];
     if (!attempts.length) return null;
     return { attempts };
   }
@@ -125,7 +131,7 @@
       st.box = Math.max(st.box, 1);
       st.due = addDays(now, INTERVALS[st.box]);
     }
-    if (typeof note === "string" && note.trim()) st.note = note.slice(0, 3000);
+    if (typeof note === "string") { if (note.trim()) st.note = note.slice(0, 3000); else delete st.note; }
     uni.lessons[lesson.id] = st;
     uni.minutes += num(lesson.minutes) ? lesson.minutes : 0;
     markDay(uni, now);
@@ -133,6 +139,11 @@
   }
 
   function isDone(uni, id) { return !!lessonState(uni, id).done; }
+
+  // Quante lezioni sono da ripassare oggi, anche senza i dati dei corsi (per il numerino della scheda).
+  function dueCount(uni, now = Date.now()) {
+    return Object.values(uni.lessons).filter((st) => st.done && num(st.due) && st.due <= now).length;
+  }
 
   // Lezioni da ripassare oggi (le piu' in ritardo prima).
   function dueLessons(uni, courses, now = Date.now()) {
@@ -187,12 +198,16 @@
     });
   }
 
-  // Voto in trentesimi: sotto il 60% non superato; 18 al 60%, 30 al 100% (con la lode).
+  // Voto in trentesimi: servono almeno il 60% di risposte giuste (8 su 12), che valgono 18;
+  // tutto giusto vale 30 e lode, in mezzo si sale in proporzione.
+  function minCorrect(total) { return Math.ceil(total * PASS - 1e-9); }
   function grade(correct, total) {
     if (!Number.isInteger(correct) || !Number.isInteger(total) || total <= 0) return null;
-    const f = clamp(correct, 0, total) / total;
-    if (f < PASS - 1e-9) return { passed: false, vote: null, lode: false, pct: Math.round(f * 100) };
-    const vote = clamp(Math.round(18 + ((f - PASS) / (1 - PASS)) * 12), 18, 30);
+    const c = clamp(correct, 0, total);
+    const f = c / total;
+    const need = minCorrect(total);
+    if (c < need) return { passed: false, vote: null, lode: false, pct: Math.round(f * 100) };
+    const vote = need >= total ? 30 : clamp(Math.round(18 + ((c - need) / (total - need)) * 12), 18, 30);
     return { passed: true, vote, lode: correct === total, pct: Math.round(f * 100) };
   }
   const voteLabel = (g) => (!g ? "—" : !g.passed ? "Non superato" : g.lode ? "30 e lode" : `${g.vote}/30`);
@@ -257,7 +272,7 @@
 
   return {
     VERSION, FACULTIES, LEVELS, INTERVALS, PASS, EXAM_SIZE, CFU,
-    ensure, lessonState, finishLesson, isDone, dueLessons, reviewLesson, reviewQuestions,
+    ensure, lessonState, finishLesson, isDone, dueLessons, dueCount, minCorrect, reviewLesson, reviewQuestions,
     courseProgress, makeExam, grade, voteLabel, recordExam, examResult, libretto, stats, suggest, dayKey, addDays, rng, shuffle
   };
 });

@@ -101,12 +101,15 @@ test("Corso ed esame: si sblocca a lezioni finite, 12 domande da tutte le lezion
 
 test("Voto in trentesimi: 18 al 60%, 30 e lode al 100%, sotto il 60% non superato", () => {
   assert.strictEqual(U.grade(7, 12).passed, false);
-  assert.deepStrictEqual(U.grade(8, 12), { passed: true, vote: 20, lode: false, pct: 67 });
+  assert.deepStrictEqual(U.grade(8, 12), { passed: true, vote: 18, lode: false, pct: 67 });
+  assert.strictEqual(U.minCorrect(12), 8);
+  assert.strictEqual(U.minCorrect(10), 6);
+  assert.deepStrictEqual([8, 9, 10, 11].map((c) => U.grade(c, 12).vote), [18, 21, 24, 27]);
   assert.strictEqual(U.grade(6, 10).vote, 18);
   assert.strictEqual(U.grade(9, 10).vote, 27);
   assert.deepStrictEqual(U.grade(12, 12), { passed: true, vote: 30, lode: true, pct: 100 });
   assert.strictEqual(U.voteLabel(U.grade(12, 12)), "30 e lode");
-  assert.strictEqual(U.voteLabel(U.grade(11, 12)), "28/30");
+  assert.strictEqual(U.voteLabel(U.grade(11, 12)), "27/30");
   assert.strictEqual(U.voteLabel(U.grade(2, 12)), "Non superato");
 });
 
@@ -124,8 +127,8 @@ test("Libretto: resta il voto migliore, media e crediti", () => {
   const lib = U.libretto(u, [a, b]);
   assert.strictEqual(lib.rows.length, 2);
   assert.strictEqual(lib.cfu, 12);
-  assert.strictEqual(lib.avg, 26.5);
-  assert.strictEqual(lib.base110, 97);
+  assert.strictEqual(lib.avg, 25.5);
+  assert.strictEqual(lib.base110, 94);
   const st = U.stats(u, [a, b], T0 + 3 * DAY);
   assert.strictEqual(st.exams, 2);
   assert.strictEqual(st.streak, 4);
@@ -144,6 +147,25 @@ test("Dati salvati: valori rovinati sistemati, id strani scartati", () => {
   assert.deepStrictEqual(u.days, ["2026-10-01"]);
   assert.strictEqual(u.minutes, 0);
   assert.strictEqual(U.ensure("rotto").version, 1);
+  // lezione fatta ma senza voto o data di ripasso: sistemata, non persa
+  const v = U.ensure({ version: 1, lessons: { "x-01": { done: T0, box: 0 } }, exams: { "c-2": { attempts: [{ t: 0, correct: 9, total: 12 }, { t: T0, correct: 9, total: 12 }] } } });
+  assert.strictEqual(v.lessons["x-01"].best, 60);
+  assert.strictEqual(v.lessons["x-01"].due, U.addDays(T0, 1));
+  assert.strictEqual(v.lessons["x-01"].box, 1);
+  assert.strictEqual(v.exams["c-2"].attempts.length, 1);
+  assert.strictEqual(U.dueCount(v, U.addDays(T0, 1)), 1);
+  assert.strictEqual(U.dueCount(v, T0), 0);
+});
+
+test("Spiegazione: lasciarla vuota cancella quella salvata", () => {
+  const u = U.ensure(null);
+  const l = fake("corso-n").lessons[0];
+  U.finishLesson(u, l, { correct: 5, total: 5, now: T0, note: "prima versione" });
+  assert.strictEqual(U.lessonState(u, l.id).note, "prima versione");
+  U.finishLesson(u, l, { correct: 5, total: 5, now: T0 + DAY, note: "   " });
+  assert.strictEqual(U.lessonState(u, l.id).note, undefined);
+  U.finishLesson(u, l, { correct: 5, total: 5, now: T0 + 2 * DAY });
+  assert.strictEqual(U.lessonState(u, l.id).note, undefined);
 });
 
 test("Corsi: struttura completa, link https, domande ben formate, id unici", () => {
@@ -181,6 +203,8 @@ test("Corsi: struttura completa, link https, domande ben formate, id unici", () 
         assert.strictEqual(new Set(q.options).size, 4, `${at} domanda ${k + 1}: opzioni doppie`);
         assert.ok([0, 1, 2, 3].includes(q.answer), `${at} domanda ${k + 1}: risposta`);
         assert.ok(q.q.length >= 15 && q.why.length >= 30, `${at} domanda ${k + 1}: testo`);
+        // le opzioni vengono mescolate: la spiegazione non può dire "la prima opzione"
+        assert.ok(!/\b(prima|seconda|terza|quarta|ultima)\s+(opzione|risposta|alternativa)\b|\b(opzione|risposta)\s+[ABCD]\b/i.test(q.why), `${at} domanda ${k + 1}: riferimento alla posizione`);
       });
       assert.ok(typeof l.explain === "string" && l.explain.length >= 30, `${at}: spiegalo tu`);
       lessons += 1;
