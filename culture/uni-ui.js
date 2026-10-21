@@ -62,6 +62,11 @@
     live.textContent = "";
     setTimeout(() => { live.textContent = text; }, 30);
   }
+  // la prima frase di un testo (per i riquadri brevi)
+  function firstSentence(t) {
+    const m = /^(.{40,260}?[.!?])\s/.exec(String(t || "") + " ");
+    return m ? m[1] : String(t || "");
+  }
   function dueText(t) {
     const days = Math.round((U.addDays(t, 0) - U.addDays(Date.now(), 0)) / 86400000);
     return days <= 0 ? "oggi" : days === 1 ? "domani" : `tra ${days} giorni`;
@@ -88,7 +93,7 @@
     }).join("");
     const hero = due.length
       ? `<div class="cult-hero due"><div><span class="cult-kicker">Ripasso dell'università</span><h2>${plural(due.length, "lezione da ripassare", "lezioni da ripassare")}</h2><p>Due domande per lezione: se rispondi giusto il prossimo ripasso si allontana, se sbagli torna presto.</p></div><button class="primary-action" type="button" data-uni="review" data-autofocus>Ripassa adesso</button></div>`
-      : sug ? `<div class="cult-hero" style="--area:${fac(sug.c).color}"><div><span class="cult-kicker">${sug.p.started ? "Continua da qui" : "Per cominciare"}</span><h2>${esc(sug.c.title)}${sug.p.next ? `: ${esc(sug.p.next.title)}` : ""}</h2><p>${esc(sug.c.source.inst)} · ${esc(sug.c.source.prof)}. ${sug.p.started ? `Lezione ${sug.p.done + 1} di ${sug.p.total}.` : prose(sug.c.summary)}</p></div><button class="primary-action" type="button" data-uni="${sug.p.next ? "lesson" : "course"}" data-id="${esc(sug.p.next ? sug.p.next.id : sug.c.id)}">${sug.p.started ? "Riprendi" : "Inizia il corso"}</button></div>` : "";
+      : sug ? `<div class="cult-hero" style="--area:${fac(sug.c).color}"><div><span class="cult-kicker">${sug.p.started ? "Continua da qui" : "Per cominciare"}</span><h2>${esc(sug.c.title)}${sug.p.next ? `: ${esc(sug.p.next.title)}` : ""}</h2><p>${esc(sug.c.source.inst)} · ${esc(sug.c.source.prof)}. ${sug.p.started ? `Lezione ${sug.p.done + 1} di ${sug.p.total}.` : prose(firstSentence(sug.c.summary))}</p></div><button class="primary-action" type="button" data-uni="${sug.p.next ? "lesson" : "course"}" data-id="${esc(sug.p.next ? sug.p.next.id : sug.c.id)}">${sug.p.started ? "Riprendi" : "Inizia il corso"}</button></div>` : "";
     return `
       <div class="uni">
         <div class="uni-intro">
