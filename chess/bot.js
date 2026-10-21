@@ -62,6 +62,9 @@
   const TEMPERATURE = [[250, 3], [1000, 2.2], [1600, 1.6], [2000, 1.13], [2400, 0.7], [2800, 0.4], [3200, 0.2], [3600, 0.15]];
   const RANDOM = [[0, 0.5], [250, 0.25], [500, 0.08], [750, 0]];
   const PLAUSIBLE = [[800, 0], [1000, 0.5], [1600, 0.85], [2000, 0.95], [2400, 1]];
+  // In apertura gli errori si riducono a questa quota (1 = nessuna riduzione: i principianti
+  // giocano aperture strane, gia' un 700 muove pedoni centrali e cavalli).
+  const OPENING = [[500, 1], [600, 0.7], [1000, 0.5], [1600, 0.35]];
   // Profondita' della ricerca e della "visione": valori con la virgola, a ogni mossa si arrotonda
   // a caso (5,3 = 5 nel 70% delle mosse, 6 nel 30%), cosi' la forza cresce senza scalini.
   const DEPTH = [[0, 6], [700, 6], [1300, 8], [1900, 10], [2000, 10.4], [2400, 12], [2800, 14], [3200, 16]];
@@ -79,11 +82,12 @@
       spread: interp(SPREAD, s),
       temperature: interp(TEMPERATURE, s),
       random: interp(RANDOM, s),
+      openingFactor: interp(OPENING, s),
       book: s >= 1000
     };
   }
 
-  const FULL = { errors: { blunder: 0, mistake: 0, inaccuracy: 0 }, spread: 0, temperature: 0, random: 0, vision: 0, plausibleShare: 0, book: false };
+  const FULL = { errors: { blunder: 0, mistake: 0, inaccuracy: 0 }, spread: 0, temperature: 0, random: 0, vision: 0, plausibleShare: 0, openingFactor: 1, book: false };
 
   // Elo = forza misurata sulla scala di Stockfish; strength = forza interna che la produce.
   const LEVELS = [
@@ -94,16 +98,16 @@
     { level: 5, elo: 850, strength: 805, name: "Intermedio basso", description: "Meno pezzi regalati, piani ancora instabili." },
     { level: 6, elo: 1000, strength: 935, name: "Intermedio", description: "Conosce le aperture principali, sbaglia nei cambi e nei finali." },
     { level: 7, elo: 1150, strength: 1030, name: "Giocatore da circolo", description: "Manca tattiche di 2-3 mosse e piani lunghi." },
-    { level: 8, elo: 1300, strength: 1185, name: "Intermedio forte", description: "Gioco solido, qualche svista tattica a partita." },
-    { level: 9, elo: 1450, strength: 1272, name: "Club", description: "Sa giocare, ma non ha la precisione di un esperto." },
-    { level: 10, elo: 1600, strength: 1375, name: "Club forte", description: "Forte, con imprecisioni strategiche reali." },
-    { level: 11, elo: 1800, strength: 1505, name: "Avanzato", description: "Scelte quasi sempre sane, raramente regala qualcosa." },
-    { level: 12, elo: 2000, strength: 1635, name: "Esperto", description: "Molto preciso: pochi errori non forzati." },
-    { level: 13, elo: 2200, strength: 1765, name: "Candidato maestro", description: "Tattica pulita e piani coerenti." },
-    { level: 14, elo: 2400, strength: 1890, name: "Maestro", description: "Quasi nessun errore: devi conquistare ogni vantaggio." },
-    { level: 15, elo: 2600, strength: 2015, name: "Grande maestro", description: "Precisione da professionista." },
-    { level: 16, elo: 2800, strength: 2490, name: "Campione del mondo", description: "Il livello dei migliori umani di sempre." },
-    { level: 17, elo: 3000, strength: 2610, name: "Super motore", description: "Sopra qualsiasi umano." },
+    { level: 8, elo: 1300, strength: 1175, name: "Intermedio forte", description: "Gioco solido, qualche svista tattica a partita." },
+    { level: 9, elo: 1450, strength: 1274, name: "Club", description: "Sa giocare, ma non ha la precisione di un esperto." },
+    { level: 10, elo: 1600, strength: 1363, name: "Club forte", description: "Forte, con imprecisioni strategiche reali." },
+    { level: 11, elo: 1800, strength: 1480, name: "Avanzato", description: "Scelte quasi sempre sane, raramente regala qualcosa." },
+    { level: 12, elo: 2000, strength: 1600, name: "Esperto", description: "Molto preciso: pochi errori non forzati." },
+    { level: 13, elo: 2200, strength: 1731, name: "Candidato maestro", description: "Tattica pulita e piani coerenti." },
+    { level: 14, elo: 2400, strength: 1871, name: "Maestro", description: "Quasi nessun errore: devi conquistare ogni vantaggio." },
+    { level: 15, elo: 2600, strength: 2080, name: "Grande maestro", description: "Precisione da professionista." },
+    { level: 16, elo: 2800, strength: 2460, name: "Campione del mondo", description: "Il livello dei migliori umani di sempre." },
+    { level: 17, elo: 3000, strength: 2655, name: "Super motore", description: "Sopra qualsiasi umano." },
     { level: 18, elo: 3200, full: { depth: 18, multipv: 1 }, name: "Stockfish pieno", description: "Stockfish senza limitazioni, ricerca media." },
     { level: 19, elo: 3600, full: { depth: 40, movetime: 2500, multipv: 1 }, name: "Imbattibile", description: "Massima forza disponibile nel browser (2,5 secondi per mossa)." }
   ];
@@ -222,6 +226,8 @@
       for (const kind of ERROR_ORDER.slice(ERROR_ORDER.indexOf(category))) {
         const [min, max] = ERROR_BANDS[kind];
         let pool = scored.filter((c) => c.loss >= min && c.loss < max + (kind === "blunder" ? 1 : 0));
+        // in apertura l'errore e' una mossa "normale" ma imprecisa, tra le prime per valutazione
+        if (options.opening) pool = pool.filter((c) => scored.indexOf(c) < OPENING_TOP);
         if (options.plausible) pool = pool.filter((c) => typeof c.shallowLoss === "number" && c.shallowLoss <= (levelConfig.plausibleMax || 6));
         if (!pool.length) continue;
         const spread = kind === "blunder" ? Math.max(levelConfig.spread || 20, 1) : 6;
@@ -231,12 +237,15 @@
       }
     }
 
-    // 2) Mossa normale: scelta tra le mosse quasi equivalenti alla migliore.
-    const pool = scored.filter((c) => c.loss < ERROR_BANDS.inaccuracy[0]);
+    // 2) Mossa normale: scelta tra le mosse quasi equivalenti alla migliore. In apertura chi sa
+    // giocare resta sulle mosse principali (niente 1...h5 da un 2000).
+    const opening = Boolean(options.opening);
+    const pool = scored.filter((c) => c.loss < (opening ? OPENING_POOL : ERROR_BANDS.inaccuracy[0]));
     const usable = pool.length ? pool : [best];
     const useBook = levelConfig.book && options.fen && (options.ply || 0) < 16;
+    const temperature = levelConfig.temperature * (opening ? 0.5 : 1);
     const weights = usable.map((c) => {
-      let weight = Math.exp(-c.uLoss / levelConfig.temperature);
+      let weight = Math.exp(-c.uLoss / temperature);
       if (useBook && leadsToBook(options.fen, c.uci)) weight *= 4;
       return weight;
     });
@@ -289,6 +298,12 @@
   // Oltre questa probabilita' di vittoria il bot "chiude la partita": errori ridotti a CONVERT_FACTOR.
   const WINNING = 90;
   const CONVERT_FACTOR = 0.3;
+  // Apertura: per le prime OPENING_PLIES mezze mosse (dai livelli che conoscono le prime regole)
+  // errori ridotti (openingFactor), scelti tra le prime OPENING_TOP mosse, e mossa normale solo
+  // entro OPENING_POOL punti dalla migliore.
+  const OPENING_PLIES = 16;
+  const OPENING_POOL = 2;
+  const OPENING_TOP = 6;
   function scaleErrors(errors = {}, factor) {
     return { blunder: (errors.blunder || 0) * factor, mistake: (errors.mistake || 0) * factor, inaccuracy: (errors.inaccuracy || 0) * factor };
   }
@@ -320,7 +335,10 @@
       const uci = randomLegalMove(fen, rng);
       if (uci) return { ok: true, uci, reason: "mossa da principiante", loss: null, lines: result.lines, depth: result.depth };
     }
-    const rollConfig = winning ? { ...config, errors: scaleErrors(config.errors, CONVERT_FACTOR) } : config;
+    // In apertura (prime 8 mosse a testa) chi conosce le aperture sbaglia molto meno.
+    const opening = (config.openingFactor || 1) < 1 && ply < OPENING_PLIES;
+    const factor = Math.min(winning ? CONVERT_FACTOR : 1, opening ? config.openingFactor : 1);
+    const rollConfig = factor < 1 ? { ...config, errors: scaleErrors(config.errors, factor) } : config;
     const category = config.temperature ? rollError(rollConfig, rng) : null;
     // Errore credibile: serve il calcolo corto per sapere quali mosse "sembrano" buone.
     let plausible = false;
@@ -334,7 +352,7 @@
         candidates = candidates.map((c) => (wins.has(c.uci) ? { ...c, shallowLoss: Math.max(0, bestShallow - wins.get(c.uci)) } : c));
       }
     }
-    const choice = selectMove(candidates, config, rng, { fen, ply, category, plausible });
+    const choice = selectMove(candidates, config, rng, { fen, ply, category, plausible, opening });
     if (!choice) return { ok: false, error: "Nessuna mossa valida" };
     return { ok: true, uci: choice.uci, reason: choice.reason, loss: choice.loss, lines: result.lines, depth: result.depth };
   }
