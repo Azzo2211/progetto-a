@@ -74,17 +74,19 @@ Gli errori sono **credibili**: dai livelli intermedi in su il bot sbaglia solo c
 
 **Taratura (ottobre 2026).** Ogni livello ha giocato contro Stockfish 17.1 completo con forza limitata (`UCI_LimitStrength` / `UCI_Elo`): è la scala Elo ufficiale di Stockfish, da 1320 a 3190, tarata dagli sviluppatori sulla lista CCRL Blitz. L'Elo scritto sul bot è quello misurato su quella scala; sotto 1320 i livelli sono misurati a catena, uno contro l'altro. Le scale umane non coincidono del tutto (Lichess dà numeri più alti di chess.com, chess.com più alti della FIDE), quindi il numero va letto come "circa". Strumento: `tools/calibrate.js`.
 
+Le partite di taratura partono dalla posizione iniziale, come nell'app (il bot gioca anche la sua apertura).
+
 | Livello | Elo scritto | Misurato | Come |
 |---|---|---|---|
-| 1-5 | 250, 400, 550, 700, 850 | circa 200, 450, 565, 695, 810 | a catena, 50 partite tra livelli vicini |
-| 6-8 | 1000, 1150, 1300 | 1060, 1160, 1305 | 24-30 partite contro Stockfish 1320 |
-| 9-12 | 1450, 1600, 1800, 2000 | 1450, 1570, 1845, 2060 | 24 partite contro Stockfish allo stesso Elo |
-| 13-15 | 2200, 2400, 2600 | 2170, 2420, 2660 | come sopra |
-| 16-17 | 2800, 3000 | 2910, 2980 | 16 partite contro Stockfish allo stesso Elo |
+| 1-5 | 250, 400, 550, 700, 850 | circa come scritto (±100) | a catena, 50 partite tra livelli vicini |
+| 6-8 | 1000, 1150, 1300 | 900, 1260, 1275 | 24 partite contro Stockfish 1320 |
+| 9-12 | 1450, 1600, 1800, 2000 | 1480, 1645, 1890, 2000 | 24 partite contro Stockfish allo stesso Elo |
+| 13-15 | 2200, 2400, 2600 | 2230, 2520, 2600 | come sopra |
+| 16-17 | 2800, 3000 | 2910, 3045 | 16 partite contro Stockfish allo stesso Elo |
 | 18 | 3200 | oltre 3200 | 10 vinte su 10 contro Stockfish 3000 |
 | 19 | 3600 | non misurabile | sopra la scala di Stockfish, è il più forte |
 
-Con 24 partite l'incertezza è di circa ±100 punti; i valori di forza interna vengono da una curva costruita su tutte le partite giocate (circa 2000).
+Con 24 partite l'incertezza è di circa ±100 punti. La forza interna di ogni livello viene da una curva costruita su tutte le partite giocate (più di 3500).
 
 I bot di prima (fino al 21 ottobre 2026) erano più deboli dell'Elo scritto e ogni tanto regalavano un pezzo anche ai livelli alti. Misurati allo stesso modo: il "1300" valeva circa 870, il "2000" circa 1790, il "3000" circa 2650. Al primo avvio dopo l'aggiornamento il rating delle partite già giocate viene ricalcolato con la loro forza vera (i dati vecchi restano salvati) e le statistiche per livello ripartono da zero.
 

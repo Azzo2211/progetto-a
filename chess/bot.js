@@ -106,7 +106,7 @@
     { level: 13, elo: 2200, strength: 1632, name: "Candidato maestro", description: "Tattica pulita e piani coerenti." },
     { level: 14, elo: 2400, strength: 1781, name: "Maestro", description: "Quasi nessun errore: devi conquistare ogni vantaggio." },
     { level: 15, elo: 2600, strength: 1921, name: "Grande maestro", description: "Precisione da professionista." },
-    { level: 16, elo: 2800, strength: 2460, name: "Campione del mondo", description: "Il livello dei migliori umani di sempre." },
+    { level: 16, elo: 2800, strength: 2360, name: "Campione del mondo", description: "Il livello dei migliori umani di sempre." },
     { level: 17, elo: 3000, strength: 2655, name: "Super motore", description: "Sopra qualsiasi umano." },
     { level: 18, elo: 3200, full: { depth: 18, multipv: 1 }, name: "Stockfish pieno", description: "Stockfish senza limitazioni, ricerca media." },
     { level: 19, elo: 3600, full: { depth: 40, movetime: 2500, multipv: 1 }, name: "Imbattibile", description: "Massima forza disponibile nel browser (2,5 secondi per mossa)." }
