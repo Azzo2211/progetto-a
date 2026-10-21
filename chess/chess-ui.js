@@ -843,11 +843,31 @@
     const engine = isStockfishEngineEnabled() ? "" : ` Motore: ${getEngineStatusText()}.`;
     const hint = suggested === level ? " Avversario adatto al tuo livello." : suggested ? ` Consigliato per te: ${getBotLevelConfig(suggested).elo} (casa con il bordo blu).` : "";
     document.getElementById("botLevelText").textContent = `${record}${hint}${engine}`;
+    renderRecalNote();
     document.getElementById("botPrevBtn").disabled = level <= 1;
     document.getElementById("botNextBtn").disabled = level >= getMaxBotLevel();
     renderPlayControls();
   }
   window.renderBotPicker = renderBotPicker;
+
+  // Avviso una tantum dopo la ritaratura dei bot (ottobre 2026).
+  function renderRecalNote() {
+    const box = document.getElementById("botRecal");
+    if (!box) return;
+    const info = state.chess.recalibration;
+    box.hidden = !info || info.seen;
+    if (box.hidden) return;
+    const change = typeof info.before === "number" && typeof info.after === "number"
+      ? ` Il tuo rating partite è stato ricalcolato con la forza vera dei bot contro cui avevi giocato: da ${info.before} a ${info.after}.`
+      : "";
+    document.getElementById("botRecalText").textContent = `I bot sono stati ritarati: ora giocano davvero all'Elo scritto, misurato contro Stockfish, e non regalano più pezzi a caso. Quelli di prima erano più deboli di quanto dicevano.${change} Le statistiche per livello ripartono da zero.`;
+  }
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest || !event.target.closest("#botRecalOk")) return;
+    if (state.chess.recalibration) state.chess.recalibration.seen = true;
+    saveState();
+    renderRecalNote();
+  });
 
   // Il segnaposto dorato scivola sulla casa scelta, come un pezzo che muove.
   function placeBotCursor(animate) {

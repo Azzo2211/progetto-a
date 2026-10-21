@@ -45,7 +45,7 @@ const defaultState = {
     draws: 0,
     lastAccuracy: 0,
     levelStats: {},
-    levelScheme: 2,
+    levelScheme: 3,
     mode: "rated",
     ui: { theme: "accademia", pieceSet: "cote", effects: true, sound: true, coords: true, evalBarInGame: false, orientation: "white" },
     rating: {},
@@ -521,17 +521,23 @@ function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     const merged = mergeDefaults(defaultState, saved || {});
-    const needsMigration = Boolean(saved && saved.chess && saved.chess.levelScheme !== 2);
-    return needsMigration ? migrateChessState(merged) : merged;
+    const scheme = saved && saved.chess ? Number(saved.chess.levelScheme) || 1 : 3;
+    return scheme < 3 ? migrateChessState(merged, scheme) : merged;
   } catch (error) {
     return JSON.parse(JSON.stringify(defaultState));
   }
 }
 
-// I vecchi livelli (1-15) avevano Elo diversi: li convertiamo al livello nuovo
-// con l'Elo piu' vicino, statistiche comprese.
-function migrateChessState(loaded) {
+// Schema 1 -> 2: i vecchi livelli (1-15) avevano Elo diversi, li convertiamo al livello nuovo
+// con l'Elo piu' vicino, statistiche comprese. Schema 2 -> 3: bot ritarati (ottobre 2026).
+function migrateChessState(loaded, scheme = 1) {
   if (!loaded || !loaded.chess) return loaded;
+  if (scheme < 2) migrateChessLevels(loaded);
+  if (scheme < 3) recalibrateChessBots(loaded);
+  return loaded;
+}
+
+function migrateChessLevels(loaded) {
   const oldElo = [250, 400, 550, 700, 850, 1000, 1150, 1300, 1450, 1600, 1800, 2000, 2300, 2800, 3500];
   const mapLevel = (level) => ChessBot.levelForElo(oldElo[Math.min(oldElo.length, Math.max(1, Number(level) || 1)) - 1]);
   const hadGames = Boolean(loaded.chess.games);
@@ -545,7 +551,30 @@ function migrateChessState(loaded) {
   });
   loaded.chess.levelStats = migratedStats;
   loaded.chess.levelScheme = 2;
-  return loaded;
+}
+
+// I bot di prima erano piu' deboli dell'Elo scritto. Il rating viene ricalcolato con la loro
+// forza vera (ChessBot.legacyTrueElo) e le statistiche per livello ripartono da zero, perche'
+// i bot nuovi sono diversi. I dati vecchi restano in chess.recalibrationBackup.
+function recalibrateChessBots(loaded) {
+  const chess = loaded.chess;
+  const rating = chess.rating && chess.rating.game && chess.rating.game.count > 0;
+  const stats = Object.values(chess.levelStats || {}).some((item) => item && item.games > 0);
+  if (rating || stats) {
+    const date = new Date().toISOString();
+    chess.recalibrationBackup = { date, rating: JSON.parse(JSON.stringify(chess.rating || {})), levelStats: JSON.parse(JSON.stringify(chess.levelStats || {})) };
+    let before = null;
+    let after = null;
+    if (rating) {
+      const res = ChessRating.recalibrate(chess.rating, ChessBot.legacyTrueElo);
+      chess.rating = res.profile;
+      before = res.before;
+      after = res.after;
+    }
+    chess.levelStats = {};
+    chess.recalibration = { date, before, after, seen: false };
+  }
+  chess.levelScheme = 3;
 }
 
 function mergeDefaults(defaults, saved) {

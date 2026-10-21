@@ -102,6 +102,29 @@ test("Elo stimato combina partite ed esercizi", () => {
   assert.ok(est.elo > 900 && est.elo < 1400, `elo ${est.elo}`);
 });
 
+test("Ritaratura dei bot: rating ricontato con la forza vera, vittorie corrette, grado da rifare", () => {
+  let p = R.createProfile();
+  for (let i = 0; i < 12; i += 1) p = R.recordGame(p, { botElo: 2000, result: i % 3 ? "win" : "loss", gameId: `r${i}` }).profile;
+  p.certifiedKey = "A";
+  const inflated = p.game.rating;
+  const res = R.recalibrate(p, (elo) => (elo === 2000 ? 1100 : elo));
+  assert.strictEqual(res.before, inflated);
+  assert.ok(res.after < inflated - 300, `${inflated} -> ${res.after}`);
+  assert.strictEqual(res.profile.game.count, 12);
+  assert.strictEqual(res.profile.game.history.length, 12);
+  assert.ok(res.profile.game.history.every((h) => h.botElo === 1100 && h.labelElo === 2000));
+  assert.ok(res.profile.wins.every((w) => w.botElo === 1100 && w.labelElo === 2000));
+  assert.strictEqual(R.bestWinElo(res.profile), 1100);
+  assert.strictEqual(res.profile.certifiedKey, undefined);
+  // una seconda ritaratura parte dall'Elo scritto originale, non da quello gia' corretto
+  const again = R.recalibrate(res.profile, (elo) => (elo === 2000 ? 1200 : elo));
+  assert.ok(again.profile.wins.every((w) => w.botElo === 1200 && w.labelElo === 2000));
+  // profilo vuoto: niente da ricalcolare
+  const empty = R.recalibrate(R.createProfile(), (elo) => elo);
+  assert.strictEqual(empty.before, null);
+  assert.strictEqual(empty.profile.game.rating, R.START_RATING);
+});
+
 /* ------------------------------------------------------------- lezioni */
 
 test("Ogni lezione ha teoria, punti chiave e mosse legali", () => {

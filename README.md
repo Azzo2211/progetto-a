@@ -37,7 +37,7 @@ Poi apri **http://localhost:8765** (non aprire `index.html` con doppio click: St
 
 ### Grado E-S: come si misura
 Il grado non e' una stima a occhio: e' **certificato** solo quando tutti i requisiti sono soddisfatti.
-- **Rating partite**: Glicko-1 contro i bot (ogni bot ha un Elo calibrato). Contano solo le partite *valutate* (niente suggerimenti, niente mosse annullate) di almeno 8 mosse.
+- **Rating partite**: Glicko-1 contro i bot (ogni bot ha un Elo misurato contro Stockfish, vedi "Come gioca il bot"). Contano solo le partite *valutate* (niente suggerimenti, niente mosse annullate) di almeno 8 mosse.
 - **Rating esercizi**: Glicko-1 sui puzzle Lichess, che hanno un rating noto. Conta solo il primo tentativo.
 - **Precisione**: media delle ultime 5 partite valutate, calcolata da Stockfish.
 - **Requisiti per grado**: numero di partite, rating minimo, una vittoria contro un bot di quel livello, rating esercizi, precisione e lezioni del grado completate.
@@ -68,7 +68,13 @@ Ogni mossa analizzata da Stockfish genera eventi con una categoria e dei punti:
 Vittoria +1,5, patta +0,5, sconfitta -1 a tutte. I punti valgono di piu' contro bot forti e di meno contro bot deboli; massimo 12 punti per categoria a partita; le partite di allenamento contano meno. Il totale e' la media delle 6 categorie (anche nel quadro). La scheda Lezioni ha un **reparto errori** per categoria con le tue posizioni sbagliate, esercizi mirati e le lezioni collegate.
 
 ### Come gioca il bot
-Stockfish trova le mosse migliori e le valuta. Per ogni mossa il bot decide, con probabilità fissate per il suo livello, se giocare bene oppure commettere un'imprecisione, un errore o un blunder: l'errore viene scelto tra le mosse che perdono proprio quella quota di probabilità di vittoria. Le frequenze sono calibrate facendo giocare i bot tra loro e misurando la precisione con la stessa formula della revisione (`tools/calibrate.js`). I livelli 18 e 19 giocano a piena forza.
+Stockfish trova le mosse migliori e le valuta. Per ogni mossa il bot decide, con probabilità fissate per il suo livello, se giocare bene oppure commettere un'imprecisione, un errore o un blunder; l'errore viene scelto tra le mosse che perdono proprio quella quota di probabilità di vittoria.
+
+Gli errori sono **credibili**: dai livelli intermedi in su il bot sbaglia solo con mosse che sembrano buone a un calcolo corto (la sua "visione", da 1 a 6 mezze mosse) ma perdono a un calcolo più lungo. È la svista tipica di una persona: non lascia un pezzo in presa senza motivo, manca la tattica che non ha visto. I principianti invece lasciano anche pezzi in presa. Con la partita già vinta il bot sbaglia meno e chiude. I livelli 18 e 19 giocano a piena forza.
+
+**Taratura (ottobre 2026).** Ogni livello ha giocato contro Stockfish 17.1 completo con forza limitata (`UCI_LimitStrength` / `UCI_Elo`): è la scala Elo ufficiale di Stockfish, da 1320 a 3190, tarata dagli sviluppatori sulla lista CCRL Blitz. L'Elo scritto sul bot è quello misurato su quella scala; sotto 1320 i livelli sono misurati a catena, uno contro l'altro. Le scale umane non coincidono del tutto (Lichess dà numeri più alti di chess.com, chess.com più alti della FIDE), quindi il numero va letto come "circa". Strumento: `tools/calibrate.js`.
+
+I bot di prima (fino al 21 ottobre 2026) erano più deboli dell'Elo scritto e ogni tanto regalavano un pezzo anche ai livelli alti. Misurati allo stesso modo: il "1300" valeva circa 870, il "2000" circa 1790, il "3000" circa 2650. Al primo avvio dopo l'aggiornamento il rating delle partite già giocate viene ricalcolato con la loro forza vera (i dati vecchi restano salvati) e le statistiche per livello ripartono da zero.
 
 ### Come viene giudicata una mossa
 - **Precisione**: formula pubblica di Lichess sulla probabilità di vittoria persa, media pesata sui momenti critici. Nessuna correzione manuale.
@@ -201,6 +207,6 @@ node tests/omino.test.js
 node tests/university.test.js
 node tests/aim.test.js
 node tools/verify-lessons.js           # controlla esempi ed esercizi delle lezioni con Stockfish
-node tools/calibrate.js self:8 6       # precisione media del livello 8 su 6 partite bot contro bot
-node tools/calibrate.js match:10-12 10 # scontro diretto tra due livelli
+node tools/calibrate.js sf:8,12 30     # livelli 8 e 12 contro Stockfish con forza limitata all'Elo del livello
+node tools/calibrate.js match:3-4 50   # scontro diretto tra due livelli (per quelli sotto 1320)
 ```

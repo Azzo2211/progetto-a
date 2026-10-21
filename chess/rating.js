@@ -130,6 +130,43 @@
     return { profile: p, change: update.change, expected: update.expected };
   }
 
+  /*
+   * I bot sono stati ricalibrati: le partite valutate gia' giocate vengono ricontate con la
+   * forza vera che quei bot avevano (trueElo(eloScritto) -> Elo misurato). Il rating riparte
+   * da capo e rigioca lo storico salvato (le ultime 60 partite). Le vittorie usano l'Elo vero
+   * (requisito "vinci contro un bot da..."), il grado certificato viene ricalcolato.
+   */
+  function recalibrate(profile, trueElo) {
+    const p = ensureProfile(profile);
+    const fix = (elo) => (typeof elo === "number" ? Math.round(trueElo(elo)) : elo);
+    const before = p.game.count ? p.game.rating : null;
+    let cur = { rating: START_RATING, rd: START_RD };
+    const history = p.game.history.map((entry) => {
+      const label = typeof entry.labelElo === "number" ? entry.labelElo : entry.botElo;
+      const botElo = fix(label);
+      if (typeof botElo !== "number") return entry;
+      const score = entry.result === "win" ? 1 : entry.result === "draw" ? 0.5 : 0;
+      const update = glickoUpdate(cur, botElo, BOT_RD, score, MIN_RD_GAMES);
+      cur = { rating: update.rating, rd: update.rd };
+      return { ...entry, botElo, labelElo: label, rating: update.rating, change: update.change };
+    });
+    if (history.length) {
+      p.game.rating = cur.rating;
+      p.game.rd = cur.rd;
+    }
+    p.game.history = history;
+    p.ratedGames = p.ratedGames.map((game) => {
+      const label = typeof game.labelElo === "number" ? game.labelElo : game.botElo;
+      return typeof label === "number" ? { ...game, botElo: fix(label), labelElo: label } : game;
+    });
+    p.wins = p.wins.map((win) => {
+      const label = typeof win.labelElo === "number" ? win.labelElo : win.botElo;
+      return typeof label === "number" ? { ...win, botElo: fix(label), labelElo: label } : win;
+    });
+    p.certifiedKey = undefined;
+    return { profile: p, before, after: p.game.count ? p.game.rating : null };
+  }
+
   // Aggiunge la precisione a una partita valutata gia' registrata (arriva dopo la revisione).
   function attachAccuracy(profile, gameId, accuracy) {
     const p = ensureProfile(profile);
@@ -278,6 +315,7 @@
     createProfile,
     ensureProfile,
     recordGame,
+    recalibrate,
     attachAccuracy,
     recordPuzzle,
     averageAccuracy,

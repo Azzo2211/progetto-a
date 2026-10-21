@@ -181,6 +181,30 @@ test("l'errore del bot ha la gravita' scelta", () => {
   assert.ok(pick.loss >= 20);
 });
 
+test("errori credibili: il bot sbaglia solo con mosse che sembrano buone a un calcolo corto", () => {
+  const candidates = [
+    { uci: "a", score: { cp: 0 } },
+    { uci: "pezzo", score: { cp: -900 }, shallowLoss: 40 },
+    { uci: "svista", score: { cp: -450 }, shallowLoss: 2 }
+  ];
+  const config = { ...Bot.getLevel(12), errors: { blunder: 1, mistake: 0, inaccuracy: 0 } };
+  for (let i = 0; i < 20; i += 1) {
+    assert.strictEqual(Bot.selectMove(candidates, config, Math.random, { category: "blunder", plausible: true }).uci, "svista");
+  }
+  // senza mosse credibili il bot non sbaglia: gioca la migliore
+  const noTrap = candidates.filter((c) => c.uci !== "svista");
+  assert.strictEqual(Bot.selectMove(noTrap, config, () => 0.99, { category: "blunder", plausible: true }).uci, "a");
+  // i principianti invece lasciano anche il pezzo in presa
+  const beginner = Bot.getLevel(2);
+  assert.strictEqual(beginner.vision, 0);
+  assert.ok(Bot.getLevel(12).vision >= 2 && Bot.getLevel(12).plausibleShare > 0.8);
+});
+
+test("vecchi bot: la forza vera e' sotto l'Elo scritto", () => {
+  [1300, 2000, 2800].forEach((label) => assert.ok(Bot.legacyTrueElo(label) <= label, `${label}`));
+  assert.ok(Bot.legacyTrueElo(2000) > Bot.legacyTrueElo(1300));
+});
+
 test("in posizione vinta il bot preferisce chiudere", () => {
   assert.ok(Bot.selectionUtility({ mate: 2 }) > Bot.selectionUtility({ mate: 6 }));
   assert.ok(Bot.selectionUtility({ mate: 6 }) > Bot.selectionUtility({ cp: 4000 }));
