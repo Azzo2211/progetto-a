@@ -197,7 +197,7 @@ test("errori credibili: il bot sbaglia solo con mosse che sembrano buone a un ca
   // i principianti invece lasciano anche il pezzo in presa
   const beginner = Bot.getLevel(2);
   assert.strictEqual(beginner.vision, 0);
-  assert.ok(Bot.getLevel(12).vision >= 2 && Bot.getLevel(12).plausibleShare > 0.8);
+  assert.ok(Bot.getLevel(12).vision >= 2 && Bot.getLevel(12).plausibleShare > 0.7);
 });
 
 test("vecchi bot: la forza vera e' sotto l'Elo scritto", () => {

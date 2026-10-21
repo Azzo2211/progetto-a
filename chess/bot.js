@@ -64,7 +64,7 @@
   const PLAUSIBLE = [[800, 0], [1000, 0.5], [1600, 0.85], [2000, 0.95], [2400, 1]];
   // In apertura gli errori si riducono a questa quota (1 = nessuna riduzione: i principianti
   // giocano aperture strane, gia' un 700 muove pedoni centrali e cavalli).
-  const OPENING = [[500, 1], [600, 0.7], [1000, 0.5], [1600, 0.35]];
+  const OPENING = [[300, 1], [600, 0.75], [1000, 0.55], [1600, 0.35]];
   // Profondita' della ricerca e della "visione": valori con la virgola, a ogni mossa si arrotonda
   // a caso (5,3 = 5 nel 70% delle mosse, 6 nel 30%), cosi' la forza cresce senza scalini.
   const DEPTH = [[0, 6], [700, 6], [1300, 8], [1900, 10], [2000, 10.4], [2400, 12], [2800, 14], [3200, 16]];
@@ -91,21 +91,21 @@
 
   // Elo = forza misurata sulla scala di Stockfish; strength = forza interna che la produce.
   const LEVELS = [
-    { level: 1, elo: 250, strength: 50, name: "Principiante assoluto", description: "Ha appena imparato le regole: lascia pezzi in presa spesso." },
-    { level: 2, elo: 400, strength: 255, name: "Novizio", description: "Vede le catture semplici, non le minacce dell'avversario." },
-    { level: 3, elo: 550, strength: 430, name: "Base", description: "Sviluppa poco e calcola una sola mossa avanti." },
-    { level: 4, elo: 700, strength: 620, name: "Principiante", description: "Mosse naturali, tattica ancora fragile." },
-    { level: 5, elo: 850, strength: 805, name: "Intermedio basso", description: "Meno pezzi regalati, piani ancora instabili." },
-    { level: 6, elo: 1000, strength: 935, name: "Intermedio", description: "Conosce le aperture principali, sbaglia nei cambi e nei finali." },
-    { level: 7, elo: 1150, strength: 1030, name: "Giocatore da circolo", description: "Manca tattiche di 2-3 mosse e piani lunghi." },
-    { level: 8, elo: 1300, strength: 1175, name: "Intermedio forte", description: "Gioco solido, qualche svista tattica a partita." },
-    { level: 9, elo: 1450, strength: 1274, name: "Club", description: "Sa giocare, ma non ha la precisione di un esperto." },
-    { level: 10, elo: 1600, strength: 1363, name: "Club forte", description: "Forte, con imprecisioni strategiche reali." },
-    { level: 11, elo: 1800, strength: 1480, name: "Avanzato", description: "Scelte quasi sempre sane, raramente regala qualcosa." },
-    { level: 12, elo: 2000, strength: 1600, name: "Esperto", description: "Molto preciso: pochi errori non forzati." },
-    { level: 13, elo: 2200, strength: 1731, name: "Candidato maestro", description: "Tattica pulita e piani coerenti." },
-    { level: 14, elo: 2400, strength: 1871, name: "Maestro", description: "Quasi nessun errore: devi conquistare ogni vantaggio." },
-    { level: 15, elo: 2600, strength: 2080, name: "Grande maestro", description: "Precisione da professionista." },
+    { level: 1, elo: 250, strength: 165, name: "Principiante assoluto", description: "Ha appena imparato le regole: lascia pezzi in presa spesso." },
+    { level: 2, elo: 400, strength: 300, name: "Novizio", description: "Vede le catture semplici, non le minacce dell'avversario." },
+    { level: 3, elo: 550, strength: 456, name: "Base", description: "Sviluppa poco e calcola una sola mossa avanti." },
+    { level: 4, elo: 700, strength: 643, name: "Principiante", description: "Mosse naturali, tattica ancora fragile." },
+    { level: 5, elo: 850, strength: 791, name: "Intermedio basso", description: "Meno pezzi regalati, piani ancora instabili." },
+    { level: 6, elo: 1000, strength: 880, name: "Intermedio", description: "Conosce le aperture principali, sbaglia nei cambi e nei finali." },
+    { level: 7, elo: 1150, strength: 968, name: "Giocatore da circolo", description: "Manca tattiche di 2-3 mosse e piani lunghi." },
+    { level: 8, elo: 1300, strength: 1100, name: "Intermedio forte", description: "Gioco solido, qualche svista tattica a partita." },
+    { level: 9, elo: 1450, strength: 1226, name: "Club", description: "Sa giocare, ma non ha la precisione di un esperto." },
+    { level: 10, elo: 1600, strength: 1304, name: "Club forte", description: "Forte, con imprecisioni strategiche reali." },
+    { level: 11, elo: 1800, strength: 1396, name: "Avanzato", description: "Scelte quasi sempre sane, raramente regala qualcosa." },
+    { level: 12, elo: 2000, strength: 1501, name: "Esperto", description: "Molto preciso: pochi errori non forzati." },
+    { level: 13, elo: 2200, strength: 1632, name: "Candidato maestro", description: "Tattica pulita e piani coerenti." },
+    { level: 14, elo: 2400, strength: 1781, name: "Maestro", description: "Quasi nessun errore: devi conquistare ogni vantaggio." },
+    { level: 15, elo: 2600, strength: 1921, name: "Grande maestro", description: "Precisione da professionista." },
     { level: 16, elo: 2800, strength: 2460, name: "Campione del mondo", description: "Il livello dei migliori umani di sempre." },
     { level: 17, elo: 3000, strength: 2655, name: "Super motore", description: "Sopra qualsiasi umano." },
     { level: 18, elo: 3200, full: { depth: 18, multipv: 1 }, name: "Stockfish pieno", description: "Stockfish senza limitazioni, ricerca media." },
