@@ -8,6 +8,8 @@
  * - Logica degli scenari in aim/engine.js; qui disegno, input, HUD, suoni.
  *
  * - Counter-strafe: A e D (o le frecce) muovono a destra e sinistra mentre il mouse e' bloccato.
+ * - Cecchino: tasto destro per lo scope (a scatti o tenuto premuto), campo visivo diviso per lo zoom,
+ *   sens nello scope = sens x moltiplicatore / zoom come in Valorant, caricamento tra un colpo e l'altro.
  *
  * AimGame.create(mount, opzioni) -> { destroy, state }
  * AimGame.measure(mount, { sens, calib, onDone, onCancel }) -> misura di un giro di 360 gradi
@@ -132,8 +134,9 @@
 
   /* ------------------------------------------------------------ il gioco */
   function create(mount, opts) {
-    const o = Object.assign({ sens: 0.35, calib: null, crosshair: A.defaultSettings().crosshair, targetColor: "#33e0ff", sound: true, seed: Date.now(), lv: 1, blind: false }, opts || {});
+    const o = Object.assign({ sens: 0.35, calib: null, crosshair: A.defaultSettings().crosshair, targetColor: "#33e0ff", sound: true, seed: Date.now(), lv: 1, blind: false, scopeMult: 1, scopeHold: false }, opts || {});
     const def = A.scenario(o.scenarioId);
+    const W = def.weapon ? A.WEAPONS[def.weapon] : null;
     mount.innerHTML = `
       <div class="aim-stage" tabindex="-1">
         <canvas class="aim-canvas" aria-label="Campo di allenamento ${def.name}"></canvas>
@@ -154,8 +157,28 @@
       state: "ready", sc: null, yaw: 0, pitch: 0, mouseDown: false, keys: { l: false, r: false }, locked: false, raw: null,
       lastPhase: -1, phaseAt: 0,
       countdown: 0, last: performance.now(), raf: 0, w: 0, h: 0, dpr: 1, hudAt: 0, destroyed: false, error: "",
-      dpu: A.degPerUnit(o.sens, o.calib), fpsN: 0, fpsT: 0, fps: 0
+      dpu: A.degPerUnit(o.sens, o.calib), fpsN: 0, fpsT: 0, fps: 0,
+      scope: { on: false, level: 0, at: 0 }, rmb: false, fov: A.FOV_H, boltWas: 0
     };
+    // scope: ingrandimento attuale, quanto e' entrato (0-1), pronto per un colpo preciso
+    const zoomNow = () => (W && g.scope.on ? W.zooms[g.scope.level] : 1);
+    const scopeK = () => (W && g.scope.on ? Math.min(1, (performance.now() - g.scope.at) / (A.SCOPE_IN * 1000)) : 0);
+    function setScope(on, level = 0, instant = false) {
+      if (!W) return;
+      const was = g.scope.on;
+      g.scope.on = on;
+      g.scope.level = on ? Math.min(level, W.zooms.length - 1) : 0;
+      if (on && (!was || !instant)) g.scope.at = performance.now() - (instant ? A.SCOPE_IN * 1000 : 0);
+    }
+    function scopeClick() {
+      if (!W) return;
+      if (o.scopeHold) { setScope(true, 0); return; }
+      // a scatti, come in Valorant: primo ingrandimento, secondo (se c'e'), poi fuori
+      if (!g.scope.on) setScope(true, 0);
+      else if (g.scope.level < W.zooms.length - 1) setScope(true, g.scope.level + 1, true);
+      else setScope(false);
+      if (o.sound) blip(g.scope.on ? 520 : 380, 40, 0.025, "triangle");
+    }
     g.sc = A.createScenario(def.id, { seed: o.seed, aim: { yaw: 0, pitch: 0 }, lv: o.lv });
     const levelName = def.lv ? (A.LEVELS.find((l) => l.id === g.sc.lv) || A.LEVELS[0]).name : "";
 
@@ -184,6 +207,7 @@
           <p>${o.subtitle || def.text}</p>
           <p class="aim-ov-meta">${goal}${levelName ? ` · livello ${levelName}` : ""} · ${o.blind ? "sens nascosta" : `sens ${String(o.sens).replace(".", ",")}`} · campo visivo 103°</p>
           ${def.keys ? `<p class="aim-ov-keys">Ti muovi con <kbd>A</kbd> e <kbd>D</kbd> (o con le frecce). Spara solo da fermo.</p>` : ""}
+          ${W ? `<p class="aim-ov-keys">${W.name}: scope con il <kbd>tasto destro</kbd> (${o.scopeHold ? "tienilo premuto" : W.zooms.length > 1 ? "un clic 2,5x, il secondo 5x, il terzo esce" : "un clic entra, un altro esce"}), spara con il sinistro. Dopo ogni colpo esci dallo scope e il colpo si ricarica. Sens nello scope: moltiplicatore ${String(o.scopeMult).replace(".", ",")}.</p>` : ""}
           ${g.error ? `<p class="aim-ov-error">${g.error}</p>` : ""}
           <div class="aim-ov-actions">
             <button type="button" class="aim-ov-go" data-g="start-full">Schermo intero e inizia</button>
@@ -269,8 +293,9 @@
     }
 
     function look(dx, dy) {
-      g.yaw += dx * g.dpu;
-      g.pitch = Math.max(-89, Math.min(89, g.pitch - dy * g.dpu));
+      const k = W && g.scope.on ? g.dpu * A.scopeFactor(zoomNow(), o.scopeMult) : g.dpu;
+      g.yaw += dx * k;
+      g.pitch = Math.max(-89, Math.min(89, g.pitch - dy * k));
       if (g.yaw > 180) g.yaw -= 360;
       if (g.yaw < -180) g.yaw += 360;
     }
@@ -278,8 +303,11 @@
     function fire() {
       if (g.state !== "running") return;
       if (g.sc.holdMode) return;
+      if (W && g.sc.boltLeft() > 0) { if (o.sound) blip(160, 50, 0.03, "square"); return; }
       if (o.sound) shotSound();
-      const r = g.sc.shoot({ yaw: g.yaw, pitch: g.pitch });
+      const k = scopeK();
+      const r = g.sc.shoot(W ? { yaw: g.yaw, pitch: g.pitch, scoped: g.scope.on, ready: g.scope.on && k >= 1, scopeT: g.scope.on ? (performance.now() - g.scope.at) / 1000 : null } : { yaw: g.yaw, pitch: g.pitch });
+      if (W && r.unscope) setScope(false);
       if (r.early && o.sound) blip(220, 120, 0.05, "square");
       if (r.hit && o.sound) { if (r.head) { blip(1320, 70, 0.06, "triangle"); blip(1760, 90, 0.05, "triangle", 0.05); } else blip(1180, 60, 0.05); }
       g.flash = { t: performance.now(), hit: r.hit, head: r.head };
@@ -287,6 +315,7 @@
     }
 
     function onDown(e) {
+      if (e.button === 2 && W && g.locked) { e.preventDefault(); g.rmb = true; if (g.state === "running" || g.state === "countdown") scopeClick(); return; }
       if (e.button !== 0) return;
       if (!g.locked) return;
       e.preventDefault();
@@ -294,7 +323,10 @@
       g.mouseDown = true;
       if (!g.sc.holdMode) fire();
     }
-    function onUp(e) { if (e.button === 0) g.mouseDown = false; }
+    function onUp(e) {
+      if (e.button === 0) g.mouseDown = false;
+      if (e.button === 2) { g.rmb = false; if (W && o.scopeHold) setScope(false); }
+    }
 
     // A/D e frecce: movimento laterale nel counter-strafe
     const KEY = { KeyA: "l", ArrowLeft: "l", KeyD: "r", ArrowRight: "r" };
@@ -304,7 +336,7 @@
       e.preventDefault();
       g.keys[k] = e.type === "keydown";
     }
-    function onBlur() { g.keys.l = false; g.keys.r = false; g.mouseDown = false; }
+    function onBlur() { g.keys.l = false; g.keys.r = false; g.mouseDown = false; g.rmb = false; if (W && o.scopeHold) setScope(false); }
     const moveDir = () => (g.keys.r ? 1 : 0) - (g.keys.l ? 1 : 0);
 
     function onClick(e) {
@@ -352,7 +384,7 @@
     function drawPoly(b, pts, fill, stroke) {
       const cam = clipNear(pts.map((p) => A.toCamera(p, b)));
       if (cam.length < 3) return;
-      const fl = A.focal(g.w);
+      const fl = A.focal(g.w, g.fov);
       ctx.beginPath();
       cam.forEach((c, i) => {
         const x = g.w / 2 + (c[0] / c[2]) * fl;
@@ -373,7 +405,7 @@
         const m = [a[0] + (c[0] - a[0]) * t, a[1] + (c[1] - a[1]) * t, NEAR];
         if (a[2] <= NEAR) a = m; else c = m;
       }
-      const fl = A.focal(g.w);
+      const fl = A.focal(g.w, g.fov);
       ctx.moveTo(g.w / 2 + (a[0] / a[2]) * fl, g.h / 2 - (a[1] / a[2]) * fl);
       ctx.lineTo(g.w / 2 + (c[0] / c[2]) * fl, g.h / 2 - (c[1] / c[2]) * fl);
     }
@@ -392,7 +424,7 @@
     }
 
     function drawSphere(b, c, r, color, alpha = 1) {
-      const p = A.project(c, b, g.w, g.h);
+      const p = A.project(c, b, g.w, g.h, g.fov);
       if (!p) return;
       const rad = Math.max(1.5, r * p.scale);
       const grad = ctx.createRadialGradient(p.x - rad * 0.35, p.y - rad * 0.4, rad * 0.1, p.x, p.y, rad);
@@ -459,6 +491,65 @@
       ctx.restore();
     }
 
+    // Scope: fuori dal cerchio e' buio, dentro il reticolo sottile del fucile
+    function drawScope() {
+      const k = scopeK();
+      const cx = g.w / 2;
+      const cy = g.h / 2;
+      const R = Math.min(g.w, g.h) * (0.38 + 0.08 * k);
+      ctx.save();
+      ctx.globalAlpha = 0.35 + 0.65 * k;
+      ctx.beginPath();
+      ctx.rect(0, 0, g.w, g.h);
+      ctx.arc(cx, cy, R, 0, Math.PI * 2, true);
+      ctx.fillStyle = "#05070a";
+      ctx.fill("evenodd");
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(0,0,0,0.9)";
+      ctx.lineWidth = 4 * g.dpr;
+      ctx.stroke();
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.85)";
+      ctx.lineWidth = Math.max(1, 1.4 * g.dpr);
+      const gap = 10 * g.dpr;
+      ctx.beginPath();
+      ctx.moveTo(cx - R, cy); ctx.lineTo(cx - gap, cy);
+      ctx.moveTo(cx + gap, cy); ctx.lineTo(cx + R, cy);
+      ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy - gap);
+      ctx.moveTo(cx, cy + gap); ctx.lineTo(cx, cy + R);
+      ctx.stroke();
+      ctx.fillStyle = k >= 1 ? "#ff3b4f" : "rgba(255, 59, 79, 0.45)";
+      ctx.beginPath();
+      ctx.arc(cx, cy, 1.8 * g.dpr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Fucile: nome, ingrandimento e caricamento del colpo
+    function drawWeaponBar() {
+      const left = g.sc.boltLeft();
+      const total = 1 / W.rps;
+      const w = Math.min(g.w * 0.26, 230 * g.dpr);
+      const x = (g.w - w) / 2;
+      const y = g.h - 30 * g.dpr;
+      ctx.save();
+      ctx.font = `700 ${Math.round(12 * g.dpr)}px Archivo, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "alphabetic";
+      const label = `${W.name} · ${g.scope.on ? `scope ${String(zoomNow()).replace(".", ",")}x` : "senza scope"}${left > 0 ? " · caricamento" : ""}`;
+      ctx.lineWidth = 4 * g.dpr;
+      ctx.strokeStyle = "rgba(6, 10, 16, 0.85)";
+      ctx.strokeText(label, g.w / 2, y - 8 * g.dpr);
+      ctx.fillStyle = left > 0 ? "#ffb547" : g.scope.on && scopeK() >= 1 ? "#3ccf7e" : "#ffffff";
+      ctx.fillText(label, g.w / 2, y - 8 * g.dpr);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.14)";
+      ctx.fillRect(x, y, w, 5 * g.dpr);
+      ctx.fillStyle = left > 0 ? "#ffb547" : "#3ccf7e";
+      ctx.fillRect(x, y, w * (left > 0 ? 1 - left / total : 1), 5 * g.dpr);
+      ctx.restore();
+    }
+
     // Counter-strafe: quanto corri (verde = fermo, i colpi vanno dove miri)
     function drawSpeedBar() {
       const sp = g.sc.speed();
@@ -507,7 +598,7 @@
       items.sort((p, q) => q.d - p.d).forEach((it) => it.draw());
       // colpi a segno: un anello che si allarga
       sc.effects.forEach((e) => {
-        const p = A.project(e.c, b, g.w, g.h);
+        const p = A.project(e.c, b, g.w, g.h, g.fov);
         if (!p) return;
         const k = (sc.time - e.t) / 0.4;
         ctx.beginPath();
@@ -524,7 +615,8 @@
         ctx.fillRect(0, 0, g.w, g.h);
         bannerText("Ti ha colpito prima lui", g.h * 0.3, 1 - k);
       }
-      drawCrosshair();
+      if (W && g.scope.on) drawScope(); else drawCrosshair();
+      if (W) drawWeaponBar();
       if (def.id === "strafe") drawSpeedBar();
       if (sc.hint && g.state === "running") bannerText(sc.hint, g.h * 0.2, 1);
       // prova sens: nome della fase quando cambia
@@ -570,7 +662,20 @@
         if (g.countdown <= 0) { g.state = "running"; if (o.sound) blip(990, 120, 0.05); }
       } else if (g.state === "running") {
         g.sc.update(dt, { yaw: g.yaw, pitch: g.pitch, holding: g.mouseDown, move: moveDir() });
+        if (W) {
+          // tenuto premuto: finito il caricamento, se il tasto destro e' ancora giu' si rientra nello scope
+          if (o.scopeHold && g.rmb && !g.scope.on && g.sc.boltLeft() <= 0) setScope(true, 0);
+          if (o.sound && g.boltWas > 0 && g.sc.boltLeft() <= 0) blip(880, 35, 0.02, "triangle");
+          g.boltWas = g.sc.boltLeft();
+          g.sc.hint = def.id === "ophold" && !g.scope.on && !g.sc.bots.length ? "Entra nello scope (tasto destro)" : "";
+        }
         if (g.sc.done) finish();
+      }
+      if (W) {
+        // campo visivo: si stringe mentre lo scope entra
+        const k = scopeK();
+        const e = k * k * (3 - 2 * k);
+        g.fov = g.scope.on ? A.FOV_H + (A.scopeFov(zoomNow()) - A.FOV_H) * e : A.FOV_H;
       }
       draw();
       updateHud(false);
@@ -618,6 +723,9 @@
         look,
         aim(yaw, pitch) { g.yaw = yaw; g.pitch = pitch; },
         fire,
+        scope(on, level = 0, ready = true) { setScope(!!on, level, !!ready); },
+        scopeClick,
+        get scopeState() { return { on: g.scope.on, level: g.scope.level, zoom: zoomNow(), k: scopeK(), fov: g.fov }; },
         hold(v) { g.mouseDown = !!v; },
         move(m) { g.keys.l = m < 0; g.keys.r = m > 0; },
         get sc() { return g.sc; },

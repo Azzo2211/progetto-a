@@ -1,5 +1,5 @@
 /*
- * Progetto A - Mira: la pagina (allenamento, routine, ricerca della sens, progressi, impostazioni).
+ * Progetto A - Mira: la pagina (allenamento, cecchino, routine, ricerca della sens, progressi, impostazioni).
  * Motore: AimEngine (aim/engine.js). Gioco: AimGame (aim/game.js). Stato: state.aimLab.
  */
 (function () {
@@ -10,9 +10,9 @@
   if (!A || !G) return;
 
   const ui = {
-    tab: "train",        // train | finder | progress | settings
+    tab: "train",        // train | sniper | finder | progress | settings
     play: null,          // { ctl, id, mode: free|routine|finder|warm, which, sens, lv }
-    routine: null,       // { index, results: [] }
+    routine: null,       // { index, results: [], list: id degli esercizi, name }
     result: null,        // { run, best, mode }
     detail: null,        // partita aperta dai progressi
     calib: null,         // misura del 360: { phase: intro|measure|result, res }
@@ -87,6 +87,7 @@
     if (ui.result) html = runView(ui.result.run, { best: ui.result.best, mode: ui.result.mode });
     else if (ui.detail) html = runView(ui.detail, { detail: true });
     else if (ui.tab === "train") html = trainView(l);
+    else if (ui.tab === "sniper") html = sniperView(l);
     else if (ui.tab === "finder") html = finderView(l);
     else if (ui.tab === "progress") html = progressView(l);
     else html = settingsView(l);
@@ -122,21 +123,14 @@
     return `<div class="aim-levels" role="group" aria-label="Livello di ${esc(d.name)}">${A.LEVELS.map((L) => `<button type="button" data-aim="level" data-id="${d.id}" data-lv="${L.id}" aria-pressed="${L.id === lv}">${L.name}</button>`).join("")}</div>`;
   }
 
-  function trainView(l) {
-    const st = A.stats(l);
-    const s = l.settings;
-    const today = l.runs.filter((r) => A.dayKey(r.t) === A.dayKey(Date.now()));
-    const routineRows = A.ROUTINE.map((id) => {
-      const d = A.scenario(id);
-      const done = today.some((r) => r.sc === id);
-      return `<li class="${done ? "done" : ""}"><span class="aim-check" aria-hidden="true">${done ? "✓" : ""}</span><strong>${esc(d.name)}</strong><em>${LV(A.levelOf(l, id))} · ${durOf(d)}</em><span class="aim-sr">${done ? "fatto oggi" : "da fare"}</span></li>`;
-    }).join("");
-    const cards = A.SCENARIOS.filter((d) => !d.hidden).map((d) => {
-      const p = st.per[d.id];
-      const adv = A.levelAdvice(l, d.id);
-      return `
-        <article class="aim-card">
+  function scenarioCard(l, st, d) {
+    const p = st.per[d.id];
+    const adv = A.levelAdvice(l, d.id);
+    const W = d.weapon ? A.WEAPONS[d.weapon] : null;
+    return `
+        <article class="aim-card${W ? " sniper" : ""}">
           <header><h3>${esc(d.name)}</h3><span>${durOf(d)}</span></header>
+          ${W ? `<span class="aim-weapon">${esc(W.name)}</span>` : ""}
           <p class="aim-trains">${esc(d.trains)}</p>
           <p>${esc(d.text)}</p>
           ${d.keys ? `<p class="aim-keys-note">Serve la tastiera: <kbd>A</kbd> e <kbd>D</kbd> per muoverti.</p>` : ""}
@@ -146,7 +140,102 @@
           ${adv && adv.ready ? `<div class="aim-up"><p>Pronto per il livello ${LV(adv.next)}. Media delle ultime 3 partite: ${esc(adv.label.toLowerCase())} ${fmtMetric(adv.key, adv.value)} (serve almeno ${fmtMetric(adv.key, adv.min)}).</p><button type="button" class="aim-link" data-aim="level" data-id="${d.id}" data-lv="${adv.next}">Passa a ${LV(adv.next)}</button></div>` : ""}
           <button type="button" class="aim-btn" data-aim="play" data-id="${d.id}">Gioca</button>
         </article>`;
+  }
+
+  /* -------------------------------------------------------------- cecchino */
+  const SNIPER_SOURCES = [
+    ["Operator (Liquipedia)", "https://liquipedia.net/valorant/Operator"],
+    ["Prezzi della patch 3.0: Marshal 950, Operator 4700 (Dexerto)", "https://www.dexerto.com/valorant/valorant-update-3-0-patch-notes-1597515/"],
+    ["Patch 2.03: zoom del Marshal 3,5x e movimento nello scope (Sportskeeda)", "https://www.sportskeeda.com/valorant/valorant-tweaks-weapons-compensate-run-n-gun-ability-massively-buffs-marshall"],
+    ["Outlaw (TheSpike)", "https://www.thespike.gg/valorant/weapons/snipers/valorant-outlaw-gun"]
+  ];
+  const SNIPER_TIPS = [
+    ["Mirino già sull'angolo", "Con il fucile di precisione non si insegue: si mette il mirino dove il nemico deve passare, all'altezza della testa o del petto, e si clicca quando entra. Gli esercizi \"Tieni l'angolo\" e \"Flick con lo scope\" allenano proprio questo."],
+    ["Movimento grande senza scope", "Il flick lungo si fa senza scope, dove la sens è piena e il campo visivo largo. Lo scope serve solo per l'ultimo aggiustamento, piccolo."],
+    ["Operator: basta il busto", "Il colpo al busto fa 150 danni e toglie tutti i 150 punti di vita e scudo pesante. Alle gambe fa 120 e non basta: mira dal petto in su."],
+    ["Marshal: serve la testa", "Al busto fa 101 danni, alla testa 202. Contro chi ha lo scudo pesante, un colpo al busto non basta: tieni il mirino all'altezza della testa. In compenso spara 1,5 colpi al secondo, più del doppio dell'Operator (0,6)."],
+    ["Dopo il colpo, spostati", "Lo sparo del fucile si sente e la scia del colpo mostra da dove arriva: dopo un'uccisione o un colpo mancato esci dallo scope e cambia posizione invece di ripetere lo stesso angolo."],
+    ["Fermo quando spari", "I fucili sono precisi solo da fermo e nello scope; mentre ti muovi nello scope vai anche più piano (Operator al 72% della velocità, Marshal al 90%)."],
+    ["Quando comprarli", "Il Marshal costa 950 crediti: va bene nei turni con pochi soldi, se la mappa ha linee lunghe. L'Operator costa 4700 e dà il massimo nei turni pieni, tenendo un angolo lungo."],
+    ["La sens nello scope", "Valorant ha un moltiplicatore per lo scope (Scoped Sensitivity Multiplier, predefinito 1). Usa qui lo stesso valore del gioco, così l'allenamento passa alla partita."]
+  ];
+
+  function sniperView(l) {
+    const st = A.stats(l);
+    const s = l.settings;
+    const today = l.runs.filter((r) => A.dayKey(r.t) === A.dayKey(Date.now()));
+    const rows = A.SNIPER_ROUTINE.map((id) => {
+      const d = A.scenario(id);
+      const done = today.some((r) => r.sc === id);
+      return `<li class="${done ? "done" : ""}"><span class="aim-check" aria-hidden="true">${done ? "✓" : ""}</span><strong>${esc(d.name)}</strong><em>${esc(A.WEAPONS[d.weapon].name)} · ${LV(A.levelOf(l, id))}</em><span class="aim-sr">${done ? "fatto oggi" : "da fare"}</span></li>`;
     }).join("");
+    const cards = A.SNIPER.map((id) => scenarioCard(l, st, A.scenario(id))).join("");
+    const W = A.WEAPONS;
+    const weapons = [W.operator, W.marshal, W.outlaw];
+    const oneShot = { operator: "testa e busto", marshal: "solo testa", outlaw: "solo testa (due colpi al busto bastano)" };
+    const row = (label, f) => `<tr><th scope="row">${label}</th>${weapons.map((w) => `<td>${f(w)}</td>`).join("")}</tr>`;
+    const cm = A.cm360(s.dpi, s.sens);
+    const zooms = [2.5, 3.5, 5];
+    const scopeRows = zooms.map((z) => `<tr><th scope="row">${fmt(z, 1)}x<em>${z === 2.5 ? "Operator" : z === 3.5 ? "Marshal, Outlaw" : "Operator, secondo zoom"}</em></th><td>${fmt(A.scopeFov(z), 1)}°</td><td>${fmt(cm / A.scopeFactor(z, s.scopeMult), 0)} cm</td><td>${fmt(A.zeroMatch(z), 2)}</td></tr>`).join("");
+    return `
+      <div class="aim-body">
+        ${finePointer() ? "" : `<p class="aim-note warn">Per allenarti serve il computer con il mouse: qui puoi leggere i dati e i consigli.</p>`}
+        <article class="aim-routine sniper">
+          <div>
+            <span class="aim-kicker">Cecchino · Operator e Marshal</span>
+            <h2 data-focus-title>Routine del cecchino</h2>
+            <p>Quattro esercizi di fila, circa 5 minuti: flick con lo scope e tenuta dell'angolo con l'Operator, colpo alla testa e quickscope con il Marshal. Tasto destro per lo scope, sinistro per sparare; dopo ogni colpo esci dallo scope e il fucile si ricarica, come in partita.</p>
+            <button type="button" class="aim-btn primary" data-aim="routine" data-list="sniper">${st.sniperToday ? "Rifai la routine del cecchino" : "Inizia la routine del cecchino"}</button>
+          </div>
+          <ol class="aim-routine-list">${rows}</ol>
+        </article>
+        <h2 class="aim-h2">Esercizi da cecchino</h2>
+        <p class="aim-hint">Stessi tre livelli degli altri esercizi. I nemici hanno 150 punti tra vita e scudo pesante: con l'Operator basta il busto, con il Marshal serve la testa (o due colpi al busto).</p>
+        <div class="aim-cards">${cards}</div>
+        <div class="aim-sniper-grid">
+          <article class="aim-panel">
+            <h3 class="aim-h3">La sens nello scope</h3>
+            <div class="aim-form">
+              <label><span>Moltiplicatore dello scope (come in Valorant)</span><input type="number" inputmode="decimal" min="0.1" max="3" step="0.01" value="${s.scopeMult}" data-aim-input="scopeMult"></label>
+            </div>
+            <div class="aim-toggles"><button type="button" class="aim-toggle" data-aim="toggle" data-key="scopeHold" aria-pressed="${s.scopeHold}">Scope tenendo premuto il tasto</button></div>
+            <p class="aim-hint">Spento: un clic entra nello scope (con l'Operator il secondo passa al 5x, il terzo esce). Acceso: resti nello scope finché tieni premuto.</p>
+            <div class="aim-table-wrap"><table class="aim-table"><thead><tr><th scope="col">Zoom</th><th scope="col">Campo visivo</th><th scope="col">Un giro nello scope</th><th scope="col">Uguale vicino al mirino</th></tr></thead><tbody>${scopeRows}</tbody></table></div>
+            <p class="aim-hint">In Valorant lo zoom divide il campo visivo (103° / 2,5 = 41,2°). Con il moltiplicatore a 1, il valore predefinito, anche la sens nello scope si divide per lo zoom: un movimento sposta il mirino della stessa distanza sullo schermo, misurata ai bordi. Per sentire uguali i piccoli movimenti vicino al mirino servirebbe il valore dell'ultima colonna (circa 0,75 per il 2,5x, calcolato da noi). Non c'è un valore giusto per tutti: tieni quello che usi in partita.</p>
+          </article>
+          <article class="aim-panel">
+            <h3 class="aim-h3">I tre fucili a confronto</h3>
+            <div class="aim-table-wrap"><table class="aim-table aim-weapons"><thead><tr><th scope="col"></th>${weapons.map((w) => `<th scope="col">${esc(w.name)}</th>`).join("")}</tr></thead><tbody>
+              ${row("Prezzo", (w) => `${fmt(w.price)} crediti`)}
+              ${row("Danni: testa / busto / gambe", (w) => `${w.dmg.head} / ${w.dmg.body} / ${w.dmg.legs}`)}
+              ${row("Uccide con un colpo (150 punti)", (w) => oneShot[w.id])}
+              ${row("Colpi al secondo", (w) => fmt(w.rps, 2))}
+              ${row("Zoom", (w) => w.zooms.map((z) => `${fmt(z, 1)}x`).join(" e "))}
+              ${row("Colpi nel caricatore", (w) => fmt(w.mag))}
+              ${row("Velocità nello scope", (w) => `${fmt(w.scopedMove * 100)}%`)}
+              ${row("Penetrazione dei muri", (w) => w.pen)}
+            </tbody></table></div>
+            <p class="aim-hint">Dati controllati il 21 ottobre 2026: nelle patch 13.x Operator e Marshal non sono cambiati, l'Outlaw ha avuto un ritocco al rinculo nella 13.01. Se una patch li cambia, i numeri qui vanno aggiornati.</p>
+            <ul class="aim-sources">${SNIPER_SOURCES.map(([t, u]) => `<li><a href="${u}" target="_blank" rel="noopener noreferrer">${esc(t)}<span class="aim-sr"> (si apre in una nuova scheda)</span></a></li>`).join("")}</ul>
+          </article>
+        </div>
+        <article class="aim-panel">
+          <h3 class="aim-h3">Come si gioca da cecchino</h3>
+          <ul class="aim-tips">${SNIPER_TIPS.map(([h, t]) => `<li><strong>${esc(h)}</strong><span>${esc(t)}</span></li>`).join("")}</ul>
+        </article>
+      </div>`;
+  }
+
+  function trainView(l) {
+    const st = A.stats(l);
+    const s = l.settings;
+    const today = l.runs.filter((r) => A.dayKey(r.t) === A.dayKey(Date.now()));
+    const routineRows = A.ROUTINE.map((id) => {
+      const d = A.scenario(id);
+      const done = today.some((r) => r.sc === id);
+      return `<li class="${done ? "done" : ""}"><span class="aim-check" aria-hidden="true">${done ? "✓" : ""}</span><strong>${esc(d.name)}</strong><em>${LV(A.levelOf(l, id))} · ${durOf(d)}</em><span class="aim-sr">${done ? "fatto oggi" : "da fare"}</span></li>`;
+    }).join("");
+    const cards = A.SCENARIOS.filter((d) => !d.hidden && !d.weapon).map((d) => scenarioCard(l, st, d)).join("");
     return `
       <div class="aim-body">
         ${finePointer() ? "" : `<p class="aim-note warn">Sul telefono puoi guardare i progressi. Per allenarti apri l'app sul computer, con il mouse: serve per la mira e per la sensibilità.</p>`}
@@ -185,6 +274,8 @@
       calib: l.settings.calib,
       crosshair: l.settings.crosshair,
       targetColor: l.settings.targetColor,
+      scopeMult: l.settings.scopeMult,
+      scopeHold: l.settings.scopeHold,
       sound: l.settings.sound,
       kicker: extra.kicker,
       seed: extra.seed,
@@ -241,7 +332,7 @@
     if (d.duration && run.sc !== "tracking" && run.sc !== "senstest") { add("Bersagli", fmt(run.kills)); add("Bersagli al secondo", fmt(run.kps, 2)); }
     if (run.shots && run.sc !== "tracking") add("Colpi mancati", fmt(run.misses));
     if (num(run.ttk) && !num(run.rt)) add("Tempo per bersaglio", `${fmt(run.ttk)} ms`, num(run.ttkMed) ? `mediana ${fmt(run.ttkMed)} · migliore ${fmt(run.ttkBest)} ms` : "");
-    if (num(run.rt)) add(run.sc === "duel" || run.sc === "strafe" ? "Tempo per colpirlo" : "Reazione media", `${fmt(run.rt)} ms`, num(run.rtMed) ? `mediana ${fmt(run.rtMed)} · migliore ${fmt(run.rtBest)} ms` : "");
+    if (num(run.rt)) add(["duel", "strafe", "opflick", "marshalhead", "quickscope"].includes(run.sc) ? "Tempo per colpirlo" : "Reazione media", `${fmt(run.rt)} ms`, num(run.rtMed) ? `mediana ${fmt(run.rtMed)} · migliore ${fmt(run.rtBest)} ms` : "");
     if (num(run.rtSd)) add("Irregolarità dei tempi", `±${fmt(run.rtSd)} ms`, "più è bassa, più sei costante");
     if (run.escaped) add("Scappati", fmt(run.escaped), "spariti prima del colpo");
     if (run.sc === "duel") { add("Duelli persi", fmt(run.lost || 0), "ha sparato prima lui"); }
@@ -252,6 +343,14 @@
     if (run.sc === "peek") add("Colpi sul muro", fmt(run.wall || 0), "sparati prima che uscisse");
     if (headOnly && num(run.body)) add("Colpi al corpo", fmt(run.body), "non bastano: conta la testa");
     if (run.sc === "reflex") add("Partenze anticipate", fmt(run.early || 0));
+    if (d.weapon) {
+      add("Colpi alla testa", fmt(run.heads || 0), `busto ${fmt(run.body || 0)} · gambe ${fmt(run.legs || 0)}`);
+      add("Senza scope", fmt(run.unscoped || 0), "colpi che vanno quasi a caso");
+      add("A scope non entrato", fmt(run.earlyScope || 0), "colpi storti");
+      if (num(run.lost)) add("Ti ha colpito prima lui", fmt(run.lost));
+      if (num(run.wall)) add("Colpi sul muro", fmt(run.wall), "sparati prima che uscisse");
+      if (num(run.scopeT)) add("Dallo scope al colpo", `${fmt(run.scopeT)} ms`, "media sui nemici colpiti");
+    }
     if (num(run.vert)) add("Errore in altezza", `${fmt(run.vert, 2)}°`, num(run.vertBias) && Math.abs(run.vertBias) >= 0.05 ? `di solito ${run.vertBias > 0 ? "sopra" : "sotto"} la linea delle teste` : "centrato sulla linea");
     if (run.sc === "tracking") {
       add("Tempo addosso", `${fmt(run.track, 1)}%`);
@@ -350,7 +449,7 @@
     const list = Array.isArray(run.rts) ? run.rts.filter(num) : [];
     if (list.length < 3) return "";
     const max = Math.max(...list);
-    const title = run.sc === "duel" || run.sc === "strafe" ? "Tempo per colpirlo, uno per nemico colpito" : "Tempi di reazione, uno per bersaglio colpito";
+    const title = ["duel", "strafe", "opflick", "marshalhead", "quickscope"].includes(run.sc) ? "Tempo per colpirlo, uno per nemico colpito" : "Tempi di reazione, uno per bersaglio colpito";
     return `<section class="aim-sec"><h3 class="aim-h3">${title}</h3>
       <div class="aim-rts" role="img" aria-label="${esc(`${title}: ${list.map((v) => `${v} ms`).join(", ")}`)}">${list.map((v, i) => `<span title="${i + 1}°: ${v} ms"><i style="height:${Math.max(4, (v / max) * 100)}%"></i></span>`).join("")}</div>
       <p class="aim-hint">Migliore ${fmt(run.rtBest)} ms · mediana ${fmt(run.rtMed)} ms · più lento ${fmt(max)} ms. In ordine, da sinistra.</p>
@@ -375,12 +474,12 @@
     const prev = A.runsOf(l, run.sc, lv).filter((r) => r !== run && r.t !== run.t).map((r) => r.score);
     const prevBest = prev.length ? Math.max(...prev) : null;
     const routine = !detail && mode === "routine" && ui.routine;
-    const nextId = routine ? A.ROUTINE[ui.routine.index + 1] : null;
+    const nextId = routine ? ui.routine.list[ui.routine.index + 1] : null;
     const routineDone = routine && !nextId;
-    const summary = routineDone ? `<h3 class="aim-h3">Routine completata</h3><ul class="aim-sum">${ui.routine.results.filter(Boolean).map((x) => `<li><span>${esc(A.scenario(x.run.sc).name)}</span><strong>${fmt(x.run.score)}</strong>${x.best ? `<em>record</em>` : "<em></em>"}</li>`).join("")}</ul>` : "";
+    const summary = routineDone ? `<h3 class="aim-h3">${esc(ui.routine.name)} completata</h3><ul class="aim-sum">${ui.routine.results.filter(Boolean).map((x) => `<li><span>${esc(A.scenario(x.run.sc).name)}</span><strong>${fmt(x.run.score)}</strong>${x.best ? `<em>record</em>` : "<em></em>"}</li>`).join("")}</ul>` : "";
     const items = itemsOf(run);
     const sections = [flickBox(run.flick, run.miss), binsBox(run.bins), segBox(run), biasBox(run.bias), rtBox(run), trackBox(run)].filter(Boolean);
-    const kicker = detail ? "Partita salvata" : routine ? `Routine · ${ui.routine.index + 1} di ${A.ROUTINE.length}` : "Risultato";
+    const kicker = detail ? "Partita salvata" : routine ? `${ui.routine.name} · ${ui.routine.index + 1} di ${ui.routine.list.length}` : "Risultato";
     const buttons = detail
       ? `<button type="button" class="aim-btn primary" data-aim="detail-close">Torna ai progressi</button><button type="button" class="aim-btn" data-aim="play" data-id="${d.id}" data-lv="${lv}">Gioca ${esc(d.name)} (${LV(lv)})</button>`
       : `${nextId ? `<button type="button" class="aim-btn primary" data-aim="next">Prossimo: ${esc(A.scenario(nextId).name)}</button>` : ""}
@@ -1117,14 +1216,19 @@
       case "again": {
         const inRoutine = ui.result && ui.result.mode === "routine" && ui.routine;
         const lv = Number(el.dataset.lv);
-        startPlay(el.dataset.id, inRoutine ? "routine" : "free", { ...(inRoutine ? { kicker: `Routine · ${ui.routine.index + 1} di ${A.ROUTINE.length}` } : {}), ...([1, 2, 3].includes(lv) ? { lv } : {}) });
+        startPlay(el.dataset.id, inRoutine ? "routine" : "free", { ...(inRoutine ? { kicker: `${ui.routine.name} · ${ui.routine.index + 1} di ${ui.routine.list.length}` } : {}), ...([1, 2, 3].includes(lv) ? { lv } : {}) });
         break;
       }
-      case "routine": ui.routine = { index: 0, results: [] }; startPlay(A.ROUTINE[0], "routine", { kicker: `Routine · 1 di ${A.ROUTINE.length}` }); break;
+      case "routine": {
+        const sniper = el.dataset.list === "sniper";
+        ui.routine = { index: 0, results: [], list: sniper ? A.SNIPER_ROUTINE : A.ROUTINE, name: sniper ? "Routine del cecchino" : "Routine" };
+        startPlay(ui.routine.list[0], "routine", { kicker: `${ui.routine.name} · 1 di ${ui.routine.list.length}` });
+        break;
+      }
       case "next":
         if (!ui.routine) break;
         ui.routine.index += 1;
-        startPlay(A.ROUTINE[ui.routine.index], "routine", { kicker: `Routine · ${ui.routine.index + 1} di ${A.ROUTINE.length}` });
+        startPlay(ui.routine.list[ui.routine.index], "routine", { kicker: `${ui.routine.name} · ${ui.routine.index + 1} di ${ui.routine.list.length}` });
         break;
       case "back": ui.result = null; ui.routine = null; render(true); break;
       case "prog-open": {
@@ -1285,9 +1389,9 @@
       }
       case "toggle": {
         const key = el.dataset.key;
-        if (key === "sound") l.settings.sound = !l.settings.sound;
+        if (key === "sound" || key === "scopeHold") l.settings[key] = !l.settings[key];
         else l.settings.crosshair[key] = !l.settings.crosshair[key];
-        el.setAttribute("aria-pressed", String(key === "sound" ? l.settings.sound : l.settings.crosshair[key]));
+        el.setAttribute("aria-pressed", String(key === "sound" || key === "scopeHold" ? l.settings[key] : l.settings.crosshair[key]));
         save();
         paintPreview();
         break;
@@ -1328,6 +1432,13 @@
         save();
         updateCalc();
       }
+    } else if (key === "scopeMult") {
+      if (Number.isFinite(v) && v >= 0.1 && v <= 3) {
+        l.settings.scopeMult = Math.round(v * 1000) / 1000;
+        el.removeAttribute("aria-invalid");
+        save();
+        if (final && ui.tab === "sniper") { render(false); const f = document.querySelector('#aim [data-aim-input="scopeMult"]'); if (f) f.focus({ preventScroll: true }); }
+      } else if (final) { el.value = String(l.settings.scopeMult); el.removeAttribute("aria-invalid"); }
     } else if (key.startsWith("ch-")) {
       const k = key.slice(3);
       l.settings.crosshair[k] = Math.round(v);

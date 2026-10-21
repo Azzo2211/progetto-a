@@ -237,6 +237,31 @@
   // Movimento laterale (counter-strafe): velocita' di corsa e accelerazioni del modello.
   const STRAFE = { lane: 3, depth: 1.5, max: 6.75, acc: 40, friction: 22, still: 1.0 };
 
+  /*
+   * Fucili di precisione di Valorant (dati controllati a ottobre 2026: Liquipedia per l'Operator,
+   * note delle patch 2.03 e 3.0 per il Marshal, TheSpike per l'Outlaw; nessuna modifica a Operator e
+   * Marshal nelle patch 13.x, l'Outlaw ha avuto un ritocco al rinculo nella 13.01).
+   * Danni per colpo; i nemici hanno 150 punti tra vita (100) e scudo pesante (50).
+   * scopedMove: velocita' di movimento nello scope rispetto a quella normale.
+   */
+  const WEAPONS = {
+    operator: { id: "operator", name: "Operator", price: 4700, rps: 0.6, zooms: [2.5, 5], dmg: { head: 255, body: 150, legs: 120 }, mag: 5, scopedMove: 0.72, pen: "alta", unscope: true },
+    marshal: { id: "marshal", name: "Marshal", price: 950, rps: 1.5, zooms: [3.5], dmg: { head: 202, body: 101, legs: 85 }, mag: 5, scopedMove: 0.9, pen: "media", unscope: true },
+    outlaw: { id: "outlaw", name: "Outlaw", price: 2400, rps: 2.75, zooms: [3.5], dmg: { head: 238, body: 140, legs: 119 }, mag: 2, scopedMove: 0.8, pen: "alta", unscope: false, info: true }
+  };
+  const HP = 150;
+  // Modello dell'app (non un dato di Valorant): lo scope entra in 0,15 s; prima i colpi sono imprecisi.
+  const SCOPE_IN = 0.15;
+  // Campo visivo con lo zoom: in Valorant l'ingrandimento divide il campo visivo (103 / 2,5 = 41,2 gradi).
+  function scopeFov(zoom) { return FOV_H / zoom; }
+  // Gradi per unita' di mouse nello scope rispetto a senza: moltiplicatore / zoom (1,0 = predefinito di Valorant).
+  function scopeFactor(zoom, mult = 1) { return (num(mult) && mult > 0 ? mult : 1) / zoom; }
+  // Moltiplicatore che rende uguali i piccoli movimenti vicino al mirino (0% della distanza sullo schermo).
+  function zeroMatch(zoom) {
+    const fz = scopeFov(zoom);
+    return (Math.tan((fz / 2) * DEG) / Math.tan((FOV_H / 2) * DEG)) / (fz / FOV_H);
+  }
+
   /* ------------------------------------------------------------ scenari */
   const LEVELS = [{ id: 1, name: "Base" }, { id: 2, name: "Avanzato" }, { id: 3, name: "Pro" }];
 
@@ -315,6 +340,42 @@
       up: { key: "win", min: 85 }
     },
     {
+      id: "opflick", name: "Flick con lo scope", weapon: "operator", trains: "Arrivare sul nemico, entrare nello scope e sparare", duration: 0, reps: 15,
+      text: "Un nemico fermo compare lontano, in un punto a caso. Sei senza scope: gira il mirino verso di lui, entra nello scope con il tasto destro e colpiscilo prima che spari lui. Con l'Operator basta il busto.",
+      tip: "Fai il grosso del movimento senza scope ed entra nello scope quando il mirino è già quasi sul nemico: nello scope sistemi solo di poco.",
+      levels: ["Vicino, ti lascia 2,4 secondi", "Più largo, 1,9 secondi", "Tutto lo schermo, 1,5 secondi"],
+      lv: { 1: { yaw: [8, 24], dist: [16, 22], window: 2.4 }, 2: { yaw: [12, 36], dist: [18, 26], window: 1.9 }, 3: { yaw: [16, 50], dist: [20, 28], window: 1.5 } },
+      up: { key: "win", min: 85 }
+    },
+    {
+      id: "ophold", name: "Tieni l'angolo", weapon: "operator", trains: "Mirino pronto sul passaggio, un clic quando esce", duration: 0, reps: 15,
+      text: "Entra nello scope sul passaggio tra i due muri. Un nemico lo attraversa: spara quando entra nel mirino. Un colpo sul muro o a vuoto ti costa il caricamento, e lui passa.",
+      tip: "Non inseguirlo: tieni il mirino fermo vicino al bordo da cui esce, all'altezza del petto, e clicca appena lo vedi. Dopo il colpo rientra subito nello scope.",
+      levels: ["Cammina, passaggio largo", "Corre, passaggio medio", "Corre, passaggio stretto e più lontano"],
+      lv: { 1: { speed: 3.0, gap: 3.2, z: 18 }, 2: { speed: 5.4, gap: 2.6, z: 22 }, 3: { speed: 6.75, gap: 2.0, z: 26 } },
+      up: { key: "win", min: 80 }
+    },
+    {
+      id: "marshalhead", name: "Marshal alla testa", weapon: "marshal", trains: "Colpo alla testa su un nemico che si sposta", duration: 0, reps: 20,
+      text: "Un nemico si sposta a destra e sinistra a media distanza. Con il Marshal serve la testa: un colpo al corpo fa 101 danni e non basta contro 150 punti tra vita e scudo. Due al corpo bastano, se ti dà il tempo.",
+      tip: "Resta nello scope con il mirino all'altezza della testa e lascia che la testa ci passi dentro. Dopo un colpo al corpo rientra subito nello scope per il secondo.",
+      levels: ["Ti lascia 1,8 secondi", "Ti lascia 1,4 secondi", "Ti lascia 1 secondo, scatti veloci"],
+      lv: {
+        1: { window: 1.8, speed: [2.5, 4], change: [0.4, 1.0], dist: [14, 20], yaw: 20 },
+        2: { window: 1.4, speed: [3.5, 5.5], change: [0.3, 0.8], dist: [16, 24], yaw: 26 },
+        3: { window: 1.0, speed: [4.5, 6.75], change: [0.2, 0.6], dist: [18, 28], yaw: 32 }
+      },
+      up: { key: "win", min: 80 }
+    },
+    {
+      id: "quickscope", name: "Quickscope", weapon: "marshal", trains: "Scope e colpo veloci, senza anticipare", duration: 0, reps: 20,
+      text: "Un nemico compare vicino al mirino e resta poco. Entra nello scope e spara subito, ma non prima che lo scope sia entrato: un colpo sparato a metà va storto. Serve la testa o due colpi al corpo.",
+      tip: "Due tempi: tasto destro, poi clic appena l'immagine si ingrandisce. Con l'allenamento il secondo tempo si accorcia, ma non si salta.",
+      levels: ["Resta 1,2 secondi", "Resta 0,9 secondi", "Resta 0,65 secondi"],
+      lv: { 1: { life: 1.2, yaw: [3, 8], dist: [12, 18] }, 2: { life: 0.9, yaw: [3, 10], dist: [14, 22] }, 3: { life: 0.65, yaw: [4, 12], dist: [16, 26] } },
+      up: { key: "win", min: 80 }
+    },
+    {
       id: "senstest", name: "Prova sensibilità", trains: "Flick, precisione e tracking", duration: 40, hidden: true,
       text: "Tre fasi: flick lunghi e corti, bersagli piccoli e vicini, tracking tenendo premuto. Serve a confrontare due sensibilità.",
       tip: "Gioca come in partita: preciso, senza strafare.",
@@ -328,6 +389,8 @@
   const SCN = new Map(SCENARIOS.map((s) => [s.id, s]));
   const VISIBLE = SCENARIOS.filter((s) => !s.hidden).map((s) => s.id);
   const ROUTINE = ["gridshot", "microshot", "headline", "strafe", "peek", "duel", "tracking"];
+  const SNIPER = SCENARIOS.filter((s) => s.weapon).map((s) => s.id);
+  const SNIPER_ROUTINE = ["opflick", "ophold", "marshalhead", "quickscope"];
   const HEAD_ONLY = ["peek", "duel", "strafe"];
 
   /*
@@ -363,7 +426,8 @@
       bins: { s: [0, 0, 0], m: [0, 0, 0], l: [0, 0, 0] },
       bias: { x: 0, y: 0, n: 0, r: 0 },
       segK: zeros(), segS: zeros(), segH: zeros(), segOn: zeros(), segT: zeros(),
-      rep: 0, wait: 0, nextId: 1, lastKillAt: 0, vx: 0, stillSince: 0, movedFor: 0
+      rep: 0, wait: 0, nextId: 1, lastKillAt: 0, vx: 0, stillSince: 0, movedFor: 0,
+      weapon: def.weapon ? WEAPONS[def.weapon] : null, nextShot: 0, unscoped: 0, earlyScope: 0, legs: 0, scopeT: []
     };
     const between = (a, b) => a + rand() * (b - a);
     const spherePoint = (yaw, pitch, dist) => { const d = dir(yaw, pitch); return [d[0] * dist, d[1] * dist, d[2] * dist]; };
@@ -379,6 +443,8 @@
       if (success) sc.segK[seg] += 1;
       sc.rep += 1;
       sc.wait = id === "reflex" ? between(0.7, 1.9) : between(0.5, 1.2);
+      // cecchino: il prossimo nemico arriva dopo il caricamento del colpo (e il tempo di rientrare nello scope)
+      if (sc.weapon) sc.wait += Math.max(0, sc.nextShot - sc.time) + 0.3;
       if (id === "strafe") sc.movedFor = 0;
       if (sc.rep >= def.reps) sc.done = true;
     };
@@ -662,6 +728,117 @@
       };
     }
 
+    /* ---- cecchino: flick con lo scope (un nemico fermo, lontano, in un punto a caso) */
+    if (id === "opflick") {
+      sc.wait = between(0.6, 1.2);
+      sc.tick = (dt, a) => {
+        if (sc.bots.length) {
+          const b = sc.bots[0];
+          if (sc.time - b.born > P.window) {
+            sc.lost += 1;
+            sc.effects.push({ c: botParts(b.x, b.z).head.c, t: sc.time, kind: "lost" });
+            sc.bots = [];
+            endRep(false);
+          }
+          return;
+        }
+        sc.wait -= dt;
+        if (sc.wait <= 0 && !sc.done) {
+          let side = rand() < 0.5 ? -1 : 1;
+          const amount = between(P.yaw[0], P.yaw[1]);
+          if (Math.abs(a.yaw + side * amount) > 80) side = -side;
+          const p = spherePoint(a.yaw + side * amount, 0, between(P.dist[0], P.dist[1]));
+          sc.bots.push({ id: sc.nextId++, x: p[0], z: p[2], hp: HP, crouch: false, visible: true, born: sc.time });
+          sc.resetPath = true;
+        }
+      };
+    }
+
+    /* ---- cecchino: tieni l'angolo (un nemico attraversa il passaggio tra due muri) */
+    if (id === "ophold") {
+      const half = P.gap / 2;
+      const z = P.z;
+      sc.covers.push(
+        { min: [-half - 6, ROOM.y[0], z - 0.5], max: [-half, 1.6, z - 0.1] },
+        { min: [half, ROOM.y[0], z - 0.5], max: [half + 6, 1.6, z - 0.1] }
+      );
+      const wallBefore = (pt) => {
+        const d = len(pt);
+        const to = pt.map((v) => v / d);
+        return sc.covers.reduce((m, c) => { const t = rayBox(to, c); return t >= 0 && t < m ? t : m; }, Infinity);
+      };
+      const seen = (pt) => wallBefore(pt) > len(pt);
+      sc.wait = between(0.9, 2.0);
+      sc.tick = (dt) => {
+        if (sc.bots.length) {
+          const b = sc.bots[0];
+          b.x += b.side * P.speed * dt;
+          const hp = botParts(b.x, b.z).head;
+          b.visible = seen(hp.c) || seen([b.x, -0.6, b.z]) || seen([hp.c[0] + b.side * 0.25, -0.6, hp.c[2]]);
+          if (b.visible && b.seenAt == null) { b.seenAt = sc.time; sc.resetPath = true; }
+          if (b.side * b.x > half + 1.6) { sc.bots = []; sc.escaped += 1; endRep(false); }
+          return;
+        }
+        sc.wait -= dt;
+        if (sc.wait <= 0 && !sc.done) {
+          const side = rand() < 0.5 ? -1 : 1;
+          sc.bots.push({ id: sc.nextId++, side, x: -side * (half + 1.6), z: z + 0.6, hp: HP, crouch: false, visible: false, seenAt: null, born: sc.time });
+        }
+      };
+    }
+
+    /* ---- cecchino: Marshal alla testa (nemico che si sposta, spara dopo un po') */
+    if (id === "marshalhead") {
+      sc.wait = between(0.6, 1.2);
+      const Q = { speed: P.speed, change: P.change, bound: 2.0 };
+      sc.tick = (dt) => {
+        if (sc.bots.length) {
+          const b = sc.bots[0];
+          stepAdad(b, dt, Q, rand);
+          b.changed = false;
+          b.x = b.base[0] + b.L[0] * b.s;
+          b.z = b.base[2] + b.L[2] * b.s;
+          if (sc.time - b.born > P.window) {
+            sc.lost += 1;
+            sc.effects.push({ c: botParts(b.x, b.z).head.c, t: sc.time, kind: "lost" });
+            sc.bots = [];
+            endRep(false);
+          }
+          return;
+        }
+        sc.wait -= dt;
+        if (sc.wait <= 0 && !sc.done) {
+          const yaw = between(-P.yaw, P.yaw);
+          const p = spherePoint(yaw, 0, between(P.dist[0], P.dist[1]));
+          const L = [Math.cos(yaw * DEG), 0, -Math.sin(yaw * DEG)];
+          const s0 = between(-1, 1);
+          sc.bots.push({ id: sc.nextId++, base: [p[0], 0, p[2]], L, s: s0, v: (rand() < 0.5 ? -1 : 1) * between(P.speed[0], P.speed[1]), dirLeft: between(P.change[0], P.change[1]), x: p[0] + L[0] * s0, z: p[2] + L[2] * s0, hp: HP, crouch: false, visible: true, born: sc.time });
+          sc.resetPath = true;
+        }
+      };
+    }
+
+    /* ---- cecchino: quickscope (compare vicino al mirino e sparisce presto) */
+    if (id === "quickscope") {
+      sc.wait = between(0.7, 1.5);
+      sc.tick = (dt, a) => {
+        if (sc.bots.length) {
+          const b = sc.bots[0];
+          if (sc.time - b.born > P.life) { sc.bots = []; sc.escaped += 1; endRep(false); }
+          return;
+        }
+        sc.wait -= dt;
+        if (sc.wait <= 0 && !sc.done) {
+          let side = rand() < 0.5 ? -1 : 1;
+          const amount = between(P.yaw[0], P.yaw[1]);
+          if (Math.abs(a.yaw + side * amount) > 80) side = -side;
+          const p = spherePoint(a.yaw + side * amount, 0, between(P.dist[0], P.dist[1]));
+          sc.bots.push({ id: sc.nextId++, x: p[0], z: p[2], hp: HP, crouch: false, visible: true, born: sc.time });
+          sc.resetPath = true;
+        }
+      };
+    }
+
     /* ---- tracking ADAD */
     if (id === "tracking") {
       const b = { id: sc.nextId++, s: 0, x: 0, z: P.z, v: rand() < 0.5 ? -P.speed[0] : P.speed[0], dirLeft: between(P.change[0], P.change[1]), crouch: false, visible: true, born: 0 };
@@ -802,8 +979,77 @@
       return { hit: false, blocked };
     }
 
+    // Colpo di un fucile di precisione: danno per parte del corpo (testa, busto, gambe), 150 punti da togliere.
+    function shootSniper(a, f, b, seg) {
+      const W = sc.weapon;
+      const parts = botParts(b.x, b.z, b.crouch);
+      const top = parts.body.max[1];
+      const hip = ROOM.y[0] + (top - ROOM.y[0]) * 0.48;
+      const headC = rel(parts.head.c);
+      const tHead = raySphere(f, headC, parts.head.r);
+      const tTorso = rayBox(f, { min: rel([parts.body.min[0], hip, parts.body.min[2]]), max: rel(parts.body.max) });
+      const tLegs = rayBox(f, { min: rel(parts.body.min), max: rel([parts.body.max[0], hip, parts.body.max[2]]) });
+      const tWall = sc.covers.reduce((m, c) => { const t = rayBox(f, { min: rel(c.min), max: rel(c.max) }); return t >= 0 && t < m ? t : m; }, Infinity);
+      const tg = anglesTo(headC);
+      const rDeg = Math.atan2(parts.head.r, len(headC)) / DEG;
+      addBias(a, anglesTo(rel([b.x, -0.45, b.z])), Math.atan2(0.3, len(headC)) / DEG);
+      const hits = [["head", tHead], ["body", tTorso], ["legs", tLegs]].filter(([, t]) => t >= 0 && t < tWall).sort((x, y) => x[1] - y[1]);
+      if (!hits.length) {
+        sc.misses += 1;
+        sc.points -= 20;
+        const blocked = tWall < Infinity && [tHead, tTorso, tLegs].some((t) => t >= 0 && t >= tWall);
+        if (blocked) sc.wall += 1;
+        return { hit: false, blocked };
+      }
+      const part = hits[0][0];
+      b.hp -= W.dmg[part];
+      sc.hits += 1;
+      sc.segH[seg] += 1;
+      if (part === "head") sc.heads += 1; else if (part === "body") sc.body += 1; else sc.legs += 1;
+      const effectAt = part === "head" ? parts.head.c : [b.x, part === "body" ? -0.6 : -1.2, b.z];
+      if (b.hp > 0) {
+        sc.points += 25;
+        sc.effects.push({ c: effectAt, t: sc.time, kind: "body" });
+        return { hit: true, head: false, kill: false, part, dmg: W.dmg[part] };
+      }
+      sc.kills += 1;
+      const since = sc.time - (b.seenAt != null ? b.seenAt : b.born);
+      sc.rt.push(since);
+      sc.ttk.push(since);
+      if (num(a.scopeT)) sc.scopeT.push(a.scopeT);
+      const k = flickKind(sc.path, tg, Math.max(rDeg, 0.6));
+      if (k && id === "opflick") sc.flick[k[0]] += 1;
+      const window = id === "opflick" || id === "marshalhead" ? P.window : id === "quickscope" ? P.life : 1.2;
+      sc.points += 150 + Math.round(clamp(1 - since / window, 0, 1) * 100) + (part === "head" ? 30 : 0);
+      sc.effects.push({ c: effectAt, t: sc.time, kind: part === "head" ? "head" : "hit" });
+      sc.bots = [];
+      sc.path = [[sc.time, a.yaw, a.pitch]];
+      endRep(true);
+      return { hit: true, head: part === "head", kill: true, part, dmg: W.dmg[part] };
+    }
+
+    // tempo che manca prima di poter sparare di nuovo (caricamento del colpo)
+    sc.boltLeft = () => (sc.weapon ? Math.max(0, sc.nextShot - sc.time) : 0);
+
     sc.shoot = function shoot(a) {
       if (sc.done || sc.holdMode) return { hit: false };
+      if (sc.weapon) {
+        const W = sc.weapon;
+        if (sc.time < sc.nextShot - 1e-6) return { hit: false, bolt: true };
+        sc.nextShot = sc.time + 1 / W.rps;
+        sc.shots += 1;
+        const seg = segNow();
+        sc.segS[seg] += 1;
+        // senza scope il colpo va quasi a caso; a scope non ancora entrato e' storto
+        let spread = 0;
+        if (!a.scoped) { sc.unscoped += 1; spread = between(2.5, 6); } else if (!a.ready) { sc.earlyScope += 1; spread = between(0.8, 2.4); }
+        let f = dir(a.yaw, a.pitch);
+        if (spread) { const ang = rand() * Math.PI * 2; f = dir(a.yaw + Math.cos(ang) * spread, a.pitch + Math.sin(ang) * spread); }
+        const out = sc.bots.length ? shootSniper(a, f, sc.bots[0], seg) : (sc.misses += 1, sc.points -= 20, { hit: false });
+        out.unscope = W.unscope;
+        out.spread = spread > 0;
+        return out;
+      }
       if (id === "reflex" && !sc.targets.length) { sc.early += 1; sc.points -= 30; return { hit: false, early: true }; }
       let f = dir(a.yaw, a.pitch);
       let movingShot = false;
@@ -882,6 +1128,17 @@
         if (sc.stop.length) st.stop = ms(avg(sc.stop));
       }
       if (id === "reflex") st.early = sc.early;
+      if (sc.weapon) {
+        st.acc = sc.shots ? r1((sc.hits / sc.shots) * 100) : 0;
+        st.body = sc.body;
+        st.legs = sc.legs;
+        st.unscoped = sc.unscoped;
+        st.earlyScope = sc.earlyScope;
+        st.unscopedPct = sc.shots ? Math.round(((sc.unscoped + sc.earlyScope) / sc.shots) * 100) : 0;
+        if (id === "opflick" || id === "marshalhead") st.lost = sc.lost;
+        if (id === "ophold") st.wall = sc.wall;
+        if (sc.scopeT.length) st.scopeT = ms(avg(sc.scopeT));
+      }
 
       if (id === "tracking") {
         st.score = Math.round(st.track * 100);
@@ -932,7 +1189,9 @@
     movingPct: { label: "Colpi in movimento", unit: "%", d: 0, up: false },
     clean: { label: "Flick puliti", unit: "%", d: 0, up: true },
     over: { label: "Flick oltre e corretti", unit: "%", d: 0, up: false },
-    under: { label: "Flick corti e corretti", unit: "%", d: 0, up: false }
+    under: { label: "Flick corti e corretti", unit: "%", d: 0, up: false },
+    unscopedPct: { label: "Colpi senza scope o a scope non entrato", unit: "%", d: 0, up: false },
+    scopeT: { label: "Dallo scope al colpo", unit: " ms", d: 0, up: false }
   };
   const SC_METRICS = {
     gridshot: ["score", "kps", "acc", "ttk", "clean", "over", "under"],
@@ -942,7 +1201,11 @@
     peek: ["score", "win", "rt", "rtBest", "acc"],
     duel: ["score", "win", "hitTime", "acc"],
     tracking: ["score", "track", "err", "reacq"],
-    reflex: ["score", "rt", "rtBest", "rtSd", "win"]
+    reflex: ["score", "rt", "rtBest", "rtSd", "win"],
+    opflick: ["score", "win", "hitTime", "acc", "unscopedPct", "clean", "over", "under"],
+    ophold: ["score", "win", "rt", "rtBest", "acc"],
+    marshalhead: ["score", "win", "hitTime", "acc", "unscopedPct"],
+    quickscope: ["score", "win", "scopeT", "hitTime", "unscopedPct"]
   };
 
   function metricValue(run, key) {
@@ -1032,7 +1295,9 @@
     { sc: "peek", key: "rt", name: "Reazione sui peek" },
     { sc: "duel", key: "win", name: "Duelli" },
     { sc: "tracking", key: "track", name: "Tracking" },
-    { sc: "reflex", key: "rt", name: "Riflessi" }
+    { sc: "reflex", key: "rt", name: "Riflessi" },
+    { sc: "opflick", key: "win", name: "Cecchino: flick con lo scope" },
+    { sc: "ophold", key: "rt", name: "Cecchino: tenere l'angolo" }
   ];
 
   function skillProfile(lab) {
@@ -1164,6 +1429,19 @@
     if (id === "reflex") {
       if (run.early >= 2) add("warn", `${run.early} partenze anticipate: clicca solo quando vedi il bersaglio.`, 3);
       if (num(run.rtSd) && run.rtSd > 90) add("tip", `Tempi irregolari (±${run.rtSd} ms): cerca lo stesso ritmo a ogni bersaglio.`, 1);
+    }
+    if (SNIPER.includes(id)) {
+      if ((run.unscoped || 0) >= 2) add("warn", `${run.unscoped} colpi senza scope: con i fucili di precisione vanno quasi sempre a vuoto. Entra nello scope, poi spara.`, 4);
+      if ((run.earlyScope || 0) >= 2) add("warn", `${run.earlyScope} colpi sparati mentre lo scope stava entrando: qui sono storti. Aspetta l'immagine ingrandita, poi clicca.`, 3);
+      if (id === "marshalhead" && (run.body || 0) + (run.legs || 0) >= 4) add("tip", `${(run.body || 0) + (run.legs || 0)} colpi al corpo o alle gambe: con il Marshal non bastano. Tieni il mirino all'altezza della testa.`, 3);
+      if ((id === "opflick" || id === "ophold") && (run.legs || 0) >= 2) add("tip", `${run.legs} colpi alle gambe: con l'Operator fanno 120 danni e non uccidono. Mira al busto o più in alto.`, 2);
+      if (id === "ophold" && (run.wall || 0) >= 2) add("warn", `${run.wall} colpi sul muro: aspetta che esca dal bordo, poi clicca. Ogni colpo a vuoto ti costa il caricamento.`, 3);
+      if (id === "ophold" && num(run.rt) && run.rt > 450) add("tip", `Reazione media ${run.rt} ms: tieni il mirino più vicino al bordo da cui esce, così devi solo cliccare.`, 2);
+      if (id === "opflick" && (run.lost || 0) >= 3) add("tip", `${run.lost} volte ha sparato prima lui: fai il movimento grande senza scope ed entra nello scope solo alla fine.`, 2);
+      if (id === "quickscope" && num(run.scopeT)) {
+        if (run.scopeT < 250 && (run.earlyScope || 0) === 0) add("good", `Dallo scope al colpo in ${run.scopeT} ms senza anticipare: tempi da quickscope.`, 2);
+        else if (run.scopeT > 500) add("tip", `Dallo scope al colpo ci metti ${run.scopeT} ms: prepara il mirino prima di entrare nello scope, poi un clic secco.`, 2);
+      }
     }
     if (num(run.win) && run.win >= 90 && (run.lv || 1) < 3) add("good", `${run.win}% riusciti: puoi provare il livello più difficile.`, 1);
     return out.sort((x, y) => y.w - x.w).slice(0, 4).map(({ tone, text }) => ({ tone, text }));
@@ -1329,14 +1607,15 @@
 
   function defaultSettings() {
     return {
-      dpi: 800, sens: 0.35, calib: null, sound: true, targetColor: "#33e0ff", levels: {},
+      dpi: 800, sens: 0.35, calib: null, sound: true, targetColor: "#33e0ff", levels: {}, scopeMult: 1, scopeHold: false,
       crosshair: { color: "#2ef27a", len: 5, thick: 2, gap: 3, dot: false, outline: true }
     };
   }
 
   /* ---- pulizia dei dati salvati (anche da un file importato): solo numeri e valori previsti */
   const RUN_NUM = ["t", "score", "shots", "hits", "kills", "heads", "misses", "acc", "kps", "ttk", "ttkMed", "ttkBest", "rt", "rtMed", "rtBest", "rtSd", "reps", "win",
-    "escaped", "track", "hold", "lag", "lead", "high", "err", "reacq", "vert", "vertBias", "body", "wall", "lost", "behind", "ahead", "moving", "still", "movingPct", "stop", "early", "sens", "dur"];
+    "escaped", "track", "hold", "lag", "lead", "high", "err", "reacq", "vert", "vertBias", "body", "wall", "lost", "behind", "ahead", "moving", "still", "movingPct", "stop", "early", "sens", "dur",
+    "legs", "unscoped", "earlyScope", "unscopedPct", "scopeT"];
   const numOr = (v) => (num(v) ? v : null);
   const numList = (l, max) => (Array.isArray(l) ? l.slice(0, max).map((v) => (num(v) ? v : null)) : null);
   const numObj = (o, keys) => {
@@ -1419,6 +1698,8 @@
     if (!isObj(s.calib) || !num(s.calib.factor) || s.calib.factor < 0.2 || s.calib.factor > 5) s.calib = null;
     s.sound = typeof s.sound === "boolean" ? s.sound : d.sound;
     s.targetColor = typeof s.targetColor === "string" && /^#[0-9a-f]{6}$/i.test(s.targetColor) ? s.targetColor : d.targetColor;
+    s.scopeMult = num(s.scopeMult) && s.scopeMult >= 0.1 && s.scopeMult <= 3 ? Math.round(s.scopeMult * 1000) / 1000 : d.scopeMult;
+    s.scopeHold = typeof s.scopeHold === "boolean" ? s.scopeHold : d.scopeHold;
     const lv = isObj(s.levels) ? s.levels : {};
     s.levels = {};
     VISIBLE.forEach((id) => { s.levels[id] = [1, 2, 3].includes(lv[id]) ? lv[id] : 1; });
@@ -1505,7 +1786,8 @@
     return {
       per, runs: real.length, minutes, streak, days: days.size, today: today.length, shots, acc30,
       routineDays: routineDays.size,
-      routineToday: ROUTINE.every((id) => today.some((r) => r.sc === id))
+      routineToday: ROUTINE.every((id) => today.some((r) => r.sc === id)),
+      sniperToday: SNIPER_ROUTINE.every((id) => today.some((r) => r.sc === id))
     };
   }
 
@@ -1517,6 +1799,7 @@
 
   return {
     VERSION, YAW, FOV_H, ROOM, HEAD_Y, STRAFE, LEVELS, SCENARIOS, VISIBLE, ROUTINE, COLORS, FINDER_ROUNDS, FINDER_SPAN, METRICS, SC_METRICS, SKILLS,
+    WEAPONS, HP, SCOPE_IN, SNIPER, SNIPER_ROUTINE, scopeFov, scopeFactor, zeroMatch,
     edpi, cm360, sensForCm, roundSens, degPerUnit, calibrate,
     dir, basis, toCamera, focal, project, raySphere, rayBox, angleTo, anglesTo, rng, botParts, wrap,
     flickKind, missKind,

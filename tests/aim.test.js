@@ -343,6 +343,114 @@ test("Prova sensibilità: tre fasi, tracking alla fine, stessi bersagli con lo s
   assert.deepStrictEqual(xs, ys, "stessa sagoma nel tracking");
 });
 
+// Cecchino: giocatore che mira al punto scelto, nello scope (o no), rispettando il caricamento.
+function playSniper(id, { seed = 5, lv = 1, part = "head", scoped = true, ready = true, delay = 0.18 } = {}) {
+  const sc = A.createScenario(id, { seed, lv });
+  const aim = { yaw: 0, pitch: 0 };
+  let seen = 0;
+  let shots = 0;
+  for (let i = 0; i < 120 * 400 && !sc.done; i += 1) {
+    const dt = 1 / 120;
+    const b = sc.bots[0];
+    if (b && b.visible !== false) seen += dt; else seen = 0;
+    if (b && b.visible !== false) {
+      const p = A.botParts(b.x, b.z);
+      const goal = part === "head" ? p.head.c : part === "body" ? [b.x, -0.6, b.z] : [b.x, -1.3, b.z];
+      const g = A.anglesTo(goal);
+      aim.yaw = g.yaw;
+      aim.pitch = g.pitch;
+    }
+    sc.update(dt, aim);
+    if (b && seen >= delay && sc.boltLeft() <= 0 && !sc.done && sc.bots[0] === b) {
+      sc.shoot({ yaw: aim.yaw, pitch: aim.pitch, scoped, ready, scopeT: 0.2 });
+      shots += 1;
+    }
+  }
+  return { sc, st: sc.stats(), shots };
+}
+
+test("Cecchino: dati dei fucili, zoom e sens nello scope come in Valorant", () => {
+  const W = A.WEAPONS;
+  assert.deepStrictEqual([W.operator.price, W.marshal.price, W.outlaw.price], [4700, 950, 2400]);
+  assert.deepStrictEqual(W.operator.dmg, { head: 255, body: 150, legs: 120 });
+  assert.deepStrictEqual(W.marshal.dmg, { head: 202, body: 101, legs: 85 });
+  assert.deepStrictEqual(W.operator.zooms, [2.5, 5]);
+  assert.deepStrictEqual(W.marshal.zooms, [3.5]);
+  near(A.scopeFov(2.5), 41.2, 1e-9, "campo visivo 2,5x");
+  near(A.scopeFactor(2.5, 1), 0.4, 1e-12, "moltiplicatore 1");
+  near(A.scopeFactor(5, 0.8), 0.16, 1e-12, "moltiplicatore 0,8 a 5x");
+  // valore noto: 0,747 per l'Operator al primo zoom (corrispondenza vicino al mirino)
+  near(A.zeroMatch(2.5), 0.7475, 0.0005, "0% della distanza a 2,5x");
+  assert.ok(A.zeroMatch(5) < A.zeroMatch(3.5) && A.zeroMatch(3.5) < A.zeroMatch(2.5));
+  // 150 punti: il busto dell'Operator uccide, quello del Marshal no
+  assert.ok(W.operator.dmg.body >= A.HP && W.operator.dmg.legs < A.HP && W.marshal.dmg.body < A.HP && W.marshal.dmg.head >= A.HP);
+  assert.deepStrictEqual(A.SNIPER.slice().sort(), ["marshalhead", "opflick", "ophold", "quickscope"]);
+  A.SNIPER.forEach((id) => assert.ok(A.VISIBLE.includes(id) && A.SC_METRICS[id] && A.scenario(id).levels.length === 3));
+});
+
+test("Cecchino: giocatore perfetto in tutti gli esercizi e livelli; caricamento rispettato", () => {
+  A.SNIPER.forEach((id) => [1, 2, 3].forEach((lv) => {
+    const { sc, st } = playSniper(id, { lv, part: "head" });
+    assert.ok(sc.done, `${id} ${lv} finisce`);
+    assert.strictEqual(st.win, 100, `${id} livello ${lv}: ${st.win}%`);
+    assert.strictEqual(st.unscoped, 0);
+    assert.ok(st.heads === st.kills && st.kills === A.scenario(id).reps);
+  }));
+  // non si puo' sparare durante il caricamento
+  const sc = A.createScenario("opflick", { seed: 2 });
+  for (let i = 0; i < 300 && !sc.bots.length; i += 1) sc.update(1 / 60, { yaw: 0, pitch: 0 });
+  const r1 = sc.shoot({ yaw: 0, pitch: 80, scoped: true, ready: true });
+  const r2 = sc.shoot({ yaw: 0, pitch: 80, scoped: true, ready: true });
+  assert.strictEqual(r1.unscope, true);
+  assert.strictEqual(r2.bolt, true, "secondo colpo durante il caricamento");
+  assert.strictEqual(sc.shots, 1);
+  near(sc.boltLeft(), 1 / 0.6, 1e-9, "caricamento dell'Operator");
+});
+
+test("Cecchino: Operator busto uccide, gambe no; Marshal busto no; senza scope si sbaglia", () => {
+  const body = playSniper("opflick", { part: "body" }).st;
+  assert.strictEqual(body.win, 100, "Operator al busto");
+  assert.strictEqual(body.body, body.kills);
+  const legs = playSniper("opflick", { part: "legs", seed: 9, lv: 3 }).st;
+  assert.ok(legs.legs > 0 && legs.win < 100, `Operator alle gambe: ${legs.win}%`);
+  const mb = playSniper("marshalhead", { part: "body", seed: 4, lv: 3 }).st;
+  assert.ok(mb.body >= 2, "Marshal: colpi al busto contati");
+  assert.ok(mb.kills <= Math.ceil(mb.body / 2), "Marshal: servono due colpi al busto");
+  const noScope = playSniper("opflick", { scoped: false, seed: 6 }).st;
+  assert.ok(noScope.unscoped > 0 && noScope.win < 60, `senza scope: ${noScope.win}%`);
+  assert.ok(noScope.unscopedPct >= 90);
+  const early = playSniper("quickscope", { ready: false, seed: 6 }).st;
+  assert.ok(early.earlyScope > 0 && early.win < 90, `scope non entrato: ${early.win}%`);
+  // consigli specifici
+  const tips = A.insights({ t: 1, sc: "opflick", lv: 1, score: 100, shots: 20, hits: 5, kills: 5, acc: 25, unscoped: 8, earlyScope: 0, legs: 3, lost: 4, reps: 15, win: 33 }).map((x) => x.text).join(" ");
+  assert.ok(/senza scope/.test(tips) && /gambe/.test(tips));
+});
+
+test("Cecchino: tieni l'angolo (muri, passaggio, reazione) e impostazioni dello scope", () => {
+  const { sc, st } = playSniper("ophold", { lv: 2 });
+  assert.strictEqual(sc.covers.length, 2);
+  assert.ok(st.rt >= 150 && st.rt < 400, `reazione ${st.rt}`);
+  // chi spara sul muro prima che esca
+  const s2 = A.createScenario("ophold", { seed: 3, lv: 1 });
+  for (let i = 0; i < 600 && !s2.bots.length; i += 1) s2.update(1 / 60, { yaw: 0, pitch: 0 });
+  const b = s2.bots[0];
+  assert.ok(b && b.visible === false, "parte nascosto dietro il muro");
+  const behind = A.anglesTo(A.botParts(b.x, b.z).head.c);
+  const r = s2.shoot({ yaw: behind.yaw, pitch: behind.pitch, scoped: true, ready: true });
+  assert.strictEqual(r.hit, false);
+  assert.strictEqual(s2.stats().wall, 1);
+  const lab = A.ensure({ settings: { scopeMult: 7, scopeHold: "si" } });
+  assert.strictEqual(lab.settings.scopeMult, 1);
+  assert.strictEqual(lab.settings.scopeHold, false);
+  const lab2 = A.ensure({ settings: { scopeMult: 0.85, scopeHold: true } });
+  assert.strictEqual(lab2.settings.scopeMult, 0.85);
+  assert.strictEqual(lab2.settings.scopeHold, true);
+  const run = A.recordRun(lab2, { ...st, sc: "ophold" }, { sens: 0.3 });
+  const kept = A.ensure(JSON.parse(JSON.stringify(lab2))).runs[0];
+  assert.strictEqual(kept.unscopedPct, run.unscopedPct);
+  assert.ok(A.summary(lab2, "ophold").metrics.find((m) => m.key === "rt").n === 1);
+});
+
 test("Consigli dalla partita", () => {
   const strafe = play("strafe", { delay: 0.03, stopFirst: false }).st;
   const tips = A.insights({ ...strafe, t: 1 });

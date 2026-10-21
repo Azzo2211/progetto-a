@@ -373,7 +373,21 @@
 .aim-toggle[aria-pressed="true"] { background: var(--a-cyan-soft); border-color: var(--a-cyan); color: var(--a-cyan); }
 
 /* schermi stretti */
+/* ---------- cecchino ---------- */
+.aim-routine.sniper { border-top-color: var(--a-coral); background: linear-gradient(160deg, #221a22, #151c26); }
+.aim-card.sniper { border-top: 3px solid rgba(255, 107, 125, 0.55); }
+.aim-weapon { align-self: flex-start; padding: 2px 9px; border-radius: 999px; border: 1px solid rgba(255, 107, 125, 0.45); color: #ffb3bd; font-size: 0.78rem; font-weight: 700; }
+.aim-sniper-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin: 16px 0 12px; }
+#aim .aim-sniper-grid > * { min-width: 0; }
+.aim-weapons td { white-space: normal; }
+.aim-sources { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 0.86rem; }
+.aim-sources a { color: var(--a-cyan); }
+.aim-tips { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.aim-tips li { display: grid; gap: 4px; padding: 12px 14px; border-radius: 12px; background: var(--a-inset); border-left: 3px solid var(--a-coral); line-height: 1.5; min-width: 0; }
+.aim-tips li span { color: var(--a-muted); }
+
 @media (max-width: 900px) {
+  .aim-sniper-grid, .aim-tips { grid-template-columns: minmax(0, 1fr); }
   .aim-routine, .aim-result { grid-template-columns: minmax(0, 1fr); }
   .aim-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .aim-skills button { grid-template-columns: minmax(0, 1fr) auto; }
