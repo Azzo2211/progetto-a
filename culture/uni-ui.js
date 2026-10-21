@@ -3,20 +3,39 @@
  *
  * Corsi veri di MIT, Yale, Harvard... spiegati in italiano: lezione originale (link), spiegazione,
  * punti chiave, glossario, verifica, "spiegalo tu", ripasso distanziato, esame finale in trentesimi
- * e libretto. Dati: window.CultureUniversity (culture/university.js). Motore: window.UniEngine.
+ * e libretto. Dati: window.CultureUniversity (culture/university.js, caricato solo quando si apre la
+ * scheda: sono molti testi e non servono alle altre pagine). Motore: window.UniEngine.
  * Usa le globali di app.js: state, saveState, renderDashboard.
  */
 (function () {
   "use strict";
 
   const U = window.UniEngine;
-  const DATA = window.CultureUniversity || { courses: [] };
   if (!U) return;
   const ORDER = Object.keys(U.FACULTIES);
-  const COURSES = (DATA.courses || []).slice().sort((a, b) => ORDER.indexOf(a.faculty) - ORDER.indexOf(b.faculty));
-  const byId = new Map(COURSES.map((c) => [c.id, c]));
+  const VER = ((document.currentScript && /[?&]v=([^&]+)/.exec(document.currentScript.src)) || [])[1] || "";
+  let COURSES = [];
+  let byId = new Map();
   const lessonIndex = new Map();
-  COURSES.forEach((c) => c.lessons.forEach((l, i) => lessonIndex.set(l.id, { course: c, lesson: l, index: i })));
+  let loading = null; // "loading" | "error" | null
+  function initData() {
+    const data = window.CultureUniversity || { courses: [] };
+    COURSES = (data.courses || []).slice().sort((a, b) => ORDER.indexOf(a.faculty) - ORDER.indexOf(b.faculty));
+    byId = new Map(COURSES.map((c) => [c.id, c]));
+    lessonIndex.clear();
+    COURSES.forEach((c) => c.lessons.forEach((l, i) => lessonIndex.set(l.id, { course: c, lesson: l, index: i })));
+  }
+  // i corsi si caricano la prima volta che si apre la scheda
+  function loadData(done) {
+    if (window.CultureUniversity) { initData(); done(); return; }
+    if (loading === "loading") return;
+    loading = "loading";
+    const sc = document.createElement("script");
+    sc.src = `culture/university.js${VER ? `?v=${VER}` : ""}`;
+    sc.onload = () => { loading = null; initData(); done(); };
+    sc.onerror = () => { loading = "error"; sc.remove(); done(); };
+    document.head.appendChild(sc);
+  }
 
   const ui = { view: "home", courseId: null, lessonId: null, step: "read", quiz: null, exam: null, review: null, at: 0 };
   const $ = (id) => document.getElementById(id);
@@ -317,7 +336,17 @@
   function render(focus = false) {
     const box = $("cultPanel-uni");
     if (!box) return;
-    if (!COURSES.length) { box.innerHTML = `<p class="cult-empty">Corsi non caricati.</p>`; return; }
+    if (!COURSES.length) {
+      if (!window.CultureUniversity && loading !== "error") {
+        box.innerHTML = `<p class="cult-empty" role="status">Carico i corsi…</p>`;
+        loadData(() => render(focus));
+        return;
+      }
+      box.innerHTML = loading === "error"
+        ? `<div class="cult-review-empty"><h2>Corsi non caricati</h2><p>Serve la connessione la prima volta che apri l'università; poi i corsi restano salvati anche senza rete.</p><div class="cult-actions"><button class="primary-action" type="button" data-uni="retry">Riprova</button></div></div>`
+        : `<p class="cult-empty">Corsi non caricati.</p>`;
+      return;
+    }
     let html;
     if (ui.view === "course" && byId.get(ui.courseId)) html = courseView(byId.get(ui.courseId));
     else if (ui.view === "lesson") html = lessonView();
@@ -428,6 +457,7 @@
     if (/answer$/.test(act) && (event.detail > 1 || Date.now() - ui.at < 300)) return;
     switch (act) {
       case "home": ui.view = "home"; ui.exam = null; render(true); break;
+      case "retry": loading = null; render(true); break;
       case "course": ui.view = "course"; ui.courseId = el.dataset.id; ui.exam = null; render(true); break;
       case "lesson": openLesson(el.dataset.id); render(true); break;
       case "quiz": startQuiz(); render(true); break;
@@ -477,7 +507,7 @@
 
   window.UniUI = {
     render,
-    dueCount: () => (U ? U.dueLessons(uni(), COURSES).length : 0),
+    dueCount: () => (COURSES.length ? U.dueLessons(uni(), COURSES).length : 0),
     stats: () => U.stats(uni(), COURSES)
   };
 
