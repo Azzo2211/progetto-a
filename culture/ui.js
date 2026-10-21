@@ -2,7 +2,7 @@
  * Progetto A - Cultura: interfaccia della biblioteca.
  *
  * Schede: Biblioteca (schede per area, lettura, verifica, "spiegalo tu"),
- * Ripasso (le schede in scadenza, 2 domande ciascuna), Profilo.
+ * Ripasso (le schede in scadenza, 2 domande ciascuna), Università (culture/uni-ui.js), Profilo.
  * Dati: window.CultureCards (culture/cards.js). Motore: window.CultureEngine.
  * Usa le globali di app.js: state, saveState, renderDashboard, buildRadarMarkup.
  */
@@ -101,7 +101,7 @@
       b.setAttribute("aria-selected", String(on));
       b.classList.toggle("active", on);
     });
-    ["library", "review", "profile"].forEach((t) => {
+    ["library", "review", "uni", "profile"].forEach((t) => {
       const panel = $(`cultPanel-${t}`);
       if (panel) panel.hidden = t !== tab;
     });
@@ -125,6 +125,7 @@
     renderHeaderChip();
     if (ui.tab === "library") (ui.read ? renderRead() : renderLibrary());
     else if (ui.tab === "review") renderReview();
+    else if (ui.tab === "uni") { if (window.UniUI) window.UniUI.render(); }
     else renderProfile();
   }
 

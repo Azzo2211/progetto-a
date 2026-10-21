@@ -100,11 +100,16 @@ La pagina Cultura (cartella `culture/`) è una biblioteca di schede brevi da cap
 |---|---|
 | `culture/cards.js` | Le schede: 8 aree (storia, geopolitica, diritto, economia, tecnologia, scienza, filosofia e psicologia, arte e letteratura), con testo, fatti da ricordare, collegamenti, 5 domande con spiegazione e "spiegalo con parole tue". |
 | `culture/engine.js` | Ripasso distanziato (scatole di Leitner), statistiche e profilo. Senza DOM, testato in `tests/culture.test.js`. |
-| `culture/ui.js`, `culture/culture.css` | La pagina: Biblioteca, Ripasso, Profilo. |
+| `culture/ui.js`, `culture/culture.css` | La pagina: Biblioteca, Ripasso, Università, Profilo. |
+| `culture/university.js` | I corsi della mini università, uno per facoltà (psicologia, neuroscienze, economia, finanza, strategia e teoria dei giochi, filosofia, storia, informatica, matematica, fisica), ognuno costruito su un corso aperto e gratuito (MIT OpenCourseWare, Open Yale Courses, Harvard): link alle lezioni originali, spiegazioni in italiano scritte per l'app (riassunti, non traduzioni), punti chiave, glossario, quiz, "spiegalo con parole tue" ed esercizio pratico. |
+| `culture/uni-engine.js` | Motore dell'università: lezioni superate dal 60%, ripasso distanziato, esame finale in trentesimi, libretto. Senza DOM, testato in `tests/university.test.js`. |
+| `culture/uni-ui.js` | La scheda Università: corsi, lezione (video originale, spiegazione, verifica, spiegalo tu), ripasso, esame, libretto. |
 
 **Studio**: leggi la scheda, rispondi a 5 domande (dato, comprensione, applicazione, collegamento) con la spiegazione subito dopo, poi scrivi la spiegazione con parole tue e la confronti con il modello. Con 4 o 5 risposte giuste la scheda torna in ripasso dopo 3 giorni, altrimenti il giorno dopo.
 
 **Ripasso**: ogni scheda in scadenza propone 2 domande (prima quelle sbagliate in passato). Tutte giuste: il ripasso successivo si allontana (1, 3, 7, 16, 35 giorni); tutte sbagliate: torna al giorno dopo.
+
+**Università**: ogni lezione si apre con il link alla lezione originale (video o appunti, in inglese), poi la spiegazione in italiano, i punti chiave e il glossario; la verifica (4-6 domande con la spiegazione subito dopo) si supera con il 60%, poi si scrive la spiegazione con parole proprie e si confronta con i punti chiave. Le lezioni superate tornano in ripasso (2 domande) dopo 1, 3, 7, 16, 35 giorni. Finite le lezioni di un corso si dà l'esame: 12 domande da tutte le lezioni, senza aiuti, voto in trentesimi (18 con il 60%, 30 e lode con tutto giusto); si può ripetere e sul libretto resta il voto migliore, con crediti e media.
 
 **Profilo (6 categorie, calcolato dalle risposte)**: Comprensione, Collegamenti e Applicazione = percentuale di risposte giuste a quel tipo di domanda (con una partenza prudente al 35%); Memoria = risposte giuste nei ripassi, cala se lasci scadere i ripassi da più di una settimana; Ampiezza = schede consolidate e aree coperte; Costanza = ripassi fatti in tempo e giorni di studio nelle ultime due settimane. Rifare la verifica di una scheda già studiata non cambia le statistiche.
 
@@ -124,9 +129,9 @@ Pagina **Mira** (cartella `aim/`): allenamento della mira in prima persona e ric
 
 | File | Cosa fa |
 |---|---|
-| `aim/engine.js` | Calcoli della sensibilità come in Valorant (0,07 gradi per unità di movimento a sens 1, campo visivo orizzontale 103 gradi, eDPI, cm/360), calibrazione del mouse, proiezione 3D e colpi, gli 8 scenari con 3 livelli (Gridshot, Precisione, Linea della testa, Counter-strafe, Peek dagli angoli, Duelli ADAD, Tracking ADAD, Riflessi) più la Prova sensibilità a tre fasi, l'analisi dei flick, i dati di ogni partita, i consigli automatici, i riepiloghi per i progressi, la ricerca della sens, lo stato. Senza DOM, testato in `tests/aim.test.js`. |
-| `aim/game.js` | Il gioco: stanza 3D disegnata su canvas, mouse bloccato con input grezzo (Pointer Lock con `unadjustedMovement` dove il browser lo permette), A/D o frecce per muoversi nel counter-strafe, mirino in stile Valorant, HUD, fasi della prova sens, suoni; misura del giro di 360 gradi. |
-| `aim/ui.js`, `aim/aim.css` | La pagina: Allenamento (livelli per esercizio, routine del giorno di 7 esercizi, circa 9 minuti), risultato con tutti i dati, Trova la sens, Progressi (calendario, abilità, grafici per ogni dato, analisi, confronto per sens, tutte le partite), Impostazioni (DPI, sens, mirino, colori, suoni). |
+| `aim/engine.js` | Calcoli della sensibilità come in Valorant (0,07 gradi per unità di movimento a sens 1, campo visivo orizzontale 103 gradi, eDPI, cm/360), calibrazione del mouse, proiezione 3D e colpi, gli 8 scenari con 3 livelli (Gridshot, Precisione, Linea della testa, Counter-strafe, Peek dagli angoli, Duelli ADAD, Tracking ADAD, Riflessi), i 4 esercizi da cecchino (Flick con lo scope, Tieni l'angolo, Marshal alla testa, Quickscope) con i dati di Operator, Marshal e Outlaw, più la Prova sensibilità a tre fasi, l'analisi dei flick, i dati di ogni partita, i consigli automatici, i riepiloghi per i progressi, la ricerca della sens, lo stato. Senza DOM, testato in `tests/aim.test.js`. |
+| `aim/game.js` | Il gioco: stanza 3D disegnata su canvas, mouse bloccato con input grezzo (Pointer Lock con `unadjustedMovement` dove il browser lo permette), A/D o frecce per muoversi nel counter-strafe, scope con il tasto destro (campo visivo diviso per lo zoom, sens nello scope = sens × moltiplicatore / zoom, caricamento tra un colpo e l'altro), mirino in stile Valorant, HUD, fasi della prova sens, suoni; misura del giro di 360 gradi. |
+| `aim/ui.js`, `aim/aim.css` | La pagina: Allenamento (livelli per esercizio, routine del giorno di 7 esercizi, circa 9 minuti), Cecchino (routine di 4 esercizi, sens nello scope, confronto dei fucili con le fonti, consigli), risultato con tutti i dati, Trova la sens, Progressi (calendario, abilità, grafici per ogni dato, analisi, confronto per sens, tutte le partite), Impostazioni (DPI, sens, mirino, colori, suoni). |
 
 **Sensibilità identica al gioco**: ogni unità di movimento letta dal browser gira la visuale di sens × 0,07 gradi. Con Chrome o Edge l'accelerazione del sistema viene disattivata; per essere sicuri c'è la verifica del 360: si fa un giro completo in Valorant segnando il tappetino, poi lo stesso movimento qui, e l'app corregge lo scarto.
 
@@ -135,6 +140,8 @@ Pagina **Mira** (cartella `aim/`): allenamento della mira in prima persona e ric
 **Livelli**: Base, Avanzato, Pro (bersagli più piccoli, più lontani, tempi più stretti). Record e medie sono separati per livello; quando le ultime 3 partite superano la soglia (precisione 90%, riusciti 85%, tempo addosso 65%) l'app propone di salire.
 
 **Trova la sens**: confronti a coppie alla cieca (Sens 1 e Sens 2, valori svelati dopo la scelta) su scala logaritmica attorno alla sens attuale (da ÷1,6 a ×1,6), 4 turni; a ogni turno si tiene la metà con la sens migliore. Ogni prova dura 40 secondi in tre fasi (flick lunghi e corti, precisione su bersagli piccoli, tracking) con la stessa sequenza di bersagli per le due sens. Versione precisa (ordine 1-2-2-1, ogni sens provata due volte) o rapida; riscaldamento iniziale che non conta. Il consiglio unisce punteggio (pesa di più), sensazione (vince quella giudicata giusta contro una lenta o veloce) e come arrivi sul bersaglio (vince quella con le correzioni più equilibrate, non sempre oltre o sempre corte), senza svelare quale sens è la più alta; sceglie l'utente. Le ricerche fatte restano salvate e l'app propone la media delle ultime 3, calcolata sull'eDPI (vale anche se cambi i DPI).
+
+**Cecchino**: tasto destro per lo scope (a scatti come in Valorant: con l'Operator il primo clic è 2,5x, il secondo 5x, il terzo esce; oppure tenendo premuto). Il campo visivo con lo zoom è 103° diviso l'ingrandimento e la sens nello scope è sens × moltiplicatore / zoom, come in Valorant con lo Scoped Sensitivity Multiplier (1 = predefinito). Dopo ogni colpo si esce dallo scope e il fucile si ricarica (Operator 0,6 colpi al secondo, Marshal 1,5). Senza scope il colpo va quasi a caso; nell'app lo scope entra in 0,15 secondi e un colpo sparato prima è storto. I nemici hanno 150 punti: l'Operator uccide con testa o busto (gambe 120), il Marshal solo con la testa (busto 101, due colpi bastano). Danni, prezzi e zoom controllati a ottobre 2026, con le fonti nella pagina.
 
 **Dati importati**: allo stato della mira (anche da un file di backup) restano solo numeri e valori previsti, così nella pagina non può finire codice.
 
@@ -191,6 +198,7 @@ node tests/culture.test.js
 node tests/defense.test.js
 node tests/martial.test.js
 node tests/omino.test.js
+node tests/university.test.js
 node tests/aim.test.js
 node tools/verify-lessons.js           # controlla esempi ed esercizi delle lezioni con Stockfish
 node tools/calibrate.js self:8 6       # precisione media del livello 8 su 6 partite bot contro bot
