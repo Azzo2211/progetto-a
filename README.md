@@ -25,7 +25,7 @@ Poi apri **http://localhost:8765** (non aprire `index.html` con doppio click: St
 | `chess/board-view.js` | Scacchiera: pezzi animati (si alzano e si appoggiano con l'ombra, il cavallo salta, il pezzo catturato cade con un taglio cremisi, il re trema allo scacco e cade allo scacco matto) ed effetti speciali in stile Classroom disattivabili (scie color ghiaccio, luce su traversa e colonna, mirino, linee di velocita' sulle catture, lampo in bianco e nero allo scacco); tocco-tocco o trascinamento (anche su telefono), premosse mentre il bot pensa (case in blu, si giocano da sole se ancora legali, donna automatica in promozione), frecce, promozione, temi di colore, suoni. |
 | `chess/chess-ui.js` | Pagina scacchi: schede, scelta del bot, barre dei giocatori, coach, suggerimenti, fine partita. |
 | `chess/coach.js` | Coach in allenamento: pezzi in presa, matti in una, minacce del bot, consigli d'apertura. |
-| `chess/lessons.js` | 40 lezioni per grado (teoria, esempi guidati, esercizi). |
+| `chess/lessons.js` | 58 lezioni per grado (11 D, 13 C, 13 B, 11 A, 10 S): teoria in più parti con piani, schemi ricorrenti ed errori tipici, punti chiave, esempi guidati (anche partite celebri: l'Opera di Morphy, la Sempreverde, Lasker – Bauer, Réti – Tartakower, lo studio di Saavedra) ed esercizi controllati con Stockfish. |
 | `chess/trainer.js` | Esercizi sulla scacchiera principale (lezioni, puzzle, errori delle tue partite). |
 | `chess/learn-ui.js` / `chess/grade-ui.js` | Schede Lezioni e Grado. |
 | `chess/rating.js` | Rating Glicko contro i bot e sugli esercizi, requisiti dei gradi E-S. |

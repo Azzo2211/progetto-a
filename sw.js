@@ -54,3 +54,15 @@ self.addEventListener("fetch", (event) => {
     }
   })());
 });
+
+// tocco sulla notifica del timer (Difesa): riporta in primo piano l'app gia' aperta
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil((async () => {
+    const list = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const open = list.find((c) => "focus" in c);
+    if (open) return open.focus();
+    if (self.clients.openWindow) return self.clients.openWindow("./index.html#defense");
+    return null;
+  })());
+});
