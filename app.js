@@ -82,6 +82,7 @@ defaultState.moduleMetrics = {
   logic: { lucidita: 35, efficacia: 35, rischio: 60, controllo: 35, adattamento: 35, ragionamento: 35, sostenibilita: 35, tempo: 35 },
   memory: { lucidita: 35, efficacia: 35, rischio: 60, controllo: 35, adattamento: 35, ragionamento: 35, sostenibilita: 35, tempo: 35 },
   influence: { lucidita: 35, efficacia: 35, rischio: 35, controllo: 35, adattamento: 35, ragionamento: 35, sostenibilita: 35, tempo: 35 },
+  mentalist: { lucidita: 35, efficacia: 35, rischio: 35, controllo: 35, adattamento: 35, ragionamento: 35, sostenibilita: 35, tempo: 35 },
   aesthetic: { lucidita: 35, efficacia: 35, rischio: 60, controllo: 35, adattamento: 35, ragionamento: 30, sostenibilita: 35, tempo: 35 }
 };
 
@@ -95,6 +96,7 @@ defaultState.modulePatterns = {
   logic: {},
   memory: {},
   influence: {},
+  mentalist: {},
   aesthetic: {}
 };
 
@@ -109,6 +111,7 @@ const routes = [
   "logic",
   "memory",
   "influence",
+  "mentalist",
   "aesthetic"
 ];
 
@@ -336,6 +339,15 @@ const moduleSkillDefinitions = {
     { key: "defense", label: "Difesa", general: "emotionalControl" },
     { key: "knowledge", label: "Conoscenza", general: "strategicMind" },
     { key: "consistency", label: "Costanza", general: "emotionalControl" }
+  ],
+  // Mentalista: casi, osservazione, deduzione, lettura, interrogatorio, metodo (mentalist/engine.js).
+  mentalist: [
+    { key: "observation", label: "Osservazione", general: "memory" },
+    { key: "deduction", label: "Deduzione", general: "strategicMind" },
+    { key: "reading", label: "Lettura", general: "presence" },
+    { key: "interview", label: "Interrogatorio", general: "emotionalControl" },
+    { key: "cases", label: "Casi", general: "strategicMind" },
+    { key: "method", label: "Metodo", general: "culture" }
   ],
   aesthetic: [
     { key: "personalCare", label: "Cura personale", general: "presence" },
@@ -860,7 +872,8 @@ function buildFinalRecap(abilities) {
   const studied = state.cultureLab && state.cultureLab.cards ? (window.CultureCards || []).filter((c) => state.cultureLab.cards[c.id] && state.cultureLab.cards[c.id].box >= 1).length : 0;
   const memoryText = window.memoryTrend ? (() => { try { return window.memoryTrend(); } catch (error) { return "da misurare"; } })() : "da misurare";
   const influenceText = window.influenceTrend ? (() => { try { return window.influenceTrend(); } catch (error) { return "da iniziare"; } })() : "da iniziare";
-  return `Priorita': ${abilityLabels[weakest.key]}. Scacchi: ${state.chess.games} partite, ${chessErrors} pattern errore. Cultura: ${studied} schede studiate. Memoria: ${memoryText}. Influenza: ${influenceText}. Estetica: ${state.aesthetic.score || 0}/100.`;
+  const mentalistText = window.mentalistTrend ? (() => { try { return window.mentalistTrend(); } catch (error) { return "da iniziare"; } })() : "da iniziare";
+  return `Priorita': ${abilityLabels[weakest.key]}. Scacchi: ${state.chess.games} partite, ${chessErrors} pattern errore. Cultura: ${studied} schede studiate. Memoria: ${memoryText}. Influenza: ${influenceText}. Mentalista: ${mentalistText}. Estetica: ${state.aesthetic.score || 0}/100.`;
 }
 
 function renderTodayPlan(forceNew) {
@@ -1060,6 +1073,10 @@ function getModuleSkills(moduleKey) {
     influence: window.influenceProfileSkills ? (() => {
       try { return window.influenceProfileSkills().map((k) => [k.label, k.value]); } catch (error) { console.warn("Profilo influenza non leggibile", error); return []; }
     })() : [],
+    // Mentalista: punteggi delle discipline, casi (primo tentativo) e verifiche del metodo.
+    mentalist: window.mentalistProfileSkills ? (() => {
+      try { return window.mentalistProfileSkills().map((k) => [k.label, k.value]); } catch (error) { console.warn("Profilo mentalista non leggibile", error); return []; }
+    })() : [],
     aesthetic: [
       ["Cura personale", aestheticScore],
       ["Stile", metric("adattamento") + state.aesthetic.streak * 2],
@@ -1118,6 +1135,7 @@ function dashboardTrend(moduleKey, average) {
     logic: window.logicTrend ? (() => { try { return window.logicTrend(); } catch (error) { return "Base iniziale · fai il primo turno"; } })() : "Base iniziale · fai il primo turno",
     memory: window.memoryTrend ? (() => { try { return window.memoryTrend(); } catch (error) { return "Base iniziale · fai la prima misura"; } })() : "Base iniziale · fai la prima misura",
     influence: window.influenceTrend ? (() => { try { return window.influenceTrend(); } catch (error) { return "Base iniziale · parti dal manuale"; } })() : "Base iniziale · parti dal manuale",
+    mentalist: window.mentalistTrend ? (() => { try { return window.mentalistTrend(); } catch (error) { return "Base iniziale · apri il primo caso"; } })() : "Base iniziale · apri il primo caso",
     aesthetic: `Score ${state.aesthetic.score || 0}/100 · streak ${state.aesthetic.streak || 0}`
   };
   return trends[moduleKey] || `Media ${average}`;
@@ -1193,6 +1211,7 @@ function trainingForPattern(moduleKey, key) {
   if (moduleKey === "scenarios") return "Allenamento: prima i fatti, poi una frase breve senza accuse, poi il piano B.";
   if (moduleKey === "defense") return "Allenamento: la prossima sessione del programma, poi una prova di riflessi e un turno di situazioni.";
   if (moduleKey === "influence") return "Allenamento: il programma di oggi nella pagina Influenza (schede, riconosci la leva, una trattativa o due casi).";
+  if (moduleKey === "mentalist") return "Allenamento: il programma di oggi nella pagina Mentalista (una disciplina, un caso, una lezione).";
   if (moduleKey === "culture") return "Allenamento: fai i ripassi del giorno e spiega ogni scheda con parole tue.";
   if (moduleKey === "planning") return "Allenamento: aggiungi metrica, soglia di rischio e revisione a 72 ore.";
   if (moduleKey === "aesthetic") return "Allenamento: completa 5 punti checklist per 5 giorni.";

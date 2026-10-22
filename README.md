@@ -264,6 +264,24 @@ La pagina Logica (cartella `logic/`) genera gli esercizi al momento, quindi non 
 
 **Profilo (6 categorie, esagono)**: Ragionamento astratto (matrici), Serie e pattern, Deduzione (griglie), Logica formale (sillogismi e cavalieri), Probabilità, Riflessione (disciplina più trappole al primo tentativo). Punteggio 1000 = 50 nell'esagono; con pochi esercizi le categorie partono da 35.
 
+## Modulo mentalista: casi, osservazione, chi mente, lettura, interrogatori
+
+La pagina Mentalista (cartella `mentalist/`) è ispirata a Patrick Jane della serie «The Mentalist» (CBS, 2008-2015): un ex finto sensitivo che risolve i casi osservando quello che gli altri non notano. Il personaggio è solo un tema: niente poteri, ma osservazione, ragionamento e psicologia con le ricerche vere.
+
+| File | Cosa fa |
+|---|---|
+| `mentalist/cases.js` | 6 casi scritti (2 facili, 2 medi, 2 difficili): scena, persone da osservare e interrogare, fatti per il taccuino, colpevole, prove, movente, trappola finale e spiegazione. Regole del giallo leale: tutto quello che serve si trova nel caso. |
+| `mentalist/gen.js` | Gioco di Kim (tavolo di oggetti da guardare per qualche secondo, poi cosa è cambiato o una domanda; schermo vuoto in mezzo, come negli esperimenti sulla cecità al cambiamento) e «Chi mente?» (frasi dei sospettati più una regola su chi mente; un risolutore prova tutte le combinazioni e tiene solo gli esercizi con un colpevole e una combinazione unici; ogni esclusione ha una spiegazione a catena). |
+| `mentalist/interro.js` | 8 interrogatori con tre prove ciascuno, sospettato colpevole o innocente a caso, costruiti sulla tecnica delle prove al momento giusto (Hartwig e colleghi 2006: 85,4% contro 56,1%): il colpevole nega i fatti se gli chiedi prima di mostrare la prova, l'innocente no; il nervosismo è uguale nei due casi; la pressione non dà informazioni. Punteggio della tecnica su 100. |
+| `mentalist/reading.js` | Lettura: 24 frasi di finti sensitivi da classificare (tecniche di Ian Rowland e Ray Hyman) e 18 dettagli da cui dire solo quello che si può dire davvero. |
+| `mentalist/data.js` | 9 lezioni con fonti e due domande di verifica: attenzione (Simons e Chabris 1999, Simons e Levin 1998, Drew e colleghi 2013), abduzione e citazioni di Holmes, visione a tunnel (Findley e Scott 2006), lettura a freddo (Hyman 1977, Forer 1949), bugie (Bond e DePaulo 2006, DePaulo 2003, miti smentiti, approccio della verificabilità), interrogatorio (SUE, PEACE, confessioni false, artt. 64 e 188 c.p.p.), trappole (test dell'informazione nascosta, Ben-Shakhar ed Elaad 2003; trappola del canarino), depistaggio (Kuhn e colleghi 2008), palazzo della memoria (Maguire e colleghi 2003). |
+| `mentalist/engine.js` | Casi con mosse contate e punteggio (colpevole 40, prove 30, movente 10, trappola 20; conta il primo tentativo), punteggio Elo delle quattro discipline, verifiche, programma del giorno, profilo a esagono. Senza DOM, testato in `tests/mentalist.test.js`. |
+| `mentalist/ui.js`, `mentalist/mentalist.css` | La pagina: Oggi, Casi, Allenamento, Metodo, Progressi. |
+
+**Punteggio**: come nella logica, ogni disciplina ha un punteggio tipo Elo (1000 = esercizio risolto una volta su due) e il livello automatico tiene intorno a 6 risposte giuste su 10. Per questi esercizi non esistono percentuali pubblicate: le difficoltà dei livelli sono stime coerenti tra loro.
+
+**Profilo (6 categorie, esagono)**: Osservazione (gioco di Kim), Deduzione (chi mente?), Lettura, Interrogatorio (verdetti più tecnica), Casi (media dei primi tentativi), Metodo (verifiche delle lezioni). Con pochi dati le categorie partono da 35.
+
 ## Test
 
 ```powershell
@@ -279,6 +297,7 @@ node tests/aim.test.js
 node tests/memory.test.js
 node tests/influence.test.js
 node tests/logic.test.js
+node tests/mentalist.test.js
 node tools/verify-lessons.js           # controlla esempi ed esercizi delle lezioni con Stockfish
 node tools/calibrate.js sf:8,12 30     # livelli 8 e 12 contro Stockfish con forza limitata all'Elo del livello
 node tools/calibrate.js match:3-4 50   # scontro diretto tra due livelli (per quelli sotto 1320)
