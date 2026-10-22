@@ -492,6 +492,7 @@
         <button type="button" class="inf-move" data-i="accept"><b>Accetta la loro offerta</b><span>${euro(g.theirPrice)}${g.tableOpt ? `, ${esc(opts[g.tableOpt].label)}` : ""}</span></button>
         ${mid != null ? `<button type="button" class="inf-move" data-i="split"><b>«Facciamo a metà»</b><span>${euro(mid)}</span></button>` : ""}
         <button type="button" class="inf-move danger" data-i="walk"><b>Alzati dal tavolo</b><span>prendi la tua alternativa: ${euro(d.you.batna)}</span></button>
+        <button type="button" class="ghost-action small inf-quit" data-i="nego-quit">Abbandona senza registrare la partita</button>
       </div>`;
     }
     return `${head}<div class="inf-game">

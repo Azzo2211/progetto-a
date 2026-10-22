@@ -330,3 +330,5 @@
 .inf-game-main, .inf-game-side, .inf-today > *, .inf-result > *, .inf-tiles > * { min-width: 0; }
 #influence .inf-stepper .ghost-action.small { width: 44px; flex: 0 0 44px; padding: 0; }
 .inf-stepper input { width: 100%; }
+
+.inf-quit { justify-self: start; margin-top: 4px; }

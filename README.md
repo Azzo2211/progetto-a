@@ -227,6 +227,25 @@ La pagina Memoria (cartella `memory/`) ha tre parti: test classici per misurare 
 
 **Profilo (6 categorie)**: Memoria di lavoro (percentile medio degli span di cifre fatti), Memoria visiva (Corsi), Richiamo verbale (lista di parole e richiamo differito), Tecnica (immagini del sistema fonetico imparate e uso dei palazzi), Discipline (livello raggiunto), Costanza (giorni di allenamento nelle ultime due settimane). Senza misure né allenamenti le prime cinque partono da 35. Allenare la memoria migliora i compiti allenati; le meta-analisi (Melby-Lervåg e colleghi 2013 e 2016) non trovano effetti sull'intelligenza generale, e la pagina lo dice.
 
+## Modulo influenza: persuasione, trattativa, manipolazione
+
+La pagina Influenza (cartella `influence/`) insegna la psicologia della persuasione con gli esperimenti originali, la allena con esercizi misurabili e insegna a riconoscere la manipolazione. Persuasione, negoziazione e strategia si allenano per usarle; le tattiche manipolative (gaslighting, DARVO, love bombing, isolamento…) si studiano solo per riconoscerle e neutralizzarle quando le usano su di te.
+
+| File | Cosa fa |
+|---|---|
+| `influence/tactics.js` | Catalogo di 36 leve e tattiche in quattro famiglie (leve di persuasione, cornici e bias, negoziazione, manipolazione), ognuna con definizione e contromossa. |
+| `influence/data.js` | Il manuale: 7 capitoli (le leve del sì, le tecniche in sequenza, cornici e bias, trattare, leggere le persone, strategia sociale, manipolazione e difesa), con gli esperimenti, i numeri e le fonti. |
+| `influence/deals.js` | Gli scenari della trattativa (gres per un cantiere, magazzino, furgone, fornitore, parquet, container per Jakarta, stipendio), le 5 controparti e le loro battute. |
+| `influence/drills.js` | Gli esercizi: messaggi in cui riconoscere la tattica e casi a scelta (lavoro, vita di tutti i giorni, esami speciali, difesa). |
+| `influence/engine.js` | Simulatore di trattativa, schede a ripasso distanziato, riconoscimento, casi, programma del giorno, profilo. Senza DOM, testato in `tests/influence.test.js`. |
+| `influence/ui.js`, `influence/influence.css` | La pagina: Oggi, Manuale, Allenamento, Trattativa, Progressi. |
+
+**Trattativa**: la controparte ha un limite nascosto (estratto a caso a ogni partita), una personalità (Collaborativo, Pragmatico, Duro, Ancorante, Bluffatore: 5 livelli, il successivo si sblocca con il 60%) e un interesse nascosto su un secondo punto (pagamento, durata, garanzia, posa, resa, smart working) che a te costa poco e a lei vale molto. Le mosse: offerta (con un criterio oggettivo per motivarla), domanda calibrata, domanda chiusa, etichetta, dichiarare la tua alternativa (vera o un bluff), ultima offerta, fare a metà, accettare, alzarsi. La controparte concede nel tempo (più lenta se è dura), ricambia le tue concessioni, si fa ancorare da una prima offerta ambiziosa ma credibile (di più se è motivata e precisa), si offende davanti a cifre fuori mercato, a volte scopre i bluff, e non accetta mai oltre il suo limite. Il risultato è il **valore catturato**: quanto dello spazio tra la tua alternativa e il massimo che avrebbe accettato (con il secondo punto migliore) hai portato a casa. A volte lo spazio non c'è (12% delle partite dopo le prime due): allora non chiudere vale il 100%. Alla fine si scopre il limite sulla linea del prezzo e un'analisi dice cosa ha funzionato (ancora, concessioni, interesse trovato, bluff). Il simulatore è stato provato con strategie automatiche: chi accetta subito cattura in media meno del 10%, chi fa a metà circa il 40% contro un collaborativo e quasi niente contro un ancorante, una strategia brava (ancora motivata, etichetta, secondo punto, concessioni decrescenti) intorno al 60-65% contro i primi livelli.
+
+**Allenamento**: riconoscere la leva in messaggi veri (10 per turno; le sbagliate tornano subito, le giuste dopo 2, 7, 21 giorni), difesa dalla manipolazione, casi con quattro mosse valutate per efficacia, relazione e rischio (punteggio = 0,5 × efficacia + 0,3 × relazione + 0,2 × (100 − rischio); la mossa migliore vale 100), schede con definizione e contromossa di ogni tattica a ripasso distanziato (6 nuove al giorno, scatole a 1, 2, 4, 8, 16, 32 giorni).
+
+**Profilo (6 categorie)**: Riconoscimento (risposte giuste sulle ultime 60 leve, bias e tecniche di trattativa), Persuasione (media dei casi), Negoziazione (valore catturato nelle ultime 8 trattative, pesato per livello), Difesa (messaggi di manipolazione e casi di difesa), Conoscenza (schede imparate e capitoli letti), Costanza (giorni di allenamento nelle ultime due settimane). Con pochi dati partono da 35 e si avvicinano al dato vero man mano.
+
 ## Test
 
 ```powershell
@@ -240,6 +259,7 @@ node tests/omino.test.js
 node tests/university.test.js
 node tests/aim.test.js
 node tests/memory.test.js
+node tests/influence.test.js
 node tools/verify-lessons.js           # controlla esempi ed esercizi delle lezioni con Stockfish
 node tools/calibrate.js sf:8,12 30     # livelli 8 e 12 contro Stockfish con forza limitata all'Elo del livello
 node tools/calibrate.js match:3-4 50   # scontro diretto tra due livelli (per quelli sotto 1320)
