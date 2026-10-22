@@ -11,19 +11,19 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <title>Metodo Integrale</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f7a6d'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-size='28' font-weight='700' text-anchor='middle' fill='%23ffffff'%3EMI%3C/text%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="styles.css?v=20261022-6" />
-    <link rel="stylesheet" href="chess/board-view.css?v=20261022-6" />
-    <link rel="stylesheet" href="chess/chess-ui.css?v=20261022-6" />
-    <link rel="stylesheet" href="scenarios/scenarios.css?v=20261022-6" />
-    <link rel="stylesheet" href="culture/culture.css?v=20261022-6" />
-    <link rel="stylesheet" href="defense/defense.css?v=20261022-6" />
-    <link rel="stylesheet" href="defense/martial.css?v=20261022-6" />
-    <link rel="stylesheet" href="aim/aim.css?v=20261022-6" />
-    <link rel="stylesheet" href="memory/memory.css?v=20261022-6" />
-    <link rel="stylesheet" href="influence/influence.css?v=20261022-6" />
-    <link rel="stylesheet" href="logic/logic.css?v=20261022-6" />
-    <link rel="stylesheet" href="mentalist/mentalist.css?v=20261022-6" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d1626'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-size='28' font-weight='700' text-anchor='middle' fill='%23e6c777'%3EMI%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="styles.css?v=20261022-7" />
+    <link rel="stylesheet" href="chess/board-view.css?v=20261022-7" />
+    <link rel="stylesheet" href="chess/chess-ui.css?v=20261022-7" />
+    <link rel="stylesheet" href="scenarios/scenarios.css?v=20261022-7" />
+    <link rel="stylesheet" href="culture/culture.css?v=20261022-7" />
+    <link rel="stylesheet" href="defense/defense.css?v=20261022-7" />
+    <link rel="stylesheet" href="defense/martial.css?v=20261022-7" />
+    <link rel="stylesheet" href="aim/aim.css?v=20261022-7" />
+    <link rel="stylesheet" href="memory/memory.css?v=20261022-7" />
+    <link rel="stylesheet" href="influence/influence.css?v=20261022-7" />
+    <link rel="stylesheet" href="logic/logic.css?v=20261022-7" />
+    <link rel="stylesheet" href="mentalist/mentalist.css?v=20261022-7" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
@@ -59,7 +59,7 @@
           <span class="brand-mark">MI</span>
           <span>
             <strong>Metodo Integrale</strong>
-            <small>Dashboard personale</small>
+            <small id="brandRank">Il tuo rango, ogni giorno</small>
           </span>
         </a>
 
@@ -79,86 +79,88 @@
           <a href="#aesthetic" class="nav-link" data-route="aesthetic"><svg class="nav-icon" aria-hidden="true"><use href="#i-aesthetic"/></svg><span>Estetica</span></a>
         </nav>
 
-        <div class="side-note">
-          <span class="note-label">Sistema</span>
-          <p>Ogni modalita' aggiorna il quadro: punteggio, rango, punti deboli e prossima azione.</p>
-        </div>
+        <a class="side-rank" id="sideRank" data-rank="E" href="#dashboard" aria-label="Rango generale: apri il quadro">
+          <span class="side-rank-letter" id="sideRankLetter">E</span>
+          <span class="side-rank-copy">
+            <span class="side-rank-label">Rango generale</span>
+            <span class="side-rank-score"><b id="sideRankScore">0</b> su 100</span>
+            <span class="side-rank-bar"><i id="sideRankFill"></i></span>
+            <small id="sideRankNext">Allenati per salire</small>
+          </span>
+        </a>
       </aside>
 
       <main class="workspace">
         <section id="dashboard" class="page active-page">
           <div class="page-heading hero-heading">
             <div>
-              <p class="eyebrow">Quadro generale</p>
-              <h1>Dashboard delle modalita' e stato personale.</h1>
+              <p class="eyebrow">Quadro</p>
+              <h1>Ogni giorno conta per il rango.</h1>
+              <p class="page-subtitle">Il rango generale è la media di sei parametri, e ognuno viene dai reparti che lo allenano. Il modo più rapido per salire è spingere dove sei più indietro.</p>
             </div>
-            <button class="primary-action" id="generateDayBtn" type="button">Genera oggi</button>
           </div>
 
-          <div class="dashboard-grid">
-            <article class="summary-card score-panel">
+          <div class="dash-hero">
+            <article class="dash-rank score-panel">
               <div class="rank-card" id="rankCard" data-rank="E" aria-label="Rango generale">
                 <strong class="rank-card-letter" id="rankLetter">E</strong>
                 <span class="rank-card-label">Rango generale</span>
-                <span class="rank-card-index"><b id="disciplineScore">42</b> su 100</span>
+                <span class="rank-card-index"><b id="disciplineScore">0</b> su 100</span>
                 <ol class="rank-scale" id="rankScale" aria-label="Scala dei ranghi">
                   <li data-rank="E">E</li><li data-rank="D">D</li><li data-rank="C">C</li><li data-rank="B">B</li><li data-rank="A">A</li><li data-rank="S">S</li>
                 </ol>
               </div>
-              <div class="score-copy">
-                <h2>Situazione</h2>
-                <p id="profileSummary">Completa prove nelle modalita' e il quadro iniziera' a leggere i tuoi pattern.</p>
-                <p class="rank-next" id="rankNext"></p>
-              </div>
+              <div class="rank-progress" aria-hidden="true"><i id="rankFill"></i></div>
+              <p class="rank-next" id="rankNext"></p>
+              <dl class="rank-facts">
+                <div><dt>Punto forte</dt><dd id="rankStrong">—</dd></div>
+                <div><dt>Da spingere</dt><dd id="rankWeak">—</dd></div>
+                <div><dt>Reparto più avanti</dt><dd id="rankTopModule">—</dd></div>
+                <div><dt>Reparto più indietro</dt><dd id="rankLowModule">—</dd></div>
+              </dl>
             </article>
 
-            <article class="summary-card radar-panel">
+            <article class="summary-card dash-profile">
               <div class="panel-title-row">
                 <h2>Profilo generale</h2>
-                <span class="rank-badge" id="overallRank">C</span>
+                <span class="rank-badge" id="overallRank">E</span>
               </div>
               <svg id="abilityRadar" class="ability-radar" viewBox="0 0 380 380" role="img" aria-label="Radar profilo generale"></svg>
-              <div id="abilityList" class="ability-list"></div>
+              <div id="abilityList" class="ability-chips"></div>
             </article>
 
-            <article class="summary-card">
+            <article class="summary-card dash-today">
               <div class="panel-title-row">
-                <h2>Sessione di oggi</h2>
-                <button class="ghost-action" id="completeDayBtn" type="button">Segna fatta</button>
+                <h2>Oggi</h2>
               </div>
-              <ul class="task-list" id="todayTasks"></ul>
-            </article>
-
-            <article class="summary-card">
-              <h2>Riepilogo finale</h2>
-              <div id="finalRecap" class="recap-box">Allenati in almeno 3 modalita' per ricevere un riepilogo utile.</div>
-            </article>
-
-            <article class="summary-card">
-              <h2>Categorie generali</h2>
-              <div id="globalParamList" class="metric-list"></div>
+              <p class="today-summary" id="todaySummary"></p>
+              <ul class="today-list" id="todayTasks"></ul>
             </article>
           </div>
 
-          <div class="mode-grid" aria-label="Modalita disponibili">
+          <div class="section-head">
+            <h2>Reparti</h2>
+            <p>Ogni reparto ha il suo profilo a esagono. Tocca una scheda per entrare.</p>
+          </div>
+          <div class="mode-grid" aria-label="Reparti">
             <a class="mode-card" href="#chess">
               <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-chess"/></svg><strong>Scacchi</strong></span>
-              <p>Bot adattivo, errori ricorrenti e revisione mossa per mossa.</p>
+              <p>Bot calibrati per Elo, revisione con Stockfish, lezioni ed esercizi.</p>
               <div class="mini-indicators" id="chessCardIndicators"></div>
             </a>
             <a class="mode-card" href="#scenarios">
               <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-scenarios"/></svg><strong>Scenari</strong></span>
-              <p>Situazioni complesse con risposta libera e metriche profonde.</p>
+              <p>Esami speciali: situazioni reali, scelte che cambiano le reazioni, il gioco nascosto.</p>
               <div class="mini-indicators" id="scenariosCardIndicators"></div>
             </a>
             <a class="mode-card" href="#culture">
               <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-culture"/></svg><strong>Cultura generale</strong></span>
-              <p>Argomenti completi, difficolta' e domanda di verifica.</p>
+              <p>Schede brevi con verifica, ripasso al momento giusto e una mini università.</p>
               <div class="mini-indicators" id="cultureCardIndicators"></div>
             </a>
             <a class="mode-card" href="#planning">
               <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-planning"/></svg><strong>Piani strategici</strong></span>
-              <p>Obiettivi random o tuoi, valutazione e miglioramento.</p>
+              <p>Obiettivi tuoi o assegnati: scrivi il piano, il sistema lo valuta.</p>
               <div class="mini-indicators" id="planningCardIndicators"></div>
             </a>
             <a class="mode-card" href="#defense">
@@ -168,7 +170,7 @@
             </a>
             <a class="mode-card" href="#aim">
               <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-target"/></svg><strong>Mira per Valorant</strong></span>
-              <p>Allenamento 3D stile Aim Lab con la sensibilità del gioco: 8 esercizi su 3 livelli, counter-strafe, routine di 9 minuti, progressi completi e ricerca della tua sens alla cieca.</p>
+              <p>Esercizi 3D con la sensibilità di Valorant, routine di 9 minuti e ricerca della sens alla cieca.</p>
               <div class="mini-indicators" id="aimCardIndicators"></div>
             </a>
             <a class="mode-card" href="#logic">
@@ -193,7 +195,7 @@
             </a>
             <a class="mode-card" href="#aesthetic">
               <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-aesthetic"/></svg><strong>Estetica</strong></span>
-              <p>Routine look, cura personale, capelli, barba e stile.</p>
+              <p>Checklist quotidiana di cura personale, stile e postura.</p>
               <div class="mini-indicators" id="aestheticCardIndicators"></div>
             </a>
           </div>
@@ -515,12 +517,11 @@
           <div class="page-heading">
             <div>
               <p class="eyebrow">Piani strategici</p>
-              <h1>Obiettivo tuo o assegnato, piano tuo, valutazione del sistema.</h1>
-              <p class="page-subtitle">Allena pianificazione, gestione rischio, sostenibilita' e misurazione.</p>
+              <h1>Un obiettivo, il tuo piano, la valutazione.</h1>
+              <p class="page-subtitle">Scrivi un piano con passi, tempi, rischi, risorse, piano B e un modo per misurarlo: il sistema lo valuta e ti dice che cosa manca.</p>
             </div>
             <div class="button-row">
-              <a class="ghost-link" href="#dashboard">Quadro</a>
-              <button class="primary-action" id="newGoalBtn" type="button">Obiettivo random</button>
+              <button class="primary-action" id="newGoalBtn" type="button">Obiettivo a caso</button>
             </div>
           </div>
 
@@ -528,7 +529,7 @@
             <form class="tool-card planner-form" id="plannerForm">
               <label>
                 Obiettivo
-                <textarea id="goalInput" rows="5" placeholder="Scrivi un tuo obiettivo oppure usa Obiettivo random."></textarea>
+                <textarea id="goalInput" rows="5" placeholder="Scrivi un tuo obiettivo oppure usa Obiettivo a caso."></textarea>
               </label>
               <label>
                 Il tuo piano
@@ -544,7 +545,7 @@
               <div id="planScore" class="plan-score">Scrivi un piano e fallo valutare.</div>
               <ol id="planSteps" class="plan-steps"></ol>
               <h2>Profilo pianificazione</h2>
-              <svg id="planningModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar pianificazione"></svg>
+              <svg id="planningModuleRadar" class="module-radar" viewBox="0 0 380 380" aria-label="Profilo pianificazione"></svg>
               <div id="planningModuleMetrics" class="metric-list"></div>
               <div id="planningPatternBox" class="analysis-box">Pattern: scrivi un piano per ricevere diagnosi.</div>
               <div id="planningTrainingBox" class="analysis-box">Allenamento: usa sempre obiettivo, fasi, rischi, metrica.</div>
@@ -679,13 +680,12 @@
         <section id="aesthetic" class="page">
           <div class="page-heading">
             <div>
-              <p class="eyebrow">Miglioramento estetico</p>
-              <h1>Look, cura personale, capelli, barba e presenza.</h1>
-              <p class="page-subtitle">Allena cura, coerenza, postura, stile, sostenibilita' e costanza.</p>
+              <p class="eyebrow">Estetica</p>
+              <h1>Cura di sé, ogni giorno.</h1>
+              <p class="page-subtitle">Una checklist breve di igiene, stile e postura. Conta la costanza: ogni giorno completato fa salire il profilo.</p>
             </div>
             <div class="button-row">
-              <a class="ghost-link" href="#dashboard">Quadro</a>
-              <button class="primary-action" id="newStyleTipBtn" type="button">Consiglio random</button>
+              <button class="primary-action" id="newStyleTipBtn" type="button">Un altro consiglio</button>
             </div>
           </div>
 
@@ -700,7 +700,7 @@
               <div id="styleTip" class="topic-body">Parti da igiene, taglio capelli adatto, barba curata, vestiti della taglia giusta, postura e sonno.</div>
               <div id="aestheticScore" class="plan-score">Punteggio estetica: --</div>
               <h2>Profilo estetica</h2>
-              <svg id="aestheticModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar estetica"></svg>
+              <svg id="aestheticModuleRadar" class="module-radar" viewBox="0 0 380 380" aria-label="Profilo estetica"></svg>
               <div id="aestheticModuleMetrics" class="metric-list"></div>
               <div id="aestheticPatternBox" class="analysis-box">Pattern: cura, coerenza, postura, sonno.</div>
               <div id="aestheticTrainingBox" class="analysis-box">Allenamento: completa checklist 5 giorni di fila.</div>
@@ -712,78 +712,78 @@
 
     <!-- Scacchi: libreria regole, libro aperture, analisi, motore Stockfish, bot e revisione -->
     <script src="vendor/chess.js?v=1.4.0"></script>
-    <script src="chess/opening-book.js?v=20261022-6"></script>
-    <script src="chess/analysis-core.js?v=20261022-6"></script>
-    <script src="chess/engine.js?v=20261022-6"></script>
-    <script src="chess/bot.js?v=20261022-6"></script>
-    <script src="chess/review.js?v=20261022-6"></script>
-    <script src="chess/board-view.js?v=20261022-6"></script>
-    <script src="chess/rating.js?v=20261022-6"></script>
-    <script src="chess/skills.js?v=20261022-6"></script>
-    <script src="chess/lessons.js?v=20261022-6"></script>
-    <script src="chess/coach.js?v=20261022-6"></script>
-    <script src="chess/trainer.js?v=20261022-6"></script>
-    <script src="scenarios/engine.js?v=20261022-6"></script>
-    <script src="scenarios/exams.js?v=20261022-6"></script>
-    <script src="scenarios/free.js?v=20261022-6"></script>
-    <script src="culture/engine.js?v=20261022-6"></script>
-    <script src="culture/cards.js?v=20261022-6"></script>
-    <script src="culture/uni-engine.js?v=20261022-6"></script>
-    <script src="defense/engine.js?v=20261022-6"></script>
-    <script src="defense/program.js?v=20261022-6"></script>
-    <script src="defense/situations.js?v=20261022-6"></script>
-    <script src="defense/figure.js?v=20261022-6"></script>
-    <script src="defense/scenes.js?v=20261022-6"></script>
-    <script src="defense/martial.js?v=20261022-6"></script>
-    <script src="defense/martial-data.js?v=20261022-6"></script>
-    <script src="defense/martial-lookism.js?v=20261022-6"></script>
-    <script src="defense/figure3d.js?v=20261022-6"></script>
-    <script src="defense/moves.js?v=20261022-6"></script>
-    <script src="defense/moves/comuni.js?v=20261022-6"></script>
-    <script src="defense/moves/boxe.js?v=20261022-6"></script>
-    <script src="defense/moves/muaythai.js?v=20261022-6"></script>
-    <script src="defense/moves/taekwondo.js?v=20261022-6"></script>
-    <script src="defense/moves/karate.js?v=20261022-6"></script>
-    <script src="defense/moves/capoeira.js?v=20261022-6"></script>
-    <script src="defense/moves/lotta.js?v=20261022-6"></script>
-    <script src="defense/moves/kungfu.js?v=20261022-6"></script>
-    <script src="defense/moves/systema.js?v=20261022-6"></script>
-    <script src="defense/moves/sambo.js?v=20261022-6"></script>
-    <script src="defense/martial-demos.js?v=20261022-6"></script>
-    <script src="app.js?v=20261022-6"></script>
-    <script src="chess/chess-ui.js?v=20261022-6"></script>
-    <script src="chess/learn-ui.js?v=20261022-6"></script>
-    <script src="chess/grade-ui.js?v=20261022-6"></script>
-    <script src="cote-theme.js?v=20261022-6"></script>
-    <script src="scenarios/ui.js?v=20261022-6"></script>
-    <script src="culture/uni-ui.js?v=20261022-6"></script>
-    <script src="culture/ui.js?v=20261022-6"></script>
-    <script src="defense/martial-ui.js?v=20261022-6"></script>
-    <script src="defense/ui.js?v=20261022-6"></script>
-    <script src="aim/engine.js?v=20261022-6"></script>
-    <script src="aim/game.js?v=20261022-6"></script>
-    <script src="aim/ui.js?v=20261022-6"></script>
-    <script src="memory/data.js?v=20261022-6"></script>
-    <script src="memory/faces.js?v=20261022-6"></script>
-    <script src="memory/engine.js?v=20261022-6"></script>
-    <script src="memory/ui.js?v=20261022-6"></script>
-    <script src="influence/tactics.js?v=20261022-6"></script>
-    <script src="influence/deals.js?v=20261022-6"></script>
-    <script src="influence/drills.js?v=20261022-6"></script>
-    <script src="influence/data.js?v=20261022-6"></script>
-    <script src="influence/engine.js?v=20261022-6"></script>
-    <script src="influence/ui.js?v=20261022-6"></script>
-    <script src="logic/gen.js?v=20261022-6"></script>
-    <script src="logic/traps.js?v=20261022-6"></script>
-    <script src="logic/data.js?v=20261022-6"></script>
-    <script src="logic/engine.js?v=20261022-6"></script>
-    <script src="logic/ui.js?v=20261022-6"></script>
-    <script src="mentalist/gen.js?v=20261022-6"></script>
-    <script src="mentalist/interro.js?v=20261022-6"></script>
-    <script src="mentalist/reading.js?v=20261022-6"></script>
-    <script src="mentalist/cases.js?v=20261022-6"></script>
-    <script src="mentalist/data.js?v=20261022-6"></script>
-    <script src="mentalist/engine.js?v=20261022-6"></script>
-    <script src="mentalist/ui.js?v=20261022-6"></script>
+    <script src="chess/opening-book.js?v=20261022-7"></script>
+    <script src="chess/analysis-core.js?v=20261022-7"></script>
+    <script src="chess/engine.js?v=20261022-7"></script>
+    <script src="chess/bot.js?v=20261022-7"></script>
+    <script src="chess/review.js?v=20261022-7"></script>
+    <script src="chess/board-view.js?v=20261022-7"></script>
+    <script src="chess/rating.js?v=20261022-7"></script>
+    <script src="chess/skills.js?v=20261022-7"></script>
+    <script src="chess/lessons.js?v=20261022-7"></script>
+    <script src="chess/coach.js?v=20261022-7"></script>
+    <script src="chess/trainer.js?v=20261022-7"></script>
+    <script src="scenarios/engine.js?v=20261022-7"></script>
+    <script src="scenarios/exams.js?v=20261022-7"></script>
+    <script src="scenarios/free.js?v=20261022-7"></script>
+    <script src="culture/engine.js?v=20261022-7"></script>
+    <script src="culture/cards.js?v=20261022-7"></script>
+    <script src="culture/uni-engine.js?v=20261022-7"></script>
+    <script src="defense/engine.js?v=20261022-7"></script>
+    <script src="defense/program.js?v=20261022-7"></script>
+    <script src="defense/situations.js?v=20261022-7"></script>
+    <script src="defense/figure.js?v=20261022-7"></script>
+    <script src="defense/scenes.js?v=20261022-7"></script>
+    <script src="defense/martial.js?v=20261022-7"></script>
+    <script src="defense/martial-data.js?v=20261022-7"></script>
+    <script src="defense/martial-lookism.js?v=20261022-7"></script>
+    <script src="defense/figure3d.js?v=20261022-7"></script>
+    <script src="defense/moves.js?v=20261022-7"></script>
+    <script src="defense/moves/comuni.js?v=20261022-7"></script>
+    <script src="defense/moves/boxe.js?v=20261022-7"></script>
+    <script src="defense/moves/muaythai.js?v=20261022-7"></script>
+    <script src="defense/moves/taekwondo.js?v=20261022-7"></script>
+    <script src="defense/moves/karate.js?v=20261022-7"></script>
+    <script src="defense/moves/capoeira.js?v=20261022-7"></script>
+    <script src="defense/moves/lotta.js?v=20261022-7"></script>
+    <script src="defense/moves/kungfu.js?v=20261022-7"></script>
+    <script src="defense/moves/systema.js?v=20261022-7"></script>
+    <script src="defense/moves/sambo.js?v=20261022-7"></script>
+    <script src="defense/martial-demos.js?v=20261022-7"></script>
+    <script src="app.js?v=20261022-7"></script>
+    <script src="chess/chess-ui.js?v=20261022-7"></script>
+    <script src="chess/learn-ui.js?v=20261022-7"></script>
+    <script src="chess/grade-ui.js?v=20261022-7"></script>
+    <script src="cote-theme.js?v=20261022-7"></script>
+    <script src="scenarios/ui.js?v=20261022-7"></script>
+    <script src="culture/uni-ui.js?v=20261022-7"></script>
+    <script src="culture/ui.js?v=20261022-7"></script>
+    <script src="defense/martial-ui.js?v=20261022-7"></script>
+    <script src="defense/ui.js?v=20261022-7"></script>
+    <script src="aim/engine.js?v=20261022-7"></script>
+    <script src="aim/game.js?v=20261022-7"></script>
+    <script src="aim/ui.js?v=20261022-7"></script>
+    <script src="memory/data.js?v=20261022-7"></script>
+    <script src="memory/faces.js?v=20261022-7"></script>
+    <script src="memory/engine.js?v=20261022-7"></script>
+    <script src="memory/ui.js?v=20261022-7"></script>
+    <script src="influence/tactics.js?v=20261022-7"></script>
+    <script src="influence/deals.js?v=20261022-7"></script>
+    <script src="influence/drills.js?v=20261022-7"></script>
+    <script src="influence/data.js?v=20261022-7"></script>
+    <script src="influence/engine.js?v=20261022-7"></script>
+    <script src="influence/ui.js?v=20261022-7"></script>
+    <script src="logic/gen.js?v=20261022-7"></script>
+    <script src="logic/traps.js?v=20261022-7"></script>
+    <script src="logic/data.js?v=20261022-7"></script>
+    <script src="logic/engine.js?v=20261022-7"></script>
+    <script src="logic/ui.js?v=20261022-7"></script>
+    <script src="mentalist/gen.js?v=20261022-7"></script>
+    <script src="mentalist/interro.js?v=20261022-7"></script>
+    <script src="mentalist/reading.js?v=20261022-7"></script>
+    <script src="mentalist/cases.js?v=20261022-7"></script>
+    <script src="mentalist/data.js?v=20261022-7"></script>
+    <script src="mentalist/engine.js?v=20261022-7"></script>
+    <script src="mentalist/ui.js?v=20261022-7"></script>
   </body>
 </html>

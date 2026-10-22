@@ -778,6 +778,11 @@ function routeToCurrentHash() {
   document.querySelectorAll(".nav-link").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === activeRoute);
   });
+  document.body.dataset.route = activeRoute;
+  // su telefono il menu e' una striscia: la voce attiva va portata in vista
+  const nav = document.querySelector(".nav-list");
+  const activeLink = nav && nav.querySelector(".nav-link.active");
+  if (nav && activeLink && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = Math.max(0, activeLink.offsetLeft - (nav.clientWidth - activeLink.offsetWidth) / 2);
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 
@@ -790,12 +795,7 @@ function bindNavigation() {
 }
 
 function bindControls() {
-  document.getElementById("generateDayBtn").addEventListener("click", () => renderTodayPlan(true));
-  document.getElementById("completeDayBtn").addEventListener("click", () => {
-    state.completedDays += 1;
-    saveState();
-    renderDashboard();
-  });
+  decoratePageEyebrows();
   document.getElementById("resetBoardBtn").addEventListener("click", resetChess);
   document.getElementById("undoMoveBtn").addEventListener("click", undoMovePair);
   document.getElementById("reviewGameBtn").addEventListener("click", () => {
@@ -831,14 +831,24 @@ function bindControls() {
 function renderDashboard() {
   const abilities = getAbilities();
   const average = abilities.reduce((sum, item) => sum + item.value, 0) / abilities.length;
-  document.getElementById("disciplineScore").textContent = Math.round(average);
-  document.getElementById("overallRank").textContent = rankFromScore(average);
+  const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+  setText("disciplineScore", Math.round(average));
+  setText("overallRank", rankFromScore(average));
   renderRankCard(average);
 
   const weakest = [...abilities].sort((a, b) => a.value - b.value)[0];
   const strongest = [...abilities].sort((a, b) => b.value - a.value)[0];
-  document.getElementById("profileSummary").textContent = `Punto forte: ${abilityLabels[strongest.key]}. Punto da spingere: ${abilityLabels[weakest.key]}. Rango generale ${rankFromScore(average)}.`;
-  document.getElementById("finalRecap").textContent = buildFinalRecap(abilities);
+  setText("rankStrong", `${abilityLabels[strongest.key]} · ${strongest.value}`);
+  setText("rankWeak", `${abilityLabels[weakest.key]} · ${weakest.value}`);
+  const moduleNames = { chess: "Scacchi", scenarios: "Scenari", culture: "Cultura", planning: "Piani", defense: "Difesa", logic: "Logica", memory: "Memoria", influence: "Influenza", mentalist: "Mentalista", aesthetic: "Estetica" };
+  const moduleScores = Object.keys(moduleSkillDefinitions).map((key) => ({ key, value: getModuleScore(key) })).sort((a, b) => b.value - a.value);
+  if (moduleScores.length) {
+    setText("rankTopModule", `${moduleNames[moduleScores[0].key] || moduleScores[0].key} · ${moduleScores[0].value}`);
+    const low = moduleScores[moduleScores.length - 1];
+    setText("rankLowModule", `${moduleNames[low.key] || low.key} · ${low.value}`);
+  }
+  setText("profileSummary", `Punto forte: ${abilityLabels[strongest.key]}. Punto da spingere: ${abilityLabels[weakest.key]}. Rango generale ${rankFromScore(average)}.`);
+  setText("finalRecap", buildFinalRecap(abilities));
 
   renderTodayPlan(false);
   renderAbilityRadar();
@@ -847,23 +857,50 @@ function renderDashboard() {
   renderModeCardIndicators();
 }
 
-// Tessera del rango nel quadro: lettera, scala E-S e punti mancanti al rango successivo.
+// Icona del reparto accanto al nome in cima a ogni pagina (presa dal menu).
+function decoratePageEyebrows() {
+  document.querySelectorAll("section.page").forEach((page) => {
+    const eyebrow = page.querySelector(".page-heading .eyebrow");
+    const link = document.querySelector(`.nav-link[data-route="${page.id}"] use`);
+    if (!eyebrow || !link || eyebrow.querySelector(".eyebrow-icon")) return;
+    const href = link.getAttribute("href");
+    eyebrow.insertAdjacentHTML("afterbegin", `<svg class="eyebrow-icon" aria-hidden="true"><use href="${href}"/></svg>`);
+  });
+}
+
+// Tessera del rango nel quadro e nel menu: lettera, scala E-S e punti mancanti al rango successivo.
+const RANK_ORDER = ["E", "D", "C", "B", "A", "S"];
+const RANK_FLOOR = { E: 0, D: 45, C: 60, B: 70, A: 80, S: 90 };
 function renderRankCard(score) {
   const rank = rankFromScore(score);
-  const order = ["E", "D", "C", "B", "A", "S"];
-  const thresholds = { D: 45, C: 60, B: 70, A: 80, S: 90 };
+  const next = RANK_ORDER[RANK_ORDER.indexOf(rank) + 1];
   const card = document.getElementById("rankCard");
   const letter = document.getElementById("rankLetter");
   if (card) card.dataset.rank = rank;
   if (letter) letter.textContent = rank;
   document.querySelectorAll("#rankScale li").forEach((item) => {
-    const index = order.indexOf(item.dataset.rank);
+    const index = RANK_ORDER.indexOf(item.dataset.rank);
     item.classList.toggle("current", item.dataset.rank === rank);
-    item.classList.toggle("reached", index < order.indexOf(rank));
+    item.classList.toggle("reached", index < RANK_ORDER.indexOf(rank));
   });
-  const next = order[order.indexOf(rank) + 1];
+  const missing = next ? Math.max(1, Math.ceil(RANK_FLOOR[next] - score)) : 0;
+  const nextText = next ? `Mancano ${missing} punti al rango ${next}.` : "Rango massimo raggiunto.";
   const nextBox = document.getElementById("rankNext");
-  if (nextBox) nextBox.textContent = next ? `Mancano ${Math.max(1, Math.ceil(thresholds[next] - score))} punti al rango ${next}.` : "Rango massimo raggiunto.";
+  if (nextBox) nextBox.textContent = nextText;
+  const pct = next ? Math.round(((score - RANK_FLOOR[rank]) / (RANK_FLOOR[next] - RANK_FLOOR[rank])) * 100) : 100;
+  const fill = document.getElementById("rankFill");
+  if (fill) fill.style.width = `${clamp(pct, 2, 100)}%`;
+  // menu laterale
+  const side = document.getElementById("sideRank");
+  if (side) {
+    side.dataset.rank = rank;
+    side.querySelector("#sideRankLetter").textContent = rank;
+    side.querySelector("#sideRankScore").textContent = Math.round(score);
+    side.querySelector("#sideRankFill").style.width = `${clamp(pct, 2, 100)}%`;
+    side.querySelector("#sideRankNext").textContent = next ? `${missing} punti al rango ${next}` : "Rango massimo";
+  }
+  const brandRank = document.getElementById("brandRank");
+  if (brandRank) brandRank.textContent = `Rango ${rank} · ${Math.round(score)} su 100`;
 }
 
 function buildFinalRecap(abilities) {
@@ -876,15 +913,55 @@ function buildFinalRecap(abilities) {
   return `Priorita': ${abilityLabels[weakest.key]}. Scacchi: ${state.chess.games} partite, ${chessErrors} pattern errore. Cultura: ${studied} schede studiate. Memoria: ${memoryText}. Influenza: ${influenceText}. Mentalista: ${mentalistText}. Estetica: ${state.aesthetic.score || 0}/100.`;
 }
 
-function renderTodayPlan(forceNew) {
-  const list = document.getElementById("todayTasks");
-  const index = forceNew ? Math.floor(Math.random() * dailyPlans.length) : state.completedDays % dailyPlans.length;
-  list.innerHTML = "";
-  dailyPlans[index].forEach((task) => {
-    const item = document.createElement("li");
-    item.textContent = task;
-    list.appendChild(item);
+// «Oggi» nel quadro: i passi che restano nei reparti con un programma del giorno.
+const todaySources = [
+  { route: "memory", name: "Memoria", engine: "MemoryEngine", lab: "memoryLab" },
+  { route: "logic", name: "Logica", engine: "LogicEngine", lab: "logicLab" },
+  { route: "influence", name: "Influenza", engine: "InfluenceEngine", lab: "influenceLab" },
+  { route: "mentalist", name: "Mentalista", engine: "MentalistEngine", lab: "mentalistLab" }
+];
+function todayItems() {
+  const items = [];
+  todaySources.forEach((src) => {
+    const E = window[src.engine];
+    if (!E || typeof E.plan !== "function" || typeof E.ensure !== "function") return;
+    try {
+      const steps = E.plan(E.ensure(state[src.lab]));
+      const left = steps.filter((x) => !x.done);
+      items.push({ route: src.route, name: src.name, left: left.length, total: steps.length, minutes: left.reduce((sum, x) => sum + (x.minutes || 0), 0), text: left.length ? left[0].title : "Programma di oggi completato" });
+    } catch (error) { /* reparto non leggibile: lo salto */ }
   });
+  try {
+    if (window.CultureEngine && window.CultureCards && state.cultureLab) {
+      const due = CultureEngine.dueCards(state.cultureLab, window.CultureCards).length;
+      items.push({ route: "culture", name: "Cultura", left: due ? 1 : 0, total: 1, minutes: due ? Math.min(20, due * 3) : 0, text: due ? `${due} ${due === 1 ? "scheda da ripassare" : "schede da ripassare"}` : "Nessun ripasso in scadenza" });
+    }
+  } catch (error) { /* niente */ }
+  items.push({ route: "chess", name: "Scacchi", left: 1, total: 1, minutes: 20, text: "Una partita valutata, poi la revisione delle mosse", open: true });
+  items.push({ route: "defense", name: "Difesa", left: 1, total: 1, minutes: 30, text: "Lo stile del giorno, o riflessi e situazioni", open: true });
+  return items;
+}
+function renderTodayPlan() {
+  const list = document.getElementById("todayTasks");
+  if (!list) return;
+  const items = todayItems();
+  const pending = items.filter((x) => x.left > 0);
+  const counted = pending.filter((x) => !x.open);
+  const steps = counted.reduce((sum, x) => sum + x.left, 0);
+  const head = document.getElementById("todaySummary");
+  if (head) head.textContent = steps ? `${steps} ${steps === 1 ? "passo" : "passi"} nei programmi dei reparti` : "Programmi dei reparti completati";
+  const ordered = pending.concat(items.filter((x) => x.left === 0));
+  list.innerHTML = ordered.map((x) => {
+    const icon = document.querySelector(`.nav-link[data-route="${x.route}"] use`);
+    const href = icon ? icon.getAttribute("href") : "#i-dashboard";
+    return `<li class="today-item ${x.left ? "" : "done"}" data-route="${x.route}">
+      <a href="#${x.route}">
+        <svg class="today-icon" aria-hidden="true"><use href="${href}"/></svg>
+        <span class="today-copy"><strong>${x.name}</strong><span>${x.text}</span></span>
+        <span class="today-count">${x.left ? (x.open ? `${x.minutes} min` : x.route === "culture" ? `${x.minutes} min` : `${x.left} ${x.left === 1 ? "passo" : "passi"}`) : "fatto"}</span>
+      </a>
+    </li>`;
+  }).join("");
 }
 
 function getAbilities() {
@@ -903,21 +980,18 @@ function getAbilities() {
 
 function renderAbilityRadar() {
   const svg = document.getElementById("abilityRadar");
+  if (!svg) return;
   const abilities = getAbilities();
   const labeledAbilities = abilities.map((ability) => ({ ...ability, label: abilityLabels[ability.key] }));
   svg.innerHTML = buildRadarMarkup(labeledAbilities, 380, 190, 112, true);
-
   const abilityList = document.getElementById("abilityList");
-  const generalScore = Math.round(averageArray(abilities.map((ability) => ability.value)));
-  abilityList.classList.add("profile-skill-list");
-  abilityList.innerHTML = `
-    <div class="module-score-card profile-score-card">
-      <span>Punteggio generale</span>
-      <strong>${generalScore}</strong>
-      <em>Rango ${rankFromScore(generalScore)}</em>
-    </div>
-    ${renderSkillBars(labeledAbilities)}
-  `;
+  if (!abilityList) return;
+  abilityList.innerHTML = labeledAbilities.map((ability) => `
+    <div class="ability-chip" data-rank="${rankFromScore(ability.value)}">
+      <span>${ability.label}</span>
+      <strong>${ability.value}</strong>
+      <em>${rankFromScore(ability.value)}</em>
+    </div>`).join("");
 }
 
 function buildRadarMarkup(values, size, center, maxRadius, showLabels) {
@@ -952,6 +1026,7 @@ function buildRadarMarkup(values, size, center, maxRadius, showLabels) {
 
 function renderGlobalParameters() {
   const container = document.getElementById("globalParamList");
+  if (!container) return;
   const abilities = getAbilities().map((ability) => ({
     label: abilityLabels[ability.key],
     value: ability.value
@@ -985,7 +1060,7 @@ function renderModuleStatus(moduleKey) {
   const score = getModuleScore(moduleKey);
   const radar = document.getElementById(`${moduleKey}ModuleRadar`);
   const metricBox = document.getElementById(`${moduleKey}ModuleMetrics`);
-  if (radar) radar.innerHTML = buildRadarMarkup(skills, 280, 140, 122, false);
+  if (radar) { radar.setAttribute("viewBox", "0 0 380 380"); radar.innerHTML = buildRadarMarkup(skills, 380, 190, 100, true); }
   if (metricBox) {
     metricBox.classList.add("module-skill-panel");
     metricBox.innerHTML = `
@@ -994,7 +1069,6 @@ function renderModuleStatus(moduleKey) {
         <strong>${score}</strong>
         <em>Rango ${rankFromScore(score)}</em>
       </div>
-      ${renderSkillBars(skills)}
     `;
   }
   renderModulePatternAndTraining(moduleKey);
@@ -1006,26 +1080,21 @@ function renderModeCardIndicators() {
     if (!box) return;
     const values = getModuleSkills(moduleKey);
     const average = getModuleScore(moduleKey);
+    const rank = rankFromScore(average);
     box.classList.add("dashboard-card-profile");
     box.innerHTML = `
       <div class="dashboard-card-top">
-        <svg class="dashboard-card-radar" viewBox="0 0 180 180" role="img" aria-label="Radar ${moduleKey}">
-          ${buildRadarMarkup(values, 180, 90, 58, false)}
+        <svg class="dashboard-card-radar" viewBox="0 0 180 180" role="img" aria-label="Profilo ${moduleKey}: ${values.map((v) => `${v.label} ${v.value}`).join(", ")}">
+          ${buildRadarMarkup(values, 180, 90, 80, false)}
         </svg>
         <div class="dashboard-card-average">
           <strong>${average}</strong>
-          <span>totale · Rango ${rankFromScore(average)}</span>
+          <span class="card-rank" data-rank="${rank}">Rango ${rank}</span>
         </div>
       </div>
-      <div class="dashboard-value-list">
-        ${values.map((item) => `
-          <div class="dashboard-value-row">
-            <span>${item.label}</span>
-            <strong>${item.value}</strong>
-            <div class="mini-track"><div class="mini-fill" style="width:${item.value}%"></div></div>
-          </div>
-        `).join("")}
-      </div>
+      <dl class="card-values">
+        ${values.map((item) => `<div><dt>${item.label}</dt><dd>${item.value}</dd></div>`).join("")}
+      </dl>
       <div class="dashboard-card-trend">${dashboardTrend(moduleKey, average)}</div>
     `;
   });

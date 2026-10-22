@@ -110,11 +110,10 @@
     const l = lab();
     const st = A.stats(l);
     const g = st.per.gridshot;
-    const row = (label, value, pct) => `<div class="dashboard-value-row"><span>${label}</span><strong>${value}</strong><div class="mini-track"><div class="mini-fill" style="width:${clamp(pct, 0, 100)}%"></div></div></div>`;
-    box.innerHTML = `<div class="dashboard-value-list">
-      ${row("Sens", fmtSens(l.settings.sens), Math.min(100, A.edpi(l.settings.dpi, l.settings.sens) / 8))}
-      ${row(`Record Gridshot (${LV(g.lv)})`, g.best == null ? "—" : fmt(g.best), g.best ? Math.min(100, g.best / 120) : 0)}
-      ${row("Giorni di fila", st.streak, Math.min(100, st.streak * 10))}
+    box.innerHTML = `<div class="card-stats">
+      <div><span>Sens</span><strong>${fmtSens(l.settings.sens)}</strong></div>
+      <div><span>Record</span><strong>${g.best == null ? "—" : fmt(g.best)}</strong><em>Gridshot · ${LV(g.lv)}</em></div>
+      <div><span>Di fila</span><strong>${st.streak}</strong><em>${st.streak === 1 ? "giorno" : "giorni"}</em></div>
     </div>`;
   }
 
