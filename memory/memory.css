@@ -92,7 +92,7 @@
 .mem-sub { display: block; font-size: 0.82rem; color: var(--muted); }
 
 /* ---------------------------------------------------------------- oggi */
-.mem-today { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+.mem-today { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
 .mem-plan { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px 22px; box-shadow: var(--shadow); }
 .mem-plan-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
 .mem-plan-head h2 { margin: 0; font-size: 1.35rem; }
@@ -121,11 +121,18 @@
 .mem-side { background: var(--surface-soft); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px 18px; }
 .mem-side h3 { margin: 0 0 6px; font-size: 0.98rem; }
 .mem-side p { margin: 0 0 10px; font-size: 0.88rem; color: #2d3a43; }
-.mem-mini { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 7px; }
-.mem-mini li { display: grid; grid-template-columns: 1fr 70px 28px; gap: 8px; align-items: center; font-size: 0.82rem; }
-.mem-mini i { display: block; height: 6px; border-radius: 4px; background: #dfe5ea; overflow: hidden; }
-.mem-mini b { display: block; height: 100%; background: var(--m-violet); }
-.mem-mini strong { text-align: right; font-variant-numeric: tabular-nums; }
+/* esagono del profilo (come nel quadro, nei colori della memoria) */
+.mem-hex { margin-top: 10px; }
+.mem-hex-svg { display: block; width: 100%; max-width: 360px; aspect-ratio: 1; margin: 0 auto; }
+.mem-hex-svg .radar-label { font-size: 14px; }
+.mem-hex-svg .radar-value { font-size: 12.5px; }
+.mem-hex-svg .radar-shape { fill: rgba(91, 63, 209, 0.16); stroke: var(--m-violet); }
+.mem-hex-svg .radar-dot { fill: var(--m-violet); }
+.mem-hex-svg .radar-grid-outer { fill: rgba(91, 63, 209, 0.03); }
+.mem-hex-total { display: flex; align-items: baseline; justify-content: center; gap: 8px; margin-top: 2px; }
+.mem-hex-total strong { font-size: 1.6rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.mem-hex-total span { color: var(--muted); font-size: 0.84rem; }
+.mem-prof-card .mem-hex-svg { max-width: 420px; }
 
 /* ---------------------------------------------------------------- misura */
 .mem-age { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 0.88rem; color: var(--muted); }
@@ -376,3 +383,6 @@ div.mem-feedback .primary-action { justify-self: start; }
 @media (prefers-reduced-motion: reduce) {
   .mem-timer i, .mem-block { transition: none; }
 }
+
+.mem-side .mem-hex { margin: 0 0 14px; }
+.mem-side-how { margin-top: 4px !important; padding-top: 12px; border-top: 1px solid var(--line); }

@@ -178,17 +178,23 @@
           </ol>
         </section>
         <aside class="mem-side">
-          <h3>Come funziona</h3>
+          <h3>Profilo</h3>
+          ${profileMini(l)}
+          <h3 class="mem-side-how">Come funziona</h3>
           <p>Ogni giorno: le immagini del sistema fonetico, una disciplina da gara e il palazzo della memoria. Una volta al mese rifai i test per vedere se stai migliorando davvero.</p>
           <p>I test usano valori di riferimento pubblicati per adulti; le discipline usano le regole delle gare di memoria.</p>
           <p>Cosa aspettarti: le tecniche fanno crescere molto quello che alleni (parole, numeri, nomi). Allenare la memoria non rende più intelligenti in generale: le meta-analisi di Melby-Lervåg e colleghi (2013 e 2016) non trovano effetti oltre i compiti allenati.</p>
-          ${profileMini(l)}
         </aside>
       </div>`;
   }
+  // esagono del profilo, con gli stessi valori della scheda nel quadro
   function profileMini(l) {
-    const items = E.profile(l);
-    return `<ul class="mem-mini">${items.map((k) => `<li><span>${esc(k.label)}</span><i><b style="width:${k.value}%"></b></i><strong>${k.value}</strong></li>`).join("")}</ul>`;
+    const skills = typeof getModuleSkills === "function" ? getModuleSkills("memory") : E.profile(l);
+    const vals = skills.map((k) => ({ label: k.label, value: k.value }));
+    const total = Math.round(vals.reduce((sum, k) => sum + k.value, 0) / Math.max(1, vals.length));
+    const rank = typeof rankFromScore === "function" ? rankFromScore(total) : "";
+    const svg = typeof buildRadarMarkup === "function" ? buildRadarMarkup(vals, 380, 190, 100, true) : "";
+    return `<div class="mem-hex"><svg class="mem-hex-svg" viewBox="0 0 380 380" role="img" aria-label="Profilo della memoria: ${vals.map((k) => `${esc(k.label)} ${k.value}`).join(", ")}">${svg}</svg><div class="mem-hex-total"><strong>${total}</strong><span>punteggio della memoria${rank ? ` · rango ${rank}` : ""}</span></div></div>`;
   }
 
   /* ------------------------------------------------------------ MISURA */
@@ -788,6 +794,7 @@
     return `
       <div class="mem-prog">
         <div class="mem-intro"><h2 data-focus tabindex="-1">Progressi</h2><p>I test nel tempo, i turni delle discipline e i giorni di allenamento. Rifare i test troppo spesso li rende più facili per abitudine: una volta al mese basta.</p></div>
+        <section class="mem-card mem-prof-card"><h3>Profilo</h3>${profileMini(l)}</section>
         <section class="mem-card">
           <div class="mem-seg" role="group" aria-label="Test">${keys.map((k) => `<button type="button" data-m="prog" data-key="${k}" aria-pressed="${k === sel}">${labels[k]}</button>`).join("")}</div>
           ${list.length ? chart(list, sel, l) : `<p class="mem-empty">Ancora nessun risultato: fai il test in Misura.</p>`}

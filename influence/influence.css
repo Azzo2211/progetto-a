@@ -73,7 +73,7 @@
 .inf-bar.risk b { background: #c98a2e; }
 
 /* ---------------------------------------------------------------- oggi */
-.inf-today { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+.inf-today { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
 .inf-plan { padding: 20px 22px; }
 .inf-plan-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
 .inf-plan-head h2 { margin: 0; font-size: 1.35rem; }
@@ -94,10 +94,21 @@
 .inf-side { background: var(--surface-soft); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px 18px; }
 .inf-side h3 { margin: 0 0 6px; font-size: 0.98rem; }
 .inf-side p { margin: 0 0 10px; font-size: 0.88rem; color: #2d3a43; }
-.inf-mini, .inf-profile { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
-.inf-mini li { display: grid; grid-template-columns: 1fr 70px 28px; gap: 8px; align-items: center; font-size: 0.82rem; }
+.inf-profile { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+/* esagono del profilo (come nel quadro, nei colori dell'influenza) */
+.inf-hex { margin-top: 10px; }
+.inf-hex-svg { display: block; width: 100%; max-width: 360px; aspect-ratio: 1; margin: 0 auto; }
+.inf-hex-svg .radar-label { font-size: 14px; }
+.inf-hex-svg .radar-value { font-size: 12.5px; }
+.inf-hex-svg .radar-shape { fill: rgba(138, 28, 44, 0.14); stroke: var(--i-ox); }
+.inf-hex-svg .radar-dot { fill: var(--i-ox); }
+.inf-hex-svg .radar-grid-outer { fill: rgba(138, 28, 44, 0.03); }
+.inf-hex-total { display: flex; align-items: baseline; justify-content: center; gap: 8px; margin-top: 2px; }
+.inf-hex-total strong { font-size: 1.6rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.inf-hex-total span { color: var(--muted); font-size: 0.84rem; }
+.inf-prof-card .inf-hex-svg { max-width: 420px; }
 .inf-profile li { display: grid; grid-template-columns: minmax(110px, 200px) minmax(0, 1fr) 44px; gap: 12px; align-items: center; font-size: 0.92rem; }
-.inf-mini strong, .inf-profile strong { text-align: right; font-variant-numeric: tabular-nums; }
+.inf-profile strong { text-align: right; font-variant-numeric: tabular-nums; }
 
 /* ---------------------------------------------------------------- manuale */
 .inf-chapters { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
@@ -332,3 +343,6 @@
 .inf-stepper input { width: 100%; }
 
 .inf-quit { justify-self: start; margin-top: 4px; }
+
+.inf-side .inf-hex { margin: 0 0 14px; }
+.inf-side-how { margin-top: 4px !important; padding-top: 12px; border-top: 1px solid var(--line); }

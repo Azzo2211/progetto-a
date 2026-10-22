@@ -81,15 +81,22 @@
           </ol>
         </section>
         <aside class="inf-side">
-          <h3>Come funziona</h3>
+          <h3>Profilo</h3>
+          ${profileMini(l)}
+          <h3 class="inf-side-how">Come funziona</h3>
           <p>Il manuale spiega le leve con gli esperimenti originali. Le schede e i messaggi da smascherare allenano a riconoscerle in un attimo. La trattativa e i casi allenano a usarle: lì il risultato si misura in numeri.</p>
           <p>Persuasione, negoziazione e strategia si allenano per usarle. Le tattiche manipolative si studiano per riconoscerle quando le usano su di te e per neutralizzarle.</p>
-          ${profileMini(l)}
         </aside>
       </div>`;
   }
+  // esagono del profilo, con gli stessi valori della scheda nel quadro
   function profileMini(l) {
-    return `<ul class="inf-mini">${E.profile(l).map((k) => `<li><span>${esc(k.label)}</span>${bar(k.value)}<strong>${k.value}</strong></li>`).join("")}</ul>`;
+    const skills = typeof getModuleSkills === "function" ? getModuleSkills("influence") : E.profile(l);
+    const vals = skills.map((k) => ({ label: k.label, value: k.value }));
+    const total = Math.round(vals.reduce((sum, k) => sum + k.value, 0) / Math.max(1, vals.length));
+    const rank = typeof rankFromScore === "function" ? rankFromScore(total) : "";
+    const svg = typeof buildRadarMarkup === "function" ? buildRadarMarkup(vals, 380, 190, 100, true) : "";
+    return `<div class="inf-hex"><svg class="inf-hex-svg" viewBox="0 0 380 380" role="img" aria-label="Profilo dell'influenza: ${vals.map((k) => `${esc(k.label)} ${k.value}`).join(", ")}">${svg}</svg><div class="inf-hex-total"><strong>${total}</strong><span>punteggio dell'influenza${rank ? ` · rango ${rank}` : ""}</span></div></div>`;
   }
 
   /* ------------------------------------------------------------ MANUALE */
@@ -577,7 +584,6 @@
   /* ------------------------------------------------------------ PROGRESSI */
   function progressView() {
     const l = lab();
-    const prof = E.profile(l);
     const games = l.nego.history.slice(-20);
     const fams = ["leva", "cornice", "nego", "manip"].map((f) => ({ f, a: famAcc(l, [f], 200) }));
     const worst = Object.entries(l.spot.items).filter(([, s]) => s.wrong > 0).map(([id, s]) => ({ item: E.spotItem(id), s })).filter((x) => x.item);
@@ -588,7 +594,7 @@
     return `
       <div class="inf-prog">
         <div class="inf-intro"><h2 data-focus tabindex="-1">Progressi</h2><p>Le sei categorie vengono dai dati: trattative, risposte, casi e schede. All'inizio partono da 35 e si muovono man mano che ti alleni.</p></div>
-        <section class="inf-card"><h3>Profilo</h3><ul class="inf-profile">${prof.map((k) => `<li><span>${esc(k.label)}</span>${bar(k.value)}<strong>${k.value}</strong></li>`).join("")}</ul></section>
+        <section class="inf-card inf-prof-card"><h3>Profilo</h3>${profileMini(l)}</section>
         <section class="inf-card"><h3>Trattative</h3>${games.length ? negoChart(games) + `<table class="inf-table-list"><thead><tr><th scope="col">Data</th><th scope="col">Scenario</th><th scope="col">Controparte</th><th scope="col">Valore</th></tr></thead><tbody>${games.slice(-8).reverse().map((h) => `<tr><td>${dateShort(h.t)}</td><td>${esc(E.dealById(h.deal) ? E.dealById(h.deal).title : h.deal)}</td><td>${esc(E.cpById(h.cp) ? E.cpById(h.cp).label : h.cp)}</td><td>${h.pct}%${h.zopa ? (h.ok ? "" : " · mancato") : h.ok ? " · da evitare" : " · giusto non chiudere"}</td></tr>`).join("")}</tbody></table>` : `<p class="inf-empty">Ancora nessuna trattativa.</p>`}</section>
         <section class="inf-card"><h3>Riconoscimento per famiglia</h3><ul class="inf-profile">${fams.map(({ f, a }) => `<li><span>${esc(E.FAMILIES[f] ? E.FAMILIES[f].label : f)}</span>${bar(a ? a.pct : 0)}<strong>${a ? `${a.pct}%` : "—"}</strong></li>`).join("")}</ul>
           ${top.length ? `<h3>Le tattiche che confondi di più</h3><ol class="inf-top">${top.map(([id, n]) => `<li><b>${esc(tac(id).label)}</b> <span>${plural(n, "errore", "errori")}</span><p class="inf-small">${esc(tac(id).def)}</p></li>`).join("")}</ol>` : ""}
