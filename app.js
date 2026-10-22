@@ -269,86 +269,6 @@ const logicRiddles = [
 ];
 
 
-const influenceTactics = [
-  {
-    category: "Framing",
-    title: "Cornice della scelta",
-    lesson: "Il framing consiste nel presentare una stessa opzione dentro una cornice mentale diversa. Non cambia i fatti, cambia il punto da cui la persona li guarda.\n\nUso pulito: rendi chiaro il criterio giusto. Esempio: invece di dire 'devi studiare', dici 'scegliamo il metodo che ti fa perdere meno tempo domani'.\n\nAbuso da evitare: nascondere costi, mentire o creare panico per forzare una decisione.",
-    scenario: "Scenario fittizio: vuoi convincere un compagno a iniziare prima un lavoro di gruppo. Come incornici la scelta senza ingannarlo?",
-    ideal: ["criterio", "costo", "beneficio", "tempo", "chiaro", "scelta"]
-  },
-  {
-    category: "Reciprocita'",
-    title: "Dare prima di chiedere",
-    lesson: "La reciprocita' e' la tendenza a voler ricambiare un favore. E' una leva sociale potente perche' crea fiducia e movimento.\n\nUso pulito: offri un aiuto reale e proporzionato, poi fai una richiesta chiara. Esempio: 'Ho gia' preparato la struttura, puoi occuparti degli esempi?'\n\nAbuso da evitare: fare favori finti per creare debito emotivo o far sentire l'altro intrappolato.",
-    scenario: "Scenario fittizio: vuoi ottenere collaborazione da una persona passiva nel gruppo. Che cosa offri e che cosa chiedi?",
-    ideal: ["aiuto", "proporzionato", "richiesta", "chiara", "collaborazione", "ruolo"]
-  },
-  {
-    category: "Impegno",
-    title: "Micro-impegno",
-    lesson: "Le persone rispettano piu' facilmente un impegno piccolo e specifico rispetto a una promessa vaga. Il micro-impegno riduce attrito.\n\nUso pulito: chiedi un passo minimo verificabile. Esempio: 'Mi mandi tre idee entro le 18?' invece di 'impegnati di piu'.'\n\nAbuso da evitare: usare piccoli si' per trascinare una persona verso qualcosa che non avrebbe accettato sapendo tutto.",
-    scenario: "Scenario fittizio: devi far partire un progetto fermo. Quale micro-impegno chiedi?",
-    ideal: ["piccolo", "specifico", "entro", "verificabile", "passo", "idee"]
-  },
-  {
-    category: "Autorita'",
-    title: "Autorita' credibile",
-    lesson: "L'autorita' funziona quando una persona percepisce competenza, calma e prove. Non serve alzare la voce: serve essere affidabili.\n\nUso pulito: mostra dati, esperienza, limiti e metodo. Esempio: 'Ho controllato tre fonti, il rischio e' questo, propongo questo passo'.\n\nAbuso da evitare: fingere competenza, inventare fonti o usare status per zittire.",
-    scenario: "Scenario fittizio: vuoi far cambiare idea a un gruppo su una scelta rischiosa. Come costruisci autorita' senza arroganza?",
-    ideal: ["fonti", "prove", "rischio", "metodo", "limiti", "propongo"]
-  },
-  {
-    category: "Scarsita'",
-    title: "Scarsita' reale",
-    lesson: "La scarsita' aumenta il valore percepito quando una risorsa e' davvero limitata: tempo, posti, attenzione, opportunita'.\n\nUso corretto: dichiara un limite reale e verificabile. Esempio: 'Posso aiutarti oggi per 20 minuti, poi devo chiudere.'\n\nAbuso da evitare: inventare urgenza falsa per far decidere una persona sotto pressione.",
-    scenario: "Scenario fittizio: vuoi far decidere un gruppo prima della scadenza. Come usi la scarsita' senza creare panico falso?",
-    ideal: ["limite", "reale", "tempo", "scadenza", "verificabile", "scelta"]
-  },
-  {
-    category: "Riprova sociale",
-    title: "Riprova sociale",
-    lesson: "La riprova sociale funziona perche' le persone guardano cosa fanno gli altri quando sono incerte.\n\nUso corretto: mostra esempi reali di persone simili che hanno ottenuto un risultato.\n\nAbuso da evitare: fingere consenso, gonfiare numeri o usare il gruppo per schiacciare una scelta individuale.",
-    scenario: "Scenario fittizio: vuoi proporre un metodo di studio a un gruppo scettico. Quale prova sociale porti?",
-    ideal: ["esempio", "reale", "persone", "risultato", "simile", "metodo"]
-  },
-  {
-    category: "Ancoraggio",
-    title: "Ancoraggio",
-    lesson: "L'ancoraggio e' il primo numero, criterio o riferimento che orienta il giudizio successivo.\n\nUso corretto: parti da un riferimento onesto per rendere concreta la discussione. Esempio: 'Abbiamo 60 minuti, quindi scegliamo due priorita'.'\n\nAbuso da evitare: sparare numeri falsi o estremi per deformare la percezione.",
-    scenario: "Scenario fittizio: devi negoziare tempi di consegna. Quale ancora iniziale usi?",
-    ideal: ["numero", "riferimento", "onesto", "tempo", "priorita", "criterio"]
-  },
-  {
-    category: "Contrasto",
-    title: "Principio di contrasto",
-    lesson: "Il contrasto fa percepire un'opzione diversamente quando viene confrontata con un'altra.\n\nUso corretto: confronta alternative reali, con costi e benefici chiari.\n\nAbuso da evitare: creare una falsa opzione pessima solo per far sembrare buona quella che vuoi imporre.",
-    scenario: "Scenario fittizio: vuoi far scegliere tra due piani di lavoro. Come presenti il confronto in modo corretto?",
-    ideal: ["alternative", "costi", "benefici", "confronto", "reali", "scelta"]
-  },
-  {
-    category: "Domande guidate",
-    title: "Domande che orientano",
-    lesson: "Una domanda puo' guidare l'attenzione verso un criterio. Le domande buone non intrappolano: fanno pensare meglio.\n\nUso corretto: chiedi 'Qual e' il rischio se aspettiamo?' invece di accusare.\n\nAbuso da evitare: domande-trappola costruite per far sembrare stupida qualsiasi risposta.",
-    scenario: "Scenario fittizio: vuoi far emergere un rischio che il gruppo ignora. Che domanda fai?",
-    ideal: ["domanda", "rischio", "criterio", "pensare", "attenzione", "scelta"]
-  },
-  {
-    category: "Obiezioni",
-    title: "Gestione obiezioni",
-    lesson: "Un'obiezione non e' per forza un attacco: spesso e' informazione su rischio, paura o priorita'.\n\nUso corretto: riconosci l'obiezione, chiarisci, rispondi con prova o modifica il piano.\n\nAbuso da evitare: ignorare dubbi reali o usare pressione per far tacere.",
-    scenario: "Scenario fittizio: qualcuno dice che il tuo piano e' troppo rischioso. Come rispondi?",
-    ideal: ["riconosco", "chiarisco", "prova", "rischio", "modifico", "piano"]
-  },
-  {
-    category: "Negoziazione",
-    title: "Scambio e BATNA",
-    lesson: "Negoziare bene significa sapere cosa vuoi, cosa puoi offrire e qual e' la tua alternativa se l'accordo non arriva. Questa alternativa si chiama spesso BATNA.\n\nUso corretto: proponi uno scambio chiaro e tieni pronta un'alternativa.\n\nAbuso da evitare: minacce vuote o promesse che non manterrai.",
-    scenario: "Scenario fittizio: vuoi ottenere piu' tempo per un progetto. Che scambio proponi e qual e' la tua alternativa?",
-    ideal: ["scambio", "alternativa", "tempo", "offro", "accordo", "chiaro"]
-  }
-];
-
 const aestheticItems = [
   { id: "shave", title: "Barba", text: "Barba rasata o linee pulite su collo e guance." },
   { id: "hair", title: "Capelli", text: "Capelli pettinati, puliti e taglio coerente con il viso." },
@@ -446,12 +366,12 @@ const moduleSkillDefinitions = {
     { key: "consistency", label: "Costanza", general: "emotionalControl" }
   ],
   influence: [
-    { key: "framing", label: "Framing", general: "strategicMind" },
-    { key: "socialLeverage", label: "Leva sociale", general: "strategicMind" },
-    { key: "ethicalBoundaries", label: "Confini etici", general: "emotionalControl" },
-    { key: "personReading", label: "Lettura persona", general: "clarity" },
+    { key: "recognition", label: "Riconoscimento", general: "clarity" },
+    { key: "leverage", label: "Persuasione", general: "presence" },
     { key: "negotiation", label: "Negoziazione", general: "strategicMind" },
-    { key: "objectionHandling", label: "Gestione obiezioni", general: "emotionalControl" }
+    { key: "defense", label: "Difesa", general: "emotionalControl" },
+    { key: "knowledge", label: "Conoscenza", general: "strategicMind" },
+    { key: "consistency", label: "Costanza", general: "emotionalControl" }
   ],
   aesthetic: [
     { key: "personalCare", label: "Cura personale", general: "presence" },
@@ -479,7 +399,6 @@ let lastMoveSquares = null;
 let reviewMoveSquares = null;
 let currentGame = createNewGame();
 let currentRiddle = null;
-let currentInfluence = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   maybeRedirectFileChessToLocalServer();
@@ -496,7 +415,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderGameReport(buildGameAnalysis("partial"));
   loadRandomGoal();
   loadRandomRiddle();
-  loadInfluenceTactic();
   renderAesthetic();
   routeToCurrentHash();
 });
@@ -933,8 +851,6 @@ function bindControls() {
   document.getElementById("clearGoalBtn").addEventListener("click", clearGoal);
   document.getElementById("analyzePlanBtn").addEventListener("click", analyzePlan);
   document.getElementById("newRiddleBtn").addEventListener("click", loadRandomRiddle);
-  document.getElementById("newInfluenceBtn").addEventListener("click", loadInfluenceTactic);
-  document.getElementById("analyzeInfluenceBtn").addEventListener("click", analyzeInfluenceAnswer);
   document.getElementById("newStyleTipBtn").addEventListener("click", renderRandomStyleTip);
   document.getElementById("saveAestheticBtn").addEventListener("click", saveAestheticChecklist);
 }
@@ -982,7 +898,8 @@ function buildFinalRecap(abilities) {
   const chessErrors = Object.values(state.mistakeCounts).reduce((sum, item) => sum + item, 0);
   const studied = state.cultureLab && state.cultureLab.cards ? (window.CultureCards || []).filter((c) => state.cultureLab.cards[c.id] && state.cultureLab.cards[c.id].box >= 1).length : 0;
   const memoryText = window.memoryTrend ? (() => { try { return window.memoryTrend(); } catch (error) { return "da misurare"; } })() : "da misurare";
-  return `Priorita': ${abilityLabels[weakest.key]}. Scacchi: ${state.chess.games} partite, ${chessErrors} pattern errore. Cultura: ${studied} schede studiate. Memoria: ${memoryText}. Estetica: ${state.aesthetic.score || 0}/100.`;
+  const influenceText = window.influenceTrend ? (() => { try { return window.influenceTrend(); } catch (error) { return "da iniziare"; } })() : "da iniziare";
+  return `Priorita': ${abilityLabels[weakest.key]}. Scacchi: ${state.chess.games} partite, ${chessErrors} pattern errore. Cultura: ${studied} schede studiate. Memoria: ${memoryText}. Influenza: ${influenceText}. Estetica: ${state.aesthetic.score || 0}/100.`;
 }
 
 function renderTodayPlan(forceNew) {
@@ -1182,14 +1099,10 @@ function getModuleSkills(moduleKey) {
     memory: window.memoryProfileSkills ? (() => {
       try { return window.memoryProfileSkills().map((k) => [k.label, k.value]); } catch (error) { console.warn("Profilo memoria non leggibile", error); return []; }
     })() : [],
-    influence: [
-      ["Framing", metric("ragionamento")],
-      ["Leva sociale", metric("efficacia")],
-      ["Confini etici", (metric("sostenibilita") + metric("controllo")) / 2],
-      ["Lettura persona", metric("adattamento")],
-      ["Negoziazione", state.influence.average],
-      ["Gestione obiezioni", metric("flessibilita", metric("adattamento"))]
-    ],
+    // Influenza: categorie calcolate da trattative, esercizi, casi e schede (influence/engine.js).
+    influence: window.influenceProfileSkills ? (() => {
+      try { return window.influenceProfileSkills().map((k) => [k.label, k.value]); } catch (error) { console.warn("Profilo influenza non leggibile", error); return []; }
+    })() : [],
     aesthetic: [
       ["Cura personale", aestheticScore],
       ["Stile", metric("adattamento") + state.aesthetic.streak * 2],
@@ -1247,7 +1160,7 @@ function dashboardTrend(moduleKey, average) {
     defense: window.defenseTrend ? (() => { try { return window.defenseTrend(); } catch (error) { return "Fase 1 · inizia la prima sessione"; } })() : "Fase 1 · inizia la prima sessione",
     logic: state.logicAttempts ? `${state.logicSolved}/${state.logicAttempts} corretti · media ${average}` : "Base iniziale · risolvi un indovinello",
     memory: window.memoryTrend ? (() => { try { return window.memoryTrend(); } catch (error) { return "Base iniziale · fai la prima misura"; } })() : "Base iniziale · fai la prima misura",
-    influence: state.influence.attempts ? `${state.influence.attempts} analisi · media ${state.influence.average}` : "Base iniziale · prova una tattica",
+    influence: window.influenceTrend ? (() => { try { return window.influenceTrend(); } catch (error) { return "Base iniziale · parti dal manuale"; } })() : "Base iniziale · parti dal manuale",
     aesthetic: `Score ${state.aesthetic.score || 0}/100 · streak ${state.aesthetic.streak || 0}`
   };
   return trends[moduleKey] || `Media ${average}`;
@@ -1322,7 +1235,7 @@ function trainingForPattern(moduleKey, key) {
   if (moduleKey === "memory") return "Allenamento: il programma di oggi nella pagina Memoria (sistema fonetico, una disciplina, il palazzo).";
   if (moduleKey === "scenarios") return "Allenamento: prima i fatti, poi una frase breve senza accuse, poi il piano B.";
   if (moduleKey === "defense") return "Allenamento: la prossima sessione del programma, poi una prova di riflessi e un turno di situazioni.";
-  if (moduleKey === "influence") return "Allenamento: riscrivi la leva rendendo chiari costi, confini e possibilita' di dire no.";
+  if (moduleKey === "influence") return "Allenamento: il programma di oggi nella pagina Influenza (schede, riconosci la leva, una trattativa o due casi).";
   if (moduleKey === "culture") return "Allenamento: fai i ripassi del giorno e spiega ogni scheda con parole tue.";
   if (moduleKey === "planning") return "Allenamento: aggiungi metrica, soglia di rischio e revisione a 72 ore.";
   if (moduleKey === "aesthetic") return "Allenamento: completa 5 punti checklist per 5 giorni.";
@@ -3984,66 +3897,6 @@ function renderLogicStats() {
   const stats = { solved: state.logicSolved, attempts: state.logicAttempts, accuracy };
   const labels = { solved: "Risolti", attempts: "Tentativi", accuracy: "Precisione" };
   renderMetrics(document.getElementById("logicStats"), stats, labels, true);
-}
-
-function loadInfluenceTactic() {
-  currentInfluence = influenceTactics[Math.floor(Math.random() * influenceTactics.length)];
-  document.getElementById("influenceCategory").textContent = currentInfluence.category;
-  document.getElementById("influenceTitle").textContent = currentInfluence.title;
-  document.getElementById("influenceLesson").textContent = currentInfluence.lesson;
-  document.getElementById("influenceScenario").textContent = currentInfluence.scenario;
-  document.getElementById("influenceAnswer").value = "";
-  document.getElementById("influenceFeedback").textContent = "Scrivi una strategia pulita: il sistema distingue influenza, pressione e confusione.";
-  renderInfluenceMetrics();
-}
-
-function analyzeInfluenceAnswer() {
-  const answer = document.getElementById("influenceAnswer").value.trim();
-  if (!answer) {
-    document.getElementById("influenceFeedback").textContent = "Scrivi prima una strategia: obiettivo, leva, confini, rischio e frase concreta.";
-    return;
-  }
-  const lower = normalize(answer);
-  const ideal = currentInfluence.ideal.filter((word) => lower.includes(word)).length;
-  const dark = countMatches(lower, ["mento", "bugia", "ricatto", "paura", "umilio", "minaccio", "nascondo"]);
-  const scores = {
-    objective: clamp(30 + countMatches(lower, ["obiettivo", "voglio", "risultato", "ottenere"]) * 12, 0, 100),
-    transparency: clamp(45 + countMatches(lower, ["chiaro", "dico", "spiego", "senza", "onesto"]) * 10 - dark * 18, 0, 100),
-    leverage: clamp(35 + ideal * 10 + countMatches(lower, ["beneficio", "costo", "scelta", "criterio"]) * 8, 0, 100),
-    boundaries: clamp(35 + countMatches(lower, ["confine", "no", "accetta", "libero", "rispetto"]) * 10 - dark * 10, 0, 100),
-    risk: clamp(35 + countMatches(lower, ["rischio", "se", "reazione", "piano b"]) * 10 - dark * 12, 0, 100)
-  };
-  const total = Math.round(averageObject(scores));
-  state.influence.attempts += 1;
-  state.influence.average = Math.round((state.influence.average * (state.influence.attempts - 1) + total) / state.influence.attempts);
-  if (dark) addModulePattern("influence", "darkInfluence");
-  if (scores.transparency < 60) addModulePattern("influence", "weakEvidence");
-  updateModuleMetrics("influence", {
-    lucidita: Math.round((scores.objective - 50) / 10),
-    efficacia: Math.round((scores.leverage - 50) / 10),
-    rischio: Math.round((scores.risk - 50) / 10),
-    controllo: dark ? -5 : 2,
-    adattamento: Math.round((scores.leverage + scores.risk - 100) / 18),
-    flessibilita: Math.round((scores.risk - 50) / 12),
-    ragionamento: Math.round((scores.objective + scores.transparency - 100) / 18),
-    sostenibilita: Math.round((scores.boundaries + scores.transparency - 100) / 18),
-    tempo: 1
-  });
-  saveState();
-  const advice = [];
-  if (scores.transparency < 60) advice.push("Rendi piu' trasparente la richiesta: niente costi nascosti.");
-  if (scores.boundaries < 60) advice.push("Aggiungi confine: l'altra persona deve poter dire no senza punizione.");
-  if (scores.risk < 60) advice.push("Prevedi la reazione e prepara un piano B.");
-  if (!advice.length) advice.push("Buona influenza: criterio chiaro, leva proporzionata, rischio controllato.");
-  document.getElementById("influenceFeedback").innerHTML = `<strong>Punteggio tattica: ${total}/100</strong><ul class="plan-steps">${advice.map((item) => `<li>${item}</li>`).join("")}</ul>`;
-  renderInfluenceMetrics(scores);
-  renderDashboard();
-}
-
-function renderInfluenceMetrics(scores = null) {
-  const data = scores || { attempts: state.influence.attempts, average: state.influence.average };
-  const labels = { attempts: "Tentativi", average: "Media", objective: "Obiettivo", transparency: "Trasparenza", leverage: "Leva", boundaries: "Confini", risk: "Rischio" };
-  renderMetrics(document.getElementById("influenceMetrics"), data, labels, false);
 }
 
 function renderAestheticChecklist() {

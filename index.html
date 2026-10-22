@@ -12,15 +12,16 @@
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <title>Metodo Integrale</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f7a6d'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-size='28' font-weight='700' text-anchor='middle' fill='%23ffffff'%3EMI%3C/text%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="styles.css?v=20261022-2" />
-    <link rel="stylesheet" href="chess/board-view.css?v=20261022-2" />
-    <link rel="stylesheet" href="chess/chess-ui.css?v=20261022-2" />
-    <link rel="stylesheet" href="scenarios/scenarios.css?v=20261022-2" />
-    <link rel="stylesheet" href="culture/culture.css?v=20261022-2" />
-    <link rel="stylesheet" href="defense/defense.css?v=20261022-2" />
-    <link rel="stylesheet" href="defense/martial.css?v=20261022-2" />
-    <link rel="stylesheet" href="aim/aim.css?v=20261022-2" />
-    <link rel="stylesheet" href="memory/memory.css?v=20261022-2" />
+    <link rel="stylesheet" href="styles.css?v=20261022-3" />
+    <link rel="stylesheet" href="chess/board-view.css?v=20261022-3" />
+    <link rel="stylesheet" href="chess/chess-ui.css?v=20261022-3" />
+    <link rel="stylesheet" href="scenarios/scenarios.css?v=20261022-3" />
+    <link rel="stylesheet" href="culture/culture.css?v=20261022-3" />
+    <link rel="stylesheet" href="defense/defense.css?v=20261022-3" />
+    <link rel="stylesheet" href="defense/martial.css?v=20261022-3" />
+    <link rel="stylesheet" href="aim/aim.css?v=20261022-3" />
+    <link rel="stylesheet" href="memory/memory.css?v=20261022-3" />
+    <link rel="stylesheet" href="influence/influence.css?v=20261022-3" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
@@ -178,7 +179,7 @@
             </a>
             <a class="mode-card" href="#influence">
               <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-influence"/></svg><strong>Influenza</strong></span>
-              <p>Tattiche sociali, scenari fittizi e uso etico della leva.</p>
+              <p>Persuasione e manipolazione con gli esperimenti veri, trattative simulate, messaggi da smascherare.</p>
               <div class="mini-indicators" id="influenceCardIndicators"></div>
             </a>
             <a class="mode-card" href="#aesthetic">
@@ -639,45 +640,24 @@
           <div class="mem-sr" id="memLive" aria-live="polite"></div>
         </section>
 
-        <section id="influence" class="page">
-          <div class="page-heading">
+        <section id="influence" class="page inf-page">
+          <div class="page-heading inf-heading">
             <div>
-              <p class="eyebrow">Influenza e tattiche</p>
-              <h1>Capire leve sociali, usarle in modo pulito, riconoscere abusi.</h1>
-              <p class="page-subtitle">Allena negoziazione, framing, obiezioni, confini e influenza strategica pulita.</p>
+              <p class="eyebrow">Influenza</p>
+              <h1>Come le persone dicono sì.</h1>
+              <p class="page-subtitle">La psicologia della persuasione e della manipolazione con gli esperimenti originali, un simulatore di trattative con limiti nascosti, messaggi veri da smascherare e casi da risolvere.</p>
             </div>
-            <div class="button-row">
-              <a class="ghost-link" href="#dashboard">Quadro</a>
-              <button class="primary-action" id="newInfluenceBtn" type="button">Nuova tattica</button>
-            </div>
+            <button class="inf-chip" id="infChip" type="button" title="Apri il programma di oggi"></button>
           </div>
-
-          <div class="two-column">
-            <article class="tool-card">
-              <span class="scenario-type" id="influenceCategory">Tattica</span>
-              <h2 id="influenceTitle">Caricamento tattica</h2>
-              <div id="influenceLesson" class="topic-body"></div>
-              <div class="question-box">
-                <strong>Scenario fittizio</strong>
-                <p id="influenceScenario"></p>
-              </div>
-              <label class="free-answer-label" for="influenceAnswer">
-                Come la useresti senza abuso?
-                <textarea id="influenceAnswer" rows="7" placeholder="Scrivi una strategia pulita: obiettivo, leva, confini, rischio e frase concreta."></textarea>
-              </label>
-              <button class="primary-action" id="analyzeInfluenceBtn" type="button">Valuta strategia</button>
-            </article>
-            <article class="tool-card">
-              <h2>Valutazione tattica</h2>
-              <div id="influenceFeedback" class="analysis-box">Qui vedrai se stai usando influenza, pressione o confusione.</div>
-              <div id="influenceMetrics" class="metric-list"></div>
-              <h2>Profilo influenza</h2>
-              <svg id="influenceModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar influenza"></svg>
-              <div id="influenceModuleMetrics" class="metric-list"></div>
-              <div id="influencePatternBox" class="analysis-box">Pattern: obiettivo, trasparenza, confini, rischio.</div>
-              <div id="influenceTrainingBox" class="analysis-box">Allenamento: usa leve pulite e riconosci abusi.</div>
-            </article>
+          <div class="inf-tabs" role="group" aria-label="Sezioni dell'influenza">
+            <button type="button" data-inf-tab="today" aria-pressed="true">Oggi</button>
+            <button type="button" data-inf-tab="manual" aria-pressed="false">Manuale</button>
+            <button type="button" data-inf-tab="train" aria-pressed="false">Allenamento</button>
+            <button type="button" data-inf-tab="nego" aria-pressed="false">Trattativa</button>
+            <button type="button" data-inf-tab="progress" aria-pressed="false">Progressi</button>
           </div>
+          <div id="infPanel"></div>
+          <div class="inf-sr" id="infLive" aria-live="polite"></div>
         </section>
 
         <section id="aesthetic" class="page">
@@ -716,60 +696,66 @@
 
     <!-- Scacchi: libreria regole, libro aperture, analisi, motore Stockfish, bot e revisione -->
     <script src="vendor/chess.js?v=1.4.0"></script>
-    <script src="chess/opening-book.js?v=20261022-2"></script>
-    <script src="chess/analysis-core.js?v=20261022-2"></script>
-    <script src="chess/engine.js?v=20261022-2"></script>
-    <script src="chess/bot.js?v=20261022-2"></script>
-    <script src="chess/review.js?v=20261022-2"></script>
-    <script src="chess/board-view.js?v=20261022-2"></script>
-    <script src="chess/rating.js?v=20261022-2"></script>
-    <script src="chess/skills.js?v=20261022-2"></script>
-    <script src="chess/lessons.js?v=20261022-2"></script>
-    <script src="chess/coach.js?v=20261022-2"></script>
-    <script src="chess/trainer.js?v=20261022-2"></script>
-    <script src="scenarios/engine.js?v=20261022-2"></script>
-    <script src="scenarios/exams.js?v=20261022-2"></script>
-    <script src="scenarios/free.js?v=20261022-2"></script>
-    <script src="culture/engine.js?v=20261022-2"></script>
-    <script src="culture/cards.js?v=20261022-2"></script>
-    <script src="culture/uni-engine.js?v=20261022-2"></script>
-    <script src="defense/engine.js?v=20261022-2"></script>
-    <script src="defense/program.js?v=20261022-2"></script>
-    <script src="defense/situations.js?v=20261022-2"></script>
-    <script src="defense/figure.js?v=20261022-2"></script>
-    <script src="defense/scenes.js?v=20261022-2"></script>
-    <script src="defense/martial.js?v=20261022-2"></script>
-    <script src="defense/martial-data.js?v=20261022-2"></script>
-    <script src="defense/martial-lookism.js?v=20261022-2"></script>
-    <script src="defense/figure3d.js?v=20261022-2"></script>
-    <script src="defense/moves.js?v=20261022-2"></script>
-    <script src="defense/moves/comuni.js?v=20261022-2"></script>
-    <script src="defense/moves/boxe.js?v=20261022-2"></script>
-    <script src="defense/moves/muaythai.js?v=20261022-2"></script>
-    <script src="defense/moves/taekwondo.js?v=20261022-2"></script>
-    <script src="defense/moves/karate.js?v=20261022-2"></script>
-    <script src="defense/moves/capoeira.js?v=20261022-2"></script>
-    <script src="defense/moves/lotta.js?v=20261022-2"></script>
-    <script src="defense/moves/kungfu.js?v=20261022-2"></script>
-    <script src="defense/moves/systema.js?v=20261022-2"></script>
-    <script src="defense/moves/sambo.js?v=20261022-2"></script>
-    <script src="defense/martial-demos.js?v=20261022-2"></script>
-    <script src="app.js?v=20261022-2"></script>
-    <script src="chess/chess-ui.js?v=20261022-2"></script>
-    <script src="chess/learn-ui.js?v=20261022-2"></script>
-    <script src="chess/grade-ui.js?v=20261022-2"></script>
-    <script src="cote-theme.js?v=20261022-2"></script>
-    <script src="scenarios/ui.js?v=20261022-2"></script>
-    <script src="culture/uni-ui.js?v=20261022-2"></script>
-    <script src="culture/ui.js?v=20261022-2"></script>
-    <script src="defense/martial-ui.js?v=20261022-2"></script>
-    <script src="defense/ui.js?v=20261022-2"></script>
-    <script src="aim/engine.js?v=20261022-2"></script>
-    <script src="aim/game.js?v=20261022-2"></script>
-    <script src="aim/ui.js?v=20261022-2"></script>
-    <script src="memory/data.js?v=20261022-2"></script>
-    <script src="memory/faces.js?v=20261022-2"></script>
-    <script src="memory/engine.js?v=20261022-2"></script>
-    <script src="memory/ui.js?v=20261022-2"></script>
+    <script src="chess/opening-book.js?v=20261022-3"></script>
+    <script src="chess/analysis-core.js?v=20261022-3"></script>
+    <script src="chess/engine.js?v=20261022-3"></script>
+    <script src="chess/bot.js?v=20261022-3"></script>
+    <script src="chess/review.js?v=20261022-3"></script>
+    <script src="chess/board-view.js?v=20261022-3"></script>
+    <script src="chess/rating.js?v=20261022-3"></script>
+    <script src="chess/skills.js?v=20261022-3"></script>
+    <script src="chess/lessons.js?v=20261022-3"></script>
+    <script src="chess/coach.js?v=20261022-3"></script>
+    <script src="chess/trainer.js?v=20261022-3"></script>
+    <script src="scenarios/engine.js?v=20261022-3"></script>
+    <script src="scenarios/exams.js?v=20261022-3"></script>
+    <script src="scenarios/free.js?v=20261022-3"></script>
+    <script src="culture/engine.js?v=20261022-3"></script>
+    <script src="culture/cards.js?v=20261022-3"></script>
+    <script src="culture/uni-engine.js?v=20261022-3"></script>
+    <script src="defense/engine.js?v=20261022-3"></script>
+    <script src="defense/program.js?v=20261022-3"></script>
+    <script src="defense/situations.js?v=20261022-3"></script>
+    <script src="defense/figure.js?v=20261022-3"></script>
+    <script src="defense/scenes.js?v=20261022-3"></script>
+    <script src="defense/martial.js?v=20261022-3"></script>
+    <script src="defense/martial-data.js?v=20261022-3"></script>
+    <script src="defense/martial-lookism.js?v=20261022-3"></script>
+    <script src="defense/figure3d.js?v=20261022-3"></script>
+    <script src="defense/moves.js?v=20261022-3"></script>
+    <script src="defense/moves/comuni.js?v=20261022-3"></script>
+    <script src="defense/moves/boxe.js?v=20261022-3"></script>
+    <script src="defense/moves/muaythai.js?v=20261022-3"></script>
+    <script src="defense/moves/taekwondo.js?v=20261022-3"></script>
+    <script src="defense/moves/karate.js?v=20261022-3"></script>
+    <script src="defense/moves/capoeira.js?v=20261022-3"></script>
+    <script src="defense/moves/lotta.js?v=20261022-3"></script>
+    <script src="defense/moves/kungfu.js?v=20261022-3"></script>
+    <script src="defense/moves/systema.js?v=20261022-3"></script>
+    <script src="defense/moves/sambo.js?v=20261022-3"></script>
+    <script src="defense/martial-demos.js?v=20261022-3"></script>
+    <script src="app.js?v=20261022-3"></script>
+    <script src="chess/chess-ui.js?v=20261022-3"></script>
+    <script src="chess/learn-ui.js?v=20261022-3"></script>
+    <script src="chess/grade-ui.js?v=20261022-3"></script>
+    <script src="cote-theme.js?v=20261022-3"></script>
+    <script src="scenarios/ui.js?v=20261022-3"></script>
+    <script src="culture/uni-ui.js?v=20261022-3"></script>
+    <script src="culture/ui.js?v=20261022-3"></script>
+    <script src="defense/martial-ui.js?v=20261022-3"></script>
+    <script src="defense/ui.js?v=20261022-3"></script>
+    <script src="aim/engine.js?v=20261022-3"></script>
+    <script src="aim/game.js?v=20261022-3"></script>
+    <script src="aim/ui.js?v=20261022-3"></script>
+    <script src="memory/data.js?v=20261022-3"></script>
+    <script src="memory/faces.js?v=20261022-3"></script>
+    <script src="memory/engine.js?v=20261022-3"></script>
+    <script src="memory/ui.js?v=20261022-3"></script>
+    <script src="influence/tactics.js?v=20261022-3"></script>
+    <script src="influence/deals.js?v=20261022-3"></script>
+    <script src="influence/drills.js?v=20261022-3"></script>
+    <script src="influence/data.js?v=20261022-3"></script>
+    <script src="influence/engine.js?v=20261022-3"></script>
+    <script src="influence/ui.js?v=20261022-3"></script>
   </body>
 </html>
