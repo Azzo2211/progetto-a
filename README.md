@@ -246,6 +246,24 @@ La pagina Influenza (cartella `influence/`) insegna la psicologia della persuasi
 
 **Profilo (6 categorie)**: Riconoscimento (risposte giuste sulle ultime 60 leve, bias e tecniche di trattativa), Persuasione (media dei casi), Negoziazione (valore catturato nelle ultime 8 trattative, pesato per livello), Difesa (messaggi di manipolazione e casi di difesa), Conoscenza (schede imparate e capitoli letti), Costanza (giorni di allenamento nelle ultime due settimane). Con pochi dati partono da 35 e si avvicinano al dato vero man mano.
 
+## Modulo logica: esercizi generati, punteggio per disciplina, trappole
+
+La pagina Logica (cartella `logic/`) genera gli esercizi al momento, quindi non finiscono mai, e controlla con un risolutore che ognuno abbia una sola soluzione.
+
+| File | Cosa fa |
+|---|---|
+| `logic/gen.js` | I generatori: matrici in stile Raven (forma, numero, grandezza e colore con regole costante/progressione/distribuzione; ai livelli alti sovrapposizioni XOR), serie di numeri (scartate quelle che un'altra regola semplice continuerebbe diversamente), griglie di deduzione (case in fila; indizi aggiunti finché la soluzione è unica, poi tolti quelli inutili), cavalieri e furfanti (soluzione unica su tutte le combinazioni), sillogismi (validità controllata su tutti i modelli a tre insiemi non vuoti), probabilità (dadi, monete, carte, Bayes, valore atteso, compleanni), riflessione (problemi tipo test di Frederick con numeri sempre nuovi). |
+| `logic/traps.js` | 14 trappole classiche con i dati degli studi originali: test di riflessione cognitiva (Frederick 2005; Thomson e Oppenheimer 2016), Wason astratto e versione del bar, Linda, taxi, test medico, tre porte, due ospedali, roulette. |
+| `logic/data.js` | 8 lezioni di metodo: dedurre/indurre/abdurre, condizionale, quantificatori e sillogismi, griglie, matrici e serie, probabilità, riflessione, cosa si trasferisce nella vita vera. |
+| `logic/engine.js` | Punteggio per disciplina, turni, controllo delle risposte, trappole, programma del giorno, profilo a esagono. Senza DOM, testato in `tests/logic.test.js`. |
+| `logic/ui.js`, `logic/logic.css` | La pagina: Oggi, Allenamento, Trappole, Metodo, Progressi. |
+
+**Punteggio**: ogni disciplina ha un punteggio come l'Elo degli scacchi. Ogni esercizio ha una difficoltà calcolata dalla frazione p di partecipanti tipici che lo risolvono: difficoltà = 1000 + 400 × log10((1 − p)/p), quindi 1000 = lo risolve una persona su due. Dopo ogni risposta il punteggio cambia di K × (risultato − probabilità attesa), con K 40, poi 28, poi 20. Il livello automatico sceglie esercizi un po' sotto il tuo punteggio (circa 6 giuste su 10). Un test controlla che, con risposte simulate, il punteggio arrivi vicino al livello vero.
+
+**Da dove vengono le difficoltà**: matrici dai dati aperti di Matzen e colleghi 2010 (una regola 87-94% di risposte giuste, due 75-85%, tre 55-74%, XOR 34%), con le 8 risposte costruite come in I-RAVEN (Hu e colleghi 2021: ogni caratteristica giusta compare in metà delle risposte, così non si indovina per esclusione); sillogismi ai livelli 3-4 dai dati aperti di Ragni e colleghi 2016 (139 persone, tutti i 64 sillogismi: dal 4% di «nessun A è B; tutti i B sono C» all'88% di «tutti gli A sono B; nessun B è C», media 41%); riflessione dai campioni del test di Frederick (racchetta 30-48%, macchine 30-44%, ninfee 42-54%) e del test 2 (gara 63%). Per serie, griglie, cavalieri e il resto della probabilità non esistono norme pubblicate: le difficoltà sono stime coerenti tra loro, e la pagina non presenta i punteggi come un QI.
+
+**Profilo (6 categorie, esagono)**: Ragionamento astratto (matrici), Serie e pattern, Deduzione (griglie), Logica formale (sillogismi e cavalieri), Probabilità, Riflessione (disciplina più trappole al primo tentativo). Punteggio 1000 = 50 nell'esagono; con pochi esercizi le categorie partono da 35.
+
 ## Test
 
 ```powershell
@@ -260,6 +278,7 @@ node tests/university.test.js
 node tests/aim.test.js
 node tests/memory.test.js
 node tests/influence.test.js
+node tests/logic.test.js
 node tools/verify-lessons.js           # controlla esempi ed esercizi delle lezioni con Stockfish
 node tools/calibrate.js sf:8,12 30     # livelli 8 e 12 contro Stockfish con forza limitata all'Elo del livello
 node tools/calibrate.js match:3-4 50   # scontro diretto tra due livelli (per quelli sotto 1320)

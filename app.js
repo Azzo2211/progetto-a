@@ -233,42 +233,6 @@ const planningGoals = [
 
 // Le tecniche, il programma e le situazioni della difesa sono in defense/.
 
-const logicRiddles = [
-  {
-    type: "Sequenze",
-    title: "Numeri",
-    text: "Quale numero continua la sequenza: 2, 6, 12, 20, 30, ?",
-    options: ["36", "40", "42", "44"],
-    answer: 2,
-    explanation: "La sequenza aggiunge numeri pari crescenti: +4, +6, +8, +10, quindi +12. 30 + 12 = 42."
-  },
-  {
-    type: "Deduzione",
-    title: "Tre interruttori",
-    text: "Hai tre interruttori fuori da una stanza e una sola lampadina dentro. Puoi entrare una volta. Come capisci quale interruttore controlla la lampadina?",
-    options: ["Accendi il primo e poi entri subito", "Accendi il primo, aspetti, lo spegni, accendi il secondo ed entri", "Accendi tutti e tre e poi entri", "Non si puo' sapere"],
-    answer: 1,
-    explanation: "Se la lampadina e' accesa, e' il secondo. Se e' spenta ma calda, e' il primo. Se e' spenta e fredda, e' il terzo."
-  },
-  {
-    type: "Probabilita'",
-    title: "Moneta",
-    text: "Lanci una moneta equa 3 volte. Qual e' la probabilita' di ottenere almeno una testa?",
-    options: ["1/8", "3/8", "7/8", "1/2"],
-    answer: 2,
-    explanation: "Conviene calcolare il contrario: nessuna testa significa tre croci, probabilita' 1/8. Quindi almeno una testa = 1 - 1/8 = 7/8."
-  },
-  {
-    type: "Attenzione",
-    title: "Padre e figlio",
-    text: "Un padre e un figlio hanno insieme 36 anni. Il padre ha 30 anni piu' del figlio. Quanti anni ha il figlio?",
-    options: ["3", "4", "5", "6"],
-    answer: 0,
-    explanation: "Se il figlio ha x anni, il padre ha x + 30. Totale: 2x + 30 = 36, quindi 2x = 6 e x = 3."
-  }
-];
-
-
 const aestheticItems = [
   { id: "shave", title: "Barba", text: "Barba rasata o linee pulite su collo e guance." },
   { id: "hair", title: "Capelli", text: "Capelli pettinati, puliti e taglio coerente con il viso." },
@@ -349,12 +313,12 @@ const moduleSkillDefinitions = {
     { key: "costanza", label: "Costanza", general: "emotionalControl" }
   ],
   logic: [
+    { key: "abstract", label: "Ragionamento astratto", general: "strategicMind" },
+    { key: "pattern", label: "Serie e pattern", general: "clarity" },
     { key: "deduction", label: "Deduzione", general: "strategicMind" },
-    { key: "precision", label: "Precisione", general: "clarity" },
-    { key: "speed", label: "Velocità", general: "clarity" },
-    { key: "pattern", label: "Pattern", general: "strategicMind" },
-    { key: "coherence", label: "Coerenza", general: "strategicMind" },
-    { key: "problemSolving", label: "Problem solving", general: "strategicMind" }
+    { key: "formal", label: "Logica formale", general: "strategicMind" },
+    { key: "probability", label: "Probabilità", general: "clarity" },
+    { key: "reflection", label: "Riflessione", general: "emotionalControl" }
   ],
   // Memoria: categorie calcolate da test, tecniche e discipline (memory/engine.js).
   memory: [
@@ -398,7 +362,6 @@ let reviewBoard = null;
 let lastMoveSquares = null;
 let reviewMoveSquares = null;
 let currentGame = createNewGame();
-let currentRiddle = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   maybeRedirectFileChessToLocalServer();
@@ -414,7 +377,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initEngine();
   renderGameReport(buildGameAnalysis("partial"));
   loadRandomGoal();
-  loadRandomRiddle();
   renderAesthetic();
   routeToCurrentHash();
 });
@@ -850,7 +812,6 @@ function bindControls() {
   document.getElementById("newGoalBtn").addEventListener("click", loadRandomGoal);
   document.getElementById("clearGoalBtn").addEventListener("click", clearGoal);
   document.getElementById("analyzePlanBtn").addEventListener("click", analyzePlan);
-  document.getElementById("newRiddleBtn").addEventListener("click", loadRandomRiddle);
   document.getElementById("newStyleTipBtn").addEventListener("click", renderRandomStyleTip);
   document.getElementById("saveAestheticBtn").addEventListener("click", saveAestheticChecklist);
 }
@@ -1088,14 +1049,10 @@ function getModuleSkills(moduleKey) {
     defense: window.DefenseEngine && window.defenseProfileSkills ? (() => {
       try { return window.defenseProfileSkills().map((k) => [k.label, k.value]); } catch (error) { console.warn("Profilo difesa non leggibile", error); return []; }
     })() : [],
-    logic: [
-      ["Deduzione", metric("ragionamento") + state.logicSolved * 3],
-      ["Precisione", logicAccuracy],
-      ["Velocità", metric("tempo")],
-      ["Pattern", metric("adattamento") + state.logicSolved * 2],
-      ["Coerenza", (metric("controllo") + metric("ragionamento")) / 2],
-      ["Problem solving", (metric("efficacia") + metric("ragionamento")) / 2]
-    ],
+    // Logica: punteggi Elo delle discipline e trappole (logic/engine.js).
+    logic: window.logicProfileSkills ? (() => {
+      try { return window.logicProfileSkills().map((k) => [k.label, k.value]); } catch (error) { console.warn("Profilo logica non leggibile", error); return []; }
+    })() : [],
     memory: window.memoryProfileSkills ? (() => {
       try { return window.memoryProfileSkills().map((k) => [k.label, k.value]); } catch (error) { console.warn("Profilo memoria non leggibile", error); return []; }
     })() : [],
@@ -1158,7 +1115,7 @@ function dashboardTrend(moduleKey, average) {
     })() : "Biblioteca nuova · leggi la prima scheda",
     planning: state.planScores.length ? `${state.planScores.length} piani · media ${Math.round(averageArray(state.planScores))}` : "Base iniziale · scrivi un piano",
     defense: window.defenseTrend ? (() => { try { return window.defenseTrend(); } catch (error) { return "Fase 1 · inizia la prima sessione"; } })() : "Fase 1 · inizia la prima sessione",
-    logic: state.logicAttempts ? `${state.logicSolved}/${state.logicAttempts} corretti · media ${average}` : "Base iniziale · risolvi un indovinello",
+    logic: window.logicTrend ? (() => { try { return window.logicTrend(); } catch (error) { return "Base iniziale · fai il primo turno"; } })() : "Base iniziale · fai il primo turno",
     memory: window.memoryTrend ? (() => { try { return window.memoryTrend(); } catch (error) { return "Base iniziale · fai la prima misura"; } })() : "Base iniziale · fai la prima misura",
     influence: window.influenceTrend ? (() => { try { return window.influenceTrend(); } catch (error) { return "Base iniziale · parti dal manuale"; } })() : "Base iniziale · parti dal manuale",
     aesthetic: `Score ${state.aesthetic.score || 0}/100 · streak ${state.aesthetic.streak || 0}`
@@ -3847,56 +3804,6 @@ function planRank(score) {
   if (score >= 70) return "buona base";
   if (score >= 55) return "da rendere piu' concreto";
   return "troppo fragile o rischioso";
-}
-
-function loadRandomRiddle() {
-  currentRiddle = logicRiddles[Math.floor(Math.random() * logicRiddles.length)];
-  document.getElementById("riddleType").textContent = currentRiddle.type;
-  document.getElementById("riddleTitle").textContent = currentRiddle.title;
-  document.getElementById("riddleText").textContent = currentRiddle.text;
-  document.getElementById("riddleFeedback").textContent = "Scegli una risposta e vedrai il ragionamento.";
-  const options = document.getElementById("riddleOptions");
-  options.innerHTML = "";
-  currentRiddle.options.forEach((option, index) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "option-button";
-    button.textContent = option;
-    button.addEventListener("click", () => chooseRiddleOption(button, index));
-    options.appendChild(button);
-  });
-  renderLogicStats();
-}
-
-function chooseRiddleOption(button, index) {
-  document.querySelectorAll("#riddleOptions .option-button").forEach((item) => {
-    item.disabled = true;
-  });
-  state.logicAttempts += 1;
-  const correct = index === currentRiddle.answer;
-  if (correct) state.logicSolved += 1;
-  if (!correct) addModulePattern("logic", "ragionamento incompleto");
-  updateModuleMetrics("logic", {
-    lucidita: correct ? 2 : -2,
-    efficacia: correct ? 3 : -2,
-    controllo: correct ? 1 : -1,
-    adattamento: correct ? 1 : 0,
-    ragionamento: correct ? 4 : -3,
-    sostenibilita: 1,
-    tempo: correct ? 1 : 0
-  });
-  saveState();
-  button.classList.add(correct ? "correct" : "risky");
-  document.getElementById("riddleFeedback").textContent = `${correct ? "Corretto." : "Non ancora."} ${currentRiddle.explanation}`;
-  renderLogicStats();
-  renderDashboard();
-}
-
-function renderLogicStats() {
-  const accuracy = state.logicAttempts ? Math.round((state.logicSolved / state.logicAttempts) * 100) : 0;
-  const stats = { solved: state.logicSolved, attempts: state.logicAttempts, accuracy };
-  const labels = { solved: "Risolti", attempts: "Tentativi", accuracy: "Precisione" };
-  renderMetrics(document.getElementById("logicStats"), stats, labels, true);
 }
 
 function renderAestheticChecklist() {
