@@ -331,6 +331,162 @@
           afterYes: "Sì, abbiamo litigato e poi chiarito: le faccio vedere i messaggi del giorno dopo."
         }
       ]
+    },
+    {
+      id: "bike", tu: true, back: true, title: "La bici elettrica", who: "Simone Galli", g: "m", role: "rider delle consegne",
+      crime: "Mercoledì sera, tra le 21 e le 22, dal cortile di un palazzo di via Po è sparita una bici elettrica da 2.500 euro. Simone fa le consegne in quella zona.",
+      open: "Simone, raccontami il tuo mercoledì sera, dalle nove in poi, senza saltare niente.",
+      base: ["Mercoledì ho fatto il turno serale delle consegne, dalle sette a mezzanotte.", "A mezzanotte ho staccato e sono andato a casa a dormire."],
+      vague: "Ho fatto le mie consegne, il giro normale, niente di speciale.",
+      evidence: [
+        {
+          label: "Il cancello", ev: "La telecamera del cancello riprende Simone che entra nel cortile del palazzo alle 21:20.",
+          q: "Mercoledì sei entrato nel cortile di quel palazzo?",
+          free: "Verso le nove e venti ho consegnato due pizze in quel palazzo: il portone era rotto e la signora del quinto mi ha fatto entrare dal cancello del cortile.",
+          yes: "Sì, verso le nove e venti: due pizze per il quinto piano. Il portone era rotto e mi hanno aperto il cancello del cortile.",
+          deny: "No, lì non sono mai entrato. Le consegne le lascio al portone.",
+          admit: "Sì, ci sono passato per una consegna.",
+          after: "Alle 21:20? Può darsi, faccio cento consegne a sera, non me le ricordo tutte.",
+          afterYes: "Sì, è la consegna del quinto piano: c'è sull'app, con l'orario."
+        },
+        {
+          label: "L'app", ev: "L'app delle consegne dice che Simone si è scollegato dalle 21:25 alle 21:45, in pieno turno.",
+          q: "Durante il turno ti sei mai scollegato dall'app?",
+          free: "Verso le nove e mezza mi si è spento il telefono, e mi sono fermato venti minuti al bar della piazza a ricaricarlo.",
+          yes: "Sì, una volta: verso le nove e mezza mi si è scaricato il telefono e l'ho messo in carica al bar della piazza fino alle dieci meno un quarto.",
+          deny: "No, mai. Se ti scolleghi perdi le consegne, nessuno lo fa.",
+          admit: "Sì, per un po'. Avevo bisogno di una pausa.",
+          after: "Scollegato? Ah... forse il telefono si è scaricato. Succede.",
+          afterYes: "Sì, il telefono scarico: il barista della piazza se lo ricorda, gli ho anche pagato un caffè."
+        },
+        {
+          label: "Il parcheggio", ev: "Un residente ha visto Simone alle 21:50 nel parcheggio dietro il palazzo, chinato su una bici.",
+          q: "Verso le dieci ti sei fermato da qualche parte con la bici?",
+          free: "Verso le dieci meno dieci mi è saltata la catena, e l'ho rimessa a posto nel parcheggio dietro il palazzo di via Po.",
+          yes: "Sì, mi è saltata la catena e mi sono fermato nel parcheggio dietro il palazzo a rimetterla a posto. Ho ancora le dita nere, guarda.",
+          deny: "No, mai fermato: con le consegne non ti puoi fermare.",
+          admit: "Sì, un attimo, per sistemare la bici.",
+          after: "Nel parcheggio? Ah, sì... avevo un problema con la catena, mi ero dimenticato.",
+          afterYes: "Sì, la catena: te l'ho detto, guarda le dita."
+        }
+      ]
+    },
+    {
+      id: "copper", tu: false, back: false, title: "Il rame del cantiere", who: "Giorgio Fabbri", g: "m", role: "elettricista del cantiere",
+      crime: "Nella notte tra venerdì e sabato, dal container di un cantiere edile di Rimini sono spariti 300 chili di cavi di rame. Giorgio è uno dei tre che hanno la chiave elettronica del container.",
+      open: "Signor Fabbri, mi racconti il suo fine settimana, da venerdì pomeriggio in poi.",
+      base: ["Venerdì abbiamo finito di tirare i cavi al terzo piano: una giornata lunga.", "Sabato e domenica, a parte qualche commissione, sono stato a casa con mia moglie e i bambini."],
+      vague: "Alle sei ho chiuso con gli altri e sono andato a casa, come tutti i giorni.",
+      evidence: [
+        {
+          label: "Il container", ev: "Il lucchetto elettronico del container registra un'apertura con la chiave di Giorgio venerdì alle 18:45, dopo la fine dei lavori.",
+          q: "Venerdì, dopo le sei, ha aperto il container?",
+          free: "Prima di andare via, verso le sette meno un quarto, ho riaperto il container per rimettere dentro il trapano che avevo dimenticato sul ponteggio.",
+          yes: "Sì, verso le sette meno un quarto: avevo lasciato il trapano sul ponteggio e l'ho rimesso dentro, sennò la mattina non lo trova più nessuno.",
+          deny: "No. Alle sei abbiamo chiuso tutti insieme e me ne sono andato.",
+          admit: "Sì, un attimo, per rimettere a posto un attrezzo.",
+          after: "Alle 18:45? Sì, forse... per il trapano. Non ci pensavo più.",
+          afterYes: "Sì, per il trapano: è lì nel container, può guardare."
+        },
+        {
+          label: "Il furgone", ev: "Un vicino ha visto il furgone di Giorgio parcheggiato davanti al cancello del cantiere alle 23:30.",
+          q: "Venerdì notte dove ha lasciato il furgone?",
+          free: "Il furgone l'ho lasciato davanti al cancello del cantiere, come tutte le sere: abito a due isolati e sotto casa non c'è mai posto.",
+          yes: "Davanti al cancello del cantiere, come sempre: abito a due isolati e sotto casa non trovo mai posto.",
+          deny: "Sotto casa mia, come sempre. Davanti al cantiere non lo lascio mai.",
+          admit: "Vicino al cantiere, mi pare.",
+          after: "Davanti al cancello? Ah... sì, a volte lo lascio lì. Non ci avevo pensato.",
+          afterYes: "Sì, è lì tutte le sere: lo sanno anche i vicini."
+        },
+        {
+          label: "Il rottamaio", ev: "Sabato mattina un rottamaio di Cesena ha comprato da Giorgio 40 chili di rame, pagando in contanti.",
+          q: "Ha venduto del metallo, ultimamente?",
+          free: "Sabato mattina sono passato da un rottamaio di Cesena a vendere gli scarti di rame dei lavori a casa mia: ho anche la ricevuta.",
+          yes: "Sì, sabato mattina: quaranta chili di scarti dei lavori di casa mia, a Cesena. Ho la ricevuta, con il mio nome.",
+          deny: "No, mai venduto niente. Non so neanche dove sono i rottamai.",
+          admit: "Sì, un po' di scarti.",
+          after: "Il rottamaio... sì, erano scarti miei, di casa. Non pensavo che contasse.",
+          afterYes: "Sì, la ricevuta ce l'ho in macchina: ci sono il mio nome e il peso."
+        }
+      ]
+    },
+    {
+      id: "theatre", tu: false, back: false, title: "Il camerino", who: "Sofia Marini", g: "f", role: "costumista del teatro",
+      crime: "Sabato sera, durante il secondo atto, dal camerino della prima attrice è sparita una collana di perle di famiglia. Sofia è entrata e uscita dalle quinte per tutta la sera.",
+      open: "Signora Marini, mi racconti la sua serata di sabato, dall'inizio dello spettacolo.",
+      base: ["Sabato c'era il tutto esaurito, e il primo atto è andato liscio.", "Alla fine dello spettacolo ho ritirato i costumi, li ho messi in lavanderia e sono andata a casa."],
+      vague: "Durante lo spettacolo ho fatto il mio lavoro, avanti e indietro tra le quinte e la sartoria.",
+      evidence: [
+        {
+          label: "La perla", ev: "Sotto il tavolo da cucito di Sofia, in sartoria, è stata trovata una perla della collana.",
+          q: "Sabato la prima attrice è venuta in sartoria?",
+          free: "Nell'intervallo la prima attrice è venuta in sartoria a farsi sistemare un gancio del vestito: la collana si è impigliata e si è staccata una perla, che abbiamo cercato senza trovarla.",
+          yes: "Sì, nell'intervallo, per un gancio del vestito. La collana si è impigliata e ha perso una perla: l'abbiamo cercata per terra, ma niente.",
+          deny: "No, sabato in sartoria non è venuto nessun attore.",
+          admit: "Sì, nell'intervallo, per un ritocco al vestito.",
+          after: "La perla? Ah... sì, l'attrice era passata nell'intervallo, adesso ricordo.",
+          afterYes: "Sì, la perla che cercavamo: allora era finita lì sotto."
+        },
+        {
+          label: "Il corridoio", ev: "Un tecnico ha visto Sofia uscire dal camerino della prima attrice alle 21:40, mentre l'attrice era in scena.",
+          q: "Durante il secondo atto è entrata nel camerino della prima attrice?",
+          free: "Nel secondo atto sono entrata nel camerino della prima attrice a prendere lo scialle del terzo atto, che dovevo ricucire: si era scucito l'orlo.",
+          yes: "Sì, verso le nove e quaranta: dovevo prendere lo scialle del terzo atto per ricucire l'orlo.",
+          deny: "No, durante il secondo atto sono rimasta in sartoria. Nei camerini non entro mai senza gli attori.",
+          admit: "Sì, per prendere un costume.",
+          after: "Alle 21:40? Ah, sì... per lo scialle. Con la confusione me n'ero dimenticata.",
+          afterYes: "Sì, lo scialle: l'orlo ricucito lo può vedere, è in sartoria."
+        },
+        {
+          label: "L'uscita degli artisti", ev: "La telecamera dell'uscita degli artisti riprende Sofia che alle 22:00 esce con una borsa e rientra dopo due minuti senza.",
+          q: "Durante lo spettacolo è uscita dal teatro?",
+          free: "Verso le dieci sono uscita due minuti dall'ingresso degli artisti: mia figlia passava a prendere la borsa con la cena per la nonna.",
+          yes: "Sì, due minuti, verso le dieci: mia figlia è passata a prendere una borsa con la cena per la nonna. Può chiederlo a lei.",
+          deny: "No, non sono mai uscita fino alla fine dello spettacolo.",
+          admit: "Sì, un attimo, per una commissione.",
+          after: "Uscita? Ah, sì... due minuti, per mia figlia. Non mi sembrava importante.",
+          afterYes: "Sì, la borsa per mia figlia: è quello che le ho raccontato."
+        }
+      ]
+    },
+    {
+      id: "van", tu: false, back: false, title: "Lo specchietto", who: "Ivan Bellini", g: "m", role: "autista del furgone di un forno",
+      crime: "Lunedì all'alba, in via Mazzini, qualcuno ha urtato un'auto grigia parcheggiata, spaccandole lo specchietto e rigandole la fiancata, ed è scappato. Ivan passa ogni mattina da quelle parti con il furgone del forno.",
+      open: "Signor Bellini, mi racconti il suo lunedì mattina, da quando ha preso il furgone.",
+      base: ["Lunedì ho caricato il pane al forno alle quattro e mezza, come tutte le mattine.", "Alle otto ho finito il giro e ho riportato il furgone al forno."],
+      vague: "Ho fatto il mio giro delle consegne, i soliti bar e i soliti alimentari.",
+      evidence: [
+        {
+          label: "Il GPS", ev: "Il GPS del furgone dice che alle 5:10 Ivan è passato in via Mazzini.",
+          q: "Lunedì mattina è passato da via Mazzini?",
+          free: "Verso le cinque e dieci sono passato da via Mazzini: è la strada per il bar della stazione, la faccio tutti i giorni.",
+          yes: "Sì, verso le cinque e dieci, come ogni mattina: è la strada per il bar della stazione.",
+          deny: "No, lunedì ho fatto un altro giro: via Mazzini l'ho evitata, c'erano i lavori.",
+          admit: "Sì, ci passo spesso.",
+          after: "Via Mazzini? Sì... ci passo quasi tutti i giorni, non ci avevo fatto caso.",
+          afterYes: "Sì, è la strada del bar della stazione: il GPS lo segna tutti i giorni."
+        },
+        {
+          label: "La telefonata", ev: "Alle 5:12 Ivan ha telefonato al titolare del forno per due minuti.",
+          q: "Durante il giro ha telefonato a qualcuno?",
+          free: "Arrivato al bar della stazione ho chiamato il titolare, perché mancavano due ceste di cornetti e volevo sapere se tornare indietro a prenderle.",
+          yes: "Sì, al titolare, verso le cinque e un quarto: al bar della stazione mancavano due ceste di cornetti e volevo sapere cosa fare.",
+          deny: "No, durante il giro non telefono mai: guido.",
+          admit: "Sì, una telefonata veloce, di lavoro.",
+          after: "La telefonata? Ah... sì, per una cosa di lavoro. Mi era passata di mente.",
+          afterYes: "Sì, per i cornetti: il titolare se lo ricorda di sicuro."
+        },
+        {
+          label: "Il paraurti", ev: "Sul paraurti destro del furgone c'è un graffio recente, con tracce di vernice grigia.",
+          q: "Il furgone ha qualche danno?",
+          free: "Il furgone, tra l'altro, ha un graffio sul paraurti destro: sabato ho preso il palo grigio del cortile del forno facendo manovra, e l'ho detto subito al titolare.",
+          yes: "Sì, un graffio sul paraurti destro: sabato ho preso il palo grigio del cortile del forno, facendo manovra. L'ho detto subito al titolare.",
+          deny: "No, il furgone è a posto. Non ha un graffio.",
+          admit: "Qualche graffio, è un furgone da lavoro.",
+          after: "Il graffio? Ah, sì... l'avrò fatto in cortile. Non ci pensavo.",
+          afterYes: "Sì, il palo del cortile: il titolare l'ha visto sabato stesso."
+        }
+      ]
     }
   ];
 

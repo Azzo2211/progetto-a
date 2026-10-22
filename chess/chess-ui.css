@@ -2094,3 +2094,5 @@
 @media (max-width: 720px) {
   .weak-grid { grid-template-columns: 1fr 1fr; }
 }
+.lesson-theory .lesson-sec-title { margin: 16px 0 6px; font-size: 1rem; font-weight: 760; color: #8c2035; }
+.lesson-theory .lesson-sec-title:first-child { margin-top: 0; }

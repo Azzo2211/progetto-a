@@ -324,6 +324,86 @@
         { q: "Che cosa avevano in comune i campioni di memoria studiati nel 2003?", options: ["Un quoziente intellettivo molto alto", "Un cervello diverso dal normale", "Quasi tutti usavano il metodo dei luoghi", "Avevano tutti meno di vent'anni"], answer: 2, why: "Nove su dieci usavano il metodo dei luoghi; intelligenza e struttura del cervello erano nella norma." },
         { q: "Come si usa il palazzo della memoria per un caso?", options: ["Si ripetono i fatti ad alta voce", "Si mette ogni fatto in un luogo preciso di un percorso conosciuto", "Si scrivono i fatti in ordine alfabetico", "Si immagina il colpevole"], answer: 1, why: "Ogni fatto in un luogo, lungo un percorso che conosci: poi lo ripercorri e li ritrovi in ordine." }
       ]
+    },
+    {
+      id: "alibi", title: "L'alibi e la linea del tempo", minutes: 8, train: "interro",
+      lead: "Un alibi è un'affermazione sul tempo: «a quell'ora ero altrove». Va trattato come una prova da verificare, non come una risposta da credere o da smontare. E c'è una cosa che sorprende: anche gli innocenti sbagliano spesso il proprio alibi.",
+      sections: [
+        {
+          title: "La linea del tempo",
+          body: [
+            "Il primo strumento è banale e potentissimo: mettere in fila i fatti che hanno un orario. Ogni fatto con un'ora diventa un paletto, e ogni racconto deve passare tra i paletti. Nel caso del bar, la busta trovata nel bidone svuotato alle 23:46 e la porta che si riapre alle 0:52 bastano a dire che qualcuno è tornato dopo la chiusura.",
+            "Distingui gli orari forti da quelli deboli. Un registro elettronico, uno scontrino, un messaggio inviato sono forti; «verso le dieci» detto da un testimone è debole. E diffida degli orari che sembrano forti e non lo sono: l'ora in cui una foto è stata inviata non è l'ora in cui è stata scattata, e l'orologio di una telecamera può essere indietro.",
+            "Poi cerca i buchi, i tratti di tempo in cui una persona non ha nessun paletto. Un buco non è una colpa, ma è il posto dove guardare."
+          ],
+          example: { q: "Nel caso della biblioteca, perché il diluvio delle 15:35 è un orario così utile?", a: "Perché non dipende da nessuno dei sospettati: è un orologio esterno. Chi è bagnato è uscito dopo le 15:35, e chi giura di non essere mai uscito non può avere le scarpe fradice." }
+        },
+        {
+          title: "Che cosa rende credibile un alibi",
+          body: [
+            "Olson e Wells (2004) hanno proposto di classificare gli alibi secondo due tipi di conferma: le prove fisiche (uno scontrino, una telecamera, un biglietto) e le persone che li confermano. Nei loro esperimenti, 252 persone nel ruolo di investigatori davano molto peso alle prove fisiche, anche più di quanto gli autori si aspettassero.",
+            "Hanno trovato anche due errori di chi giudica. Si fidava di un estraneo che confermava l'alibi senza pensare che anche un estraneo può sbagliarsi su chi ha visto. E si faceva influenzare da quanto la persona sembrava affidabile e simpatica, cosa che con la verità dell'alibi non c'entra.",
+            "Per questo l'approccio della verificabilità (Nahari, Vrij e Fisher) guarda ai dettagli controllabili: un alibi con nomi, luoghi e scontrini si può verificare, uno fatto di «ero a casa da solo a guardare la televisione» no. Ma non verificabile non vuol dire falso: molte persone oneste, la sera, sono davvero a casa da sole."
+          ]
+        },
+        {
+          title: "Anche gli innocenti sbagliano",
+          body: [
+            "La sorpresa degli studi è che anche chi dice il vero sbaglia spesso il proprio alibi. Ricordare dove eri martedì scorso alle sei di sera è difficile: le giornate simili si confondono, e si finisce per raccontare il martedì tipico invece di quel martedì.",
+            "In una ricerca finanziata dal National Institute of Justice degli Stati Uniti, solo il 16% degli innocenti interrogati senza aiuti dava un alibi esatto. Con un po' di tempo per prepararsi si saliva al 32%, e con la possibilità di controllare il telefono al 51%.",
+            "La conseguenza è importante: un alibi sbagliato non è automaticamente una bugia. Prima di concludere, fai ricostruire la giornata con calma, con l'agenda o il telefono in mano. Chi si era confuso corregge, e la nuova versione torna con i fatti; chi mente tende a cambiare versione ogni volta che scopre che cosa sai."
+          ],
+          example: { q: "Un sospettato dice di essere stato in palestra martedì alle 19, ma il badge della palestra lo segna mercoledì. Che cosa concludi?", a: "Ancora niente. Può aver confuso i giorni, come capita spesso agli innocenti. Gli chiedi di ricostruire martedì con il telefono in mano: se trova un altro paletto verificabile, l'errore era di memoria; se la storia continua a cambiare per adattarsi a quello che sai, è un altro discorso." }
+        }
+      ],
+      sources: [
+        ["Olson e Wells (2004), What makes a good alibi? A proposed taxonomy, Law and Human Behavior", "https://link.springer.com/article/10.1023/B:LAHU.0000022320.47112.d3"],
+        ["Olson e Charman (2012), «But can you prove it?»: la qualità degli alibi degli innocenti, Psychology, Crime & Law", "https://discovery.fiu.edu/display/pub117283"],
+        ["National Institute of Justice: come aiutare gli innocenti a dare un alibi esatto", "https://nij.ojp.gov/library/publications/alibi-generation-and-discriminability-improving-innocent-suspects-accuracy-and"]
+      ],
+      checks: [
+        { q: "Quale conferma rende più credibile un alibi, secondo gli esperimenti di Olson e Wells?", options: ["La testimonianza della madre del sospettato", "Una prova fisica, come uno scontrino o una telecamera", "Il fatto che il sospettato sembri una persona perbene", "La sicurezza con cui il sospettato racconta"], answer: 1, why: "Le prove fisiche pesavano più di tutto. La simpatia del sospettato non dovrebbe contare affatto, anche se chi giudica se ne fa influenzare." },
+        { q: "Un sospettato sbaglia il giorno del suo alibi. Che cosa dicono gli studi?", options: ["Che sta sicuramente mentendo", "Che anche gli innocenti sbagliano spesso il proprio alibi: va fatto ricostruire con l'agenda o il telefono prima di concludere", "Che gli alibi non contano niente", "Che bisogna metterlo sotto pressione finché non dice la verità"], answer: 1, why: "Nello studio del National Institute of Justice, senza aiuti solo il 16% degli innocenti dava un alibi esatto. Un errore di memoria non è una bugia: la differenza si vede quando la persona ricostruisce con paletti verificabili." }
+      ]
+    },
+    {
+      id: "weight", title: "Quanto pesa una prova", minutes: 8, train: "liar",
+      lead: "Un indizio non dice «colpevole» o «innocente»: rende una spiegazione più o meno probabile di un'altra. Confondere le due cose ha mandato in prigione persone innocenti.",
+      sections: [
+        {
+          title: "La domanda giusta",
+          body: [
+            "Davanti a un indizio la domanda non è «è compatibile con la colpa?», ma «quanto è più probabile se è stato lui che se non è stato lui?». Il nervosismo è compatibile con la colpa, ma è quasi altrettanto probabile in un innocente interrogato: pesa pochissimo. Il fango fresco sugli stivali, in una notte in cui ha piovuto solo dopo mezzanotte, è molto più probabile in chi è uscito di notte: pesa tanto.",
+            "Gli statistici chiamano questo confronto rapporto di verosimiglianza (likelihood ratio). Non servono conti: basta abituarsi a fare sempre anche la seconda metà della domanda, quella sull'innocente.",
+            "Più indizi indipendenti nella stessa direzione si rafforzano a vicenda. Ma devono essere davvero indipendenti: tre testimoni che ripetono la stessa voce di corridoio valgono come un indizio solo."
+          ]
+        },
+        {
+          title: "L'errore del procuratore: il caso Sally Clark",
+          body: [
+            "Nel 1999, in Inghilterra, Sally Clark fu condannata per la morte dei suoi due bambini. Un esperto dell'accusa disse in aula che la probabilità di due morti in culla in una famiglia come la sua era di una su 73 milioni: aveva stimato circa una su 8.500 per un bambino e aveva moltiplicato il numero per sé stesso.",
+            "Nel 2001 la Royal Statistical Society intervenne pubblicamente con due critiche. La prima: moltiplicare vale solo se i due eventi sono indipendenti, e in una stessa famiglia fattori genetici e ambientali comuni rendono questa ipotesi molto dubbia. La seconda, più profonda: anche un numero piccolissimo non è la probabilità che lei fosse innocente. Anche l'uccisione di due neonati da parte della madre è un evento rarissimo; conta quale delle due spiegazioni rare è più probabile. Scambiare «la probabilità dell'indizio se è innocente» con «la probabilità che sia innocente» si chiama errore del procuratore (prosecutor's fallacy).",
+            "Sally Clark fu assolta in appello nel 2003, anche perché erano emersi esami medici che alla difesa non erano mai stati mostrati. Il suo caso si studia ancora nei corsi di statistica e di diritto."
+          ]
+        },
+        {
+          title: "Le prove che mancano",
+          body: [
+            "Anche l'assenza di qualcosa è un indizio, se ti aspetteresti di trovarlo. In «Silver Blaze» di Conan Doyle (1892) Holmes richiama l'attenzione dell'ispettore sullo strano episodio del cane durante la notte. Ma il cane non ha fatto niente, obietta l'ispettore. Ed è proprio questo lo strano episodio: il cane non ha abbaiato, quindi il visitatore notturno era qualcuno che conosceva.",
+            "L'assenza pesa solo se, nell'altra ipotesi, la cosa ci sarebbe quasi di sicuro. Un cane che abbaia a tutti e stanotte tace dice molto; un cane che dorme sempre come un sasso non dice niente. È la stessa domanda di prima, applicata a quello che non c'è."
+          ],
+          example: { q: "In un furto in casa non si trovano impronte di nessuno. Che cosa ne ricavi?", a: "Poco, da sola: chi ruba usa spesso i guanti, e molte superfici non trattengono le impronte. L'assenza di impronte sarebbe un indizio forte solo se, nell'altra ipotesi, ti aspettassi quasi di sicuro di trovarle." }
+        }
+      ],
+      sources: [
+        ["La Royal Statistical Society sul caso Clark, in Chance News 11.01", "https://chance.dartmouth.edu/chance_news/recent_news/chance_news_11.01.html"],
+        ["Sally Clark (voce di Wikipedia, con le sentenze e la bibliografia)", "https://en.wikipedia.org/wiki/Sally_Clark"],
+        ["Conan Doyle, Silver Blaze, in The Memoirs of Sherlock Holmes, Project Gutenberg", "https://www.gutenberg.org/files/834/834-h/834-h.htm"]
+      ],
+      checks: [
+        { q: "Un sospettato suda durante l'interrogatorio. Quanto pesa questo indizio?", options: ["Molto: chi mente suda", "Quasi niente: sudare sotto interrogatorio è probabile quasi quanto in un innocente", "Dipende solo da quanto suda", "È la prova che nasconde qualcosa"], answer: 1, why: "Un indizio pesa quanto è più probabile se la persona è colpevole che se è innocente. Sudare sotto interrogatorio è comune nei due casi: il confronto è quasi pari." },
+        { q: "«La probabilità che due bambini muoiano così per cause naturali è una su 73 milioni, quindi la madre è colpevole.» Dov'è l'errore?", options: ["Nel numero, che è troppo alto", "Nello scambiare la probabilità dell'indizio se è innocente con la probabilità che sia innocente, e nel moltiplicare due eventi non indipendenti", "Non c'è errore: un numero così piccolo basta", "Nel fatto che le statistiche in tribunale non si possono usare"], answer: 1, why: "È l'errore del procuratore: anche la spiegazione alternativa era rarissima, e conta il confronto tra le due. E il numero stesso era sbagliato, perché supponeva indipendenti due morti nella stessa famiglia." }
+      ]
     }
   ];
 

@@ -29,10 +29,12 @@
     finanza: { label: "Finanza", color: "#1f6e8c" },
     strategia: { label: "Strategia e teoria dei giochi", color: "#a8741a" },
     filosofia: { label: "Filosofia", color: "#5c5aa8" },
+    politica: { label: "Filosofia politica", color: "#9c2f4e" },
     storia: { label: "Storia", color: "#8c4a2f" },
     informatica: { label: "Informatica", color: "#3b6fb5" },
     matematica: { label: "Matematica", color: "#1f7a6d" },
-    fisica: { label: "Fisica", color: "#6b5b2e" }
+    fisica: { label: "Fisica", color: "#6b5b2e" },
+    astronomia: { label: "Astronomia", color: "#2b3f8c" }
   };
   const LEVELS = { 1: "Base", 2: "Intermedio", 3: "Avanzato" };
 

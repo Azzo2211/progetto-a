@@ -613,6 +613,7 @@
         <p class="ma-task" id="maTimerTask" hidden></p>
         <div class="def-clockbar"><i id="maTimerBar"></i></div>
         <div class="def-row" id="maTimerCtrl"></div>
+        <p class="ma-awake" id="maAwake" hidden></p>
       </div>`;
   }
 
@@ -642,6 +643,12 @@
         const again = ctrl.querySelector(`[data-mact="${hadFocus}"]`) || ctrl.querySelector(`[data-mact="${map[hadFocus] || ""}"]`) || ctrl.querySelector("button");
         if (again) again.focus({ preventScroll: true });
       }
+    }
+    const awake = $("maAwake");
+    if (awake) {
+      const msg = t.running ? (window.DefenseAwake && DefenseAwake.active ? "Lo schermo resta acceso finché il timer va. Se lo spegni o cambi app, il tempo continua lo stesso." : "Se lo schermo si spegne o cambi app il timer continua: quando torni è già al punto giusto.") : "";
+      if (awake.textContent !== msg) awake.textContent = msg;
+      awake.hidden = !msg;
     }
     if (task) {
       const text = t.finished ? "" : p.type === "rest" && p.task ? `${t.rounds ? "Prossimo round" : "Prossima serie"}: ${p.task}` : p.task || "";
@@ -676,16 +683,19 @@
       ${t.signalable ? `<button type="button" class="def-ghost def-toggle" data-mact="timer-signals" aria-pressed="${!!prefs().signals}" title="Durante il round un segnale a caso: scatta con la tecnica">Segnali casuali</button>` : ""}`;
   }
 
-  function timerStart() {
+  // L'orologio usa l'ora vera (Date.now): se il telefono sospende la pagina il tempo continua a
+  // scorrere, e al ritorno le fasi finite nel frattempo vengono recuperate (vedi timerTick).
+  function timerStart(quiet) {
     const t = ui.timer;
     if (!t || t.finished) return;
     const p = t.phases[t.i];
     if (!p.secs) return;
     const fresh = t.left === p.secs;
     t.running = true;
-    t.endsAt = performance.now() + t.left * 1000;
-    t.nextSignal = performance.now() + 2500 + Math.random() * 3000;
-    if (p.type === "work" && fresh) {
+    t.endsAt = Date.now() + t.left * 1000;
+    t.nextSignal = Date.now() + 2500 + Math.random() * 3000;
+    if (window.DefenseAwake) { DefenseAwake.acquire(); DefenseAwake.askNotify(); }
+    if (p.type === "work" && fresh && !quiet) {
       beep(880, 120);
       if (p.task) speak(`${t.rounds ? "Round" : "Serie"} ${p.set}${p.side ? `, ${p.side}` : ""}. ${p.task}`);
       else speak(p.side ? `Via, ${p.side}` : "Via");
@@ -700,6 +710,7 @@
     if (!t) return;
     t.running = false;
     clearInterval(t.tick);
+    if (window.DefenseAwake) DefenseAwake.release();
     paintTimer();
   }
 
@@ -707,12 +718,14 @@
     const t = ui.timer;
     if (!t || !t.running) return;
     const prev = Math.ceil(t.left);
-    t.left = (t.endsAt - performance.now()) / 1000;
+    t.left = (t.endsAt - Date.now()) / 1000;
+    // pagina sospesa (schermo spento, altra app): recupera le fasi finite nel frattempo
+    if (t.left <= -1.5) { catchUp(); return; }
     const whole = Math.ceil(t.left);
-    if (whole !== prev && whole <= 3 && whole > 0) beep(740, 60, 0.05);
+    if (whole !== prev && whole <= 3 && whole > 0 && !document.hidden) beep(740, 60, 0.05);
     // segnali casuali nello shadow: allenano a partire al momento giusto
     const p = t.phases[t.i];
-    if (t.signalable && prefs().signals && p && p.type === "work" && performance.now() >= t.nextSignal && t.left > 1.5) {
+    if (t.signalable && prefs().signals && p && p.type === "work" && Date.now() >= t.nextSignal && t.left > 1.5 && !document.hidden) {
       beep(1250, 90, 0.1);
       const box = $("maTimer");
       if (box) {
@@ -722,41 +735,76 @@
         clearTimeout(t.signalOff);
         t.signalOff = setTimeout(() => { const b = $("maTimer"); if (b) b.classList.remove("signal"); }, 450);
       }
-      t.nextSignal = performance.now() + 2500 + Math.random() * 3500;
+      t.nextSignal = Date.now() + 2500 + Math.random() * 3500;
     }
     if (t.left <= 0) nextPhase(true);
     else paintTimer();
   }
 
+  // Al ritorno dopo una sospensione: salta le fasi a tempo già finite e riparte da dove saresti ora.
+  function catchUp() {
+    const t = ui.timer;
+    if (!t || !t.running) return;
+    let over = Math.max(0, -t.left);
+    let guard = 0;
+    nextPhase(true, true);
+    while (ui.timer === t && t.running && !t.finished && guard < 300) {
+      guard += 1;
+      const p = t.phases[t.i];
+      if (!p || !p.secs) break;
+      if (over >= p.secs) { over -= p.secs; t.left = 0; nextPhase(true, true); continue; }
+      t.left = p.secs - over;
+      t.endsAt = Date.now() + t.left * 1000;
+      break;
+    }
+    if (ui.timer === t && !t.finished) {
+      const p = t.phases[t.i];
+      const unit = t.rounds ? "Round" : "Serie";
+      const msg = p.type === "rest" ? `Sei in recupero, prima di ${unit.toLowerCase()} ${p.set + 1}` : p.type === "reps" ? `${unit} ${p.set}: segna quando hai finito` : `${unit} ${p.set} in corso`;
+      announce(msg);
+      if (document.hidden && window.DefenseAwake) DefenseAwake.notify("Allenamento in corso", msg);
+    } else if (ui.timer === t && t.finished && document.hidden && window.DefenseAwake) DefenseAwake.notify("Esercizio finito", "Segna com'è andata.");
+    paintTimer();
+  }
+
   // Passa alla fase successiva; le fasi a tempo partono da sole, le serie a ripetizioni aspettano "Serie fatta".
-  function nextPhase(auto) {
+  function nextPhase(auto, quiet) {
     const t = ui.timer;
     if (!t) return;
     clearInterval(t.tick);
     t.running = false;
     t.i += 1;
+    const aw = window.DefenseAwake;
     if (t.i >= t.phases.length) {
       t.finished = true;
       beep(523, 380, 0.09);
       speak("Esercizio finito");
       announce("Esercizio finito: segna com'è andata");
+      if (aw) { aw.notify("Esercizio finito", "Segna com'è andata."); aw.release(); }
       paintTimer();
       return;
     }
     const p = t.phases[t.i];
     t.left = p.secs || 0;
     const unit = t.rounds ? "Round" : "Serie";
-    if (p.type === "rest") { beep(523, 260, 0.07); speak(p.task ? `Recupero. Poi: ${p.task}` : "Recupero"); announce(`Recupero ${p.secs} secondi${p.task ? `. ${t.rounds ? "Prossimo round" : "Prossima serie"}: ${p.task}` : ""}`); }
-    if (p.type === "switch") { beep(660, 160, 0.06); speak("Cambia lato"); announce("Cambia lato"); }
-    if (p.type === "work" || p.type === "reps") announce(`${unit} ${p.set} di ${t.sets}${p.side ? `, ${p.side}` : ""}${p.task ? `: ${p.task}` : ""}`);
-    if (p.secs && (auto || p.type !== "work")) timerStart();
-    else paintTimer();
-    if (p.type === "reps") speak(p.task ? `${unit} ${p.set}. ${p.task}` : `${unit} ${p.set}`);
+    if (!quiet) {
+      if (p.type === "rest") { beep(523, 260, 0.07); speak(p.task ? `Recupero. Poi: ${p.task}` : "Recupero"); announce(`Recupero ${p.secs} secondi${p.task ? `. ${t.rounds ? "Prossimo round" : "Prossima serie"}: ${p.task}` : ""}`); if (aw) aw.notify("Recupero", `${p.secs} secondi${p.task ? `. Poi: ${p.task}` : ""}`); }
+      if (p.type === "switch") { beep(660, 160, 0.06); speak("Cambia lato"); announce("Cambia lato"); if (aw) aw.notify("Cambia lato", ""); }
+      if (p.type === "work" || p.type === "reps") { announce(`${unit} ${p.set} di ${t.sets}${p.side ? `, ${p.side}` : ""}${p.task ? `: ${p.task}` : ""}`); if (aw) aw.notify(`${unit} ${p.set} di ${t.sets}`, p.task || (p.type === "reps" ? "Quando hai finito, segna la serie." : "Via!")); }
+    }
+    if (p.secs && (auto || p.type !== "work")) timerStart(quiet);
+    else {
+      // serie a ripetizioni: il timer aspetta te, lo schermo può spegnersi
+      if (aw && p.type === "reps") aw.release();
+      paintTimer();
+    }
+    if (p.type === "reps" && !quiet) speak(p.task ? `${unit} ${p.set}. ${p.task}` : `${unit} ${p.set}`);
   }
 
   function stopTimer() {
     if (ui.timer && ui.timer.tick) clearInterval(ui.timer.tick);
     if (ui.timer) clearTimeout(ui.timer.signalOff);
+    if (ui.timer && window.DefenseAwake) DefenseAwake.release();
     ui.timer = null;
   }
 
@@ -1354,6 +1402,7 @@
     render,
     stop() {
       if (ui.timer && ui.timer.running) timerPause();
+      if (window.DefenseAwake) DefenseAwake.release();
       if (ui.player) ui.player.pause();
       if ("speechSynthesis" in window) try { window.speechSynthesis.cancel(); } catch (e) { /* niente */ }
     },
@@ -1393,6 +1442,7 @@
     if (!box || !M) return;
     box.addEventListener("click", onClick);
     box.addEventListener("change", onChange);
-    document.addEventListener("visibilitychange", () => { if (document.hidden && ui.timer && ui.timer.running) timerPause(); });
+    // schermo spento o altra app: il timer non si ferma; al ritorno si rimette in pari subito
+    document.addEventListener("visibilitychange", () => { if (!document.hidden && ui.timer && ui.timer.running) timerTick(); });
   });
 })();

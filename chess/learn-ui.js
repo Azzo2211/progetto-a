@@ -544,7 +544,7 @@
         <summary>Spiegazione del coach</summary>
         <div class="lesson-teacher">
           <img src="${esc(mentor.image)}" alt="" width="40" height="40">
-          <div class="lesson-theory">${lesson.theory.map((para) => `<p>${esc(para)}</p>`).join("")}</div>
+          <div class="lesson-theory">${lesson.theory.map((para) => `<p>${esc(para)}</p>`).join("")}${(lesson.sections || []).map((sec) => `<h4 class="lesson-sec-title">${esc(sec.title)}</h4>${(sec.paras || []).map((para) => `<p>${esc(para)}</p>`).join("")}`).join("")}</div>
         </div>
       </details>
       <div class="key-points">

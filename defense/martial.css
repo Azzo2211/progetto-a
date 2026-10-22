@@ -494,3 +494,4 @@
 
 /* titoli che ricevono il focus dopo un cambio di vista: niente cornice */
 #defPanel-martial [data-focus-title]:focus, #defPanel-martial h2[tabindex="-1"]:focus, #defPanel-martial h3[tabindex="-1"]:focus { outline: none; }
+.ma-awake { margin: 8px 0 0; font-size: 0.8rem; color: var(--d-muted, #a1acb7); }

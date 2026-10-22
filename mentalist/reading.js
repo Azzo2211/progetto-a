@@ -53,6 +53,11 @@
     { id: "t22", type: "tech", lv: 3, tech: "shotgun", context: "A una sala piena:", text: "«C'è un anniversario a marzo... o in primavera... un compleanno, o forse una perdita.»", why: "Tre mesi, due tipi di ricorrenza, una sala intera: qualcuno si riconosce sicuramente." },
     { id: "t23", type: "tech", lv: 1, tech: "barnum", text: "«Ci tieni alla tua indipendenza e non ti piace quando sono gli altri a decidere per te.»", why: "A chi piace che decidano gli altri? Vale per tutti, ma suona come un ritratto." },
     { id: "t24", type: "tech", lv: 3, tech: "barnum", text: "«Dai molto agli altri, e non sempre ti viene riconosciuto quanto.»", why: "Quasi tutti pensano di dare più di quanto ricevono. È Barnum, con una lusinga dentro: piace, quindi non si discute." },
+    { id: "t25", type: "tech", lv: 1, tech: "fuzzy", text: "«Vedo una M... o forse una N... un nome, o un luogo, legato a qualcuno di importante per te.»", why: "Due lettere, un nome o un luogo, qualcuno importante: Marco, Napoli, la mamma, la nonna. Il sensitivo resta nel vago e lascia al cliente il lavoro di dare un significato preciso; poi il cliente ricorderà che «aveva visto il nome»." },
+    { id: "t26", type: "tech", lv: 2, tech: "hot", context: "La cliente ha prenotato con nome e cognome, e la sensitiva ha letto i necrologi del giornale locale.", text: "«Sento un uomo che se n'è andato in primavera... il nome comincia per R... un uomo legato al mare.»", why: "Nel necrologio c'erano la data, il nome, Renato, e la foto con la barca. Non è una visione, è una ricerca fatta prima: lettura a caldo." },
+    { id: "t27", type: "tech", lv: 3, tech: "rainbow", text: "«Con le persone che ami sei aperta e affettuosa, ma c'è una parte di te che tiene tutti a distanza.»", why: "Aperta e distante: un tratto e il suo contrario. Sembra un ritratto profondo, ma descrive chiunque. È l'arcobaleno, travestito da intuizione." },
+    { id: "t28", type: "tech", lv: 2, tech: "guess", text: "«In casa tua c'è un orologio che non funziona più, o che va indietro.»", why: "Un orologio fermo, una sveglia scarica, quello del forno mai regolato: in quasi tutte le case ce n'è uno. Sembra preciso, è statistica." },
+    { id: "t29", type: "tech", lv: 3, tech: "jacques", context: "A un uomo sui cinquantacinque anni:", text: "«Ultimamente ti chiedi se ti resta il tempo per fare una cosa che avevi in mente da giovane.»", why: "Verso i cinquantacinque anni moltissimi fanno i conti tra i progetti di gioventù e il tempo che resta. La frase è cucita sull'età, non sulla persona." },
 
     /* ---- inferenze dai dettagli */
     { id: "i1", type: "infer", lv: 1, text: "Un uomo sui trentacinque anni ha una striscia di pelle più chiara attorno all'anulare sinistro, ma nessun anello.",
@@ -108,7 +113,28 @@
       why: "È il «callo dello scrittore», nel punto dove appoggia la penna. Mano destra, quindi probabilmente destrorso." },
     { id: "i18", type: "infer", lv: 2, text: "Un collega che arriva sempre alle 9 in punto oggi arriva alle 9:40, con la camicia spiegazzata di ieri.",
       options: ["Ha dormito fuori casa.", "Probabilmente non è passato da casa o ha avuto una notte insolita; il motivo può essere qualunque (lavoro, ospedale, una festa, un treno perso).", "Ha litigato con la moglie.", "Lo hanno licenziato."], answer: 1,
-      why: "Due dettagli dicono «notte diversa dal solito». Tutto il resto è una storia che ci si inventa: va verificata, non raccontata come certa." }
+      why: "Due dettagli dicono «notte diversa dal solito». Tutto il resto è una storia che ci si inventa: va verificata, non raccontata come certa." },
+    { id: "i19", type: "infer", lv: 3, text: "Durante un colloquio, un uomo ripete tre volte «sinceramente» e due volte «a dire il vero».",
+      options: ["Sta mentendo: chi dice «sinceramente» di solito mente.", "È un'abitudine di linguaggio o nervosismo: da sola non dice se mente. Conta se quello che racconta torna con i fatti.", "È una persona molto onesta.", "Vuole il posto a tutti i costi."], answer: 1,
+      why: "Gli studi sugli indizi della menzogna (la grande rassegna di DePaulo e colleghi, 2003) trovano che quasi tutti i segnali del comportamento sono deboli. Un intercalare dice come parla una persona, non se dice il vero." },
+    { id: "i20", type: "infer", lv: 3, text: "Un sospettato racconta il suo alibi con moltissimi dettagli: l'orario al minuto, il nome del cameriere, il prezzo del caffè, lo scontrino ancora in tasca.",
+      options: ["Dice sicuramente la verità: chi mente non ricorda i dettagli.", "Sta sicuramente mentendo: ha preparato il racconto.", "I dettagli valgono quando si possono controllare: va sentito il cameriere, va guardato lo scontrino. Un racconto ricco non è vero o falso di per sé.", "I dettagli non contano mai."], answer: 2,
+      why: "È l'idea dell'approccio della verificabilità (Nahari, Vrij e Fisher, 2014): chi mente tende a dare dettagli che non si possono controllare, chi dice il vero ne dà di verificabili. Quindi non conta quanti dettagli, ma se si possono verificare, e poi verificarli." },
+    { id: "i21", type: "infer", lv: 3, text: "Gli chiedi dove era ieri pomeriggio. Fa una pausa lunga e guarda in alto a destra prima di rispondere.",
+      options: ["Sta inventando: guardare in alto a destra vuol dire costruire un ricordo falso.", "Sta ricordando o pensando: la direzione dello sguardo non distingue chi mente. È un'idea della PNL smentita dagli esperimenti.", "È timido.", "Mente, perché ha fatto una pausa."], answer: 1,
+      why: "Wiseman e colleghi (2012) hanno messo alla prova l'idea che lo sguardo in alto a destra riveli la menzogna: nessuna differenza tra chi mentiva e chi diceva il vero. Una pausa può voler dire solo che la domanda richiede di ricordare." },
+    { id: "i22", type: "infer", lv: 2, text: "In una stanza senza riscaldamento, a gennaio, una donna tiene per tutto il tempo le braccia strette al petto e le mani sotto le ascelle.",
+      options: ["Si sta chiudendo: nasconde qualcosa.", "Probabilmente ha freddo: prima di leggere un gesto, guarda il contesto.", "È ostile verso di te.", "È insicura."], answer: 1,
+      why: "Le braccia incrociate non hanno un significato fisso: freddo, comodità, abitudine. Il primo passo di ogni lettura è il contesto, e qui il contesto spiega tutto." },
+    { id: "i23", type: "infer", lv: 2, text: "Una donna in tailleur porta scarpe da ginnastica, e dalla borsa spunta un paio di décolleté.",
+      options: ["Va a un colloquio di lavoro.", "Probabilmente fa un tratto di strada a piedi o con i mezzi, e si cambia le scarpe quando arriva.", "Non sa abbinare i vestiti.", "Ha male ai piedi."], answer: 1,
+      why: "Due dettagli insieme raccontano un'abitudine pratica. Il colloquio è possibile, ma è un salto: la stessa scena si vede ogni mattina fuori da qualunque ufficio." },
+    { id: "i24", type: "infer", lv: 1, text: "Alle nove di mattina un ragazzo ha sul dorso della mano il timbro sbiadito di una discoteca.",
+      options: ["Ieri sera è entrato in un locale che timbra la mano all'ingresso.", "Ha passato la notte a ballare e non ha dormito.", "Ha bevuto troppo.", "Lavora in discoteca."], answer: 0,
+      why: "Il timbro prova l'ingresso nel locale, e quasi certamente ieri sera. Quanto ci è rimasto, quanto ha bevuto e se ha dormito sono storie che il timbro non racconta." },
+    { id: "i25", type: "infer", lv: 3, text: "Un testimone è sicurissimo: «Era lui, lo riconoscerei tra mille.» L'ha visto di notte, per tre secondi, a venti metri di distanza.",
+      options: ["Una sicurezza così è una buona prova.", "La sicurezza di un testimone dice poco su quanto abbia ragione, soprattutto con poca luce, poco tempo e tanta distanza: il riconoscimento va controllato con altri fatti.", "Sta mentendo.", "I testimoni oculari non valgono mai niente."], answer: 1,
+      why: "Negli Stati Uniti, gli errori di riconoscimento dei testimoni oculari compaiono in circa sette casi su dieci tra le condanne poi annullate con il DNA (Innocence Project). Un testimone sincero può sbagliare con tutta la sua sicurezza, ma questo non vuol dire che i testimoni non valgano niente." }
   ];
 
   const DIFF = [0, 640, 840, 1040];

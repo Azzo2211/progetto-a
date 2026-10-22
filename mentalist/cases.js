@@ -203,6 +203,108 @@
 
     /* ---------------------------------------------------------------- 3 */
     {
+      id: "book", level: 1, title: "La cinquecentina", place: "Biblioteca civica, Ferrara",
+      brief: [
+        "Sabato pomeriggio, alle 15:50, la bibliotecaria Ines Ruffo trova aperta e vuota la vetrina della sala antica: manca un Orlando furioso stampato a Ferrara nel 1532, il pezzo più prezioso della biblioteca.",
+        "Alle 16 i carabinieri hanno controllato borse, zaini e cappotti di tutti i presenti: il libro non c'è. In biblioteca c'erano Ines, il volontario Pietro, il laureando Lorenzo Gallo e una lettrice abituale, la signora Carla Neri."
+      ],
+      budget: 14,
+      scene: [
+        { id: "case", name: "La vetrina", text: "La serratura è vecchia: qualcuno l'ha fatta saltare facendo leva. Sul tavolo accanto c'è il tagliacarte di ottone della sala, con la punta piegata.", fact: "lever" },
+        { id: "side", name: "La porta laterale", text: "È l'uscita di sicurezza sul cortile: da fuori non ha maniglia, si apre solo da dentro. Sul pavimento, appena dietro, c'è un cuneo di gomma per tenerla accostata. Il cuneo è bagnato.", fact: "wedge" },
+        { id: "hall", name: "Il corridoio dei bagni", text: "Collega la sala antica alla porta laterale. Sul pavimento ci sono orme bagnate che vanno dalla porta alla sala antica e tornano. Appoggiato al termosifone, un ombrello verde con il logo della Canottieri Ferrara gocciola ancora.", fact: "umbrella" },
+        { id: "office", name: "Il telefono dell'ufficio", text: "L'ufficio di Ines è al piano di sopra. Il registro del telefono fisso: una chiamata con il Comune dalle 15:28 alle 15:47.", fact: "call" },
+        { id: "desk", name: "Il computer del bancone", text: "Il bancone è all'ingresso, lontano dalla sala antica. Il programma dei prestiti ha registrato tre restituzioni fatte da Pietro, alle 15:33, alle 15:39 e alle 15:46.", fact: "loans" },
+        { id: "table", name: "Il tavolo di Lorenzo", text: "Nella sala antica, nel cestino sotto il tavolo di Lorenzo, c'è un foglio appallottolato: la stampa di un sito d'aste. «Ariosto, Orlando furioso, Ferrara 1532. Stima 25.000-35.000 euro.» Gli appunti della tesi, sul tavolo, sono fermi a tre settimane fa.", fact: "auction" }
+      ],
+      people: [
+        {
+          id: "ines", name: "Ines Ruffo", role: "bibliotecaria",
+          look: "Cinquant'anni, occhiali sulla testa, più furiosa che spaventata. Sul bancone c'è una petizione contro il trasferimento dei libri antichi a Bologna: la sua firma è la prima.",
+          lookFact: "petition",
+          ask: [
+            { id: "car", q: "Di chi sono le auto nel cortile?", a: "La Golf è mia, la Punto di Pietro. La Panda rossa è di Lorenzo: viene a studiare tutti i sabati e lo lascio parcheggiare dentro.", fact: "car" },
+            { id: "value", q: "Qualcuno le ha chiesto della cinquecentina, ultimamente?", a: "Lorenzo, la settimana scorsa: voleva sapere quanto vale. Gli ho detto che una copia come la nostra, all'asta, è andata a trentamila euro. Ho pensato che fosse curiosità da studente.", fact: "value" }
+          ]
+        },
+        {
+          id: "pietro", name: "Pietro Malaguti", role: "volontario",
+          look: "Settantadue anni, cardigan abbottonato fino in cima. Le scarpe sono asciutte e lucide.",
+          lookFact: "pietrodry",
+          ask: [
+            { id: "seen", q: "Quando ha visto il libro per l'ultima volta?", a: "Alle 15:30. Sono passato in sala antica a chiudere le finestre, perché il cielo si era fatto nero. Il libro era nella vetrina, e Lorenzo al suo tavolo. Poi sono tornato al bancone e non mi sono più mosso.", fact: "seen" },
+            { id: "carla", q: "La signora Neri si è mai alzata?", a: "Solo per andare in bagno, verso le 15:35: tre minuti. Per il resto era seduta davanti al bancone con il suo cruciverba, e mi chiedeva le parole.", fact: "carlatime" }
+          ]
+        },
+        {
+          id: "lorenzo", name: "Lorenzo Gallo", role: "laureando",
+          look: "Ventiquattro anni, felpa della Canottieri Ferrara. Le scarpe da ginnastica sono fradice e i jeans bagnati fino alle caviglie.",
+          lookFact: "wet",
+          ask: [
+            { id: "where", q: "Oggi pomeriggio sei mai uscito dalla sala antica?", a: "No, mai. Sono arrivato alle due e sono rimasto al mio tavolo finché non è scoppiato il casino.", fact: "lorenzosays" },
+            { id: "thesis", q: "Come va la tesi?", a: "Male. Ho perso la borsa di studio e a fine mese devo lasciare la stanza. Ma questo che c'entra?", fact: "broke" }
+          ]
+        },
+        {
+          id: "carla", name: "Carla Neri", role: "lettrice abituale",
+          look: "Settant'anni, stringe la borsa al petto e guarda tutti di traverso. Porta scarpe di camoscio chiaro, asciutte e immacolate.",
+          lookFact: "carladry",
+          ask: [
+            { id: "bag", q: "Perché stringe così la borsa?", a: "Arrossisce. «C'è un panino con la mortadella. Lo so che in biblioteca non si mangia... Non lo dica alla dottoressa.»", fact: "sandwich" },
+            { id: "hall", q: "Andando in bagno ha notato qualcosa?", a: "La porta laterale era accostata, con qualcosa sotto per non farla chiudere. Fuori diluviava. Ho pensato: chi è quel matto che la lascia aperta con questo tempo?", fact: "dooropen" }
+          ]
+        },
+        {
+          id: "franco", name: "Franco Bonora", role: "barista, di fronte al cortile",
+          look: "Grembiule, l'aria annoiata del sabato pomeriggio. Dal bancone del suo bar si vede tutto il cortile della biblioteca.",
+          ask: [
+            { id: "rain", q: "Che tempo ha fatto oggi pomeriggio?", a: "Sole fino alle tre e mezza. Alle 15:35 è venuto giù il diluvio, e va avanti ancora.", fact: "rain" },
+            { id: "yard", q: "Ha visto qualcuno nel cortile?", a: "Verso le 15:40 un ragazzo è uscito dalla porta laterale con un ombrello verde. È andato alla Panda rossa in fondo al cortile, ha aperto il bagagliaio, ci ha messo dentro qualcosa ed è rientrato dalla stessa porta.", fact: "panda" }
+          ]
+        }
+      ],
+      facts: {
+        lever: "La vetrina è stata forzata con il tagliacarte della sala.",
+        wedge: "La porta laterale, che da fuori non si apre, è stata tenuta accostata con un cuneo di gomma, che è bagnato.",
+        umbrella: "Nel corridoio ci sono orme bagnate tra la porta laterale e la sala antica, e un ombrello verde della Canottieri Ferrara che gocciola.",
+        call: "Ines era al telefono con il Comune, nel suo ufficio al piano di sopra, dalle 15:28 alle 15:47.",
+        loans: "Pietro ha registrato delle restituzioni al bancone alle 15:33, alle 15:39 e alle 15:46.",
+        auction: "Nel cestino di Lorenzo c'è la stampa di un'asta con la stima del libro: 25.000-35.000 euro.",
+        petition: "Ines ha firmato per prima una petizione contro il trasferimento dei libri antichi a Bologna.",
+        car: "La Panda rossa nel cortile è di Lorenzo.",
+        value: "La settimana scorsa Lorenzo ha chiesto a Ines quanto vale il libro.",
+        seen: "Alle 15:30 il libro era nella vetrina e Lorenzo era al suo tavolo, in sala antica.",
+        carlatime: "Carla si è alzata solo tre minuti, verso le 15:35, per andare in bagno.",
+        pietrodry: "Pietro ha le scarpe asciutte e lucide.",
+        wet: "Lorenzo, con la felpa della Canottieri Ferrara, ha le scarpe fradice e i jeans bagnati fino alle caviglie.",
+        lorenzosays: "Lorenzo dice di essere arrivato alle due e di non essere mai uscito dalla sala antica.",
+        broke: "Lorenzo ha perso la borsa di studio e a fine mese deve lasciare la stanza.",
+        carladry: "Carla ha scarpe di camoscio chiaro, asciutte e immacolate.",
+        sandwich: "Nella borsa Carla nasconde un panino.",
+        dooropen: "Verso le 15:35 la porta laterale era già accostata, mentre fuori diluviava.",
+        rain: "Fino alle 15:35 c'era il sole, poi è cominciato il diluvio.",
+        panda: "Verso le 15:40 un ragazzo con un ombrello verde è uscito dalla porta laterale, ha messo qualcosa nel bagagliaio della Panda rossa ed è rientrato."
+      },
+      culprit: "lorenzo",
+      keys: ["panda", "car", "wet", "rain", "lorenzosays", "umbrella", "wedge", "seen", "call", "carladry", "loans", "pietrodry"],
+      need: 3,
+      motives: ["Rivenderlo: aveva perso la borsa di studio e aveva cercato quanto vale", "Impedire che il libro finisse a Bologna", "Studiarlo a casa per la tesi"],
+      motive: 0,
+      traps: [
+        { text: "Dire ad alta voce che domattina i carabinieri apriranno tutte le auto del cortile, e intanto tenere d'occhio la Panda rossa.", ok: true, why: "Le auto di Ines e di Pietro non nascondono niente, e loro lo sanno. Lorenzo sa che nel bagagliaio c'è il libro: alle otto di sera torna nel cortile per portarlo via, e lo fermano con il volume avvolto in una busta di plastica. Una buona trappola mette in allarme solo chi sa dov'è la refurtiva." },
+        { text: "Accusare Ines: ha firmato per prima la petizione contro il trasferimento dei libri a Bologna.", ok: false, why: "Dalle 15:28 alle 15:47 era al telefono al piano di sopra, e intanto qualcuno portava il libro nel cortile. Una firma su una petizione non è un indizio." },
+        { text: "Perquisire Carla: stringe la borsa come se nascondesse qualcosa.", ok: false, why: "Nascondeva un panino. E i carabinieri le borse le hanno già controllate tutte: il libro era già fuori dall'edificio." },
+        { text: "Far giurare a Lorenzo che non è stato lui.", ok: false, why: "Un giuramento non prova niente, in nessuna direzione. Servono i fatti, e qui ci sono." }
+      ],
+      close: [
+        "Il libro non era addosso a nessuno: o è nascosto qui dentro, o è uscito dall'edificio. La porta laterale si apre solo da dentro, ed era tenuta accostata con un cuneo bagnato: qualcuno è uscito nel cortile sotto il diluvio ed è rientrato. Il diluvio è cominciato alle 15:35, e alle 15:40 il barista vede un ragazzo con un ombrello verde mettere qualcosa nel bagagliaio della Panda rossa.",
+        "La Panda è di Lorenzo, l'ombrello della Canottieri come la sua felpa. Lorenzo dice di essere arrivato alle due e di non essere mai uscito, ma alle due c'era il sole: le sue scarpe fradice raccontano un'altra storia. Il perché è nel cestino, con la stima d'asta del libro, e in una borsa di studio persa.",
+        "Ines era al telefono al piano di sopra, Pietro registrava restituzioni al bancone, Carla aveva le scarpe di camoscio asciutte: nessuno di loro era uscito sotto la pioggia."
+      ],
+      lesson: "Prima di chiederti chi, chiediti come è uscito l'oggetto. E usa il tempo che fa come un orologio: chi è bagnato è uscito dopo che ha cominciato a piovere."
+    },
+    /* ---------------------------------------------------------------- 4 */
+    {
       id: "watch", level: 2, title: "L'orologio del nonno", place: "Una villa nelle Langhe",
       brief: [
         "Domenica, cena di famiglia dai Ravera. A fine serata il nonno Ettore, 86 anni, scopre che il suo orologio d'oro non è più sulla scrivania dello studio. La finestra dello studio è aperta e sul davanzale c'è del fango.",
@@ -307,7 +409,7 @@
       lesson: "Il primo indizio da togliere dal tavolo è il pregiudizio. E chi mente non è per forza colpevole: Matteo nascondeva solo una sigaretta."
     },
 
-    /* ---------------------------------------------------------------- 4 */
+    /* ---------------------------------------------------------------- 5 */
     {
       id: "chef", level: 2, title: "Il critico a cena", place: "Ristorante Da Irene, Trieste",
       brief: [
@@ -401,7 +503,219 @@
       lesson: "Chiediti come prima di chiederti chi: il forellino nella crosta stringe il tempo a quattro minuti e lo strumento giusto indica la postazione."
     },
 
-    /* ---------------------------------------------------------------- 5 */
+    /* ---------------------------------------------------------------- 6 */
+    {
+      id: "truffle", level: 2, title: "Il cane che non abbaiò", place: "Una cascina ad Acqualagna, Marche",
+      brief: [
+        "Sabato all'alba Aldo Bartolucci, cavatore di tartufi da cinquant'anni, apre il frigo della cantina e lo trova vuoto: manca il tartufo bianco di 850 grammi trovato mercoledì, che domenica avrebbe venduto alla fiera di Acqualagna per più di quattromila euro.",
+        "In cascina vivono Aldo e il nipote Fabio; nella dependance dorme Mirko, un operaio stagionale. Davanti alla cantina, libera nel cortile, dorme Brina, la lagotta di Aldo, che abbaia a chiunque non sia di casa."
+      ],
+      budget: 15,
+      scene: [
+        { id: "fridge", name: "Il frigo dei tartufi", text: "Il lucchetto a combinazione è aperto e intatto: nessuno l'ha forzato. Sullo sportello, il foglio dove Aldo segna i controlli: «Ven. 22:00, tartufo bianco 850 g, a posto».", fact: "lock" },
+        { id: "glove", name: "Il pavimento della cantina", text: "Davanti al frigo c'è un guanto da lavoro con le iniziali «M.B.» scritte a pennarello.", fact: "glove" },
+        { id: "yard", name: "Il cortile e la cuccia di Brina", text: "La cuccia è accanto alla porta della cantina. Chi vuole entrare in cantina, da qualunque parte arrivi, deve passare a un metro da Brina.", fact: "kennel" },
+        { id: "boots", name: "Gli stivali all'ingresso di casa", text: "Due paia. Quelli di Fabio sono coperti di fango fresco, ancora umido. Quelli di Aldo sono puliti e asciutti.", fact: "boots" },
+        { id: "gauge", name: "La stazione meteo di Aldo", text: "Non pioveva da due settimane. Stanotte ha piovuto da mezzanotte all'una e mezza, poi più niente.", fact: "rain" },
+        { id: "room", name: "La camera di Fabio", text: "Sulla scrivania, il modulo d'iscrizione a una scuola di cucina di Torino, già compilato: 3.900 euro in tutto, con un anticipo di 2.000 euro da versare entro lunedì.", fact: "school" }
+      ],
+      people: [
+        {
+          id: "aldo", name: "Aldo Bartolucci", role: "cavatore, il derubato",
+          look: "Mani nodose, giacca di velluto, la voce che trema di rabbia. Ripete: «Quattro giorni di bosco, buttati.»",
+          ask: [
+            { id: "combo", q: "Chi conosce la combinazione del frigo?", a: "Io e Fabio. E Mirko, da venerdì: gli ho chiesto di tirare fuori il tartufo per farlo vedere al commerciante.", fact: "combo" },
+            { id: "brina", q: "Brina con chi abbaia?", a: "Con tutti quelli che non sono di casa. Con me e con Fabio sta zitta, ci è cresciuta in braccio. Con Mirko abbaia ancora: lui ha paura dei cani e lei lo sente. Con Gianni, il vicino, poi diventa matta.", fact: "barks" },
+            { id: "fabio", q: "Come vanno le cose con Fabio?", a: "Vuole andare a Torino a fare il cuoco. Gli ho detto che finché ci sono io i soldi li tengo io, e che il bosco non si lascia.", fact: "quarrel" }
+          ]
+        },
+        {
+          id: "fabio", name: "Fabio Bartolucci", role: "il nipote",
+          look: "Ventitré anni, unghie corte e mani pulitissime, da cuoco. Si offre subito di andare a cercare nel bosco, «perché magari è stata una volpe».",
+          lookFact: "fox",
+          ask: [
+            { id: "night", q: "Che cosa hai fatto stanotte?", a: "Ho dormito. Non sono uscito di casa da dopo cena, verso le nove.", fact: "fabiosays" },
+            { id: "who", q: "Secondo te chi può essere stato?", a: "Il commerciante, Testa: ha offerto una miseria e se n'è andato arrabbiato. Oppure Gianni, che ce l'ha con lo zio da anni. Oppure... non so, Mirko è qui da poco.", fact: "fabiopoints" }
+          ]
+        },
+        {
+          id: "mirko", name: "Mirko Baldelli", role: "operaio stagionale",
+          look: "Trentun anni, qui per la raccolta delle olive. Resta lontano dalla cuccia e guarda Brina di sbieco: ha paura dei cani.",
+          lookFact: "afraid",
+          ask: [
+            { id: "night", q: "Dov'eri stanotte?", a: "Al bar del paese fino alle undici, poi in bicicletta fino a qui. Brina mi ha abbaiato come sempre, mi sono chiuso nella dependance e ho dormito.", fact: "mirkosays" },
+            { id: "gloves", q: "Dove tieni i guanti da lavoro?", a: "Sulla panca dell'ingresso di casa, con le cesoie: il signor Aldo vuole gli attrezzi tutti lì. Ieri alle sei li ho lasciati lì tutti e due, come sempre.", fact: "bench" }
+          ]
+        },
+        {
+          id: "gianni", name: "Gianni Pierini", role: "vicino, cavatore anche lui",
+          look: "Il cane al guinzaglio, stivali infangati fino al ginocchio, un sorriso storto: si gode la scena.",
+          lookFact: "gianniboots",
+          ask: [
+            { id: "night", q: "Dov'era stanotte?", a: "A cercare, dall'una alle quattro, dalle parti di Cagli. I posti buoni non glieli dico.", fact: "giannisays" },
+            { id: "threat", q: "È vero che ha minacciato Aldo?", a: "Al bar gli ho detto che gliela facevo pagare, per il bosco delle querce. Parole. Comunque quel cane mi abbaia anche quando passo in macchina.", fact: "threat" }
+          ]
+        },
+        {
+          id: "pina", name: "Pina Rossi", role: "vicina",
+          look: "Ottant'anni. La finestra della sua cucina guarda dritta sul cortile dei Bartolucci. Dorme poco e sente tutto.",
+          ask: [
+            { id: "dog", q: "Stanotte ha sentito Brina?", a: "Verso le undici e dieci ha abbaiato come una matta: era l'operaio che rientrava in bicicletta. Poi silenzio fino a mattina. Neanche un guaito.", fact: "silent" },
+            { id: "light", q: "Ha visto qualcosa nel cortile?", a: "Verso le tre meno un quarto, una torcia che andava dalla porta di casa alla cantina, e dopo dieci minuti tornava indietro. Dalla casa, eh: non dalla strada e non dalla dependance.", fact: "torch" }
+          ]
+        },
+        {
+          id: "testa", name: "Marco Testa", role: "commerciante di tartufi",
+          look: "Giaccone impermeabile di marca, telefono sempre in mano. Venerdì Brina gli si è lanciata contro e lui non è sceso dalla macchina finché Aldo non l'ha chiusa.",
+          lookFact: "testabark",
+          ask: [
+            { id: "offer", q: "Com'è andata venerdì?", a: "Ho offerto tremila euro, Aldo ne voleva il doppio. Non ci siamo messi d'accordo: normale trattativa.", fact: "offer" },
+            { id: "call", q: "Qualcuno le ha offerto un tartufo grosso, stamattina?", a: "Sì, alle sette. Un numero che non conosco, una voce giovane: «Bianco, più di ottocento grammi, duemila euro, consegna oggi.» Ho detto che ci pensavo.", fact: "call" }
+          ]
+        }
+      ],
+      facts: {
+        lock: "Il lucchetto del frigo è stato aperto con la combinazione, non forzato; venerdì alle 22 il tartufo era ancora lì.",
+        glove: "Davanti al frigo c'è un guanto da lavoro con le iniziali di Mirko.",
+        kennel: "Per arrivare alla cantina bisogna passare a un metro dalla cuccia di Brina.",
+        boots: "Gli stivali di Fabio sono coperti di fango fresco; quelli di Aldo sono puliti.",
+        rain: "Non pioveva da due settimane: stanotte ha piovuto solo da mezzanotte all'una e mezza.",
+        school: "Fabio deve versare entro lunedì un anticipo di 2.000 euro per iscriversi a una scuola di cucina.",
+        combo: "La combinazione la conoscono Aldo, Fabio e, da venerdì, Mirko.",
+        barks: "Brina sta zitta solo con Aldo e Fabio; a Mirko e a Gianni abbaia sempre.",
+        quarrel: "Aldo non vuole dare a Fabio i soldi per andare a Torino.",
+        fox: "Fabio insiste che può essere stata una volpe.",
+        fabiosays: "Fabio dice di non essere uscito di casa dalle nove di sera.",
+        fabiopoints: "Fabio indica come sospetti il commerciante, Gianni e Mirko.",
+        afraid: "Mirko ha paura dei cani.",
+        mirkosays: "Mirko dice di essere rientrato alle undici, con Brina che abbaiava, e di aver dormito nella dependance.",
+        bench: "Mirko lascia i guanti sulla panca dell'ingresso, dentro casa: ieri li ha lasciati lì tutti e due.",
+        gianniboots: "Anche Gianni ha gli stivali infangati.",
+        giannisays: "Gianni dice di essere stato a cercare tartufi dall'una alle quattro.",
+        threat: "Gianni ha minacciato Aldo al bar per una lite su un bosco.",
+        silent: "Brina ha abbaiato solo alle 23:10, quando è rientrato Mirko; poi silenzio fino a mattina.",
+        torch: "Verso le 2:45 una torcia è andata dalla porta di casa alla cantina ed è tornata dieci minuti dopo.",
+        testabark: "Venerdì Brina si è lanciata contro il commerciante, che non è sceso dalla macchina.",
+        offer: "Venerdì il commerciante ha offerto tremila euro e Aldo ha rifiutato.",
+        call: "Alle sette una voce giovane, da un numero sconosciuto, ha offerto al commerciante un tartufo bianco di più di 800 grammi per duemila euro."
+      },
+      culprit: "fabio",
+      keys: ["silent", "barks", "kennel", "torch", "boots", "rain", "fabiosays", "bench", "lock", "combo", "testabark"],
+      need: 4,
+      motives: ["L'anticipo per la scuola di cucina, da versare entro lunedì", "La lite per il bosco delle querce", "Un debito con il commerciante"],
+      motive: 0,
+      traps: [
+        { text: "Far richiamare dal commerciante il numero di stamattina: accetta i duemila euro, appuntamento a mezzogiorno nel parcheggio della fiera. Poi aspettare lì.", ok: true, why: "Solo chi ha il tartufo può presentarsi a venderlo. A mezzogiorno arriva Fabio, con il tartufo avvolto in un canovaccio nello zaino. Non serve una confessione, se il colpevole viene da solo a portarti la prova." },
+        { text: "Mandare via Mirko: il guanto davanti al frigo è suo.", ok: false, why: "Il guanto stava sulla panca, dentro casa: chi l'ha lasciato davanti al frigo voleva farti guardare Mirko. E Brina, che con lui abbaia sempre, alle 2:45 è rimasta zitta." },
+        { text: "Accusare Gianni: ha minacciato Aldo e ha gli stivali sporchi.", ok: false, why: "Un cavatore che ha cercato tartufi di notte ha sempre gli stivali sporchi. E Brina gli abbaia anche quando passa in macchina: stanotte non ha fiatato." },
+        { text: "Portare Brina davanti ai sospettati e vedere da chi va.", ok: false, why: "Brina è un cane da tartufo, non da pista: andrebbe dalle persone che conosce, cioè Aldo e Fabio, e non per quello che hanno fatto stanotte. Non prova niente." }
+      ],
+      close: [
+        "Il fatto più importante di questo caso è una cosa che non è successa: Brina, che abbaia a chiunque non sia di casa, alle 2:45 non ha abbaiato. Pina l'ha sentita una volta sola, alle 23:10, per Mirko. E chi va in cantina deve passarle a un metro. Quindi stanotte in cantina è entrato qualcuno di casa, Aldo o Fabio; e la torcia, dice Pina, partiva proprio dalla porta di casa.",
+        "Aldo ha gli stivali puliti. Quelli di Fabio sono coperti di fango fresco, ma non pioveva da due settimane e stanotte ha piovuto solo da mezzanotte all'una e mezza: il fango è di stanotte, e Fabio giura di non essere uscito dalle nove. Conosceva la combinazione, e il guanto di Mirko l'ha preso dalla panca dell'ingresso per lasciare una pista falsa.",
+        "Il perché è sulla sua scrivania: un anticipo di 2.000 euro da versare entro lunedì, proprio la cifra chiesta al telefono, e uno zio che non voleva dargli niente. Chi ruba in casa, spesso, prepara un colpevole di fuori."
+      ],
+      lesson: "Conta anche quello che non succede. È il «curioso episodio del cane» di Conan Doyle, in Silver Blaze: se il cane non abbaia, il ladro era di casa."
+    },
+    /* ---------------------------------------------------------------- 7 */
+    {
+      id: "letter", level: 2, title: "La lettera anonima", place: "Officine Bassi, Brescia",
+      brief: [
+        "Venerdì mattina l'ingegner Bassi trova sulla scrivania una busta senza nome. Dentro c'è una lettera stampata che comincia così: «Laura Ferrero, la contabile, gonfia un pò le fatture e si tiene la differenza. Guardi la 418.» Con la lettera, la fotocopia della fattura 418: 41.800 euro, con la sigla di Laura.",
+        "Bassi ha sospeso Laura il giorno stesso. Lei giura che è un falso e ti chiede di scoprire chi ha scritto la lettera."
+      ],
+      budget: 14,
+      scene: [
+        { id: "letter", name: "La lettera", text: "Stampata, senza firma, una pagina. Due errori saltano all'occhio: «un pò» con l'accento e «qual'è» con l'apostrofo. Lungo il margine sinistro corre una sottile riga grigia.", fact: "errors" },
+        { id: "copy", name: "La fotocopia della fattura", text: "In alto a destra si vede il timbro «Merce ricevuta» del magazzino: la fotocopia è stata fatta dalla copia che sta nei fascicoli del magazzino, non da quella dell'amministrazione.", fact: "stamp" },
+        { id: "printer", name: "La stampante del primo piano", text: "È l'unica stampante dell'azienda. Giovedì alle 18, dopo un inceppamento, il tamburo si è rigato: da allora ogni foglio esce con una sottile riga grigia sul margine sinistro. Da giovedì alle 18 a venerdì alle 9 il registro segna una sola stampa: venerdì alle 7:12, una pagina, dall'account «ospite», quello che chiunque può usare dai computer comuni.", fact: "print" },
+        { id: "badges", name: "Il registro dei badge", text: "Venerdì: Rosa delle pulizie e il custode dalle 6:00, Sergio Tonoli dalle 6:58, Paola Rinaldi alle 7:40, Laura Ferrero alle 8:10, l'ingegner Bassi alle 9:00. Prima delle 7:30 non è entrato nessun altro.", fact: "badges" },
+        { id: "board", name: "La lavagna del magazzino", text: "Gli avvisi della settimana, firmati «S.T.»: «Consegne un pò in ritardo», «Chi sa qual'è il problema col corriere?».", fact: "board" },
+        { id: "camera", name: "La telecamera della portineria", text: "Dalle 7:00 alle 7:25 riprende Rosa e il custode che prendono il caffè in portineria, senza mai allontanarsi.", fact: "camera" }
+      ],
+      people: [
+        {
+          id: "bassi", name: "Carlo Bassi", role: "titolare",
+          look: "Sessant'anni, camicia stirata, imbarazzato: ha sospeso Laura senza nemmeno sentirla.",
+          ask: [
+            { id: "desk", q: "Dove ha trovato la lettera?", a: "Sulla scrivania, venerdì alle nove. Il mio ufficio è al primo piano e la porta resta sempre aperta: chiunque può entrare.", fact: "desk" },
+            { id: "audit", q: "Laura le aveva segnalato qualcosa, prima?", a: "Sì... martedì mi ha scritto che le bolle del magazzino non tornavano con le fatture, e chiedeva un controllo. Mercoledì ho chiesto a Sergio di prepararmi tutte le bolle dell'anno. Venerdì è arrivata la lettera, e ho pensato che Laura avesse provato a coprirsi.", fact: "audit" }
+          ]
+        },
+        {
+          id: "laura", name: "Laura Ferrero", role: "contabile, sospesa",
+          look: "Quarantadue anni, occhi rossi ma voce ferma. Ha portato una cartellina con le copie di tutte le sue fatture.",
+          ask: [
+            { id: "invoice", q: "La fattura 418 com'è davvero?", a: "Quattromilacentottanta euro, non quarantunmilaottocento. L'originale è in archivio. E la sigla sulla fotocopia è ricalcata: io la F la faccio diversa, guardi.", fact: "forged" },
+            { id: "paola", q: "Come va con Paola?", a: "Male. Lunedì dovevano nominare me responsabile dell'amministrazione e lei ci sperava. Abbiamo litigato forte, davanti a tutti.", fact: "rivalry" }
+          ]
+        },
+        {
+          id: "paola", name: "Paola Rinaldi", role: "collega dell'amministrazione",
+          look: "Tailleur, sguardo di sfida. Non fa niente per nascondere che è contenta.",
+          lookFact: "paolahappy",
+          ask: [
+            { id: "time", q: "Venerdì a che ora è arrivata?", a: "Alle 7:40, come sempre. C'è il badge.", fact: "paolatime" },
+            { id: "laura", q: "Crede che Laura abbia rubato?", a: "Credo che chi tiene i conti abbia tante occasioni. Ma la lettera non l'ho scritta io: se ho qualcosa da dire a qualcuno, glielo dico in faccia. E con Laura l'ho fatto.", fact: "paolafrank" }
+          ]
+        },
+        {
+          id: "sergio", name: "Sergio Tonoli", role: "capo magazzino",
+          look: "Giubbotto da lavoro sopra una camicia di marca, un orologio d'oro al polso. È l'unico che chiede subito come sta Laura.",
+          lookFact: "watch",
+          ask: [
+            { id: "friday", q: "Venerdì mattina dov'era?", a: "In magazzino dalle sette. Al primo piano non sono mai salito: lì io non ho niente da fare.", fact: "sergiosays" },
+            { id: "notes", q: "Ha preparato le bolle per l'ingegnere?", a: "Ci sto lavorando, sono tante, ci vuole tempo. Comunque, se c'è qualcosa che non va, io guarderei in amministrazione, non da me.", fact: "sergiopoints" }
+          ]
+        },
+        {
+          id: "rosa", name: "Rosa Pellegrini", role: "pulizie",
+          look: "Sessant'anni, il carrello delle pulizie sempre dietro. Conosce l'azienda meglio di chiunque.",
+          ask: [
+            { id: "coffee", q: "Venerdì verso le sette dov'era?", a: "In portineria con il custode, a prendere il caffè, fino alle sette e venticinque circa. È la nostra pausa, tutte le mattine.", fact: "rosacoffee" },
+            { id: "stairs", q: "A quell'ora ha visto qualcuno?", a: "Sì: verso le sette e un quarto è sceso dalle scale del primo piano Sergio, del magazzino. Mi ha detto «ciao Rosa» senza fermarsi, di fretta. Dalla portineria le scale si vedono bene.", fact: "stairs" }
+          ]
+        }
+      ],
+      facts: {
+        errors: "La lettera anonima ha due errori, «un pò» con l'accento e «qual'è» con l'apostrofo, e una sottile riga grigia sul margine sinistro.",
+        stamp: "La fotocopia della fattura ha il timbro «Merce ricevuta»: viene dai fascicoli del magazzino.",
+        print: "Dall'inceppamento di giovedì alle 18 l'unica stampante dell'azienda lascia una riga grigia su ogni foglio, e fino alle 9 di venerdì ha stampato una sola pagina: venerdì alle 7:12, dall'account comune.",
+        badges: "Prima delle 7:30 di venerdì in azienda c'erano solo Rosa, il custode e Sergio.",
+        board: "Negli avvisi di Sergio sulla lavagna del magazzino ci sono gli stessi due errori della lettera.",
+        camera: "Dalle 7:00 alle 7:25 Rosa e il custode sono in portineria, ripresi dalla telecamera.",
+        desk: "La lettera era sulla scrivania di Bassi, al primo piano, in un ufficio sempre aperto.",
+        audit: "Martedì Laura aveva chiesto un controllo perché le bolle del magazzino non tornavano con le fatture; mercoledì Bassi ha chiesto le bolle a Sergio.",
+        forged: "La fattura 418 vera è di 4.180 euro, e la sigla di Laura sulla fotocopia è ricalcata.",
+        rivalry: "Paola sperava nel posto di responsabile che stava per andare a Laura.",
+        paolahappy: "Paola non nasconde di essere contenta.",
+        paolatime: "Venerdì Paola è entrata alle 7:40.",
+        paolafrank: "Paola dice che le cose le dice in faccia, e a Laura le ha dette.",
+        watch: "Sergio porta un orologio d'oro e una camicia di marca.",
+        sergiosays: "Sergio dice che venerdì non è mai salito al primo piano.",
+        sergiopoints: "Sergio invita a cercare in amministrazione, non in magazzino.",
+        rosacoffee: "Rosa dice di aver preso il caffè con il custode in portineria fino alle 7:25.",
+        stairs: "Verso le 7:15 Rosa ha visto Sergio scendere di fretta dalle scale del primo piano."
+      },
+      culprit: "sergio",
+      keys: ["print", "badges", "camera", "stairs", "sergiosays", "stamp", "board", "errors", "paolatime"],
+      need: 4,
+      motives: ["Fermare il controllo sulle bolle: era lui a rubare", "Far avere a Paola il posto di Laura", "Vendicarsi di un rimprovero di Laura"],
+      motive: 0,
+      traps: [
+        { text: "Annunciare che lunedì un revisore esterno controllerà una per una le bolle del magazzino dell'ultimo anno, e lasciare l'archivio del magazzino sotto una telecamera nascosta.", ok: true, why: "Solo chi ha falsificato le bolle ha bisogno di correre in archivio prima del revisore. Domenica sera Sergio entra con il badge, e la telecamera lo riprende mentre sostituisce le bolle con copie «aggiustate». La lettera serviva a questo: far guardare tutti Laura, che stava per scoprirlo." },
+        { text: "Licenziare Paola: litigava con Laura e voleva il suo posto.", ok: false, why: "Volere un posto non è scrivere una lettera. E alle 7:12, quando la lettera è stata stampata, Paola non era ancora entrata." },
+        { text: "Far scrivere a tutti un dettato con le frasi della lettera, e vedere chi sbaglia.", ok: false, why: "Chi ha scritto la lettera sa quali errori cerchi e starà attento. E «un pò» lo scrivono in tanti: è un indizio che conferma, non una prova che basta da sola." },
+        { text: "Confrontare le calligrafie con quella della lettera.", ok: false, why: "La lettera è stampata: non c'è nessuna calligrafia da confrontare." }
+      ],
+      close: [
+        "La riga grigia dice che la lettera è uscita dall'unica stampante dell'azienda dopo il guasto di giovedì sera, e il registro, in quelle ore, segna una sola stampa: venerdì alle 7:12. A quell'ora, dice il registro dei badge, in azienda c'erano solo tre persone: Rosa, il custode e Sergio. Rosa e il custode erano in portineria a prendere il caffè, ripresi dalla telecamera. Resta Sergio, che giura di non essere mai salito al primo piano, mentre Rosa lo vede scendere di lì alle 7:15, di fretta.",
+        "Gli errori della lettera sono gli stessi degli avvisi di Sergio sulla lavagna, e la fotocopia della fattura viene dai fascicoli del magazzino, cioè dai suoi. Da soli sarebbero indizi deboli; insieme all'orario diventano una firma.",
+        "Il perché lo racconta Bassi senza accorgersene: martedì Laura aveva chiesto un controllo sulle bolle del magazzino, mercoledì le bolle sono state chieste a Sergio, venerdì è arrivata la lettera contro Laura. Chi accusa per primo, a volte, sta solo cercando di non essere guardato."
+      ],
+      lesson: "Chiediti a chi conviene davvero. Paola voleva il posto di Laura, Sergio aveva bisogno che nessuno controllasse le bolle: il movente più rumoroso non è sempre quello vero."
+    },
+    /* ---------------------------------------------------------------- 8 */
     {
       id: "copy", level: 3, title: "La copia perfetta", place: "Museo Palazzo Doni, Firenze",
       brief: [
@@ -494,7 +808,7 @@
       lesson: "A volte la prova è un dettaglio che non dovrebbe esserci: la copia conteneva un difetto che solo una persona al mondo poteva conoscere."
     },
 
-    /* ---------------------------------------------------------------- 6 */
+    /* ---------------------------------------------------------------- 9 */
     {
       id: "terrace", level: 3, title: "La notte della terrazza", place: "Una villa sul lago di Como",
       brief: [
@@ -591,6 +905,118 @@
         "Il perché lo dice Arturo stesso, a cena: lunedì il notaio. Con il nuovo testamento Edoardo perdeva quasi tutto. Livia e Ruggero avevano l'aria dei colpevoli da televisione; i fatti indicavano un'altra persona."
       ],
       lesson: "Prima di chiederti chi, chiediti se la scena è vera. Un incidente non lava la scala dopo essere successo."
+    },
+    /* ---------------------------------------------------------------- 10 */
+    {
+      id: "medium", level: 3, title: "La sensitiva", place: "Sanremo",
+      brief: [
+        "Adele Moretti, 79 anni, vedova, da sei mesi va ogni giovedì da «Madame Iris», sensitiva con lo studio in centro. Giovedì scorso Iris le ha detto: «Vedo l'anello di tuo marito. Lui lo rivuole con sé: presto tornerà agli spiriti.»",
+        "Sabato mattina l'anello, un brillante di due carati, non è più nella cassaforte della camera. Niente è forzato. Adele è convinta che sia un segno, e lunedì vuole portare a Iris 15.000 euro per il rito che lo farà tornare. Il nipote Paolo ti chiede di capire chi c'è dietro, prima di lunedì."
+      ],
+      budget: 15,
+      scene: [
+        { id: "safe", name: "La cassaforte", text: "Nessun segno di scasso: è stata aperta con la combinazione. Dentro ci sono ancora i gioielli di poco valore; manca solo l'anello.", fact: "safe" },
+        { id: "keys", name: "Le chiavi di Adele", text: "Nelle scanalature della chiave di casa c'è un residuo bianco e untuoso, come di cera: qualcuno ne ha preso l'impronta.", fact: "wax" },
+        { id: "door", name: "La serratura di casa", text: "Intatta. Ma sullo zerbino, proprio sotto la toppa, brillano dei granelli di limatura: succede con una chiave copiata da poco e non rifinita.", fact: "newkey" },
+        { id: "calendar", name: "Il calendario della cucina", text: "Ogni venerdì, dalle 10 alle 12, la stessa scritta: «Cimitero, da Franco». Adele va a trovare il marito tutte le settimane.", fact: "routine" },
+        { id: "notebook", name: "Il quaderno di Adele", text: "Adele annota tutto quello che le dice Iris. Giovedì: «L'anello tornerà agli spiriti. Per riaverlo serve un rito: 15.000 euro in contanti, lunedì.»", fact: "ritual" },
+        { id: "site", name: "Il sito di Madame Iris", text: "Nella pagina «Chi sono» c'è una foto di Iris abbracciata a un ragazzo con una rondine tatuata sul dorso della mano. Didascalia: «Con mio figlio Nicola, la mia forza.»", fact: "son" }
+      ],
+      people: [
+        {
+          id: "adele", name: "Adele Moretti", role: "la derubata",
+          look: "Settantanove anni, elegante, gli occhi che si illuminano quando parla di Iris. Al collo porta una medaglietta con la foto del marito.",
+          ask: [
+            { id: "ring", q: "Quando ha visto l'anello l'ultima volta?", a: "Venerdì mattina alle nove: lo guardo ogni mattina, mi fa compagnia. Poi sono andata al cimitero, come ogni venerdì. Sabato alle nove non c'era più.", fact: "seen" },
+            { id: "combo", q: "Chi conosce la combinazione della cassaforte?", a: "Nessuno, nemmeno Paolo: è la data del mio matrimonio, così non me la scordo. Ah... l'ho detta a Nicola, quel ragazzo così caro della sala d'attesa di Iris. Parliamo di tutto: di Franco, del cimitero il venerdì, di quanto sono smemorata.", fact: "told" },
+            { id: "bag", q: "Durante le sedute dove lascia la borsa?", a: "In sala d'attesa: Iris dice che le borse disturbano l'energia. Dentro ci sono le chiavi, ma Nicola me la tiene d'occhio.", fact: "bag" }
+          ]
+        },
+        {
+          id: "paolo", name: "Paolo Moretti", role: "il nipote",
+          look: "Quarant'anni, cravatta, parla di Iris con disprezzo. È l'unico erede della zia, e non lo nasconde.",
+          lookFact: "heir",
+          ask: [
+            { id: "where", q: "Dov'era venerdì?", a: "A Milano per lavoro, da giovedì sera a sabato a mezzogiorno. Ecco il biglietto del treno e la ricevuta dell'albergo.", fact: "milan" },
+            { id: "iris", q: "Che cosa pensa di Iris?", a: "Che è una truffatrice. Ho provato a dirlo a mia zia, e da un mese non mi parla più.", fact: "paolofight" }
+          ]
+        },
+        {
+          id: "wanda", name: "Wanda Costa", role: "collaboratrice domestica",
+          look: "Sessant'anni, mani sciupate dai detersivi. Parla poco e guarda Adele con affetto.",
+          ask: [
+            { id: "friday", q: "Venerdì quando è venuta?", a: "Dalle due alle cinque del pomeriggio, come ogni lunedì, mercoledì e venerdì. La signora è stata in casa con me tutto il tempo.", fact: "wanda" },
+            { id: "combo", q: "Sa la combinazione della cassaforte?", a: "No. La signora non la dice a nessuno. La cassaforte non la tocco nemmeno per spolverarla.", fact: "wandanocombo" }
+          ]
+        },
+        {
+          id: "iris", name: "Madame Iris", role: "sensitiva",
+          look: "Sessant'anni, scialle viola, un anello a ogni dito. Ti guarda a lungo e poi dice, piano: «Lei ha perso qualcuno di importante, vero?»",
+          lookFact: "irisreads",
+          ask: [
+            { id: "friday", q: "Dov'era venerdì mattina?", a: "In studio, con le mie clienti, dalle nove all'una. Può chiedere a ciascuna di loro.", fact: "irisalibi" },
+            { id: "ring", q: "Come sapeva dell'anello?", a: "Me l'ha detto suo marito. Gli spiriti parlano, a chi sa ascoltare.", fact: "irisspirits" },
+            { id: "nicola", q: "Chi è il ragazzo che sta sempre nella sua sala d'attesa?", a: "Un cliente. Viene per suo padre, poverino. Non so nemmeno come si chiama.", fact: "irislie" }
+          ]
+        },
+        {
+          id: "gina", name: "Gina Ferraro", role: "portinaia del palazzo",
+          look: "Portinaia da trent'anni. Dal suo gabbiotto vede chiunque entri, e se lo ricorda.",
+          ask: [
+            { id: "friday", q: "Venerdì chi è salito dalla signora Moretti?", a: "Alle dieci e mezza, mentre lei era al cimitero, un ragazzo con un mazzo di fiori: «Per la signora Moretti», ha detto. È sceso dopo un quarto d'ora, con i fiori ancora in mano. Aveva una rondine tatuata sulla mano. Il pomeriggio è venuta la Wanda, e basta. Il nipote non si vede da un mese.", fact: "gina" },
+            { id: "before", q: "Quel ragazzo l'aveva già visto?", a: "Sì. Giovedì ho accompagnato io la signora dalla sensitiva, e lui era in sala d'attesa. Le teneva la borsa, tutto gentile.", fact: "waiting" }
+          ]
+        },
+        {
+          id: "lucia", name: "Lucia Sardi", role: "ex cliente di Iris",
+          look: "Settant'anni, un po' imbarazzata. Ha chiesto lei di parlarti, quando ha saputo dell'anello.",
+          ask: [
+            { id: "story", q: "Che cosa le è successo?", a: "Un anno fa Iris mi ha detto che la collana di mia madre «sarebbe tornata agli spiriti». Due giorni dopo è sparita da casa. Ho pagato il rito, ottomila euro, e una settimana dopo la collana era di nuovo nel mio cassetto. Ci ho creduto fino a oggi.", fact: "lucia" },
+            { id: "boy", q: "In sala d'attesa c'era qualcuno?", a: "Sempre lo stesso ragazzo, con una rondine sulla mano. Gli raccontavo tutto: era così attento.", fact: "luciawait" }
+          ]
+        }
+      ],
+      facts: {
+        safe: "La cassaforte è stata aperta con la combinazione: manca solo l'anello.",
+        wax: "Sulla chiave di casa di Adele c'è un residuo di cera: qualcuno ne ha preso l'impronta.",
+        newkey: "La porta è stata aperta con una chiave copiata da poco: sotto la toppa c'è della limatura.",
+        routine: "Ogni venerdì, dalle 10 alle 12, Adele va al cimitero.",
+        ritual: "Giovedì Iris ha predetto che l'anello sarebbe «tornato agli spiriti», e chiede 15.000 euro in contanti per il rito che lo farà tornare.",
+        son: "Il ragazzo con la rondine tatuata sulla mano è Nicola, il figlio di Iris.",
+        seen: "Venerdì alle nove l'anello era in cassaforte; sabato alle nove no.",
+        told: "Adele ha detto la combinazione soltanto a Nicola, il ragazzo della sala d'attesa; con lui ha parlato anche del cimitero del venerdì.",
+        bag: "Per regola di Iris («le borse disturbano l'energia»), durante le sedute la borsa di Adele, con le chiavi, resta in sala d'attesa, «sorvegliata» da Nicola.",
+        heir: "Paolo è l'unico erede di Adele.",
+        milan: "Da giovedì sera a sabato a mezzogiorno Paolo era a Milano.",
+        paolofight: "Paolo e Adele non si parlano da un mese per colpa di Iris.",
+        wanda: "Venerdì Wanda ha lavorato dalle 14 alle 17, sempre con Adele in casa.",
+        wandanocombo: "Wanda non conosce la combinazione.",
+        irisreads: "Iris ti accoglie con una frase che vale per quasi chiunque: «Lei ha perso qualcuno di importante.»",
+        irisalibi: "Venerdì mattina Iris era nel suo studio con le clienti.",
+        irisspirits: "Iris dice che dell'anello le ha parlato il marito di Adele, dall'aldilà.",
+        irislie: "Iris dice di non sapere nemmeno come si chiama il ragazzo della sala d'attesa.",
+        gina: "Venerdì alle 10:30, mentre Adele era al cimitero, un ragazzo con una rondine tatuata sulla mano è salito «a portare dei fiori» ed è sceso dopo un quarto d'ora con i fiori in mano.",
+        waiting: "Giovedì quel ragazzo era nella sala d'attesa di Iris e teneva la borsa di Adele.",
+        lucia: "Un anno fa, a Lucia, Iris ha «predetto» la sparizione di una collana: è sparita, Lucia ha pagato il rito e la collana è ricomparsa.",
+        luciawait: "Anche Lucia, in sala d'attesa, raccontava tutto al ragazzo con la rondine."
+      },
+      culprit: "iris",
+      keys: ["son", "irislie", "ritual", "lucia", "told", "bag", "waiting", "gina", "wax", "newkey", "routine", "seen", "safe", "luciawait", "milan", "wandanocombo"],
+      need: 4,
+      motives: ["Il rito: 15.000 euro, e poi l'anello sarebbe «ricomparso»", "Allontanare Adele dal nipote", "Rivendere l'anello"],
+      motive: 0,
+      traps: [
+        { text: "Lasciare che lunedì Adele porti a Iris i 15.000 euro, in banconote segnate, e sorvegliare la casa nei giorni dopo: l'anello deve «ricomparire».", ok: true, why: "Il trucco di Iris ha due tempi: incassare il rito e poi far tornare l'anello, come con Lucia. Martedì mattina, mentre Adele è al mercato, Nicola sale con la chiave copiata per rimettere l'anello in cassaforte e trova i carabinieri; nello studio di Iris ci sono le banconote segnate. È la trappola giusta perché funziona solo con chi l'anello ce l'ha." },
+        { text: "Accusare Paolo: è l'erede, e odia Iris.", ok: false, why: "Era a Milano da giovedì sera a sabato, e la combinazione non la conosceva. È stato lui a chiedere aiuto." },
+        { text: "Smascherare Iris davanti ad Adele, facendo una lettura a freddo più brava della sua.", ok: false, why: "Dimostreresti che Iris è un'imbrogliona, non che ha preso l'anello. Adele si offende e la difende, Iris si tiene l'anello e cambia città." },
+        { text: "Interrogare Wanda: venerdì era in casa.", ok: false, why: "È stata con Adele tutto il pomeriggio e la combinazione non la sa. Sospettare di chi pulisce la casa è il pregiudizio più comodo." }
+      ],
+      close: [
+        "La cassaforte è stata aperta con la combinazione, la porta con una chiave copiata da poco. La combinazione Adele l'ha detta a una sola persona, Nicola, il ragazzo della sala d'attesa; e in sala d'attesa, per «l'energia», restava la borsa con le chiavi, che Nicola sorvegliava. A lui Adele aveva raccontato anche del cimitero, il venerdì dalle 10 alle 12. Venerdì alle 10:30 la portinaia vede salire un ragazzo con una rondine tatuata e dei fiori che non consegnerà mai.",
+        "Iris ha l'alibi perfetto: venerdì era in studio. Ma un giorno prima aveva «visto» l'anello tornare agli spiriti, e il ragazzo con la rondine è suo figlio, anche se lei giura di non sapere come si chiama. Con Lucia era andata allo stesso modo: gioiello sparito, rito pagato, gioiello ricomparso.",
+        "Le «visioni» di Iris erano informazioni raccolte in sala d'attesa: lettura a caldo. Il furto serviva a vendere il rito. Le mani erano di Nicola, la testa di Iris."
+      ],
+      lesson: "Chi ha l'alibi perfetto non è per forza innocente: a volte vuol dire che ha mandato qualcun altro. E davanti a una previsione che si avvera chiediti chi aveva bisogno che si avverasse."
     }
   ];
 

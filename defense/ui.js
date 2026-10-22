@@ -409,33 +409,67 @@
     const r = ui.run;
     if (!r) return;
     if (r.step === "warmup" || r.step === "rounds") {
-      if (!r.paused) r.endsAt = performance.now() + r.left * 1000;
-      r.lastTick = performance.now();
+      if (!r.paused) r.endsAt = Date.now() + r.left * 1000;
+      r.lastTick = Date.now();
       if (r.step === "warmup") speak((WARM.get(r.session.warmup[r.wi]) || {}).name || "");
+      if (!r.paused && window.DefenseAwake) { DefenseAwake.acquire(); DefenseAwake.askNotify(); }
     }
     if (ui.tick) clearInterval(ui.tick);
     ui.tick = setInterval(onTick, 200);
   }
 
+  // L'orologio della sessione usa l'ora vera (Date.now): con lo schermo spento o in un'altra app il
+  // tempo continua; al ritorno le fasi finite nel frattempo vengono recuperate e contate.
   function onTick() {
     const r = ui.run;
-    const now = performance.now();
+    const now = Date.now();
     if (!r || r.paused) { if (r) r.lastTick = now; return; }
     if (r.step !== "warmup" && r.step !== "rounds") return;
-    // secondi di round fatti davvero (massimo 1 s per scatto: niente salti dopo un blocco del browser)
-    if (r.step === "rounds" && r.round && r.round.phase === "work" && r.lastTick) r.workDone += Math.min(1, Math.max(0, (now - r.lastTick) / 1000));
+    // secondi di round fatti davvero: dal tick precedente fino a ora (o alla fine del round)
+    if (r.step === "rounds" && r.round && r.round.phase === "work" && r.lastTick) r.workDone += Math.max(0, Math.min(now, r.endsAt) - r.lastTick) / 1000;
     r.lastTick = now;
     const left = (r.endsAt - now) / 1000;
     const prevWhole = Math.ceil(r.left);
     r.left = left;
     const whole = Math.ceil(left);
-    if (r.step === "rounds" && r.round && whole !== prevWhole) {
+    if (r.step === "rounds" && r.round && whole !== prevWhole && !document.hidden) {
       if (r.round.phase === "work" && whole === 10) beep(990, 70, 0.05);
       if (whole <= 3 && whole > 0) beep(740, 60, 0.05);
     }
-    if (r.step === "rounds" && r.round && r.round.phase === "work" && now >= r.round.nextCallAt) nextCall();
-    if (left <= 0) advanceClock();
+    if (r.step === "rounds" && r.round && r.round.phase === "work" && now >= r.round.nextCallAt && left > 0) nextCall();
+    if (left <= -1.5) catchUpClock(-left);
+    else if (left <= 0) advanceClock();
     else paintClock();
+  }
+
+  // Dopo una sospensione: salta le fasi finite, conta i round fatti, riparte dal punto giusto.
+  function catchUpClock(over) {
+    const r = ui.run;
+    let guard = 0;
+    advanceClock(true);
+    while (ui.run === r && !r.paused && (r.step === "warmup" || r.step === "rounds") && guard < 300) {
+      guard += 1;
+      const full = r.left;
+      const isWork = r.step === "rounds" && r.round && r.round.phase === "work";
+      if (over >= full) {
+        over -= full;
+        if (isWork) r.workDone += full;
+        r.endsAt = Date.now();
+        r.left = 0;
+        advanceClock(true);
+        continue;
+      }
+      if (isWork) r.workDone += over;
+      r.left = full - over;
+      r.endsAt = Date.now() + r.left * 1000;
+      r.lastTick = Date.now();
+      if (r.round && r.round.phase === "work") r.round.nextCallAt = Date.now() + 1500;
+      break;
+    }
+    if (ui.run === r) {
+      if (document.hidden && window.DefenseAwake) DefenseAwake.notify("Sessione in corso", r.step === "rounds" && r.round ? (r.round.phase === "work" ? `Round ${r.round.i}` : "Riposo") : r.step === "warmup" ? "Riscaldamento" : "Tocca a te");
+      renderRun();
+    }
   }
 
   function paintClock() {
@@ -449,36 +483,37 @@
     }
   }
 
-  function advanceClock() {
+  function advanceClock(quiet) {
     const r = ui.run;
+    const aw = window.DefenseAwake;
     if (r.step === "warmup") {
       if (r.wi < r.session.warmup.length - 1) {
         r.wi += 1;
         r.left = (WARM.get(r.session.warmup[r.wi]) || { seconds: 30 }).seconds;
-        r.endsAt = performance.now() + r.left * 1000;
-        beep(880, 120);
-        speak((WARM.get(r.session.warmup[r.wi]) || {}).name || "");
+        r.endsAt = Date.now() + r.left * 1000;
+        const name = (WARM.get(r.session.warmup[r.wi]) || {}).name || "";
+        if (!quiet) { beep(880, 120); speak(name); if (aw) aw.notify("Riscaldamento", name); }
         renderRun();
       } else {
-        beep(660, 220);
+        if (!quiet) { beep(660, 220); if (aw) aw.notify("Riscaldamento finito", "Ora le tecniche."); }
+        if (aw) aw.release();
         goStep("tech");
       }
     } else if (r.step === "rounds") {
       const rd = r.round;
       if (rd.phase === "ready" || rd.phase === "rest") {
-        startWork();
+        startWork(quiet);
       } else if (rd.phase === "work") {
         if (rd.i >= r.session.rounds.count) {
-          beep(523, 420, 0.09);
-          speak("Fine. Bel lavoro.");
+          if (!quiet) { beep(523, 420, 0.09); speak("Fine. Bel lavoro."); }
+          if (aw) { aw.notify("Round finiti", "Bel lavoro: ora l'autovalutazione."); aw.release(); }
           goStep("check");
         } else {
-          beep(523, 300, 0.08);
-          speak("Riposo");
+          if (!quiet) { beep(523, 300, 0.08); speak("Riposo"); if (aw) aw.notify("Riposo", `${r.session.rounds.rest} secondi`); }
           rd.phase = "rest";
           rd.total = r.session.rounds.rest;
           r.left = rd.total;
-          r.endsAt = performance.now() + r.left * 1000;
+          r.endsAt = Date.now() + r.left * 1000;
           rd.call = null;
           renderRun();
         }
@@ -493,14 +528,14 @@
       r.round = { i: 0, phase: "ready", total: 5, call: null, nextCallAt: 0, perTech: {} };
       r.left = 5;
       r.paused = false;
-      r.endsAt = performance.now() + 5000;
+      r.endsAt = Date.now() + 5000;
       speak("Pronti");
     }
     renderRun(true);
     if (step === "rounds") startClock();
   }
 
-  function startWork() {
+  function startWork(quiet) {
     const r = ui.run;
     const rd = r.round;
     rd.i += 1;
@@ -508,11 +543,15 @@
     rd.total = r.session.rounds.work;
     rd.perTech = {};
     r.left = rd.total;
-    r.endsAt = performance.now() + r.left * 1000;
-    rd.nextCallAt = performance.now() + 1800;
-    beep(880, 120);
-    setTimeout(() => beep(880, 120), 180);
-    speak(`Round ${rd.i}`);
+    r.endsAt = Date.now() + r.left * 1000;
+    r.lastTick = Date.now();
+    rd.nextCallAt = Date.now() + 1800;
+    if (!quiet) {
+      beep(880, 120);
+      setTimeout(() => beep(880, 120), 180);
+      speak(`Round ${rd.i}`);
+      if (window.DefenseAwake) DefenseAwake.notify(`Round ${rd.i} di ${r.session.rounds.count}`, "Via!");
+    }
     renderRun();
   }
 
@@ -534,7 +573,7 @@
     const fromOld = oldOk.length && (Math.random() < 0.3 || !ownOk.length);
     const list = fromOld ? oldOk : ownOk;
     const gap = { 1: [6000, 8500], 2: [5000, 7500], 3: [5500, 8000], 4: [4500, 7000] }[r.session.phase] || [6000, 8000];
-    rd.nextCallAt = performance.now() + gap[0] + Math.random() * (gap[1] - gap[0]);
+    rd.nextCallAt = Date.now() + gap[0] + Math.random() * (gap[1] - gap[0]);
     if (!list.length) return;
     let t = list[Math.floor(Math.random() * list.length)];
     let call = t.calls[Math.floor(Math.random() * t.calls.length)];
@@ -690,10 +729,13 @@
     if (!r) return;
     if (r.paused) {
       r.paused = false;
-      r.endsAt = performance.now() + r.left * 1000;
-      if (r.round && r.round.phase === "work") r.round.nextCallAt = performance.now() + 1500;
+      r.endsAt = Date.now() + r.left * 1000;
+      r.lastTick = Date.now();
+      if (r.round && r.round.phase === "work") r.round.nextCallAt = Date.now() + 1500;
+      if (window.DefenseAwake) DefenseAwake.acquire();
     } else {
       r.paused = true;
+      if (window.DefenseAwake) DefenseAwake.release();
       if ("speechSynthesis" in window) try { window.speechSynthesis.cancel(); } catch (e) { /* niente */ }
     }
     const btn = document.querySelector('#defPanel-program [data-act="pause"]');
@@ -1430,7 +1472,7 @@
       case "locked": announce("Sessione bloccata: completa prima quella precedente."); break;
       case "pause": togglePause(); break;
       case "warm-next":
-        if (ui.run) { ui.run.endsAt = performance.now(); ui.run.paused = false; onTick(); }
+        if (ui.run) { ui.run.endsAt = Date.now(); ui.run.paused = false; onTick(); }
         break;
       case "warm-skip": if (ui.run) goStep("tech"); break;
       case "tech-prev": if (ui.run) { ui.run.ti -= 1; renderRun(true); } break;
@@ -1439,7 +1481,7 @@
         if (ui.run.ti < ui.run.session.techniques.length - 1) { ui.run.ti += 1; renderRun(true); scrollToEl($("defPanel-program")); } else { goStep("rounds"); scrollToEl($("defPanel-program")); }
         break;
       case "round-skip":
-        if (ui.run && ui.run.round) { ui.run.endsAt = performance.now(); ui.run.paused = false; onTick(); }
+        if (ui.run && ui.run.round) { ui.run.endsAt = Date.now(); ui.run.paused = false; onTick(); }
         break;
       case "check": {
         if (!ui.run) break;
@@ -1589,15 +1631,16 @@
     });
     // Se si lascia la pagina: prove interrotte, sessione in pausa, voce zitta.
     const pauseAll = () => {
-      if (window.DefenseMartialUI) window.DefenseMartialUI.stop();
+      // timer degli allenamenti e della sessione: continuano (schermo spento, altra app o altra pagina)
       if (ui.test && ui.test.phase === "run") { abortTestRecording(); if (ui.tab === "reflex") renderReflex(); }
-      if (ui.run && !ui.run.paused && (ui.run.step === "warmup" || ui.run.step === "rounds")) togglePause();
       if (ui.situ && ui.situ.phase === "play" && ui.situ.picked === null && ui.situ.timer) {
         // il tempo continua a scorrere: niente pausa per non dare vantaggi
       }
-      if ("speechSynthesis" in window) try { window.speechSynthesis.cancel(); } catch (e) { /* niente */ }
     };
-    document.addEventListener("visibilitychange", () => { if (document.hidden) pauseAll(); });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) pauseAll();
+      else if (ui.run && !ui.run.paused && (ui.run.step === "warmup" || ui.run.step === "rounds")) onTick();
+    });
     // ricaricare a meta' sessione la perderebbe: il browser chiede conferma
     window.addEventListener("beforeunload", (event) => {
       if (ui.run && ui.run.step !== "done" && Date.now() - ui.run.startedAt > 60000) { event.preventDefault(); event.returnValue = ""; }
