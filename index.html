@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="defense/defense.css?v=20261022-1" />
     <link rel="stylesheet" href="defense/martial.css?v=20261022-1" />
     <link rel="stylesheet" href="aim/aim.css?v=20261022-1" />
+    <link rel="stylesheet" href="memory/memory.css?v=20261022-1" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
@@ -172,7 +173,7 @@
             </a>
             <a class="mode-card" href="#memory">
               <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-memory"/></svg><strong>Memoria</strong></span>
-              <p>Sequenze, parole e richiamo attivo per ricordare meglio.</p>
+              <p>Test con valori di riferimento, palazzo della memoria, sistema fonetico e discipline da gara.</p>
               <div class="mini-indicators" id="memoryCardIndicators"></div>
             </a>
             <a class="mode-card" href="#influence">
@@ -618,45 +619,24 @@
           </div>
         </section>
 
-        <section id="memory" class="page">
-          <div class="page-heading">
+        <section id="memory" class="page mem-page">
+          <div class="page-heading mem-heading">
             <div>
               <p class="eyebrow">Memoria</p>
-              <h1>Richiamo attivo, sequenze e parole.</h1>
-              <p class="page-subtitle">Allena sequenze, parole, posizioni, griglie e controllo della distrazione.</p>
+              <h1>Ricorda di più, con metodo.</h1>
+              <p class="page-subtitle">Test con valori di riferimento pubblicati, le tecniche dei campioni di memoria (palazzo, sistema fonetico, storie) e le discipline delle gare, a livelli. Quindici minuti al giorno.</p>
             </div>
-            <div class="button-row">
-              <a class="ghost-link" href="#dashboard">Quadro</a>
-              <button class="primary-action" id="newMemoryBtn" type="button">Nuovo esercizio</button>
-            </div>
+            <button class="mem-chip" id="memChip" type="button" title="Apri il programma di oggi"></button>
           </div>
-
-          <div class="two-column">
-            <article class="tool-card">
-              <span class="scenario-type" id="memoryType">Sequenza</span>
-              <h2 id="memoryTitle">Premi Nuovo esercizio</h2>
-              <div id="memoryStimulus" class="memory-stimulus">Pronto?</div>
-              <div id="memoryGrid" class="memory-grid" aria-label="Griglia memoria"></div>
-              <label class="free-answer-label" for="memoryAnswer">
-                Risposta
-                <textarea id="memoryAnswer" rows="4" placeholder="Scrivi cio' che ricordi, nello stesso ordine."></textarea>
-              </label>
-              <div class="button-row left-actions">
-                <button class="ghost-action" id="hideMemoryBtn" type="button">Nascondi</button>
-                <button class="primary-action" id="checkMemoryBtn" type="button">Controlla</button>
-              </div>
-            </article>
-            <article class="tool-card">
-              <h2>Feedback memoria</h2>
-              <div id="memoryFeedback" class="analysis-box">Gli esercizi diventano piu' difficili quando migliori.</div>
-              <div id="memoryStats" class="metric-list"></div>
-              <h2>Profilo memoria</h2>
-              <svg id="memoryModuleRadar" class="module-radar" viewBox="0 0 280 280" aria-label="Radar memoria"></svg>
-              <div id="memoryModuleMetrics" class="metric-list"></div>
-              <div id="memoryPatternBox" class="analysis-box">Pattern: ordine, omissioni, inversioni e distrazioni.</div>
-              <div id="memoryTrainingBox" class="analysis-box">Allenamento: usa chunking e richiamo attivo.</div>
-            </article>
+          <div class="mem-tabs" role="group" aria-label="Sezioni della memoria">
+            <button type="button" data-mem-tab="today" aria-pressed="true">Oggi</button>
+            <button type="button" data-mem-tab="measure" aria-pressed="false">Misura</button>
+            <button type="button" data-mem-tab="techniques" aria-pressed="false">Tecniche</button>
+            <button type="button" data-mem-tab="disciplines" aria-pressed="false">Discipline</button>
+            <button type="button" data-mem-tab="progress" aria-pressed="false">Progressi</button>
           </div>
+          <div id="memPanel"></div>
+          <div class="mem-sr" id="memLive" aria-live="polite"></div>
         </section>
 
         <section id="influence" class="page">
@@ -787,5 +767,9 @@
     <script src="aim/engine.js?v=20261022-1"></script>
     <script src="aim/game.js?v=20261022-1"></script>
     <script src="aim/ui.js?v=20261022-1"></script>
+    <script src="memory/data.js?v=20261022-1"></script>
+    <script src="memory/faces.js?v=20261022-1"></script>
+    <script src="memory/engine.js?v=20261022-1"></script>
+    <script src="memory/ui.js?v=20261022-1"></script>
   </body>
 </html>

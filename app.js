@@ -268,7 +268,6 @@ const logicRiddles = [
   }
 ];
 
-const memoryWords = ["ponte", "rame", "luna", "chiave", "vento", "quadro", "sale", "vetro", "fuoco", "mappa", "fiore", "torre", "fiume", "ombra", "stella", "porta"];
 
 const influenceTactics = [
   {
@@ -437,13 +436,14 @@ const moduleSkillDefinitions = {
     { key: "coherence", label: "Coerenza", general: "strategicMind" },
     { key: "problemSolving", label: "Problem solving", general: "strategicMind" }
   ],
+  // Memoria: categorie calcolate da test, tecniche e discipline (memory/engine.js).
   memory: [
-    { key: "recall", label: "Richiamo", general: "memory" },
-    { key: "sequences", label: "Sequenze", general: "memory" },
-    { key: "attention", label: "Attenzione", general: "clarity" },
-    { key: "precision", label: "Precisione", general: "clarity" },
-    { key: "visualMemory", label: "Memoria visiva", general: "memory" },
-    { key: "resistance", label: "Resistenza", general: "emotionalControl" }
+    { key: "working", label: "Memoria di lavoro", general: "memory" },
+    { key: "spatial", label: "Memoria visiva", general: "memory" },
+    { key: "verbal", label: "Richiamo verbale", general: "memory" },
+    { key: "technique", label: "Tecnica", general: "strategicMind" },
+    { key: "speed", label: "Discipline", general: "clarity" },
+    { key: "consistency", label: "Costanza", general: "emotionalControl" }
   ],
   influence: [
     { key: "framing", label: "Framing", general: "strategicMind" },
@@ -479,8 +479,6 @@ let lastMoveSquares = null;
 let reviewMoveSquares = null;
 let currentGame = createNewGame();
 let currentRiddle = null;
-let currentMemory = null;
-let memoryTimer = null;
 let currentInfluence = null;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -498,7 +496,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderGameReport(buildGameAnalysis("partial"));
   loadRandomGoal();
   loadRandomRiddle();
-  loadMemoryExercise();
   loadInfluenceTactic();
   renderAesthetic();
   routeToCurrentHash();
@@ -936,9 +933,6 @@ function bindControls() {
   document.getElementById("clearGoalBtn").addEventListener("click", clearGoal);
   document.getElementById("analyzePlanBtn").addEventListener("click", analyzePlan);
   document.getElementById("newRiddleBtn").addEventListener("click", loadRandomRiddle);
-  document.getElementById("newMemoryBtn").addEventListener("click", loadMemoryExercise);
-  document.getElementById("hideMemoryBtn").addEventListener("click", hideMemoryStimulus);
-  document.getElementById("checkMemoryBtn").addEventListener("click", checkMemoryAnswer);
   document.getElementById("newInfluenceBtn").addEventListener("click", loadInfluenceTactic);
   document.getElementById("analyzeInfluenceBtn").addEventListener("click", analyzeInfluenceAnswer);
   document.getElementById("newStyleTipBtn").addEventListener("click", renderRandomStyleTip);
@@ -987,8 +981,8 @@ function buildFinalRecap(abilities) {
   const weakest = [...abilities].sort((a, b) => a.value - b.value)[0];
   const chessErrors = Object.values(state.mistakeCounts).reduce((sum, item) => sum + item, 0);
   const studied = state.cultureLab && state.cultureLab.cards ? (window.CultureCards || []).filter((c) => state.cultureLab.cards[c.id] && state.cultureLab.cards[c.id].box >= 1).length : 0;
-  const memoryRate = state.memory.attempts ? Math.round((state.memory.correct / state.memory.attempts) * 100) : 0;
-  return `Priorita': ${abilityLabels[weakest.key]}. Scacchi: ${state.chess.games} partite, ${chessErrors} pattern errore. Cultura: ${studied} schede studiate. Memoria: ${memoryRate}% precisione. Estetica: ${state.aesthetic.score || 0}/100.`;
+  const memoryText = window.memoryTrend ? (() => { try { return window.memoryTrend(); } catch (error) { return "da misurare"; } })() : "da misurare";
+  return `Priorita': ${abilityLabels[weakest.key]}. Scacchi: ${state.chess.games} partite, ${chessErrors} pattern errore. Cultura: ${studied} schede studiate. Memoria: ${memoryText}. Estetica: ${state.aesthetic.score || 0}/100.`;
 }
 
 function renderTodayPlan(forceNew) {
@@ -1153,7 +1147,6 @@ function getModuleSkills(moduleKey) {
   const studied = state.studied.length;
   const planAverage = state.planScores.length ? averageArray(state.planScores) : metric("ragionamento");
   const logicAccuracy = state.logicAttempts ? (state.logicSolved / state.logicAttempts) * 100 : metric("efficacia");
-  const memoryAccuracy = state.memory.attempts ? (state.memory.correct / state.memory.attempts) * 100 : metric("efficacia");
   const aestheticScore = state.aesthetic.score || metric("efficacia");
 
   const profiles = {
@@ -1186,14 +1179,9 @@ function getModuleSkills(moduleKey) {
       ["Coerenza", (metric("controllo") + metric("ragionamento")) / 2],
       ["Problem solving", (metric("efficacia") + metric("ragionamento")) / 2]
     ],
-    memory: [
-      ["Richiamo", memoryAccuracy],
-      ["Sequenze", metric("ragionamento") + state.memory.level * 2],
-      ["Attenzione", metric("lucidita")],
-      ["Precisione", (metric("efficacia") + memoryAccuracy) / 2],
-      ["Memoria visiva", metric("adattamento") + state.memory.level],
-      ["Resistenza", metric("sostenibilita") + Math.min(state.memory.attempts, 12)]
-    ],
+    memory: window.memoryProfileSkills ? (() => {
+      try { return window.memoryProfileSkills().map((k) => [k.label, k.value]); } catch (error) { console.warn("Profilo memoria non leggibile", error); return []; }
+    })() : [],
     influence: [
       ["Framing", metric("ragionamento")],
       ["Leva sociale", metric("efficacia")],
@@ -1258,7 +1246,7 @@ function dashboardTrend(moduleKey, average) {
     planning: state.planScores.length ? `${state.planScores.length} piani · media ${Math.round(averageArray(state.planScores))}` : "Base iniziale · scrivi un piano",
     defense: window.defenseTrend ? (() => { try { return window.defenseTrend(); } catch (error) { return "Fase 1 · inizia la prima sessione"; } })() : "Fase 1 · inizia la prima sessione",
     logic: state.logicAttempts ? `${state.logicSolved}/${state.logicAttempts} corretti · media ${average}` : "Base iniziale · risolvi un indovinello",
-    memory: state.memory.attempts ? `Livello ${state.memory.level} · ${state.memory.correct}/${state.memory.attempts} prove forti` : `Livello ${state.memory.level} · base iniziale`,
+    memory: window.memoryTrend ? (() => { try { return window.memoryTrend(); } catch (error) { return "Base iniziale · fai la prima misura"; } })() : "Base iniziale · fai la prima misura",
     influence: state.influence.attempts ? `${state.influence.attempts} analisi · media ${state.influence.average}` : "Base iniziale · prova una tattica",
     aesthetic: `Score ${state.aesthetic.score || 0}/100 · streak ${state.aesthetic.streak || 0}`
   };
@@ -1331,7 +1319,7 @@ function patternReadable(key) {
 
 function trainingForPattern(moduleKey, key) {
   if (moduleKey === "chess") return mistakeDrills[key] || "Drill: rivedi 5 mosse e scrivi piano, minaccia, rischio.";
-  if (moduleKey === "memory") return "Allenamento: usa chunking da 3 elementi, poi richiamo attivo dopo 20 secondi.";
+  if (moduleKey === "memory") return "Allenamento: il programma di oggi nella pagina Memoria (sistema fonetico, una disciplina, il palazzo).";
   if (moduleKey === "scenarios") return "Allenamento: prima i fatti, poi una frase breve senza accuse, poi il piano B.";
   if (moduleKey === "defense") return "Allenamento: la prossima sessione del programma, poi una prova di riflessi e un turno di situazioni.";
   if (moduleKey === "influence") return "Allenamento: riscrivi la leva rendendo chiari costi, confini e possibilita' di dire no.";
@@ -3996,107 +3984,6 @@ function renderLogicStats() {
   const stats = { solved: state.logicSolved, attempts: state.logicAttempts, accuracy };
   const labels = { solved: "Risolti", attempts: "Tentativi", accuracy: "Precisione" };
   renderMetrics(document.getElementById("logicStats"), stats, labels, true);
-}
-
-function loadMemoryExercise() {
-  if (memoryTimer) window.clearTimeout(memoryTimer);
-  const level = state.memory.level;
-  const modes = ["numbers", "words", "grid", "position"];
-  const mode = modes[(level + state.memory.attempts) % modes.length];
-  const length = clamp(3 + level, 4, 10);
-  const items = [];
-  if (mode === "grid" || mode === "position") {
-    const count = mode === "position" ? 1 : clamp(2 + Math.floor(level / 2), 3, 8);
-    while (items.length < count) {
-      const cell = String(Math.floor(Math.random() * 16) + 1);
-      if (!items.includes(cell)) items.push(cell);
-    }
-  } else {
-    for (let index = 0; index < length; index += 1) {
-      if (mode === "words") items.push(memoryWords[Math.floor(Math.random() * memoryWords.length)]);
-      else items.push(String(Math.floor(Math.random() * 9) + 1));
-    }
-  }
-  const typeLabel = mode === "words" ? "Parole" : mode === "grid" ? "Quadrati illuminati" : mode === "position" ? "Riconoscimento posizione" : "Sequenza numerica";
-  const exposure = clamp(5600 - level * 300, 1800, 5200);
-  currentMemory = { mode, type: typeLabel, items, hidden: false, exposure };
-  document.getElementById("memoryType").textContent = currentMemory.type;
-  document.getElementById("memoryTitle").textContent = mode === "position" ? `Livello ${level}: ricorda la posizione` : `Livello ${level}: memorizza in ordine`;
-  document.getElementById("memoryStimulus").textContent = mode === "grid" || mode === "position" ? "Memorizza le celle illuminate. Scrivi i numeri delle celle." : items.join("  ");
-  renderMemoryGrid(false);
-  document.getElementById("memoryAnswer").value = "";
-  document.getElementById("memoryFeedback").textContent = `Memorizza: lo stimolo sparisce automaticamente tra ${(exposure / 1000).toFixed(1)}s. Puoi anche premere Nascondi.`;
-  memoryTimer = window.setTimeout(hideMemoryStimulus, exposure);
-  renderMemoryStats();
-}
-
-function hideMemoryStimulus() {
-  if (!currentMemory) return;
-  if (memoryTimer) {
-    window.clearTimeout(memoryTimer);
-    memoryTimer = null;
-  }
-  if (currentMemory.hidden) return;
-  currentMemory.hidden = true;
-  document.getElementById("memoryStimulus").textContent = "Nascosto. Richiama dalla memoria.";
-  renderMemoryGrid(true);
-  document.getElementById("memoryAnswer").focus();
-}
-
-function checkMemoryAnswer() {
-  if (!currentMemory) return;
-  const answer = normalize(document.getElementById("memoryAnswer").value).split(/[\s,;.-]+/).filter(Boolean);
-  const target = currentMemory.items.map((item) => normalize(item));
-  let correct = 0;
-  target.forEach((item, index) => {
-    if (answer[index] === item) correct += 1;
-  });
-  const missing = target.filter((item) => !answer.includes(item)).length;
-  const extra = answer.filter((item) => !target.includes(item)).length;
-  const sameSet = missing === 0 && extra === 0 && answer.length === target.length;
-  const inversion = sameSet && correct < target.length;
-  if (missing > 0) addModulePattern("memory", "missing");
-  if (inversion) addModulePattern("memory", "inversion");
-  if (!inversion && correct < target.length && missing === 0) addModulePattern("memory", "order");
-  if (extra > 0) addModulePattern("memory", "distraction");
-  const score = Math.round((correct / target.length) * 100);
-  state.memory.attempts += 1;
-  if (score >= 80) state.memory.correct += 1;
-  state.memory.best = Math.max(state.memory.best, score);
-  if (score >= 90) state.memory.level = clamp(state.memory.level + 1, 1, 12);
-  updateModuleMetrics("memory", {
-    lucidita: score >= 80 ? 2 : -2,
-    efficacia: Math.round((score - 60) / 12),
-    controllo: extra ? -2 : 1,
-    adattamento: currentMemory.mode === "grid" || currentMemory.mode === "position" ? 2 : 1,
-    flessibilita: currentMemory.mode === "grid" ? 2 : 1,
-    ragionamento: inversion ? -2 : 1,
-    sostenibilita: score >= 80 ? 1 : 0,
-    tempo: score >= 80 ? 1 : -1
-  });
-  saveState();
-  document.getElementById("memoryFeedback").textContent = `Risultato: ${score}/100. Corretti in posizione: ${correct}/${target.length}. Dimenticati: ${missing}. Extra/distrazioni: ${extra}. ${inversion ? "Errore: elementi giusti ma ordine invertito." : ""} Risposta giusta: ${currentMemory.items.join(" ")}.`;
-  renderMemoryStats();
-  renderDashboard();
-}
-
-function renderMemoryGrid(hidden) {
-  const grid = document.getElementById("memoryGrid");
-  grid.innerHTML = "";
-  if (!currentMemory || (currentMemory.mode !== "grid" && currentMemory.mode !== "position")) return;
-  for (let index = 1; index <= 16; index += 1) {
-    const cell = document.createElement("div");
-    const key = String(index);
-    const lit = currentMemory.items.includes(key);
-    cell.className = `memory-cell ${!hidden && lit ? currentMemory.mode === "position" ? "target" : "lit" : ""}`;
-    cell.textContent = hidden ? index : index;
-    grid.appendChild(cell);
-  }
-}
-
-function renderMemoryStats() {
-  const accuracy = state.memory.attempts ? Math.round((state.memory.correct / state.memory.attempts) * 100) : 0;
-  renderMetrics(document.getElementById("memoryStats"), { level: state.memory.level, attempts: state.memory.attempts, best: state.memory.best, accuracy }, { level: "Livello", attempts: "Tentativi", best: "Best", accuracy: "Precisione" }, true);
 }
 
 function loadInfluenceTactic() {
