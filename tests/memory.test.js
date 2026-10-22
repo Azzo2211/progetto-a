@@ -42,7 +42,7 @@ test("Dati: parole uniche e concrete, nomi, 100 immagini del sistema fonetico", 
   assert.strictEqual(new Set(D.major.map((m) => m[1])).size, 100, "immagini doppie");
 });
 
-test("Conversione fonetica italiana: dolci, dure, doppie, gn, gl", () => {
+test("Conversione fonetica italiana: dolci, dure, doppie, gn, gl, sc", () => {
   assert.strictEqual(E.phonetic("mare"), "34");
   assert.strictEqual(E.phonetic("sasso"), "00");
   assert.strictEqual(E.phonetic("cielo"), "65");
@@ -51,6 +51,9 @@ test("Conversione fonetica italiana: dolci, dure, doppie, gn, gl", () => {
   assert.strictEqual(E.phonetic("famiglia"), "835");
   assert.strictEqual(E.phonetic("ghiro"), "74");
   assert.strictEqual(E.phonetic("Pizza"), "90");
+  assert.strictEqual(E.phonetic("scia"), "0", "sc dolce: un suono solo");
+  assert.strictEqual(E.phonetic("pesce"), "90");
+  assert.strictEqual(E.phonetic("scatola"), "0715", "sc duro: due suoni");
   assert.deepStrictEqual(E.majorStory("3141592").map((x) => x.word), ["moto", "ruota", "lupo", null]);
 });
 
@@ -158,6 +161,15 @@ test("Discipline: punteggio a righe come in gara (perfetta tutta, un errore met�
   const gap = round.items.map(String);
   gap[4] = "";
   assert.strictEqual(E.scoreRound(round, gap).rows[0].pts, 5);
+  // riga in mezzo lasciata a metà ma righe dopo scritte: i buchi sono errori
+  const mid = round.items.map(String);
+  for (let i = 17; i < 20; i += 1) mid[i] = "";
+  assert.deepStrictEqual(E.scoreRound(round, mid).rows.map((x) => x.pts), [10, 0, 10]);
+  // ultima riga scritta a metà con un errore: metà delle cifre scritte, per eccesso
+  const odd = round.items.map(String);
+  for (let i = 27; i < 30; i += 1) odd[i] = "";
+  odd[21] = odd[21] === "1" ? "2" : "1";
+  assert.strictEqual(E.scoreRound(round, odd).rows[2].pts, 4);
   // tutto giusto: superato
   assert.ok(E.scoreRound(round, round.items.map(String)).pass);
 });
@@ -169,6 +181,9 @@ test("Discipline: carte, parole e volti", () => {
   assert.ok(c.items.every((x) => E.DECK.includes(x)));
   assert.strictEqual(E.cardInfo("QH").name, "donna di cuori");
   assert.strictEqual(E.scoreRound(c, c.items.slice()).score, 10);
+  const cw = c.items.slice();
+  cw[3] = cw[4];
+  assert.strictEqual(E.scoreRound(c, cw).score, 9, "carte: un punto per carta giusta");
   const w = E.makeRound("words", 2, 8);
   const ans = w.items.slice();
   ans[9] = "";
@@ -257,13 +272,17 @@ test("Programma del giorno: misura iniziale, poi immagini, disciplina, palazzo; 
 test("Valori di riferimento: percentile e giudizio coerenti", () => {
   ["digitF", "digitB", "corsiF", "corsiB", "wordsTotal", "wordsDelayed"].forEach((k) => {
     const n = E.NORMS[k];
-    assert.ok(n && n.mean > 0 && n.sd > 0 && n.source, `${k}: valori di riferimento con fonte`);
+    assert.ok(n && n.mean > 0 && n.sd > 0 && n.source && /^https:\/\//.test(n.url), `${k}: valori di riferimento con fonte`);
     const c = E.compare(k, n.mean, {});
     assert.strictEqual(c.pct, 50);
     assert.strictEqual(c.label, "nella media");
     assert.ok(E.compare(k, n.mean + 2.5 * n.sd, {}).pct >= 98);
   });
   assert.strictEqual(E.compare("nessuno", 5), null);
+  // fascia d'età: un anziano si confronta con gli anziani
+  assert.strictEqual(E.compare("corsiF", 5, { age: 70 }).mean, 4.76);
+  assert.strictEqual(E.compare("corsiF", 5, { age: 25 }).mean, 6.11);
+  assert.strictEqual(E.compare("wordsTotal", 50, { age: 40 }).mean, 51.7);
 });
 
 test("Profilo per il quadro: 6 categorie da 0 a 100", () => {
@@ -272,7 +291,7 @@ test("Profilo per il quadro: 6 categorie da 0 a 100", () => {
   assert.strictEqual(p.length, 6);
   p.forEach((k) => assert.ok(k.value >= 0 && k.value <= 100, k.label));
   E.recordTest(lab, "digitF", E.NORMS.digitF.mean, {}, T0);
-  assert.strictEqual(E.profile(lab, T0)[0].value, Math.round((50 + 35) / 2));
+  assert.strictEqual(E.profile(lab, T0)[0].value, 50, "conta solo il test fatto");
   assert.ok(typeof E.trend(lab, T0) === "string");
 });
 

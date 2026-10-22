@@ -90,8 +90,57 @@
   }
 
   /* ------------------------------------------------------------ valori di riferimento */
-  // Riempiti con le fonti in NORMS (vedi sotto). mean/sd per adulti; by: fasce d'eta' facoltative.
-  const NORMS = {};
+  // mean/sd di adulti sani dagli studi citati; by = fasce d'eta' (anni da-a) se lo studio le da'.
+  const NORMS = {
+    digitF: {
+      mean: 5.3, sd: 1.16,
+      source: "Span di cifre in avanti: norme italiane su 225 adulti sani di 20-92 anni, 2 sequenze per lunghezza, span = la lunghezza più lunga con almeno una sequenza giusta («Digit span and Bisyllabic non-word span: Italian norms», 2025).",
+      url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12424102",
+      note: "Nello studio le cifre sono dette a voce; qui le vedi sullo schermo. L'età media del campione è 52 anni e lo span cala con l'età: per un adulto giovane il confronto è un po' generoso."
+    },
+    digitB: {
+      mean: 4.54, sd: 1.23,
+      source: "Span di cifre all'indietro: stesso studio italiano (225 adulti di 20-92 anni).",
+      url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12424102",
+      note: "Stesse avvertenze: cifre dette a voce nello studio, età media 52 anni."
+    },
+    corsiF: {
+      mean: 6.11, sd: 0.8,
+      by: [{ from: 16, to: 54, mean: 6.11, sd: 0.8 }, { from: 55, to: 99, mean: 4.76, sd: 1.19 }],
+      source: "Blocchi di Corsi in avanti su tablet: 73 adulti giovani 6,11 ± 0,80; 34 adulti anziani 4,76 ± 1,19 (Brunetti, Del Gatto e Delogu, «eCorsi», Frontiers in Psychology, 2014).",
+      url: "https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2014.00939/full",
+      note: "È la stessa procedura di questa versione: un blocco al secondo acceso per mezzo secondo, si parte da 2. La disposizione dei blocchi riproduce in modo approssimato la tavola originale."
+    },
+    corsiB: {
+      mean: 5.29, sd: 1.2,
+      by: [{ from: 16, to: 54, mean: 5.29, sd: 1.2 }, { from: 55, to: 99, mean: 4.35, sd: 1.3 }],
+      source: "Blocchi di Corsi all'indietro: stesso studio (adulti giovani 5,29 ± 1,20; anziani 4,35 ± 1,30).",
+      url: "https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2014.00939/full"
+    },
+    wordsTotal: {
+      mean: 53.9, sd: 8.7,
+      by: [{ from: 16, to: 34, mean: 53.9, sd: 8.7 }, { from: 35, to: 49, mean: 51.7, sd: 9.1 }, { from: 50, to: 65, mean: 52.1, sd: 8.2 }],
+      source: "Lista di 15 parole di Rey, somma delle 5 prove: 17-34 anni 53,9 ± 8,7 e 35-49 anni 51,7 ± 9,1 (Magalhães e Hamdan, Psychology & Neuroscience, 2010); 41-65 anni 52,1 ± 8,2 (Alviarez-Schulze e colleghi, Frontiers in Aging Neuroscience, 2022).",
+      url: "https://www.redalyc.org/pdf/2070/207014856011.pdf",
+      note: "Nella prova originale le parole sono lette a voce, una al secondo, e la lista è fissa; qui le leggi sullo schermo e la lista cambia ogni volta. Il confronto è indicativo."
+    },
+    wordsDelayed: {
+      mean: 11.6, sd: 2.7,
+      by: [{ from: 16, to: 34, mean: 11.6, sd: 2.7 }, { from: 35, to: 49, mean: 10.8, sd: 2.6 }, { from: 50, to: 65, mean: 11.4, sd: 2.6 }],
+      source: "Lista di Rey, richiamo dopo 20 minuti: 17-34 anni 11,6 ± 2,7; 35-49 anni 10,8 ± 2,6 (stessi studi; 41-65 anni 11,4 ± 2,6).",
+      url: "https://www.frontiersin.org/journals/aging-neuroscience/articles/10.3389/fnagi.2022.809019/full"
+    }
+  };
+  // valori di riferimento per una persona (fascia d'eta' se nota)
+  function normRef(key, profile = {}) {
+    const n = NORMS[key];
+    if (!n) return null;
+    if (Array.isArray(n.by) && num(profile && profile.age)) {
+      const band = n.by.find((b) => profile.age >= b.from && profile.age <= b.to);
+      if (band) return { ...n, mean: band.mean, sd: band.sd, band };
+    }
+    return n;
+  }
 
   function zLabel(z) {
     if (z < -2) return "molto sotto la media";
@@ -102,29 +151,28 @@
   }
   // Confronto con i valori di riferimento. profile: { age } (facoltativo).
   function compare(key, value, profile = {}) {
-    const n = NORMS[key];
-    if (!n || !num(value)) return null;
-    let ref = n;
-    if (Array.isArray(n.by) && num(profile.age)) {
-      const band = n.by.find((b) => profile.age >= b.from && profile.age <= b.to);
-      if (band) ref = { ...n, ...band };
-    }
+    const ref = normRef(key, profile);
+    if (!ref || !num(value)) return null;
     const z = (value - ref.mean) / ref.sd;
-    return { z: Math.round(z * 100) / 100, pct: clamp(Math.round(normCdf(z) * 100), 1, 99), label: zLabel(z), mean: ref.mean, sd: ref.sd, source: n.source };
+    return { z: Math.round(z * 100) / 100, pct: clamp(Math.round(normCdf(z) * 100), 1, 99), label: zLabel(z), mean: ref.mean, sd: ref.sd, source: ref.source, note: ref.note || "", url: ref.url || "", band: ref.band || null };
   }
 
   /* ------------------------------------------------------------ test di span */
-  // Blocchi del Corsi: 9 posizioni (x, y in percentuale della tavola).
+  // Blocchi del Corsi: 9 posizioni (x, y in percentuale della tavola). Approssimano la tavola
+  // originale; sono le stesse del plugin corsi-blocks di jsPsych.
   let CORSI = [
-    [12, 72], [28, 20], [44, 56], [70, 12], [86, 38], [64, 66], [20, 46], [50, 84], [82, 80]
+    [45, 80], [80, 94], [20, 70], [70, 60], [35, 50], [6, 40], [94, 45], [60, 25], [47, 6]
   ];
   // Regole (procedura standard degli span): si parte da startLen, trials sequenze per lunghezza;
   // la lunghezza e' superata con almeno pass risposte giuste; ci si ferma quando non si puo' piu'.
   const SPAN_TESTS = {
-    digitF: { key: "digitF", kind: "digit", dir: "f", label: "Cifre in avanti", short: "Cifre avanti", startLen: 3, trials: 2, pass: 1, maxLen: 12, rateMs: 1000 },
-    digitB: { key: "digitB", kind: "digit", dir: "b", label: "Cifre all'indietro", short: "Cifre indietro", startLen: 2, trials: 2, pass: 1, maxLen: 11, rateMs: 1000 },
-    corsiF: { key: "corsiF", kind: "corsi", dir: "f", label: "Blocchi in avanti (Corsi)", short: "Blocchi avanti", startLen: 2, trials: 2, pass: 1, maxLen: 9, rateMs: 1000 },
-    corsiB: { key: "corsiB", kind: "corsi", dir: "b", label: "Blocchi all'indietro (Corsi)", short: "Blocchi indietro", startLen: 2, trials: 2, pass: 1, maxLen: 9, rateMs: 1000 }
+    // cifre: come le norme italiane (da 2 cifre, 2 sequenze per lunghezza, basta una giusta);
+    // oltre 9 si continua per chi usa le tecniche
+    digitF: { key: "digitF", kind: "digit", dir: "f", label: "Cifre in avanti", short: "Cifre avanti", startLen: 2, trials: 2, pass: 1, maxLen: 14, rateMs: 1000, onMs: 750 },
+    digitB: { key: "digitB", kind: "digit", dir: "b", label: "Cifre all'indietro", short: "Cifre indietro", startLen: 2, trials: 2, pass: 1, maxLen: 12, rateMs: 1000, onMs: 750 },
+    // Corsi: come eCorsi (un blocco al secondo, acceso 500 ms, da 2 blocchi)
+    corsiF: { key: "corsiF", kind: "corsi", dir: "f", label: "Blocchi in avanti (Corsi)", short: "Blocchi avanti", startLen: 2, trials: 2, pass: 1, maxLen: 9, rateMs: 1000, onMs: 500 },
+    corsiB: { key: "corsiB", kind: "corsi", dir: "b", label: "Blocchi all'indietro (Corsi)", short: "Blocchi indietro", startLen: 2, trials: 2, pass: 1, maxLen: 9, rateMs: 1000, onMs: 500 }
   };
 
   function spanSequence(def, len, rand) {
@@ -249,20 +297,21 @@
   }
 
   // Livelli: n elementi, mem = secondi per memorizzare, recall = secondi per rispondere.
+  // L'ultimo livello di ogni disciplina e' il formato di Memory League: 1 minuto per memorizzare.
   const DISCIPLINES = {
     numbers: {
       key: "numbers", label: "Numeri", unit: "cifre", rowSize: 10,
       levels: [
         { n: 10, mem: 60 }, { n: 16, mem: 60 }, { n: 20, mem: 60 }, { n: 30, mem: 60 }, { n: 40, mem: 60 },
-        { n: 50, mem: 60 }, { n: 60, mem: 60 }, { n: 80, mem: 60 }, { n: 80, mem: 40 }, { n: 80, mem: 25 }
+        { n: 50, mem: 60 }, { n: 60, mem: 60 }, { n: 70, mem: 60 }, { n: 76, mem: 60 }, { n: 80, mem: 60 }
       ],
       recall: 240
     },
     words: {
       key: "words", label: "Parole", unit: "parole", rowSize: 10,
       levels: [
-        { n: 8, mem: 60 }, { n: 10, mem: 60 }, { n: 15, mem: 60 }, { n: 20, mem: 60 }, { n: 25, mem: 60 },
-        { n: 30, mem: 60 }, { n: 40, mem: 60 }, { n: 50, mem: 60 }, { n: 50, mem: 45 }, { n: 50, mem: 30 }
+        { n: 8, mem: 60 }, { n: 10, mem: 60 }, { n: 12, mem: 60 }, { n: 15, mem: 60 }, { n: 20, mem: 60 },
+        { n: 25, mem: 60 }, { n: 30, mem: 60 }, { n: 35, mem: 60 }, { n: 40, mem: 60 }, { n: 50, mem: 60 }
       ],
       recall: 240
     },
@@ -278,7 +327,7 @@
       key: "faces", label: "Nomi e volti", unit: "nomi", rowSize: 5,
       levels: [
         { n: 4, mem: 60 }, { n: 6, mem: 60 }, { n: 8, mem: 75 }, { n: 10, mem: 90 }, { n: 12, mem: 90 },
-        { n: 15, mem: 120 }, { n: 20, mem: 150 }, { n: 25, mem: 180 }, { n: 30, mem: 180 }, { n: 30, mem: 120 }
+        { n: 15, mem: 120 }, { n: 20, mem: 150 }, { n: 25, mem: 150 }, { n: 30, mem: 120 }, { n: 30, mem: 60 }
       ],
       recall: 240
     }
@@ -307,9 +356,12 @@
   }
 
   /*
-   * Punteggio come nelle gare: a righe (numeri, parole, carte). Riga perfetta = tutti i punti,
-   * un solo errore = meta', piu' errori = zero; una riga lasciata vuota in fondo non conta come errore.
-   * Nomi e volti: un punto per nome giusto.
+   * Punteggio.
+   * Numeri e parole: la regola delle gare IAM (righe da 40 cifre, colonne da 20 parole) applicata
+   * a righe da 10. Riga perfetta = tutti i punti; un errore = meta' (arrotondata per eccesso); due o
+   * piu' = zero. In una riga completa i buchi contano come errori; l'ultima riga scritta, se lasciata
+   * a meta', vale fino all'ultima risposta.
+   * Carte e nomi: come in Memory League, un punto per ogni risposta giusta.
    */
   function scoreRound(round, answers) {
     const d = DISCIPLINES[round.key];
@@ -326,25 +378,32 @@
     const correct = marks.filter((m) => m === true).length;
     let score = correct;
     const rows = [];
-    if (round.key !== "faces") {
+    if (round.key === "numbers" || round.key === "words") {
       score = 0;
+      let last = -1;
+      marks.forEach((m, i) => { if (m !== null) last = i; });
       for (let start = 0; start < items.length; start += d.rowSize) {
         const row = marks.slice(start, start + d.rowSize);
-        const filled = row.filter((m) => m !== null);
-        const errors = row.filter((m) => m === false).length + (filled.length && filled.length < row.length ? row.slice(0, row.lastIndexOf(true) + 1).filter((m) => m === null).length : 0);
-        let pts;
-        if (!filled.length) pts = 0;
-        else if (errors === 0) pts = filled.length === row.length ? row.length : row.filter((m) => m === true).length;
-        else if (errors === 1) pts = Math.floor(row.length / 2);
-        else pts = 0;
-        // riga incompleta senza errori: valgono solo le giuste (come l'ultima riga parziale in gara)
-        rows.push({ start, size: row.length, errors, pts });
+        const end = start + row.length - 1;
+        const attempted = last < start ? 0 : last >= end ? row.length : last - start + 1;
+        const errors = row.slice(0, attempted).filter((m) => m !== true).length;
+        const pts = attempted === 0 ? 0 : errors === 0 ? attempted : errors === 1 ? Math.ceil(attempted / 2) : 0;
+        rows.push({ start, size: row.length, attempted, errors, pts });
         score += pts;
       }
     }
     const max = items.length;
     return { marks, correct, score, max, pct: max ? Math.round((score / max) * 100) : 0, pass: score >= Math.ceil(max * PASS_SHARE), rows };
   }
+
+  // Per confronto: record in gara (fonte: statistiche IAM, iam-stats.org).
+  const BENCH = {
+    numbers: "Per farti un'idea: in Memory League (80 cifre, 1 minuto per memorizzare) il record in una gara dal vivo è 80 cifre in 16,85 secondi (Simon Reinhard, 2018); il record mondiale IAM dei numeri in 5 minuti è 630 cifre (Andrea Muzii, 2021).",
+    words: "Per farti un'idea: in Memory League il record in una gara dal vivo è 50 parole in 51,31 secondi (Katie Kermode, 2016); il record mondiale IAM delle parole in 15 minuti è 318.",
+    cards: "Per farti un'idea: in Memory League il record in una gara dal vivo è un mazzo da 52 in 16,86 secondi (Alex Mullen, 2016); il record mondiale IAM di carte veloci è 12,74 secondi (Shijir-Erdene Bat-Enkh, 2018).",
+    faces: "Per farti un'idea: in Memory League il record in una gara dal vivo è 30 nomi in 45,09 secondi (Jan-Hendrik Büscher, 2018); il record mondiale IAM dei nomi in 15 minuti è 224 (Katie Kermode, 2018)."
+  };
+  const BENCH_URL = "https://iam-stats.org/records_ml.php";
 
   function ensureDiscipline(x, key) {
     const d = DISCIPLINES[key];
@@ -439,12 +498,14 @@
       while (w[j + 1] === c) j += 1;
       const next = w[j + 1] || "";
       const next2 = w[j + 2] || "";
-      if (c === "c") out += "ei".includes(next) ? "6" : "7";
+      if (c === "s" && next === "c" && "ei".includes(next2)) { out += "0"; j += 1; } // «scia»: un suono solo
+      else if (c === "c") out += "ei".includes(next) ? "6" : "7";
       else if (c === "g") {
         if (next === "n") { out += "2"; j += 1; }
         else if (next === "l" && next2 === "i") { out += "5"; j += 1; }
         else out += "ei".includes(next) ? "6" : "7";
-      } else if (map[c]) out += map[c];
+      } else if (c === "j") out += "6";
+      else if (map[c]) out += map[c];
       i = j;
     }
     return out;
@@ -685,7 +746,7 @@
     VERSION, DAY, NORMS, SPAN_TESTS, WORD_TEST, DISCIPLINES, PASS_SHARE, DECK, SUITS, RANKS, MAJOR, MAJOR_INTERVALS, MAJOR_NEW_PER_DAY, ROTATION,
     get CORSI() { return CORSI; }, setCorsi,
     rng, shuffle, clean, sameWord, normCdf, dayKey, addDays, startOfDay,
-    compare, zLabel,
+    compare, zLabel, normRef, BENCH, BENCH_URL,
     makeSpanTest, spanNext, spanAnswer, spanSequence,
     makeWordTest, wordStage, wordAnswer, scoreFree, startDelayed, delayedStatus, finishDelayed, skipDelayed,
     cardInfo, makeRound, scoreRound, recordRound, setLevel,

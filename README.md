@@ -208,6 +208,25 @@ La pagina Difesa (cartella `defense/`) parte da un principio: prima si evita, po
 
 **Profilo (6 categorie, calcolato dai dati)**: Prevenzione (situazioni di prevenzione e uscita + Periferica), Decisione (le altre situazioni, il tempo scaduto conta come errore), Riflessi (tempo mediano nelle ultime prove), Controllo (risposte al rosso, anticipi, direzioni sbagliate), Tecnica (sessioni completate e media delle ultime autovalutazioni, cala dopo 10 giorni di stop), Costanza (giorni di allenamento nelle ultime due settimane). Aprire una pagina o rispondere a caso non gonfia nulla.
 
+## Modulo memoria: misura, tecniche, discipline da gara
+
+La pagina Memoria (cartella `memory/`) ha tre parti: test classici per misurare la memoria con valori di riferimento pubblicati, le tecniche dei campioni di memoria con esercizi, e le discipline delle gare a livelli. Ogni giorno propone un programma breve (immagini del sistema fonetico, una disciplina a rotazione, il palazzo della memoria); i test si rifanno una volta al mese.
+
+| File | Cosa fa |
+|---|---|
+| `memory/data.js` | 401 parole concrete italiane, nomi e cognomi, le 100 immagini del sistema fonetico 00-99 (ognuna controllata con la conversione fonetica). |
+| `memory/faces.js` | Volti SVG generati da un numero (sempre lo stesso volto per lo stesso numero). |
+| `memory/engine.js` | Test di span, lista di parole con richiamo differito, valori di riferimento e percentili, discipline e punteggio, palazzi, sistema fonetico con ripasso distanziato, programma del giorno, profilo. Senza DOM, testato in `tests/memory.test.js`. |
+| `memory/ui.js`, `memory/memory.css` | La pagina: Oggi, Misura, Tecniche, Discipline, Progressi. |
+
+**Misura**: span di cifre in avanti e all'indietro (da 2 cifre, 2 sequenze per lunghezza, basta una giusta per salire: la procedura delle norme italiane del 2025, 225 adulti, media 5,30 ± 1,16 in avanti e 4,54 ± 1,23 all'indietro); blocchi di Corsi in avanti e all'indietro (un blocco al secondo acceso per mezzo secondo, come eCorsi di Brunetti e colleghi 2014: adulti giovani 6,11 ± 0,80 e 5,29 ± 1,20, anziani a parte; tavola con la disposizione approssimata dell'originale presa dal plugin corsi-blocks di jsPsych); lista di 15 parole sul modello della prova di Rey (5 prove, lista di disturbo, richiamo della prima lista, richiamo dopo 20 minuti; confronto con Magalhães e Hamdan 2010 e Alviarez-Schulze e colleghi 2022, per fascia d'età se la inserisci). Il risultato è un percentile con la fonte e le differenze di procedura scritte accanto (cifre lette invece che ascoltate, liste di parole diverse da quella originale): è un termometro, non una diagnosi.
+
+**Tecniche**: raggruppare, storia, palazzo della memoria (con editor dei palazzi e allenamento), sistema fonetico italiano (0 S/Z/SC dolce, 1 T/D, 2 N/GN, 3 M, 4 R, 5 L/GL, 6 C/G dolci, 7 C/G dure/Q/K, 8 F/V, 9 P/B; conta il suono, le doppie valgono una), nomi e volti, ripasso distanziato. Ogni tecnica spiega perché funziona con i numeri degli studi e il link alla fonte (Cowan 2001, Chase ed Ericsson 1982, Dresler e colleghi 2017, Cepeda e colleghi 2006, Roediger e Karpicke 2006). Le 100 immagini del sistema fonetico si imparano 10 al giorno con le scatole di Leitner (1, 2, 4, 8, 16, 32 giorni; una sbagliata torna dopo 10 minuti).
+
+**Discipline**: numeri, parole, carte, nomi e volti, 10 livelli ciascuna; l'ultimo è il formato di Memory League (1 minuto per memorizzare 80 cifre, 50 parole, un mazzo o 30 nomi). Numeri e parole si contano con la regola delle gare IAM a righe da 10 (riga perfetta = tutti i punti, un errore = metà arrotondata per eccesso, due o più = zero; i buchi in una riga completa sono errori; l'ultima riga scritta vale fino all'ultima risposta). Carte e nomi: un punto per risposta giusta. Il livello successivo si sblocca con il 90% e sei tu a decidere quando salire. Dopo ogni turno l'app mostra i record IAM per avere un'idea della scala.
+
+**Profilo (6 categorie)**: Memoria di lavoro (percentile medio degli span di cifre fatti), Memoria visiva (Corsi), Richiamo verbale (lista di parole e richiamo differito), Tecnica (immagini del sistema fonetico imparate e uso dei palazzi), Discipline (livello raggiunto), Costanza (giorni di allenamento nelle ultime due settimane). Senza misure né allenamenti le prime cinque partono da 35. Allenare la memoria migliora i compiti allenati; le meta-analisi (Melby-Lervåg e colleghi 2013 e 2016) non trovano effetti sull'intelligenza generale, e la pagina lo dice.
+
 ## Test
 
 ```powershell
@@ -220,6 +239,7 @@ node tests/martial.test.js
 node tests/omino.test.js
 node tests/university.test.js
 node tests/aim.test.js
+node tests/memory.test.js
 node tools/verify-lessons.js           # controlla esempi ed esercizi delle lezioni con Stockfish
 node tools/calibrate.js sf:8,12 30     # livelli 8 e 12 contro Stockfish con forza limitata all'Elo del livello
 node tools/calibrate.js match:3-4 50   # scontro diretto tra due livelli (per quelli sotto 1320)

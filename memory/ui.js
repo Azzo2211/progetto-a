@@ -64,7 +64,8 @@
       id: "chunk",
       title: "Raggruppare",
       line: "La memoria di lavoro tiene circa 4 blocchi: rendi ogni blocco più grande.",
-      why: "La memoria a breve termine tiene pochi elementi alla volta: circa 4 blocchi di informazione secondo la rassegna di Nelson Cowan (2001), non i 7 della famosa regola di Miller. Il trucco è far diventare un blocco più grande: 1-9-4-5 sono quattro cifre, «1945» è una data sola. Uno studente allenato da Chase ed Ericsson, partendo da 7 cifre, arrivò a ricordarne circa 80 trasformandole in tempi di corsa che conosceva.",
+      why: "La memoria a breve termine tiene pochi elementi alla volta: circa 4 blocchi di informazione secondo la rassegna di Nelson Cowan (2001); il famoso «7 più o meno 2» di Miller era una stima approssimativa. Il trucco è far diventare un blocco più grande: 1-9-4-5 sono quattro cifre, «1945» è una data sola. SF, uno studente qualunque seguito da Chase ed Ericsson, partì da uno span di 7 cifre e in circa due anni (oltre 250 ore di pratica) arrivò a 82, trasformando le cifre in tempi di corsa che conosceva. La sua memoria per le lettere invece restò quella di prima: si allena la tecnica, non la memoria in generale.",
+      sources: [["Cowan 2001, Behavioral and Brain Sciences", "https://www.cambridge.org/core/journals/behavioral-and-brain-sciences/article/magical-number-4-in-shortterm-memory-a-reconsideration-of-mental-storage-capacity/44023F1147D4A1D44BDC0AD226838496"], ["Chase ed Ericsson 1982, Skill and working memory", "https://apps.dtic.mil/sti/pdfs/ADA114634.pdf"]],
       steps: ["Dividi le cifre a gruppi di 2, 3 o 4.", "Dai a ogni gruppo un significato: una data, un'ora, un prezzo, una persona.", "Ripeti i gruppi, non le cifre singole."],
       practice: { kind: "numbers", level: 2, note: "16 cifre: raggruppale come preferisci." }
     },
@@ -72,7 +73,7 @@
       id: "story",
       title: "Storia",
       line: "Collega le parole in una scena assurda: una tira l'altra.",
-      why: "Le immagini concrete si ricordano meglio delle parole astratte (l'effetto di superiorità delle immagini) e una storia aggiunge l'ordine: ogni scena richiama la successiva. Più la scena è strana, esagerata e con movimento, più resta.",
+      why: "Le parole concrete, che si possono immaginare, si ricordano meglio di quelle astratte, e una storia aggiunge l'ordine: ogni scena richiama la successiva. Più la scena è strana, esagerata e in movimento, più resta. È il primo passo verso il palazzo della memoria: la storia lega le immagini tra loro, il palazzo le lega a dei luoghi.",
       steps: ["Trasforma ogni parola in un'immagine precisa (non «albero»: «una quercia enorme»).", "Fai interagire la prima con la seconda in modo assurdo, poi la seconda con la terza.", "Per richiamarle, riparti dalla prima e segui la catena."],
       practice: { kind: "words", level: 2, note: "10 parole in ordine: costruisci una storia." }
     },
@@ -80,7 +81,8 @@
       id: "loci",
       title: "Palazzo della memoria",
       line: "Metti le immagini in luoghi che conosci a memoria, poi ripercorrili.",
-      why: "È il metodo dei loci, usato dagli oratori antichi e da quasi tutti i campioni di memoria. Nello studio di Dresler e colleghi (Neuron, 2017) persone comuni che lo hanno praticato 30 minuti al giorno per 6 settimane sono passate da circa 26 a circa 62 parole ricordate su 72, e mesi dopo ne ricordavano ancora molte più di prima.",
+      why: "È il metodo dei loci, usato dagli oratori antichi e da quasi tutti i campioni di memoria. Nello studio di Dresler e colleghi (Neuron, 2017) 17 campioni di memoria ricordavano in media 70,8 parole su 72 (mostrate 2 secondi l'una), contro 39,9 di persone comuni. Poi persone comuni si sono allenate con questo metodo 30 minuti al giorno per 40 giorni: sono passate da circa 26-30 a 62 parole su 72, mentre chi aveva allenato la memoria di lavoro (n-back) ne guadagnava circa 11. Quattro mesi dopo ne ricordavano ancora più di 22 in più rispetto all'inizio.",
+      sources: [["Dresler e colleghi 2017, Neuron", "https://pmc.ncbi.nlm.nih.gov/articles/PMC5439266/"]],
       steps: ["Scegli un percorso che conosci benissimo: casa tua, la strada per il lavoro.", "Fissa 10-20 luoghi in ordine (porta, attaccapanni, divano...). Sempre lo stesso ordine.", "Per memorizzare, metti un'immagine in ogni luogo, esagerata e in movimento.", "Per ricordare, cammina con la mente nel percorso e guarda cosa c'è in ogni luogo."],
       practice: { kind: "palace" }
     },
@@ -88,7 +90,8 @@
       id: "major",
       title: "Sistema fonetico",
       line: "Ogni cifra è un suono: 00-99 diventano 100 immagini fisse.",
-      why: "I numeri sono astratti e si dimenticano; le immagini no. Il sistema fonetico (in inglese «major system») converte le cifre in consonanti e le consonanti in parole: 34 = M+R = mare. Imparate le 100 immagini, un numero lungo diventa una serie di scene da mettere nel palazzo. Le vocali non contano, le doppie valgono una consonante sola.",
+      why: "I numeri sono astratti e si dimenticano; le immagini no. Il sistema fonetico (in inglese «major system») converte le cifre in consonanti e le consonanti in parole: 34 = M+R = mare. Imparate le 100 immagini, un numero lungo diventa una serie di scene da mettere nel palazzo. Le vocali non contano, le doppie valgono una consonante sola e conta il suono, non la scrittura: «scia» è un suono solo (0), «scatola» sono due (0 e 7).",
+      sources: [["Conversione fonetica, Wikipedia", "https://it.wikipedia.org/wiki/Conversione_fonetica"]],
       steps: ["Impara la tabella dei suoni: 0 S/Z, 1 T/D, 2 N/GN, 3 M, 4 R, 5 L, 6 C/G dolci, 7 C/G dure e Q, 8 F/V, 9 P/B.", "Impara le 100 immagini con il ripasso: 10 nuove al giorno, ripassi distanziati.", "Per un numero lungo: dividilo a coppie e metti ogni immagine in un luogo del palazzo."],
       practice: { kind: "major" }
     },
@@ -103,9 +106,10 @@
     {
       id: "spacing",
       title: "Ripasso distanziato",
-      line: "Ripassa quando stai per dimenticare: 1, 3, 7, 16 giorni.",
-      why: "Ripassare distanziato funziona meglio che ripassare tutto insieme: è uno dei risultati più solidi della psicologia (meta-analisi di Cepeda e colleghi, 2006). E richiamare a memoria (fare il test) fissa più che rileggere (Roediger e Karpicke, 2006). Il sistema fonetico qui e le schede della Cultura usano già questo metodo.",
-      steps: ["Dopo aver imparato qualcosa, prova a richiamarlo senza guardare.", "Ripassa dopo 1 giorno, poi 3, 7, 16, 35: se sbagli, si riparte da vicino.", "Pochi minuti al giorno battono un'ora una volta a settimana."],
+      line: "Ripassa quando stai per dimenticare, a distanze sempre più lunghe.",
+      why: "Ripassare distanziato funziona meglio che ripassare tutto insieme: nella meta-analisi di Cepeda e colleghi (2006, 839 confronti) il ricordo finale era in media del 47% contro il 37%. E richiamare a memoria fissa più che rileggere: nell'esperimento di Roediger e Karpicke (2006), dopo una settimana chi si era interrogato ricordava il 56% del testo, chi l'aveva riletto il 42%. Il sistema fonetico qui e le schede della Cultura usano già questo metodo.",
+      sources: [["Cepeda e colleghi 2006, Psychological Bulletin", "https://www.evullab.org/pdf/CepedaPashlerVulWixtedRohrer-PB-2006.pdf"], ["Roediger e Karpicke 2006, Psychological Science", "https://psychology.ecu.edu/wp-content/pv-uploads/sites/216/2019/03/Roediger-Karpicke-2006.pdf"]],
+      steps: ["Dopo aver imparato qualcosa, prova a richiamarlo senza guardare.", "Ripassa dopo 1 giorno, poi 2, 4, 8, 16, 32: se sbagli, si riparte da vicino.", "Pochi minuti al giorno battono un'ora una volta a settimana."],
       practice: null
     }
   ];
@@ -122,6 +126,12 @@
   function pctBar(c) {
     if (!c) return `<span class="mem-pct-none">Senza valori di riferimento</span>`;
     return `<span class="mem-pct" role="img" aria-label="${c.pct}° percentile: ${esc(c.label)}"><span class="mem-pct-band"></span><span class="mem-pct-mark" style="left:${c.pct}%"></span></span><span class="mem-pct-text"><b>${c.pct}°</b> percentile · ${esc(c.label)}</span>`;
+  }
+  // riga con media, deviazione standard, fonte e avvertenze del confronto
+  function normLine(c) {
+    if (!c) return "";
+    const f = (v) => String(v).replace(".", ",");
+    return `<p class="mem-small">Media di riferimento ${f(c.mean)} (deviazione standard ${f(c.sd)})${c.band ? `, fascia ${c.band.from}-${c.band.to} anni` : ""}. ${esc(c.source || "")}${c.url ? ` <a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">Fonte</a>` : ""}${c.note ? `<br>${esc(c.note)}` : ""}</p>`;
   }
   function stageTimer(left, total) {
     const w = total ? Math.max(0, Math.min(100, (left / total) * 100)) : 0;
@@ -171,6 +181,7 @@
           <h3>Come funziona</h3>
           <p>Ogni giorno: le immagini del sistema fonetico, una disciplina da gara e il palazzo della memoria. Una volta al mese rifai i test per vedere se stai migliorando davvero.</p>
           <p>I test usano valori di riferimento pubblicati per adulti; le discipline usano le regole delle gare di memoria.</p>
+          <p>Cosa aspettarti: le tecniche fanno crescere molto quello che alleni (parole, numeri, nomi). Allenare la memoria non rende più intelligenti in generale: le meta-analisi di Melby-Lervåg e colleghi (2013 e 2016) non trovano effetti oltre i compiti allenati.</p>
           ${profileMini(l)}
         </aside>
       </div>`;
@@ -238,7 +249,7 @@
     const head = `${backBar("← Esci dal test")}<div class="mem-run-head"><span class="mem-kicker">${esc(def.label)}</span><span>${r.phase === "intro" || r.phase === "result" ? "" : `Lunghezza ${t.len} · prova ${Math.min(t.trial + 1, def.trials)} di ${def.trials}`}</span></div>`;
     if (r.phase === "intro") {
       return `${head}<article class="mem-card"><h2 data-focus tabindex="-1">${esc(def.label)}</h2>
-        <p>${corsi ? `Si accendono dei blocchi, uno alla volta, un secondo ciascuno. Poi tocca${def.dir === "b" ? " gli stessi blocchi <b>al contrario</b>, dall'ultimo al primo" : " gli stessi blocchi <b>nello stesso ordine</b>"}.` : `Compaiono delle cifre, una al secondo. Poi scrivile${def.dir === "b" ? " <b>al contrario</b>, dall'ultima alla prima" : " <b>nello stesso ordine</b>"}.`}</p>
+        <p>${corsi ? `Si accendono dei blocchi, uno al secondo. Poi tocca${def.dir === "b" ? " gli stessi blocchi <b>al contrario</b>, dall'ultimo al primo" : " gli stessi blocchi <b>nello stesso ordine</b>"}.` : `Compaiono delle cifre, una al secondo. Poi scrivile${def.dir === "b" ? " <b>al contrario</b>, dall'ultima alla prima" : " <b>nello stesso ordine</b>"}.`}</p>
         <p>Si parte da ${def.startLen} e si sale di uno; ci sono ${def.trials} prove per lunghezza e ti fermi quando le sbagli tutte e due. Niente trucchi: niente carta, niente ripetere a voce alta.</p>
         <div class="mem-actions"><button type="button" class="primary-action" data-m="span-go" data-autofocus>Comincia</button></div></article>`;
     }
@@ -248,7 +259,7 @@
       const prev = (l.tests[t.key] || []).slice(-2, -1)[0];
       return `${head}<article class="mem-card mem-result"><div class="mem-big"><strong>${t.span || "—"}</strong><span>span</span></div><div>
         <h2 data-focus tabindex="-1">${t.span ? `Span ${t.span}` : "Nessuna sequenza giusta"}</h2>
-        ${c ? `<p>${pctBar(c)}</p><p class="mem-small">Media di riferimento ${String(c.mean).replace(".", ",")} (deviazione standard ${String(c.sd).replace(".", ",")}). ${esc(c.source || "")}</p>` : ""}
+        ${c ? `<p>${pctBar(c)}</p>${normLine(c)}` : ""}
         ${prev ? `<p>La volta prima: ${prev.value} (${dateShort(prev.t)}).</p>` : ""}
         <div class="mem-actions"><button type="button" class="primary-action" data-m="exit" data-autofocus>Torna ai test</button><button type="button" class="ghost-action" data-m="span" data-key="${t.key}">Rifallo</button></div></div></article>`;
     }
@@ -268,7 +279,7 @@
   function corsiBoard(r) {
     const lit = r.phase === "show" && r.showIdx >= 0 ? r.test.current[r.showIdx] : -1;
     const clickable = r.phase === "answer";
-    return `<div class="mem-stage mem-corsi" role="group" aria-label="Tavola con 9 blocchi">${E.CORSI.map(([x, y], i) => `<button type="button" class="mem-block ${i === lit ? "lit" : ""} ${r.input.includes(i) ? "picked" : ""}" style="left:${(9 + x * 0.82).toFixed(1)}%;top:${(11 + y * 0.78).toFixed(1)}%" data-m="${clickable ? "corsi" : ""}" data-i="${i}" ${clickable ? "" : "tabindex=\"-1\" aria-disabled=\"true\""} aria-label="Blocco ${i + 1}${r.input.includes(i) ? `, scelto per ${r.input.indexOf(i) + 1}°` : ""}">${r.input.includes(i) ? r.input.indexOf(i) + 1 : ""}</button>`).join("")}</div>`;
+    return `<div class="mem-stage mem-corsi" role="group" aria-label="Tavola con 9 blocchi">${E.CORSI.map(([x, y], i) => `<button type="button" class="mem-block ${i === lit ? "lit" : ""} ${r.input.includes(i) ? "picked" : ""}" style="left:${(7 + x * 0.86).toFixed(1)}%;top:${(8 + y * 0.84).toFixed(1)}%" data-m="${clickable ? "corsi" : ""}" data-i="${i}" ${clickable ? "" : "tabindex=\"-1\" aria-disabled=\"true\""} aria-label="Blocco ${i + 1}${r.input.includes(i) ? `, scelto per ${r.input.indexOf(i) + 1}°` : ""}">${r.input.includes(i) ? r.input.indexOf(i) + 1 : ""}</button>`).join("")}</div>`;
   }
   function keypad() {
     return `<div class="mem-keypad" role="group" aria-label="Tastierino">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `<button type="button" data-m="key" data-k="${n}">${n}</button>`).join("")}<button type="button" data-m="key" data-k="del" aria-label="Cancella">⌫</button><button type="button" data-m="key" data-k="0" disabled aria-hidden="true">0</button><button type="button" class="ok" data-m="key" data-k="ok">OK</button></div>`;
@@ -281,7 +292,7 @@
     r.showIdx = -1;
     render(false);
     const rate = r.test.def.rateMs;
-    const on = Math.round(rate * 0.75);
+    const on = r.test.def.onMs || Math.round(rate * 0.75);
     seq.forEach((_, i) => {
       after(500 + i * rate, () => { if (ui.run !== r) return; r.showIdx = i; paintStage(); });
       after(500 + i * rate + on, () => { if (ui.run !== r) return; r.showIdx = -1; paintStage(); });
@@ -360,7 +371,7 @@
     const c = E.compare("wordsTotal", total, lab().profile);
     return `${head}<article class="mem-card mem-result"><div class="mem-big"><strong>${total}</strong><span>su 75</span></div><div>
       <h2 data-focus tabindex="-1">Prove 1-5: ${t.trials.join(" · ")}</h2>
-      ${c ? `<p>${pctBar(c)}</p>` : ""}
+      ${c ? `<p>${pctBar(c)}</p>${normLine(c)}` : ""}
       <p>Lista di disturbo: ${t.b}/15 · prima lista senza rivederla: ${t.a6}/15.</p>
       <p><b>Torna tra 20 minuti</b> per il richiamo differito: lo trovi in Oggi e qui in Misura. Intanto fai pure altro, anche nell'app.</p>
       <div class="mem-actions"><button type="button" class="primary-action" data-m="exit" data-autofocus>Va bene</button></div></div></article>`;
@@ -410,7 +421,7 @@
       <h2 data-focus tabindex="-1">Dopo ${x.minutes} minuti: ${x.correct} parole</h2>
       <p>Totale delle 5 prove: ${x.total}/75.</p>
       ${x.compareTotal ? `<p><span class="mem-sub">5 prove</span>${pctBar(x.compareTotal)}</p>` : ""}
-      ${x.compareDelayed ? `<p><span class="mem-sub">Richiamo differito</span>${pctBar(x.compareDelayed)}</p>` : x.late ? "<p>Fatto oltre i 45 minuti: non lo confronto con i valori di riferimento.</p>" : ""}
+      ${x.compareDelayed ? `<p><span class="mem-sub">Richiamo differito</span>${pctBar(x.compareDelayed)}</p>${normLine(x.compareDelayed)}` : x.late ? "<p>Fatto oltre i 45 minuti: non lo confronto con i valori di riferimento.</p>" : ""}
       ${x.missed.length ? `<p class="mem-small">Dimenticate: ${x.missed.map(esc).join(", ")}.</p>` : ""}
       <div class="mem-actions"><button type="button" class="primary-action" data-m="exit" data-autofocus>Torna ai test</button></div></div></article>`;
   }
@@ -448,6 +459,7 @@
           <p class="mem-lead">${esc(t.line)}</p>
           <h3>Perché funziona</h3>
           <p>${esc(t.why)}</p>
+          ${t.sources ? `<p class="mem-small mem-refs">Fonti: ${t.sources.map(([label, url]) => `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>`).join(" · ")}</p>` : ""}
           <h3>Come si fa</h3>
           <ol class="mem-howto">${t.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>
         </article>
@@ -560,7 +572,7 @@
     const l = lab();
     return `
       <div class="mem-dis">
-        <div class="mem-intro"><h2 data-focus tabindex="-1">Discipline da gara</h2><p>Le prove delle gare di memoria, a livelli. Punteggio come in gara: riga perfetta = tutti i punti, un errore = metà, due o più = zero. Superi il livello con il 90%: decidi tu quando salire.</p></div>
+        <div class="mem-intro"><h2 data-focus tabindex="-1">Discipline da gara</h2><p>Le prove delle gare di memoria, a livelli; l'ultimo è il formato di Memory League: 1 minuto per memorizzare 80 cifre, 50 parole, un mazzo da 52 carte o 30 nomi. Numeri e parole si contano come nelle gare IAM, a righe da 10: riga perfetta = tutti i punti, un errore = metà, due o più = zero. Carte e nomi: un punto per risposta giusta. Superi il livello con il 90%: decidi tu quando salire.</p></div>
         <ul class="mem-dis-list">
           ${Object.values(E.DISCIPLINES).map((d) => {
             const st = l.disciplines[d.key];
@@ -761,8 +773,8 @@
       <section class="mem-card mem-check"><h3>Le risposte</h3>${detail}</section>`;
   }
   function benchmark(round) {
-    const b = window.MemoryBench && window.MemoryBench[round.key];
-    return b ? `<p class="mem-small">${esc(b)}</p>` : "";
+    const b = E.BENCH && E.BENCH[round.key];
+    return b ? `<p class="mem-small">${esc(b)} <a href="${esc(E.BENCH_URL)}" target="_blank" rel="noopener noreferrer">Record IAM</a></p>` : "";
   }
 
   /* ------------------------------------------------------------ PROGRESSI */
@@ -808,7 +820,7 @@
     const H = 200;
     const P = 34;
     const normKey = key === "words" ? "wordsTotal" : key;
-    const n = E.NORMS[normKey];
+    const n = E.normRef(normKey, l.profile);
     const values = list.map((x) => x.value);
     const lo = Math.max(0, Math.min(...values, n ? n.mean - 2 * n.sd : Infinity) - 1);
     const hi = Math.max(...values, n ? n.mean + 2 * n.sd : -Infinity) + 1;
