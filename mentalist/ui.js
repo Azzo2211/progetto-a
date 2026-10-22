@@ -179,7 +179,8 @@
           <section class="mnt-card"><h2 data-focus tabindex="-1">La scena</h2><ul class="mnt-probes">${scene}</ul></section>
           <section class="mnt-card"><h2>Le persone</h2><ul class="mnt-people">${people}</ul></section>
         </div>
-        <aside class="mnt-notebook" aria-label="Taccuino">
+        <div class="mnt-mbar" aria-hidden="true"><span><b>${run.facts.length}</b> ${run.facts.length === 1 ? "fatto" : "fatti"} · <b>${Math.max(0, left)}</b> ${left === 1 ? "mossa" : "mosse"}</span><button type="button" class="mnt-mbar-link" data-m="to-notebook" tabindex="-1">Taccuino</button><button type="button" class="primary-action small" data-m="case-solve" tabindex="-1" ${run.facts.length ? "" : "disabled"}>Ricostruisci</button></div>
+        <aside class="mnt-notebook" id="mntNotebook" aria-label="Taccuino">
           <h3>Taccuino</h3>
           ${run.facts.length ? `<ol>${run.facts.map((f) => `<li class="${run.log.length && run.log[run.log.length - 1].fact === f && run.log[run.log.length - 1].isNew ? "new" : ""}">${esc(c.facts[f])}</li>`).join("")}</ol>` : `<p class="mnt-small">Ancora vuoto. Ogni fatto che scopri finisce qui.</p>`}
           <div class="mnt-actions"><button type="button" class="primary-action" data-m="case-solve" ${run.facts.length ? "" : "disabled"}>${out ? "Ricostruisci il caso" : "Ho visto abbastanza: ricostruisci"}</button></div>
@@ -701,6 +702,7 @@
         break;
       }
       case "case-solve": ui.run.run.phase = "solve"; render(true); break;
+      case "to-notebook": { const nb = $("mntNotebook"); if (nb) nb.scrollIntoView({ block: "start" }); break; }
       case "case-back": ui.run.run.phase = "inv"; render(true); break;
       case "pick-culprit": ui.solve.culprit = el.dataset.v; render(false, true); break;
       case "pick-key": {
