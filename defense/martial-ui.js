@@ -13,7 +13,12 @@
   const M = window.MartialEngine;
   const DISC = window.MartialDisciplines || [];
   const LOOK = window.MartialLookism || null;
+  const FIX = window.MartialFix || null;
   const BY = new Map(DISC.map((d) => [d.id, d]));
+  // tutti gli esercizi per id (servono ai correttivi: "ripasso lento" dell'esercizio non riuscito)
+  const EX = new Map();
+  DISC.forEach((d) => (d.levels || []).forEach((lv) => [lv.warmup, lv.cooldown, ...(lv.sessions || []).flatMap((x) => x.exercises || [])].forEach((e) => { if (e && !EX.has(e.id)) EX.set(e.id, e); })));
+  const REASONS = (M && M.REASONS) || [];
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const KIND = {
@@ -140,11 +145,37 @@
     return p && p.key === key ? clamp(p.idx, 0, n - 1) : null;
   }
 
-  // Esercizi di una sessione: riscaldamento del livello, la sessione, defaticamento.
-  function listOf(lv, idx) {
+  // Esercizi di una sessione: riscaldamento del livello, (correttivi di tecnica, coordinazione,
+  // equilibrio), la sessione, (correttivi di forza, flessibilita', fiato), defaticamento.
+  function listOf(lv, idx, extras = []) {
     if (!lv || !lv.sessions || !lv.sessions.length) return [];
     const s = lv.sessions[clamp(idx, 0, lv.sessions.length - 1)];
-    return [lv.warmup, ...s.exercises, lv.cooldown].filter(Boolean);
+    const early = extras.filter((e) => e.fix && e.fix.early);
+    const late = extras.filter((e) => !(e.fix && e.fix.early));
+    return [lv.warmup, ...early, ...s.exercises, ...late, lv.cooldown].filter(Boolean);
+  }
+
+  // Correttivo pronto da mostrare (dal riferimento salvato: { id, reason, ref }).
+  function fixExercise(x, level, disc) {
+    if (!FIX || !x) return null;
+    const e = FIX.build(x, { level, disc, exById: (id) => EX.get(id) || null });
+    if (e && x.id) e.id = x.id;
+    return e;
+  }
+  function extrasOf(entry) {
+    return (entry && entry.extra ? entry.extra : []).map((x) => fixExercise(x, entry.level, entry.disc)).filter(Boolean);
+  }
+  // Correttivi che il prossimo allenamento di questo stile aggiungerebbe adesso.
+  function planFixes(l, disc, level, lv, idx) {
+    if (!FIX || !M.remedial) return [];
+    const s = sessionOf(lv, idx);
+    const skip = s ? s.exercises.map((e) => e.id) : [];
+    const out = [];
+    M.remedial(l, disc, Date.now(), { skip }).forEach((p) => {
+      const e = fixExercise(p, level, disc);
+      if (e && !out.some((o) => o.id === e.id)) out.push(Object.assign(e, { ref: p.ref }));
+    });
+    return out;
   }
 
   function sessionOf(lv, idx) {
@@ -152,7 +183,7 @@
   }
 
   function curLevel(l) { return levelData(l.current.disc, l.current.level); }
-  function curList(l) { return listOf(curLevel(l), l.current.session); }
+  function curList(l) { return listOf(curLevel(l), l.current.session, extrasOf(l.current)); }
 
   // Com'e' andato questo esercizio l'ultima volta che l'hai fatto.
   function lastResult(l, exId) {
@@ -290,7 +321,50 @@
   /* ---------------------------------------------------------------- Oggi */
   function exercisePreview(list) {
     return `<ol class="ma-preview">${list.map((e) => `
-      <li><span class="ma-kind k-${e.kind}">${KIND[e.kind] || e.kind}</span><strong>${esc(e.name)}</strong><em>${esc(doseText(e.dose, e.kind))}</em></li>`).join("")}</ol>`;
+      <li${e.fix ? ` class="is-fix"` : ""}><span class="ma-kind k-${e.kind}">${e.fix ? `Correttivo · ${esc(e.fix.label)}` : KIND[e.kind] || e.kind}</span><strong>${esc(e.name)}</strong><em>${esc(doseText(e.dose, e.kind))}</em></li>`).join("")}</ol>`;
+  }
+
+  // Punti deboli: i motivi per cui gli esercizi non riescono, e che cosa aggiunge il prossimo allenamento.
+  function weakCard(l, fixes) {
+    if (!M.weaknesses) return "";
+    const w = M.weaknesses(l);
+    const open = w.list.filter((x) => x.open > 0).sort((a, b) => b.score - a.score);
+    if (!open.length) return "";
+    const rows = open.map((x) => {
+      const names = [...new Set(x.issues.map((it) => (EX.get(it.exId) || {}).name).filter(Boolean))].slice(0, 2);
+      const fix = fixes.find((f) => f.fix && f.fix.reason === x.id);
+      return `<li class="${w.top.some((t) => t.id === x.id) ? "on" : ""}">
+        <div><strong>${esc(x.label)}</strong><span>${plural(x.open, "esercizio non riuscito", "esercizi non riusciti")}${names.length ? `: ${names.map((n) => `«${esc(n)}»`).join(", ")}` : ""}</span>
+        ${fix ? `<em>Prossimo allenamento: + ${esc(fix.name)}</em>` : w.top.some((t) => t.id === x.id) ? `<em>Correttivo in coda: entra quando c'è posto (al massimo ${M.FIX_MAX} per allenamento)</em>` : `<em>Pesa poco: per ora nessun correttivo</em>`}</div>
+        <button type="button" class="def-ghost" data-mact="resolve" data-reason="${x.id}" aria-label="Segna ${esc(x.label)} come risolto">Risolto</button>
+      </li>`;
+    }).join("");
+    return `<article class="def-pcard ma-weak"><h3>I tuoi punti deboli</h3>
+      <p class="def-note">Vengono dai motivi che hai indicato quando un esercizio non è riuscito. Ognuno si chiude da solo quando quell'esercizio ti riesce, e pesa meno con il tempo e con ogni correttivo fatto bene.</p>
+      <ul class="ma-weak-list">${rows}</ul></article>`;
+  }
+
+  // Esagono "dove fai fatica": motivi indicati negli ultimi 60 giorni.
+  function weakHex(l) {
+    if (!M.weaknesses || !REASONS.length) return "";
+    const w = M.weaknesses(l);
+    const total = w.list.reduce((n, x) => n + x.recent, 0);
+    if (!total) return `<article class="def-pcard"><h3>Dove fai fatica</h3><p class="def-note">Quando un esercizio non riesce, indica il motivo: qui vedrai dove fai più fatica e gli allenamenti aggiungeranno esercizi mirati.</p></article>`;
+    const max = Math.max(...w.list.map((x) => x.recent), 1);
+    const size = 260;
+    const c = size / 2;
+    const R = 78;
+    const pt = (i, r) => { const a = (Math.PI / 180) * (-90 + i * 60); return [c + Math.cos(a) * r, c + Math.sin(a) * r]; };
+    const ring = (k) => w.list.map((_, i) => pt(i, R * k).map((v) => v.toFixed(1)).join(",")).join(" ");
+    const shape = w.list.map((x, i) => pt(i, R * (0.08 + 0.92 * (x.recent / max))).map((v) => v.toFixed(1)).join(",")).join(" ");
+    const labels = w.list.map((x, i) => { const [x0, y0] = pt(i, R + 30); return `<text x="${x0.toFixed(1)}" y="${y0.toFixed(1)}" class="ma-hex-l">${esc(x.label)}</text><text x="${x0.toFixed(1)}" y="${(y0 + 14).toFixed(1)}" class="ma-hex-v">${x.recent}</text>`; }).join("");
+    const desc = w.list.map((x) => `${x.label} ${x.recent}`).join(", ");
+    return `<article class="def-pcard ma-hexcard"><h3>Dove fai fatica</h3>
+      <svg class="ma-hex" viewBox="0 0 ${size} ${size}" role="img" aria-label="Motivi degli esercizi non riusciti negli ultimi 60 giorni: ${esc(desc)}">
+        <polygon class="g" points="${ring(1)}"></polygon><polygon class="g" points="${ring(0.5)}"></polygon>
+        <polygon class="s" points="${shape}"></polygon>${labels}
+      </svg>
+      <p class="def-note">Quante volte hai indicato ogni motivo negli ultimi 60 giorni.</p></article>`;
   }
 
   function lookLine(disc) {
@@ -326,7 +400,8 @@
     const idx = picked != null ? picked : next;
     const offer = M.offerFor(l, t.disc);
     const s = sessionOf(lv, idx);
-    const list = listOf(lv, idx);
+    const fixes = planFixes(l, t.disc, level, lv, idx);
+    const list = listOf(lv, idx, fixes);
     const last = t.sessions[t.sessions.length - 1];
     const picker = `<div class="ma-sesspick" role="group" aria-label="Sessione del livello ${level}">${lv.sessions.map((x, i) => `
       <button type="button" data-mact="pick-session" data-disc="${d.id}" data-index="${i}" aria-pressed="${i === idx}"><strong>${i + 1}. ${TYPE[x.type] || x.type}</strong><span>${i === next ? "la prossima" : x.type === "prova" ? "esame del livello" : "&nbsp;"}</span></button>`).join("")}</div>`;
@@ -343,6 +418,7 @@
             <h3 class="ma-lv-title">${esc(s.title)}</h3>
             <p>${prose(s.focus)}</p>
             ${exercisePreview(list)}
+            ${fixes.length ? `<p class="ma-fix-note">Oggi aggiungo ${plural(fixes.length, "correttivo", "correttivi")} per i tuoi punti deboli: ${fixes.map((f) => `<strong>${esc(f.name)}</strong> (${esc(f.fix.label)})`).join(", ")}.</p>` : ""}
             <p class="ma-motto">«${esc(mottoFor(t.disc))}»</p>
           </div>
           <div class="ma-today-side">
@@ -359,6 +435,7 @@
           <p class="def-note">Tocca uno stile: oggi diventa quello (il calendario si aggiorna da solo).</p>
           ${styleChips(l, "today-swap", { current: t.disc, rest: true })}
         </details>`}
+        ${weakCard(l, fixes)}
         ${strip}
       </div>`;
   }
@@ -517,8 +594,16 @@
     const preps = ex.filter((x) => x.prepFor === e.id);
     const list = ex.map((x, i) => {
       const r = c.results[x.id];
-      return `<li class="${i === ui.ex ? "now" : ""} ${r === true ? "ok" : r === false ? "no" : ""}"><button type="button" data-mact="goto" data-index="${i}"><span class="ma-dot" aria-hidden="true">${r === true ? "✓" : r === false ? "✗" : i + 1}</span><span>${esc(x.name)}</span><span class="def-sr">${r === true ? "riuscito" : r === false ? "non ancora" : "da fare"}</span></button></li>`;
+      return `<li class="${i === ui.ex ? "now" : ""} ${r === true ? "ok" : r === false ? "no" : ""}${x.fix ? " is-fix" : ""}"><button type="button" data-mact="goto" data-index="${i}"><span class="ma-dot" aria-hidden="true">${r === true ? "✓" : r === false ? "✗" : i + 1}</span><span>${esc(x.name)}${x.fix ? `<small class="ma-fixtag">correttivo · ${esc(x.fix.label)}</small>` : ""}</span><span class="def-sr">${r === true ? "riuscito" : r === false ? "non ancora" : "da fare"}</span></button></li>`;
     }).join("");
+    const whyList = (c.reasons && c.reasons[e.id]) || [];
+    const nextOpen = ex.findIndex((x, i) => i !== ui.ex && c.results[x.id] === undefined);
+    const why = c.results[e.id] === false && REASONS.length ? `
+            <div class="ma-why" role="group" aria-labelledby="maWhyT">
+              <p id="maWhyT"><strong>Che cosa è mancato?</strong> Scegli uno o più motivi: dal prossimo allenamento aggiungo esercizi mirati.</p>
+              <div class="ma-why-chips">${REASONS.map((r) => `<button type="button" class="ma-why-chip" data-mact="why" data-reason="${r.id}" aria-pressed="${whyList.includes(r.id)}"><strong>${esc(r.label)}</strong><span>${esc(r.hint)}</span></button>`).join("")}</div>
+              <div class="def-row"><button type="button" class="def-primary" data-mact="why-next">${nextOpen >= 0 ? "Avanti" : "Fatto"}</button>${whyList.length ? "" : `<span class="def-note">Puoi anche saltare, ma senza motivo non posso aiutarti.</span>`}</div>
+            </div>` : "";
     const result = c.results[e.id];
     const last = lastResult(l, e.id);
     const dm = demoOf(e);
@@ -542,8 +627,9 @@
         <div class="ma-session-grid">
           <ol class="ma-exlist">${list}</ol>
           <article class="ma-ex">
-            <div class="ma-ex-top"><span class="ma-kind k-${e.kind}">${KIND[e.kind] || e.kind}</span><span class="ma-dose">${esc(doseText(e.dose, e.kind))}</span></div>
+            <div class="ma-ex-top"><span class="ma-kind k-${e.kind}">${e.fix ? `Correttivo · ${esc(e.fix.label)}` : KIND[e.kind] || e.kind}</span><span class="ma-dose">${esc(doseText(e.dose, e.kind))}</span></div>
             <h3 data-focus-title>${esc(e.name)}</h3>
+            ${e.fix ? `<p class="ma-fix-why">${esc(e.fix.because)}${e.fix.regionLabel ? ` Scelto per ${esc(e.fix.regionLabel)}.` : ""}</p>` : ""}
             ${last ? `<p class="ma-last ${last.ok ? "ok" : "no"}">L'ultima volta (${esc(new Date(last.t).toLocaleDateString("it-IT", { day: "numeric", month: "short" }))}): ${last.ok ? "riuscito" : "non ancora: oggi concentrati su questo"}</p>` : ""}
             ${e.goal ? `<p class="ma-goal">${prose(e.goal)}</p>` : ""}
             ${target ? `<p class="ma-prep">Prepara: <strong>${esc(target.name)}</strong></p>` : ""}
@@ -565,6 +651,7 @@
               <button type="button" class="ma-res ok" data-mact="result" data-v="1" aria-pressed="${result === true}">Riuscito</button>
               <button type="button" class="ma-res no" data-mact="result" data-v="0" aria-pressed="${result === false}">Non ancora</button>
             </div>
+            ${why}
             <div class="def-row ma-ex-nav">
               ${ui.ex > 0 ? `<button type="button" class="def-ghost" data-mact="goto" data-index="${ui.ex - 1}">‹ Precedente</button>` : ""}
               ${ui.ex < ex.length - 1 ? `<button type="button" class="def-ghost" data-mact="goto" data-index="${ui.ex + 1}">Successivo ›</button>` : ""}
@@ -814,7 +901,7 @@
     const d = BY.get(s.disc);
     const lv = levelData(s.disc, s.level);
     const sess = s.session != null && lv ? sessionOf(lv, s.session) : null;
-    const list = s.session != null && lv ? listOf(lv, s.session) : [];
+    const list = s.session != null && lv ? listOf(lv, s.session, extrasOf(s)) : [];
     const choice = s.levelUp;
     const nextLv = Math.min(M.MAX_LEVEL, s.level + 1);
     const alreadyMastered = s.atMax && l.mastered[s.disc];
@@ -858,7 +945,21 @@
           <div>
             <span class="def-kicker">${esc(d.name)} · Livello ${s.level} · ${esc(kind)}</span>
             <h2 data-focus-title>${s.isTest ? "Prova finita." : "Allenamento finito."}</h2>
-            ${list.length ? `<ul class="ma-sum-list">${list.map((e) => `<li class="${s.results[e.id] ? "ok" : "no"}"><span>${s.results[e.id] ? "✓" : "✗"}</span>${esc(e.name)}</li>`).join("")}</ul>` : ""}
+            ${list.length ? `<ul class="ma-sum-list">${list.map((e) => {
+              const ok = !!s.results[e.id];
+              const rs = (s.reasons && s.reasons[e.id]) || [];
+              const chips = !ok && REASONS.length ? `<div class="ma-why-mini" role="group" aria-label="Perché non è riuscito «${esc(e.name)}»">${REASONS.map((r) => `<button type="button" data-mact="why-sum" data-ex="${esc(e.id)}" data-reason="${r.id}" aria-pressed="${rs.includes(r.id)}">${esc(r.label)}</button>`).join("")}</div>` : "";
+              return `<li class="${ok ? "ok" : "no"}${e.fix ? " is-fix" : ""}"><span>${ok ? "✓" : "✗"}</span><div>${esc(e.name)}${e.fix ? `<small class="ma-fixtag">correttivo · ${esc(e.fix.label)}</small>` : ""}${chips}</div></li>`;
+            }).join("")}</ul>` : ""}
+            ${(() => {
+              const failed = list.filter((e) => !s.results[e.id]);
+              if (!failed.length) return "";
+              const missing = failed.filter((e) => !((s.reasons && s.reasons[e.id]) || []).length).length;
+              const lvNow = levelData(s.disc, M.levelOf(l, s.disc));
+              const nIdx = M.stepOf(l, s.disc, lvNow ? lvNow.sessions.length : 3);
+              const nextFix = lvNow ? planFixes(l, s.disc, M.levelOf(l, s.disc), lvNow, nIdx) : [];
+              return `<p class="ma-fix-note">${missing ? `${plural(missing, "esercizio non riuscito è", "esercizi non riusciti sono")} senza motivo: tocca il motivo sotto l'esercizio. ` : ""}${nextFix.length ? `Al prossimo allenamento di ${esc(d.name)} aggiungo: ${nextFix.map((f) => `<strong>${esc(f.name)}</strong> (${esc(f.fix.label)})`).join(", ")}.` : missing ? "" : "Per ora nessun correttivo: i motivi indicati pesano ancora poco."}</p>`;
+            })()}
             ${decide}
           </div>
         </article>
@@ -1062,6 +1163,7 @@
           <div><strong>${st.minutes < 120 ? st.minutes : (Math.round(st.minutes / 6) / 10).toLocaleString("it-IT")}</strong><span>${st.minutes < 120 ? "minuti di allenamento" : "ore di allenamento"}</span></div>
         </div>
         <div class="ma-prog-grid">
+          ${weakHex(l)}
           <article class="def-pcard"><h3>Quanto hai copiato di ogni stile</h3><ul class="ma-bars">${bars}</ul></article>
           <article class="def-pcard"><h3>Ultime 8 settimane</h3>
             <table class="ma-heat"><thead><tr><td></td>${M.WEEKDAYS.map((n) => `<th scope="col">${n[0]}</th>`).join("")}</tr></thead><tbody>${heat}</tbody></table>
@@ -1082,7 +1184,8 @@
     if (!lv) return;
     const n = lv.sessions.length;
     const idx = Number.isInteger(session) ? clamp(session, 0, n - 1) : M.stepOf(l, disc, n);
-    M.startSession(l, disc, { session: idx });
+    const extra = planFixes(l, disc, M.levelOf(l, disc), lv, idx).map((e) => ({ id: e.id, reason: e.fix.reason, ref: e.ref || null }));
+    M.startSession(l, disc, { session: idx, extra });
     delete ui.pick[disc];
     ui.swapOpen = false;
     ui.swapAt = Date.now();
@@ -1223,13 +1326,63 @@
         M.setResult(l, e.id, l.current.results[e.id] === v ? null : v);
         save();
         const now = l.current.results[e.id];
-        announce(now === undefined ? "Da segnare" : v ? "Riuscito" : "Non ancora");
+        announce(now === undefined ? "Da segnare" : v ? "Riuscito" : "Non ancora: che cosa è mancato?");
         if (now === undefined) { render(false); focusAct(`.ma-result [data-v="${el.dataset.v}"]`); break; }
+        // "non ancora": prima il motivo, poi si va avanti con "Avanti"
+        if (now === false && REASONS.length) {
+          render(false);
+          const box = $("defPanel-martial").querySelector(".ma-why");
+          if (box) box.scrollIntoView({ block: "center", behavior: reduced ? "auto" : "smooth" });
+          focusAct('.ma-why [data-mact="why"]');
+          break;
+        }
         // al prossimo esercizio da segnare (anche tornando indietro nella lista)
         const n = list.length;
         let next = -1;
         for (let k = 1; k < n; k += 1) { const i = (ui.ex + k) % n; if (l.current.results[list[i].id] === undefined) { next = i; break; } }
         if (next >= 0) { ui.ex = next; ui.swapAt = Date.now(); stopTimer(); render(true); scrollTop(); } else { render(false); focusAct('[data-mact="finish"]'); }
+        break;
+      }
+      case "why": {
+        if (!l.current) break;
+        const e = curList(l)[ui.ex];
+        if (!e) break;
+        const list = M.toggleReason(l, e.id, el.dataset.reason);
+        if (!list) break;
+        save();
+        render(false);
+        focusAct(`.ma-why [data-reason="${el.dataset.reason}"]`);
+        announce(list.length ? `Motivi: ${list.map((r) => (REASONS.find((x) => x.id === r) || {}).label).join(", ")}` : "Nessun motivo");
+        break;
+      }
+      case "why-next": {
+        if (!l.current) break;
+        const list = curList(l);
+        const n = list.length;
+        let next = -1;
+        for (let k = 1; k < n; k += 1) { const i = (ui.ex + k) % n; if (l.current.results[list[i].id] === undefined) { next = i; break; } }
+        if (next >= 0) { ui.ex = next; ui.swapAt = Date.now(); stopTimer(); render(true); scrollTop(); } else { render(false); focusAct('[data-mact="finish"]'); }
+        break;
+      }
+      case "why-sum": {
+        const sm = ui.summary;
+        const entry = sm && l.sessions.find((x) => x.t === sm.t && x.disc === sm.disc);
+        if (!entry) break;
+        const list = M.toggleEntryReason(entry, el.dataset.ex, el.dataset.reason);
+        if (!list) break;
+        sm.reasons = entry.reasons;
+        save();
+        render(false);
+        focusAct(`[data-mact="why-sum"][data-ex="${el.dataset.ex}"][data-reason="${el.dataset.reason}"]`);
+        break;
+      }
+      case "resolve": {
+        const r = el.dataset.reason;
+        if (!M.resolveReason(l, r)) break;
+        save();
+        render(false);
+        announce(`${(REASONS.find((x) => x.id === r) || {}).label || "Motivo"}: segnato come risolto`);
+        focusHeading($("defPanel-martial").querySelector(".ma-body"));
         break;
       }
       case "finish": {

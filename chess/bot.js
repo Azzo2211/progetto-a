@@ -13,10 +13,23 @@
  *     piu' lungo. E' la svista tipica di un umano: non regala un pezzo in presa senza motivo, manca
  *     la tattica che non ha visto. I principianti invece lasciano anche pezzi in presa.
  *
- * Taratura (ottobre 2026): ogni livello ha giocato centinaia di partite contro Stockfish 17.1
- * completo con forza limitata (UCI_LimitStrength / UCI_Elo, la scala Elo ufficiale di Stockfish,
- * da 1320 a 3190). L'Elo scritto e' quello misurato su quella scala; sotto 1320 i livelli sono
- * misurati a catena, uno contro l'altro. Strumento: tools/calibrate.js.
+ * Taratura (ottobre 2026): la forza interna di ogni livello e' stata misurata con centinaia di
+ * partite contro Stockfish 17.1 con forza limitata (UCI_LimitStrength / UCI_Elo, la scala Elo di
+ * Stockfish, da 1320 a 3190; sotto 1320 a catena, un livello contro l'altro). Strumento:
+ * tools/calibrate.js. La tabella MEASURED lega la forza interna all'Elo misurato su quella scala.
+ *
+ * Elo scritto = scala umana (fine ottobre 2026). La scala di Stockfish, a parita' di numero, e' piu'
+ * forte di un giocatore vero: un "1300" di Stockfish gioca come un umano da 1600 circa. Il ponte tra
+ * le due scale (HUMAN_SCALE) viene dai bot della prima versione: avevano gli Elo tarati sulla
+ * precisione tipica dei giocatori umani e chi ci giocava li trovava giusti; misurati contro
+ * Stockfish, stavano su una curva regolare (adattamento di secondo grado, scarto medio 67 punti).
+ * Ogni livello ha quindi un Elo umano fisso e la forza interna che sulla scala di Stockfish
+ * corrisponde a quell'Elo umano.
+ *
+ * Errori "a budget": ogni mossa aggiunge al conto del bot la sua probabilita' di errore; quando il
+ * conto arriva a 1 il bot commette quell'errore. In media sbaglia esattamente come con il tiro a
+ * caso della taratura, ma ogni partita ha quasi lo stesso numero di errori: lo stesso bot non e'
+ * fortissimo in una partita e scarsissimo in quella dopo.
  */
 (function (root, factory) {
   const api = factory(root);
@@ -89,30 +102,48 @@
 
   const FULL = { errors: { blunder: 0, mistake: 0, inaccuracy: 0 }, spread: 0, temperature: 0, random: 0, vision: 0, plausibleShare: 0, openingFactor: 1, book: false };
 
-  // Elo = forza misurata sulla scala di Stockfish; strength = forza interna che la produce.
+  // Taratura: [Elo misurato sulla scala di Stockfish, forza interna che lo produce].
+  const MEASURED = [
+    [250, 165], [400, 300], [550, 456], [700, 643], [850, 791], [1000, 880], [1150, 968], [1300, 1100], [1450, 1226],
+    [1600, 1304], [1800, 1396], [2000, 1501], [2200, 1632], [2400, 1781], [2600, 1921], [2800, 2360], [3000, 2655]
+  ];
+  // Ponte tra le scale: [Elo umano, Elo sulla scala di Stockfish] (vedi l'intestazione).
+  const HUMAN_SCALE = [
+    [250, 220], [400, 305], [550, 400], [700, 505], [850, 615], [1000, 735], [1150, 865], [1300, 1000], [1450, 1145],
+    [1600, 1305], [1800, 1525], [2000, 1760], [2200, 2015], [2400, 2285], [2600, 2570], [2800, 2760], [3000, 2950], [3200, 3200], [3600, 3600]
+  ];
+  function sfForHuman(elo) { return interp(HUMAN_SCALE, elo); }
+  function humanForSf(sf) { return interp(HUMAN_SCALE.map(([h, x]) => [x, h]), sf); }
+  function strengthForHuman(elo) { return Math.round(interp(MEASURED, sfForHuman(elo))); }
+
+  // elo = Elo umano scritto sul bot (fisso); la forza interna si ricava dalla taratura.
   const LEVELS = [
-    { level: 1, elo: 250, strength: 165, name: "Principiante assoluto", description: "Ha appena imparato le regole: lascia pezzi in presa spesso." },
-    { level: 2, elo: 400, strength: 300, name: "Novizio", description: "Vede le catture semplici, non le minacce dell'avversario." },
-    { level: 3, elo: 550, strength: 456, name: "Base", description: "Sviluppa poco e calcola una sola mossa avanti." },
-    { level: 4, elo: 700, strength: 643, name: "Principiante", description: "Mosse naturali, tattica ancora fragile." },
-    { level: 5, elo: 850, strength: 791, name: "Intermedio basso", description: "Meno pezzi regalati, piani ancora instabili." },
-    { level: 6, elo: 1000, strength: 880, name: "Intermedio", description: "Conosce le aperture principali, sbaglia nei cambi e nei finali." },
-    { level: 7, elo: 1150, strength: 968, name: "Giocatore da circolo", description: "Manca tattiche di 2-3 mosse e piani lunghi." },
-    { level: 8, elo: 1300, strength: 1100, name: "Intermedio forte", description: "Gioco solido, qualche svista tattica a partita." },
-    { level: 9, elo: 1450, strength: 1226, name: "Club", description: "Sa giocare, ma non ha la precisione di un esperto." },
-    { level: 10, elo: 1600, strength: 1304, name: "Club forte", description: "Forte, con imprecisioni strategiche reali." },
-    { level: 11, elo: 1800, strength: 1396, name: "Avanzato", description: "Scelte quasi sempre sane, raramente regala qualcosa." },
-    { level: 12, elo: 2000, strength: 1501, name: "Esperto", description: "Molto preciso: pochi errori non forzati." },
-    { level: 13, elo: 2200, strength: 1632, name: "Candidato maestro", description: "Tattica pulita e piani coerenti." },
-    { level: 14, elo: 2400, strength: 1781, name: "Maestro", description: "Quasi nessun errore: devi conquistare ogni vantaggio." },
-    { level: 15, elo: 2600, strength: 1921, name: "Grande maestro", description: "Precisione da professionista." },
-    { level: 16, elo: 2800, strength: 2360, name: "Campione del mondo", description: "Il livello dei migliori umani di sempre." },
-    { level: 17, elo: 3000, strength: 2655, name: "Super motore", description: "Sopra qualsiasi umano." },
+    { level: 1, elo: 250, name: "Principiante assoluto", description: "Ha appena imparato le regole: lascia pezzi in presa spesso." },
+    { level: 2, elo: 400, name: "Novizio", description: "Vede le catture semplici, non le minacce dell'avversario." },
+    { level: 3, elo: 550, name: "Base", description: "Sviluppa poco e calcola una sola mossa avanti." },
+    { level: 4, elo: 700, name: "Principiante", description: "Mosse naturali, tattica ancora fragile." },
+    { level: 5, elo: 850, name: "Intermedio basso", description: "Meno pezzi regalati, piani ancora instabili." },
+    { level: 6, elo: 1000, name: "Intermedio", description: "Conosce le aperture principali, sbaglia nei cambi e nei finali." },
+    { level: 7, elo: 1150, name: "Giocatore da circolo", description: "Manca tattiche di 2-3 mosse e piani lunghi." },
+    { level: 8, elo: 1300, name: "Intermedio forte", description: "Gioco solido, qualche svista tattica a partita." },
+    { level: 9, elo: 1450, name: "Club", description: "Sa giocare, ma non ha la precisione di un esperto." },
+    { level: 10, elo: 1600, name: "Club forte", description: "Forte, con imprecisioni strategiche reali." },
+    { level: 11, elo: 1800, name: "Avanzato", description: "Scelte quasi sempre sane, raramente regala qualcosa." },
+    { level: 12, elo: 2000, name: "Esperto", description: "Molto preciso: pochi errori non forzati." },
+    { level: 13, elo: 2200, name: "Candidato maestro", description: "Tattica pulita e piani coerenti." },
+    { level: 14, elo: 2400, name: "Maestro", description: "Quasi nessun errore: devi conquistare ogni vantaggio." },
+    { level: 15, elo: 2600, name: "Grande maestro", description: "Precisione da professionista." },
+    { level: 16, elo: 2800, name: "Campione del mondo", description: "Il livello dei migliori umani di sempre." },
+    { level: 17, elo: 3000, name: "Super motore", description: "Sopra qualsiasi umano." },
     { level: 18, elo: 3200, full: { depth: 18, multipv: 1 }, name: "Stockfish pieno", description: "Stockfish senza limitazioni, ricerca media." },
     { level: 19, elo: 3600, full: { depth: 40, movetime: 2500, multipv: 1 }, name: "Imbattibile", description: "Massima forza disponibile nel browser (2,5 secondi per mossa)." }
   ];
 
   LEVELS.forEach((level) => {
+    if (!level.full) {
+      level.sfElo = Math.round(sfForHuman(level.elo));
+      level.strength = strengthForHuman(level.elo);
+    }
     Object.assign(level, level.full ? { ...FULL, ...level.full } : configForStrength(level.strength));
     level.targetAccuracy = Math.round(analysis().expectedAccuracyForElo(level.elo));
   });
@@ -182,6 +213,20 @@
     if (cp > 1000) value += (Math.min(cp, 5000) - 1000) / 150;
     if (cp < -1000) value -= (Math.min(-cp, 5000) - 1000) / 150;
     return value;
+  }
+
+  /*
+   * Errori a budget (vedi l'intestazione). state: oggetto della partita (uno nuovo a ogni partita).
+   * Il conto parte da un valore a caso, cosi' gli errori non cadono sempre alle stesse mosse.
+   * Se sono pronti piu' errori insieme, prima il piu' grave; gli altri arrivano alle mosse dopo.
+   */
+  function rollBudget(state, errors, rng) {
+    if (!state.debt) state.debt = { blunder: rng(), mistake: rng(), inaccuracy: rng() };
+    ERROR_ORDER.forEach((kind) => { state.debt[kind] += (errors && errors[kind]) || 0; });
+    const due = ERROR_ORDER.find((kind) => state.debt[kind] >= 1);
+    if (!due) return null;
+    state.debt[due] -= 1;
+    return due;
   }
 
   // Il bot decide se in questa mossa sbaglia, e quanto (null = gioca bene).
@@ -319,7 +364,7 @@
    * level: numero del livello (1-19) oppure una configurazione (per la taratura).
    * Restituisce { ok, uci, reason, loss, lines, depth } oppure { ok:false, error }.
    */
-  async function chooseMove(engine, fen, level, { rng = Math.random, ply = 0 } = {}) {
+  async function chooseMove(engine, fen, level, { rng = Math.random, ply = 0, state = null } = {}) {
     const A = analysis();
     const config = getLevel(level);
     const randomRoll = config.random > 0 ? rng() : 1;
@@ -339,7 +384,7 @@
     const opening = (config.openingFactor || 1) < 1 && ply < OPENING_PLIES;
     const factor = Math.min(winning ? CONVERT_FACTOR : 1, opening ? config.openingFactor : 1);
     const rollConfig = factor < 1 ? { ...config, errors: scaleErrors(config.errors, factor) } : config;
-    const category = config.temperature ? rollError(rollConfig, rng) : null;
+    const category = !config.temperature ? null : state ? rollBudget(state, rollConfig.errors, rng) : rollError(rollConfig, rng);
     // Errore credibile: serve il calcolo corto per sapere quali mosse "sembrano" buone.
     let plausible = false;
     const vision = category && config.vision > 0 ? roundDepth(config.vision, rng) : 0;
@@ -357,5 +402,5 @@
     return { ok: true, uci: choice.uci, reason: choice.reason, loss: choice.loss, lines: result.lines, depth: result.depth };
   }
 
-  return { LEVELS, MAX_LEVEL, ERROR_BANDS, LEGACY_STRENGTH, legacyTrueElo, configForStrength, selectionUtility, getLevel, levelForElo, selectMove, chooseMove, searchOptions, errorProfile, randomLegalMove };
+  return { LEVELS, MAX_LEVEL, ERROR_BANDS, LEGACY_STRENGTH, MEASURED, HUMAN_SCALE, legacyTrueElo, sfForHuman, humanForSf, strengthForHuman, configForStrength, selectionUtility, getLevel, levelForElo, selectMove, chooseMove, rollBudget, searchOptions, errorProfile, randomLegalMove };
 });

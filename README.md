@@ -20,7 +20,7 @@ Poi apri **http://localhost:8765** (non aprire `index.html` con doppio click: St
 | `vendor/chess.js` | Regole degli scacchi, notazione, patta per ripetizione/50 mosse (chess.js, BSD-2). |
 | `chess/opening-book.js` | Libro aperture (circa 3.900 aperture con nome, dal database CC0 di Lichess). |
 | `chess/analysis-core.js` | Probabilità di vittoria, precisione (metodo Lichess), classificazione mosse, pattern di errore, commenti del coach. |
-| `chess/bot.js` | I 19 livelli del bot (da 250 a 3600 Elo) e la scelta delle mosse. |
+| `chess/bot.js` | I 19 livelli del bot (da 250 a 3600 Elo, su scala umana) e la scelta delle mosse. |
 | `chess/review.js` | Revisione della partita: analizza ogni posizione e costruisce il report. |
 | `chess/board-view.js` | Scacchiera: pezzi animati (si alzano e si appoggiano con l'ombra, il cavallo salta, il pezzo catturato cade con un taglio cremisi, il re trema allo scacco e cade allo scacco matto) ed effetti speciali in stile Classroom disattivabili (scie color ghiaccio, luce su traversa e colonna, mirino, linee di velocita' sulle catture, lampo in bianco e nero allo scacco); tocco-tocco o trascinamento (anche su telefono), premosse mentre il bot pensa (case in blu, si giocano da sole se ancora legali, donna automatica in promozione), frecce, promozione, temi di colore, suoni. |
 | `chess/chess-ui.js` | Pagina scacchi: schede, scelta del bot, barre dei giocatori, coach, suggerimenti, fine partita. |
@@ -37,7 +37,7 @@ Poi apri **http://localhost:8765** (non aprire `index.html` con doppio click: St
 
 ### Grado E-S: come si misura
 Il grado non e' una stima a occhio: e' **certificato** solo quando tutti i requisiti sono soddisfatti.
-- **Rating partite**: Glicko-1 contro i bot (ogni bot ha un Elo misurato contro Stockfish, vedi "Come gioca il bot"). Contano solo le partite *valutate* (niente suggerimenti, niente mosse annullate) di almeno 8 mosse.
+- **Rating partite**: Glicko-1 contro i bot (ogni bot ha un Elo fisso su scala umana, vedi "Come gioca il bot"). Contano solo le partite *valutate* (niente suggerimenti, niente mosse annullate) di almeno 8 mosse.
 - **Rating esercizi**: Glicko-1 sui puzzle Lichess, che hanno un rating noto. Conta solo il primo tentativo.
 - **Precisione**: media delle ultime 5 partite valutate, calcolata da Stockfish.
 - **Requisiti per grado**: numero di partite, rating minimo, una vittoria contro un bot di quel livello, rating esercizi, precisione e lezioni del grado completate.
@@ -70,13 +70,19 @@ Vittoria +1,5, patta +0,5, sconfitta -1 a tutte. I punti valgono di piu' contro 
 ### Come gioca il bot
 Stockfish trova le mosse migliori e le valuta. Per ogni mossa il bot decide, con probabilità fissate per il suo livello, se giocare bene oppure commettere un'imprecisione, un errore o un blunder; l'errore viene scelto tra le mosse che perdono proprio quella quota di probabilità di vittoria.
 
+Gli errori sono **a budget**: ogni mossa aggiunge al conto del bot la sua probabilità di errore e, quando il conto arriva a 1, il bot sbaglia. In media sbaglia come con un tiro a caso a ogni mossa, ma in ogni partita fa quasi lo stesso numero di errori: lo stesso bot non è fortissimo in una partita e debolissimo in quella dopo. A ogni partita nuova anche il motore del bot riparte pulito.
+
 Gli errori sono **credibili**: dai livelli intermedi in su il bot sbaglia solo con mosse che sembrano buone a un calcolo corto (la sua "visione", da 1 a 6 mezze mosse) ma perdono a un calcolo più lungo. È la svista tipica di una persona: non lascia un pezzo in presa senza motivo, manca la tattica che non ha visto. I principianti invece lasciano anche pezzi in presa. Con la partita già vinta il bot sbaglia meno e chiude. I livelli 18 e 19 giocano a piena forza.
 
-**Taratura (ottobre 2026).** Ogni livello ha giocato contro Stockfish 17.1 completo con forza limitata (`UCI_LimitStrength` / `UCI_Elo`): è la scala Elo ufficiale di Stockfish, da 1320 a 3190, tarata dagli sviluppatori sulla lista CCRL Blitz. L'Elo scritto sul bot è quello misurato su quella scala; sotto 1320 i livelli sono misurati a catena, uno contro l'altro. Le scale umane non coincidono del tutto (Lichess dà numeri più alti di chess.com, chess.com più alti della FIDE), quindi il numero va letto come "circa". Strumento: `tools/calibrate.js`.
+**Taratura (ottobre 2026).** Ogni livello ha giocato contro Stockfish 17.1 completo con forza limitata (`UCI_LimitStrength` / `UCI_Elo`): è la scala Elo ufficiale di Stockfish, da 1320 a 3190, tarata dagli sviluppatori sulla lista CCRL Blitz; sotto 1320 i livelli sono misurati a catena, uno contro l'altro. Strumento: `tools/calibrate.js`. Le misure danno la curva che lega la forza interna del bot all'Elo sulla scala di Stockfish.
+
+**Elo scritto = scala umana (29 ottobre 2026).** A parità di numero la scala di Stockfish è più forte di un giocatore vero: un bot da "1300 Stockfish" gioca come una persona da 1600 circa, e infatti chi è sui 1300 lo trovava più forte di quanto diceva. Il ponte tra le due scale viene dai bot della prima versione: i loro Elo erano tarati sulla precisione tipica dei giocatori umani e chi ci giocava li trovava giusti; misurati contro Stockfish stavano su una curva regolare (adattamento di secondo grado, scarto medio 67 punti). Ogni livello ha quindi un Elo umano fisso (250, 400, ... 3000) e la forza interna che sulla scala di Stockfish corrisponde a quell'Elo: il 1300 umano vale circa 1000 su Stockfish, il 2000 circa 1760, il 2600 circa 2570. Prova: contro Stockfish 1320 il nuovo "1300" ha vinto 3 partite su 24 (13%, quello che ci si aspetta da un 1000 di quella scala), il vecchio 5 su 8. Al primo avvio il rating delle partite già giocate si ricalcola con l'Elo umano dei bot affrontati (di solito sale), il grado raggiunto resta. Il controllo migliore resta il tuo: dopo una decina di partite valutate il rating dell'app deve avvicinarsi al tuo Elo vero.
 
 Le partite di taratura partono dalla posizione iniziale, come nell'app (il bot gioca anche la sua apertura).
 
-| Livello | Elo scritto | Misurato | Come |
+Misure della prima taratura (Elo sulla scala di Stockfish; oggi sono la curva da cui si ricava la forza interna):
+
+| Livello | Elo scritto allora | Misurato | Come |
 |---|---|---|---|
 | 1-5 | 250, 400, 550, 700, 850 | circa come scritto (±100) | a catena, 50 partite tra livelli vicini |
 | 6-8 | 1000, 1150, 1300 | 900, 1260, 1275 | 24 partite contro Stockfish 1320 |
@@ -173,7 +179,8 @@ La scheda **Arti marziali** è la parte principale della pagina Difesa. Il tema 
 |---|---|
 | `defense/martial-data.js` | 9 discipline (boxe, muay thai, taekwondo, karate, capoeira, lotta, Wing Chun, systema, sambo), 6 livelli ciascuna. Ogni livello: riscaldamento, 3 sessioni (impara, ripeti, prova del livello), defaticamento. Ogni esercizio: obiettivo, cosa guardare nel video, passi, punti chiave, errori tipici con la correzione, criterio di "riuscito" misurabile, versione più facile e più difficile, cosa fare senza sacco, note di sicurezza, preparatori prima delle tecniche difficili o di flessibilità, round con un compito per round, ricerca video su YouTube. |
 | `defense/martial-lookism.js` | Riferimenti a Lookism: il metodo, chi usa quale stile nel webtoon e cosa copiarne, la scheda "In Lookism" degli stili, i ranghi. |
-| `defense/martial.js` | Settimana a rotazione, livelli, rotazione delle sessioni, storico. Senza DOM, testato in `tests/martial.test.js`. |
+| `defense/martial.js` | Settimana a rotazione, livelli, rotazione delle sessioni, storico, motivi degli esercizi non riusciti e punti deboli. Senza DOM, testato in `tests/martial.test.js`. |
+| `defense/martial-fix.js` | Esercizi correttivi: per ogni motivo (forza, flessibilità, coordinazione, equilibrio, fiato) un esercizio per parte del corpo (calci e gambe, pugni e braccia, lotta e prese, corpo intero) in tre gradi legati al livello; per la tecnica, il ripasso lento dell'esercizio non riuscito. |
 | `defense/martial-ui.js`, `defense/martial.css` | Le viste Oggi, Settimana, Stili, Lookism, Progressi. |
 | `defense/figure3d.js` | L'omino 3D: scheletro con cinematica inversa a due ossa (gomiti e ginocchia piegati verso una direzione), quattro viste (3/4, lato, fronte, da dietro), disegno SVG con il lato vicino chiaro, quello lontano più scuro e la parte che lavora in ambra, frecce del movimento, sacco e compagno; il lettore animato (riproduci, passo per passo, ripeti un passo, al rallentatore, trascina per girare l'omino); il controllo delle pose impossibili. |
 | `defense/moves.js` | Il costruttore delle pose (guardie, colpi dritti, ganci, montanti, gomitate, parate, calci con caricamento ed estensione, posizioni a terra, specchio per l'altro lato), le posizioni di base dei 9 stili e il registro dei movimenti; da una lista di passi crea la dimostrazione e sceglie le immagini della sequenza. |
@@ -182,7 +189,7 @@ La scheda **Arti marziali** è la parte principale della pagina Difesa. Il tema 
 
 **Settimana**: di base 5 giorni (lunedì-venerdì, modificabili). Ogni giorno uno stile diverso; le discipline cambiano di settimana in settimana (prima quelle che non fai da più tempo). Lo stile di oggi si cambia con un tocco dalla vista Oggi, gli altri giorni dal loro menu nel calendario. Gli stili si possono togliere dalla rotazione.
 
-**Allenamento**: le sessioni del livello ruotano (impara → ripeti → prova); oggi puoi sceglierne un'altra con un tocco. Ogni esercizio ha il timer (serie a tempo o a ripetizioni, recupero, cambio lato, compito del round annunciato a voce, segnali casuali per shadow e sacco). Per ogni esercizio segni "Riuscito" o "Non ancora". Dopo la prova l'app consiglia di salire se hai almeno l'80% riuscito, ma decidi sempre tu; puoi salire anche dopo una sessione normale. All'ultimo livello si può dichiarare lo stile "copiato al 100%". Il livello si cambia con un tocco anche dalla scheda dello stile.
+**Allenamento**: le sessioni del livello ruotano (impara → ripeti → prova); oggi puoi sceglierne un'altra con un tocco. Ogni esercizio ha il timer (serie a tempo o a ripetizioni, recupero, cambio lato, compito del round annunciato a voce, segnali casuali per shadow e sacco). Per ogni esercizio segni "Riuscito" o "Non ancora". Con "Non ancora" l'app chiede **che cosa è mancato** (forza, tecnica, flessibilità, coordinazione, equilibrio, fiato; anche più di uno, si può correggere dal riepilogo). Ogni motivo resta aperto finché quell'esercizio non ti riesce, pesa la metà dopo 3 settimane e il 30% in meno a ogni correttivo fatto bene; gli allenamenti dopo aggiungono fino a 2 **correttivi** per i motivi più pesanti (tecnica, coordinazione ed equilibrio dopo il riscaldamento, forza, flessibilità e fiato alla fine). La vista Oggi mostra i punti deboli e che cosa aggiunge il prossimo allenamento; si possono segnare come risolti. Nei Progressi l'esagono "Dove fai fatica" conta i motivi degli ultimi 60 giorni. Dopo la prova l'app consiglia di salire se hai almeno l'80% riuscito, ma decidi sempre tu; puoi salire anche dopo una sessione normale. All'ultimo livello si può dichiarare lo stile "copiato al 100%". Il livello si cambia con un tocco anche dalla scheda dello stile.
 
 **L'omino che mostra come si fa**: in ogni esercizio, sotto "Come si fa", c'è il video dell'omino che esegue tutti i passi uno dopo l'altro, con la didascalia del passo; accanto a ogni passo c'è la sequenza di immagini delle mosse (tocca un'immagine per fermare il video lì, tocca ▶ per ripetere solo quel passo). L'omino si guarda da quattro lati o si gira trascinandolo. Con "riduci movimento" attivo nel sistema il video non parte da solo.
 

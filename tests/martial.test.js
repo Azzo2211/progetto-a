@@ -443,5 +443,142 @@ test("Discipline vere: 9 stili, 6 livelli, 3 sessioni, esercizi completi", () =>
   });
 });
 
+/* ------------------------------------------------ motivi e correttivi */
+const F = require(path.join(root, "defense", "martial-fix.js"));
+const DAYMS = 24 * 60 * 60 * 1000;
+const T0 = WED;
+
+test("Motivi: solo per 'non ancora', salvati nell'allenamento, modificabili dal riepilogo", () => {
+  const lab = M.ensure({}, DISC, T0);
+  M.startSession(lab, "boxe", { now: T0 });
+  const ex = DISC[0].levels[0].sessions[0].exercises;
+  M.setResult(lab, ex[0].id, true);
+  assert.strictEqual(M.toggleReason(lab, ex[0].id, "forza"), null, "riuscito: niente motivo");
+  M.setResult(lab, ex[1].id, false);
+  assert.deepStrictEqual(M.toggleReason(lab, ex[1].id, "forza"), ["forza"]);
+  assert.deepStrictEqual(M.toggleReason(lab, ex[1].id, "tecnica"), ["forza", "tecnica"]);
+  assert.deepStrictEqual(M.toggleReason(lab, ex[1].id, "forza"), ["tecnica"]);
+  assert.strictEqual(M.toggleReason(lab, ex[1].id, "inventato"), null);
+  M.setResult(lab, ex[2].id, false);
+  M.toggleReason(lab, ex[2].id, "flessibilita");
+  M.setResult(lab, ex[2].id, true); // cambio idea: riuscito, il motivo sparisce
+  assert.ok(!lab.current.reasons[ex[2].id]);
+  ex.slice(3).forEach((e) => M.setResult(lab, e.id, false));
+  const entry = M.finishSession(lab, ex, T0 + 3600000, { count: 3 });
+  assert.deepStrictEqual(entry.reasons, { [ex[1].id]: ["tecnica"] });
+  const saved = lab.sessions[lab.sessions.length - 1];
+  assert.deepStrictEqual(M.toggleEntryReason(saved, ex[3].id, "resistenza"), ["resistenza"]);
+  assert.strictEqual(M.toggleEntryReason(saved, ex[0].id, "forza"), null, "riuscito: niente motivo");
+  // stato rovinato: motivi sconosciuti tolti
+  const raw = JSON.parse(JSON.stringify(lab));
+  raw.sessions[0].reasons[ex[1].id].push("boh");
+  raw.resolved = { forza: T0, boh: 3, tecnica: "x" };
+  const fixed = M.ensure(raw, DISC, T0);
+  assert.deepStrictEqual(fixed.sessions[0].reasons[ex[1].id], ["tecnica"]);
+  assert.deepStrictEqual(Object.keys(fixed.resolved), ["forza"]);
+});
+
+test("Punti deboli: aperti finche' l'esercizio non riesce, pesano meno col tempo e con i correttivi", () => {
+  const lab = M.ensure({}, DISC, T0);
+  const ex = DISC[0].levels[0].sessions[0].exercises;
+  const play = (t, marks, extra = []) => {
+    M.startSession(lab, "boxe", { now: t, session: 0, extra });
+    Object.entries(marks).forEach(([id, v]) => { M.setResult(lab, id, v.ok); (v.why || []).forEach((r) => M.toggleReason(lab, id, r)); });
+    return M.finishSession(lab, ex.concat(extra.map((x) => ({ id: x.id }))), t + 3600000, { count: 3 });
+  };
+  play(T0, { [ex[0].id]: { ok: false, why: ["forza"] }, [ex[1].id]: { ok: false, why: ["forza", "tecnica"] }, [ex[2].id]: { ok: true } });
+  let w = M.weaknesses(lab, T0 + DAYMS);
+  const forza = w.list.find((x) => x.id === "forza");
+  assert.strictEqual(forza.open, 2);
+  assert.ok(forza.score > 1.8 && forza.score <= 2, `peso ${forza.score}`);
+  assert.deepStrictEqual(w.top.map((x) => x.id), ["forza", "tecnica"]);
+  // correttivi: al massimo 2, la tecnica rimanda all'esercizio fallito ma non se e' gia' nella sessione
+  let plan = M.remedial(lab, "boxe", T0 + DAYMS);
+  assert.deepStrictEqual(plan.map((p) => p.reason), ["forza", "tecnica"]);
+  assert.strictEqual(plan.find((p) => p.reason === "tecnica").ref, ex[1].id);
+  plan = M.remedial(lab, "boxe", T0 + DAYMS, { skip: [ex[1].id] });
+  assert.deepStrictEqual(plan.map((p) => p.reason), ["forza"]);
+  // l'esercizio 0 riesce: resta aperto solo l'1
+  play(T0 + 2 * DAYMS, { [ex[0].id]: { ok: true } });
+  w = M.weaknesses(lab, T0 + 2 * DAYMS);
+  assert.strictEqual(w.list.find((x) => x.id === "forza").open, 1);
+  // con il tempo pesa meno: dopo 3 settimane la meta'
+  const now0 = M.weaknesses(lab, T0 + 2 * DAYMS).list.find((x) => x.id === "tecnica").score;
+  const later = M.weaknesses(lab, T0 + 21 * DAYMS).list.find((x) => x.id === "tecnica").score;
+  assert.ok(Math.abs(later / now0 - Math.pow(0.5, 19 / 21)) < 0.02, `${later} / ${now0}`);
+  // dopo 2 mesi non conta piu'
+  assert.strictEqual(M.weaknesses(lab, T0 + 61 * DAYMS).top.length, 0);
+  // un correttivo di forza riuscito riduce il peso del 30%
+  const before = M.weaknesses(lab, T0 + 3 * DAYMS).list.find((x) => x.id === "forza").score;
+  play(T0 + 3 * DAYMS, {}, [{ id: "fix-forza-braccia-1", reason: "forza", ref: ex[1].id }]);
+  lab.current = null;
+  const s = lab.sessions[lab.sessions.length - 1];
+  assert.deepStrictEqual(s.extra, [{ id: "fix-forza-braccia-1", reason: "forza", ref: ex[1].id }]);
+  s.results["fix-forza-braccia-1"] = 1;
+  const after = M.weaknesses(lab, T0 + 3 * DAYMS).list.find((x) => x.id === "forza").score;
+  assert.ok(Math.abs(after / before - 0.7) < 0.03, `${after} / ${before}`);
+  // "risolto" a mano
+  M.resolveReason(lab, "forza", T0 + 4 * DAYMS);
+  assert.ok(!M.weaknesses(lab, T0 + 4 * DAYMS).top.some((x) => x.id === "forza"));
+  assert.strictEqual(M.resolveReason(lab, "boh"), false);
+});
+
+test("Correttivi: libreria completa e coerente, tre gradi per livello, dosi per il timer", () => {
+  const kinds = ["riscaldamento", "tecnica", "drill", "combinazione", "shadow", "sacco", "preparatorio", "flessibilita", "condizionamento", "prova", "defaticamento"];
+  const items = F.all();
+  assert.ok(items.length >= 30, `voci ${items.length}`);
+  items.forEach(({ reason, region, tier, entry: e }) => {
+    const id = `${reason}/${region}/${tier}`;
+    assert.strictEqual(e.names.length, 3, id);
+    assert.strictEqual(e.hows.length, 3, id);
+    assert.strictEqual(e.doses.length, 3, id);
+    assert.ok(kinds.includes(e.kind), `${id}: tipo ${e.kind}`);
+    assert.ok(e.goal.length > 40 && e.hows[tier].length > 60 && e.success.length > 20, id);
+    assert.ok(e.steps.length >= 4 && e.cues.length >= 2 && e.errors.length >= 2, id);
+    e.errors.forEach((x) => assert.ok(x.e && x.fix, id));
+    const d = e.doses[tier];
+    assert.ok(d.sets >= 1 && (d.reps > 0 || d.work > 0), `${id}: dose`);
+    assert.ok(new Set(e.names).size === 3, `${id}: nomi ripetuti`);
+  });
+  // ogni motivo ha un esercizio per ogni parte del corpo, il grado sale con il livello
+  ["forza", "flessibilita", "coordinazione", "equilibrio", "resistenza"].forEach((r) => {
+    ["gambe", "braccia", "presa", "corpo"].forEach((region) => {
+      const ex = { name: region === "gambe" ? "Calcio circolare" : region === "braccia" ? "Jab e diretto" : region === "presa" ? "Proiezione d'anca" : "Forma base" };
+      const a = F.build({ reason: r, ref: "x" }, { level: 1, disc: "karate", exById: () => ex });
+      const b = F.build({ reason: r, ref: "x" }, { level: 6, disc: "karate", exById: () => ex });
+      assert.ok(a && b, `${r}/${region}`);
+      assert.ok(a.id.endsWith("-1") && b.id.endsWith("-3"), `${a.id} ${b.id}`);
+      assert.notStrictEqual(a.name, b.name);
+      assert.ok(a.fix.because.includes("Calcio") || a.fix.because.includes("Jab") || a.fix.because.includes("Proiezione") || a.fix.because.includes("Forma"));
+    });
+  });
+  assert.strictEqual(F.regionOf({ name: "Mawashi geri al sacco" }, "karate"), "gambe");
+  assert.strictEqual(F.regionOf({ name: "Jab, diretto, gancio" }, "karate"), "braccia");
+  assert.strictEqual(F.regionOf({ name: "Sprawl e proiezione" }, "boxe"), "presa");
+  assert.strictEqual(F.regionOf(null, "lotta"), "presa");
+  // tecnica: ripasso lento dell'esercizio vero
+  const failedEx = { id: "boxe-1-a-1", name: "Guardia", steps: ["a", "b"], cues: ["c1", "c2"], errors: [{ e: "x", fix: "y" }], easier: "piano", dose: { sets: 3, reps: 10, perSide: true } };
+  const t = F.build({ reason: "tecnica", ref: failedEx.id }, { level: 2, exById: () => failedEx });
+  assert.strictEqual(t.id, "fix-tecnica-boxe-1-a-1");
+  assert.ok(t.name.includes("Guardia") && t.how.includes("piano") && t.dose.perSide && t.fix.early);
+  assert.strictEqual(F.build({ reason: "tecnica", ref: "nessuno" }, { exById: () => null }), null);
+});
+
+if (REAL) {
+  test("Correttivi sulle discipline vere: ogni esercizio fallito porta un correttivo valido", () => {
+    const by = new Map();
+    REAL.forEach((d) => d.levels.forEach((lv) => [lv.warmup, lv.cooldown, ...lv.sessions.flatMap((x) => x.exercises)].forEach((e) => by.set(e.id, { e, disc: d.id, level: lv.level }))));
+    let n = 0;
+    by.forEach(({ e, disc, level }) => {
+      ["forza", "tecnica", "flessibilita", "coordinazione", "equilibrio", "resistenza"].forEach((r) => {
+        const x = F.build({ reason: r, ref: e.id }, { level, disc, exById: (id) => (by.get(id) || {}).e || null });
+        assert.ok(x && x.name && x.steps.length && x.dose && x.dose.sets >= 1, `${e.id}/${r}`);
+        n += 1;
+      });
+    });
+    assert.ok(n > 1000);
+  });
+}
+
 console.log(`${passed} test superati${failed.length ? `, ${failed.length} falliti` : ""}`);
 process.exit(failed.length ? 1 : 0);

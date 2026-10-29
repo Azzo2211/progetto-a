@@ -10,6 +10,10 @@
  *   Dopo la prova l'app consiglia se salire (80% riusciti), ma decide sempre l'utente;
  *   puo' salire anche dopo una sessione normale.
  * - Storico: allenamenti, cambi di livello, settimane fatte.
+ * - Esercizi non riusciti: l'utente dice perche' (forza, tecnica, flessibilita', coordinazione,
+ *   equilibrio, fiato). Ogni motivo resta "aperto" finche' quell'esercizio non riesce, e pesa meno
+ *   con il tempo (dimezza in 21 giorni) e a ogni correttivo riuscito. Gli allenamenti successivi
+ *   aggiungono uno o due esercizi correttivi per i motivi piu' pesanti (vedi martial-fix.js).
  */
 (function (root, factory) {
   const api = factory();
@@ -24,6 +28,36 @@
   const WEEKDAYS = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
   const WEEKDAYS_LONG = ["lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato", "domenica"];
   const RECOMMEND = 0.8; // quota di esercizi riusciti per consigliare di salire
+
+  // Perche' un esercizio non e' riuscito.
+  const REASONS = [
+    { id: "forza", label: "Forza", hint: "Non avevo abbastanza forza per farlo fino in fondo." },
+    { id: "tecnica", label: "Tecnica", hint: "Il movimento non usciva giusto: posizione, traiettoria, tempi." },
+    { id: "flessibilita", label: "Flessibilità", hint: "Non arrivavo all'ampiezza: calcio basso, anche o spalle rigide." },
+    { id: "coordinazione", label: "Coordinazione", hint: "Mani e piedi non andavano insieme, perdevo il ritmo." },
+    { id: "equilibrio", label: "Equilibrio", hint: "Perdevo l'equilibrio, su una gamba o dopo il colpo." },
+    { id: "resistenza", label: "Fiato", hint: "Mi sono stancato prima della fine." }
+  ];
+  const REASON_IDS = REASONS.map((r) => r.id);
+  const ISSUE_HALF_LIFE = 21 * DAY; // un motivo vecchio di 3 settimane pesa la meta'
+  const ISSUE_MAX_AGE = 60 * DAY;   // dopo 2 mesi non conta piu'
+  const FIX_DECAY = 0.7;            // ogni correttivo riuscito per quel motivo riduce il peso del 30%
+  const FIX_MIN = 0.45;             // sotto questo peso il motivo non porta correttivi
+  const FIX_MAX = 2;                // correttivi per allenamento
+
+  function cleanReasons(list) {
+    return Array.isArray(list) ? [...new Set(list.filter((r) => REASON_IDS.includes(r)))] : [];
+  }
+  function cleanReasonMap(map) {
+    const out = {};
+    if (isObj(map)) Object.keys(map).forEach((id) => { const r = cleanReasons(map[id]); if (r.length) out[id] = r; });
+    return out;
+  }
+  function cleanExtra(list) {
+    return Array.isArray(list)
+      ? list.filter((x) => isObj(x) && typeof x.id === "string" && REASON_IDS.includes(x.reason)).map((x) => ({ id: x.id, reason: x.reason, ref: typeof x.ref === "string" ? x.ref : null }))
+      : [];
+  }
 
   const isObj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
   const num = (v) => typeof v === "number" && Number.isFinite(v);
@@ -102,6 +136,12 @@
     if (!isObj(lab.lastPlanned)) lab.lastPlanned = {};
     if (!isObj(lab.planCount)) lab.planCount = {};
     lab.sessions = Array.isArray(lab.sessions) ? lab.sessions.filter((s) => isObj(s) && num(s.t) && typeof s.disc === "string" && num(s.level) && num(s.done) && num(s.total)) : [];
+    lab.sessions.forEach((s) => {
+      if ("reasons" in s) { s.reasons = cleanReasonMap(s.reasons); if (!Object.keys(s.reasons).length) delete s.reasons; }
+      if ("extra" in s) { s.extra = cleanExtra(s.extra); if (!s.extra.length) delete s.extra; }
+    });
+    if (!isObj(lab.resolved)) lab.resolved = {};
+    Object.keys(lab.resolved).forEach((k) => { if (!REASON_IDS.includes(k) || !num(lab.resolved[k])) delete lab.resolved[k]; });
     lab.history = Array.isArray(lab.history) ? lab.history.filter((h) => isObj(h) && num(h.t) && typeof h.disc === "string" && num(h.from) && num(h.to)) : [];
     const c = lab.current;
     const okCurrent = isObj(c) && typeof c.disc === "string" && (!ids.length || ids.includes(c.disc))
@@ -109,6 +149,10 @@
       && typeof c.week === "string" && /^\d{4}-\d{2}-\d{2}$/.test(c.week) && Number.isInteger(c.day) && c.day >= 0 && c.day <= 6 && num(c.startedAt)
       && Number.isInteger(c.session) && c.session >= 0 && c.session <= 9;
     if (!okCurrent) lab.current = null;
+    else {
+      c.reasons = cleanReasonMap(c.reasons);
+      c.extra = cleanExtra(c.extra);
+    }
     return lab;
   }
 
@@ -296,16 +340,39 @@
   }
 
   // ---------- Allenamento ----------
-  function startSession(lab, disc, { now = Date.now(), week = weekKey(now), day = dayIndex(now), session = stepOf(lab, disc) } = {}) {
+  // extra: correttivi aggiunti a questo allenamento [{ id, reason, ref }] (restano fissi fino alla fine)
+  function startSession(lab, disc, { now = Date.now(), week = weekKey(now), day = dayIndex(now), session = stepOf(lab, disc), extra = [] } = {}) {
     const idx = Number.isInteger(session) && session >= 0 && session <= 9 ? session : 0;
-    lab.current = { disc, level: levelOf(lab, disc), session: idx, week, day, startedAt: now, results: {} };
+    lab.current = { disc, level: levelOf(lab, disc), session: idx, week, day, startedAt: now, results: {}, reasons: {}, extra: cleanExtra(extra) };
     return lab.current;
   }
 
-  // value: true (riuscito), false (non ancora), null (da segnare)
+  // value: true (riuscito), false (non ancora), null (da segnare). Il motivo vale solo per "non ancora".
   function setResult(lab, exId, value) {
     if (!lab.current) return;
     if (value === null) delete lab.current.results[exId]; else lab.current.results[exId] = !!value;
+    if (value !== false && lab.current.reasons) delete lab.current.reasons[exId];
+  }
+
+  // Aggiunge o toglie un motivo a un esercizio segnato "non ancora" nell'allenamento in corso.
+  function toggleReason(lab, exId, reason) {
+    const c = lab.current;
+    if (!c || c.results[exId] !== false || !REASON_IDS.includes(reason)) return null;
+    if (!isObj(c.reasons)) c.reasons = {};
+    const list = c.reasons[exId] || [];
+    const next = list.includes(reason) ? list.filter((r) => r !== reason) : list.concat([reason]);
+    if (next.length) c.reasons[exId] = next; else delete c.reasons[exId];
+    return next;
+  }
+
+  // Lo stesso, a allenamento finito (dal riepilogo).
+  function toggleEntryReason(entry, exId, reason) {
+    if (!isObj(entry) || !isObj(entry.results) || entry.results[exId] !== 0 || !REASON_IDS.includes(reason)) return null;
+    if (!isObj(entry.reasons)) entry.reasons = {};
+    const list = entry.reasons[exId] || [];
+    const next = list.includes(reason) ? list.filter((r) => r !== reason) : list.concat([reason]);
+    if (next.length) entry.reasons[exId] = next; else delete entry.reasons[exId];
+    return next;
   }
 
   /*
@@ -322,6 +389,11 @@
     const done = Object.values(results).filter((v) => v === 1).length;
     const total = exercises.length;
     const entry = { t: now, week: c.week, day: c.day, disc: c.disc, level: c.level, session: c.session, test: !!test, done, total, results, levelUp: null, minutes: clamp(Math.round((now - c.startedAt) / 60000), 1, 150) };
+    const reasons = {};
+    Object.keys(c.reasons || {}).forEach((id) => { if (results[id] === 0 && c.reasons[id].length) reasons[id] = c.reasons[id].slice(); });
+    if (Object.keys(reasons).length) entry.reasons = reasons;
+    const extra = cleanExtra(c.extra).filter((x) => x.id in results);
+    if (extra.length) entry.extra = extra;
     // il voto della prova conta solo gli esercizi della sessione (non riscaldamento e defaticamento)
     if (Array.isArray(scored) && scored.length) {
       const ids = scored.filter((id) => id in results);
@@ -409,6 +481,68 @@
     return true;
   }
 
+  // ---------- Punti deboli ----------
+  /*
+   * Motivi ancora aperti: un esercizio non riuscito per un motivo resta aperto finche' quello
+   * stesso esercizio non riesce. Peso = 0,5^(eta' / 21 giorni) x 0,7^(correttivi riusciti per quel
+   * motivo dopo l'errore). "Risolto" a mano azzera i motivi precedenti.
+   * Restituisce { list: [{ id, label, score, open, recent, issues }], top: [...] } (top = da allenare).
+   */
+  function weaknesses(lab, now = Date.now()) {
+    const open = new Map();
+    const fixes = {};
+    const recent = {};
+    REASON_IDS.forEach((r) => { fixes[r] = []; recent[r] = 0; });
+    (lab.sessions || []).slice().sort((a, b) => a.t - b.t).forEach((s) => {
+      const res = s.results || {};
+      Object.keys(res).forEach((id) => { if (res[id] === 1) open.delete(id); });
+      Object.keys(s.reasons || {}).forEach((id) => {
+        if (res[id] !== 0) return;
+        open.set(id, { exId: id, disc: s.disc, level: s.level, t: s.t, reasons: s.reasons[id].slice() });
+        if (now - s.t <= ISSUE_MAX_AGE) s.reasons[id].forEach((r) => { recent[r] += 1; });
+      });
+      (s.extra || []).forEach((x) => { if (res[x.id] === 1) fixes[x.reason].push(s.t); });
+    });
+    const list = REASONS.map((r) => {
+      const since = (lab.resolved && lab.resolved[r.id]) || 0;
+      const issues = [...open.values()]
+        .filter((it) => it.reasons.includes(r.id) && it.t > since && now - it.t <= ISSUE_MAX_AGE)
+        .sort((a, b) => b.t - a.t);
+      const score = issues.reduce((n, it) => {
+        const done = fixes[r.id].filter((t) => t > it.t).length;
+        return n + Math.pow(0.5, Math.max(0, now - it.t) / ISSUE_HALF_LIFE) * Math.pow(FIX_DECAY, done);
+      }, 0);
+      return { id: r.id, label: r.label, score: Math.round(score * 100) / 100, open: issues.length, recent: recent[r.id], issues };
+    });
+    const top = list.filter((x) => x.score >= FIX_MIN).sort((a, b) => b.score - a.score || b.open - a.open);
+    return { list, top };
+  }
+
+  /*
+   * Correttivi per il prossimo allenamento: i motivi piu' pesanti (al massimo FIX_MAX), ognuno con
+   * l'esercizio non riuscito piu' recente a cui si riferisce (meglio se della stessa disciplina).
+   * skip: id di esercizi gia' presenti nella sessione (la "tecnica" di quelli non serve ripassarla a parte).
+   */
+  function remedial(lab, disc, now = Date.now(), { skip = [], max = FIX_MAX } = {}) {
+    const out = [];
+    weaknesses(lab, now).top.forEach((w) => {
+      if (out.length >= max) return;
+      const pool = w.id === "tecnica" ? w.issues.filter((it) => !skip.includes(it.exId)) : w.issues;
+      if (!pool.length) return;
+      const ref = pool.find((it) => it.disc === disc) || pool[0];
+      out.push({ reason: w.id, ref: ref.exId, refDisc: ref.disc, score: w.score });
+    });
+    return out;
+  }
+
+  // "Risolto": i motivi di quel tipo segnati fino a ora non portano piu' correttivi.
+  function resolveReason(lab, reason, now = Date.now()) {
+    if (!REASON_IDS.includes(reason)) return false;
+    if (!isObj(lab.resolved)) lab.resolved = {};
+    lab.resolved[reason] = now;
+    return true;
+  }
+
   // ---------- Statistiche ----------
   function stats(lab, disciplines, now = Date.now()) {
     const per = {};
@@ -486,11 +620,12 @@
   }
 
   return {
-    VERSION, DAY, MAX_LEVEL, WEEKDAYS, WEEKDAYS_LONG, RECOMMEND,
+    VERSION, DAY, MAX_LEVEL, WEEKDAYS, WEEKDAYS_LONG, RECOMMEND, REASONS, REASON_IDS, FIX_MAX,
     weekKey, dayIndex, weekStart, addWeeks, dayTime, dayKeyOf,
     ensure, levelOf, stepOf, copyPercent,
     planWeek, previewWeek, replanWeek, setDay, setTrainDays, setPool, dayStatus, sessionsOn, weekProgress, today, isStale, resumeToday,
-    startSession, setResult, finishSession, chooseLevel, pendingChoice, offerFor, setLevel,
+    startSession, setResult, toggleReason, toggleEntryReason, finishSession, chooseLevel, pendingChoice, offerFor, setLevel,
+    weaknesses, remedial, resolveReason,
     stats, profileExtras, exerciseSeconds, sessionMinutes
   };
 });

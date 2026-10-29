@@ -45,7 +45,7 @@ const defaultState = {
     draws: 0,
     lastAccuracy: 0,
     levelStats: {},
-    levelScheme: 3,
+    levelScheme: 4,
     mode: "rated",
     ui: { theme: "accademia", pieceSet: "cote", effects: true, sound: true, coords: true, evalBarInGame: false, orientation: "white" },
     rating: {},
@@ -410,8 +410,8 @@ function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     const merged = mergeDefaults(defaultState, saved || {});
-    const scheme = saved && saved.chess ? Number(saved.chess.levelScheme) || 1 : 3;
-    return scheme < 3 ? migrateChessState(merged, scheme) : merged;
+    const scheme = saved && saved.chess ? Number(saved.chess.levelScheme) || 1 : 4;
+    return scheme < 4 ? migrateChessState(merged, scheme) : merged;
   } catch (error) {
     return JSON.parse(JSON.stringify(defaultState));
   }
@@ -419,11 +419,36 @@ function loadState() {
 
 // Schema 1 -> 2: i vecchi livelli (1-15) avevano Elo diversi, li convertiamo al livello nuovo
 // con l'Elo piu' vicino, statistiche comprese. Schema 2 -> 3: bot ritarati (ottobre 2026).
+// Schema 3 -> 4: Elo dei bot su scala umana (fine ottobre 2026).
 function migrateChessState(loaded, scheme = 1) {
   if (!loaded || !loaded.chess) return loaded;
   if (scheme < 2) migrateChessLevels(loaded);
   if (scheme < 3) recalibrateChessBots(loaded);
+  if (scheme < 4) rescaleChessBotsToHuman(loaded, scheme);
   return loaded;
+}
+
+// I bot dello schema 3 avevano l'Elo della scala di Stockfish, che e' piu' forte di quella umana:
+// le partite contro di loro si ricontano con l'Elo umano corrispondente (ChessBot.humanForSf).
+// Le partite contro i bot della prima versione (con labelElo) usano l'Elo scritto allora, che era
+// gia' su scala umana. Il grado gia' raggiunto resta.
+function rescaleChessBotsToHuman(loaded, scheme) {
+  const chess = loaded.chess;
+  const rating = chess.rating && chess.rating.game && chess.rating.game.count > 0;
+  if (rating) {
+    const date = new Date().toISOString();
+    chess.rescaleBackup = { date, rating: JSON.parse(JSON.stringify(chess.rating)) };
+    const res = ChessRating.rescale(chess.rating, (entry) => {
+      if (entry.scale === "umano") return entry.botElo;
+      if (typeof entry.labelElo === "number") return entry.labelElo;
+      return typeof entry.botElo === "number" ? ChessBot.humanForSf(entry.botElo) : null;
+    });
+    chess.rating = res.profile;
+    chess.recalibration = { date, before: res.before, after: res.after, seen: false, kind: "human", fromScheme: scheme };
+  } else if (scheme >= 3) {
+    chess.recalibration = { date: new Date().toISOString(), before: null, after: null, seen: false, kind: "human", fromScheme: scheme };
+  }
+  chess.levelScheme = 4;
 }
 
 function migrateChessLevels(loaded) {
@@ -1343,6 +1368,8 @@ function createNewGame() {
     botLevel: level,
     botElo: profile.elo,
     botLabel: profile.label,
+    // conto degli errori del bot in questa partita (errori "a budget", vedi chess/bot.js)
+    botState: {},
     result: "in corso",
     status: "in corso",
     finalState: "in corso",
@@ -1598,7 +1625,11 @@ function chessFinalStateLabel(result, reason = null) {
 function resetChess() {
   clearBotTimer();
   const engines = chessEngines();
-  if (engines) engines.review.cancelPending();
+  if (engines) {
+    engines.review.cancelPending();
+    // motore del bot pulito a ogni partita, come nella taratura (niente memoria delle partite prima)
+    if (engines.play.ready) engines.play.newGame().catch(() => {});
+  }
   board = createInitialBoard();
   gameState = createInitialGameState();
   selectedSquare = null;
@@ -1898,7 +1929,8 @@ async function makeBotMove() {
     return;
   }
   const startedAt = Date.now();
-  const choice = await ChessBot.chooseMove(chessEngines().play, fenBefore, level, { ply: currentGame.moves.length });
+  if (!currentGame.botState || typeof currentGame.botState !== "object") currentGame.botState = {};
+  const choice = await ChessBot.chooseMove(chessEngines().play, fenBefore, level, { ply: currentGame.moves.length, state: currentGame.botState });
   // Pausa minima per rendere la risposta naturale anche ai livelli bassi.
   const minimumThink = 350 + Math.random() * 650;
   const elapsed = Date.now() - startedAt;

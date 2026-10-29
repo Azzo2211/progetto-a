@@ -205,6 +205,55 @@ test("vecchi bot: la forza vera e' sotto l'Elo scritto", () => {
   assert.ok(Bot.legacyTrueElo(2000) > Bot.legacyTrueElo(1300));
 });
 
+test("Elo su scala umana: ogni bot ha il suo Elo fisso, la forza viene dalla taratura", () => {
+  // il ponte tra le scale e' monotono e invertibile
+  [400, 1000, 1300, 1800, 2400].forEach((h) => assert.ok(Math.abs(Bot.humanForSf(Bot.sfForHuman(h)) - h) < 1, `${h}`));
+  assert.ok(Bot.sfForHuman(1300) < 1300, "la scala di Stockfish e' piu' forte: lo stesso giocatore ha un numero piu' basso");
+  Bot.LEVELS.filter((l) => !l.full).forEach((l, i, arr) => {
+    assert.ok(l.sfElo <= l.elo, `livello ${l.level}`);
+    if (i) assert.ok(l.strength >= arr[i - 1].strength, `forza interna crescente (livello ${l.level})`);
+  });
+  // il bot da 1300 ha la forza interna che sulla scala di Stockfish vale circa 1000
+  const l8 = Bot.getLevel(8);
+  assert.strictEqual(l8.elo, 1300);
+  assert.ok(Math.abs(l8.sfElo - 1000) <= 10 && l8.strength < 1100, `${l8.sfElo} ${l8.strength}`);
+});
+
+test("errori a budget: in ogni partita quasi lo stesso numero di errori, in media come prima", () => {
+  const errors = { blunder: 0.07, mistake: 0.12, inaccuracy: 0.25 };
+  let seed = 3;
+  const rng = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  const counts = [];
+  for (let g = 0; g < 200; g += 1) {
+    const state = {};
+    const c = { blunder: 0, mistake: 0, inaccuracy: 0 };
+    for (let m = 0; m < 40; m += 1) { const k = Bot.rollBudget(state, errors, rng); if (k) c[k] += 1; }
+    counts.push(c);
+  }
+  const mean = (k) => counts.reduce((n, c) => n + c[k], 0) / counts.length;
+  assert.ok(Math.abs(mean("blunder") - 2.8) < 0.25, `blunder medi ${mean("blunder")}`);
+  assert.ok(Math.abs(mean("mistake") - 4.8) < 0.3, `errori medi ${mean("mistake")}`);
+  // al massimo uno di differenza dal valore atteso in ogni partita (con il tiro a caso: da 0 a 7)
+  counts.forEach((c) => assert.ok(c.blunder >= 2 && c.blunder <= 4, `blunder ${c.blunder}`));
+});
+
+test("rating ricalcolato sulla scala umana: i bot dello schema 3 valevano di piu'", () => {
+  const R = require(path.join(root, "chess", "rating.js"));
+  let p = R.createProfile();
+  // tre sconfitte contro il bot che allora diceva 1000 (scala di Stockfish) e una vittoria contro un vecchio bot
+  [0, 1, 2].forEach(() => { p = R.recordGame(p, { botElo: 1000, result: "loss" }).profile; });
+  p.game.history.forEach((h) => { delete h.scale; });
+  p.game.history.push({ botElo: 870, labelElo: 1300, result: "win", rating: 0, change: 0 });
+  const before = p.game.rating;
+  const res = R.rescale(p, (e) => (e.scale === "umano" ? e.botElo : typeof e.labelElo === "number" ? e.labelElo : Bot.humanForSf(e.botElo)));
+  assert.deepStrictEqual(res.profile.game.history.map((h) => h.botElo), [1300, 1300, 1300, 1300]);
+  assert.ok(res.profile.game.history.every((h) => h.scale === "umano"));
+  assert.ok(res.after > before, `${before} -> ${res.after}`);
+  // le partite nuove sono gia' sulla scala umana
+  const q = R.recordGame(R.createProfile(), { botElo: 1300, result: "win" }).profile;
+  assert.strictEqual(q.game.history[0].scale, "umano");
+});
+
 test("in posizione vinta il bot preferisce chiudere", () => {
   assert.ok(Bot.selectionUtility({ mate: 2 }) > Bot.selectionUtility({ mate: 6 }));
   assert.ok(Bot.selectionUtility({ mate: 6 }) > Bot.selectionUtility({ cp: 4000 }));

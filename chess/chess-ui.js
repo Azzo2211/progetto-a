@@ -840,9 +840,10 @@
     const stats = getLevelStats(level);
     const avg = stats.accuracyGames ? Math.round(stats.accuracySum / stats.accuracyGames) : null;
     const record = stats.games ? `Contro questo bot: ${stats.wins} vinte, ${stats.draws} patte, ${stats.losses} perse${avg !== null ? `, precisione media ${avg}%` : ""}.` : "Non hai ancora giocato contro questo bot.";
+    const fixedElo = config.full ? "" : ` Elo fisso ${config.elo}, su scala umana: gioca sempre a questo livello.`;
     const engine = isStockfishEngineEnabled() ? "" : ` Motore: ${getEngineStatusText()}.`;
     const hint = suggested === level ? " Avversario adatto al tuo livello." : suggested ? ` Consigliato per te: ${getBotLevelConfig(suggested).elo} (casa con il bordo blu).` : "";
-    document.getElementById("botLevelText").textContent = `${record}${hint}${engine}`;
+    document.getElementById("botLevelText").textContent = `${record}${fixedElo}${hint}${engine}`;
     renderRecalNote();
     document.getElementById("botPrevBtn").disabled = level <= 1;
     document.getElementById("botNextBtn").disabled = level >= getMaxBotLevel();
@@ -860,6 +861,10 @@
     const change = typeof info.before === "number" && typeof info.after === "number"
       ? ` Il tuo rating partite è stato ricalcolato con la forza vera dei bot contro cui avevi giocato: da ${info.before} a ${info.after}.`
       : "";
+    if (info.kind === "human") {
+      document.getElementById("botRecalText").textContent = `Elo dei bot su scala umana: ogni bot ha il suo Elo fisso e gioca come una persona di quel livello. Prima l'Elo scritto era quello della scala di Stockfish, che a parità di numero è più forte di un giocatore vero: il bot «1300» giocava come un umano da 1600 circa. Ora ogni bot fa più o meno gli stessi errori in ogni partita, non è più fortissimo una volta e debolissimo quella dopo.${change}`;
+      return;
+    }
     document.getElementById("botRecalText").textContent = `I bot sono stati ritarati: ora giocano davvero all'Elo scritto, misurato contro Stockfish, e non regalano più pezzi a caso. Quelli di prima erano più deboli di quanto dicevano.${change} Le statistiche per livello ripartono da zero.`;
   }
   document.addEventListener("click", (event) => {

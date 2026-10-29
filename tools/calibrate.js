@@ -81,9 +81,11 @@ async function playOut(chess, white, black) {
   return 0.5;
 }
 
+// Un mover per partita: il conto degli errori "a budget" riparte a ogni partita, come nell'app.
 function botMover(engine, config, rng) {
+  const state = {};
   return async (chess, ply) => {
-    const choice = await Bot.chooseMove(engine, chess.fen(), config, { rng, ply });
+    const choice = await Bot.chooseMove(engine, chess.fen(), config, { rng, ply, state });
     if (!choice.ok) throw new Error(choice.error);
     return choice.uci;
   };

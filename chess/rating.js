@@ -124,9 +124,9 @@
     p.game.rating = update.rating;
     p.game.rd = update.rd;
     p.game.count += 1;
-    p.game.history = p.game.history.concat([{ date, rating: update.rating, change: update.change, botElo, result }]).slice(-60);
-    p.ratedGames = p.ratedGames.concat([{ gameId, date, botElo, result, accuracy }]).slice(-40);
-    if (result === "win") p.wins = p.wins.concat([{ date, botElo }]).slice(-60);
+    p.game.history = p.game.history.concat([{ date, rating: update.rating, change: update.change, botElo, result, scale: "umano" }]).slice(-60);
+    p.ratedGames = p.ratedGames.concat([{ gameId, date, botElo, result, accuracy, scale: "umano" }]).slice(-40);
+    if (result === "win") p.wins = p.wins.concat([{ date, botElo, scale: "umano" }]).slice(-60);
     return { profile: p, change: update.change, expected: update.expected };
   }
 
@@ -164,6 +164,37 @@
       return typeof label === "number" ? { ...win, botElo: fix(label), labelElo: label } : win;
     });
     p.certifiedKey = undefined;
+    return { profile: p, before, after: p.game.count ? p.game.rating : null };
+  }
+
+  /*
+   * Cambio di scala dei bot (Elo umano). mapEntry(voce) -> Elo del bot sulla scala nuova. Il rating
+   * rigioca lo storico salvato con i nuovi Elo; le voci restano segnate con scale: "umano".
+   * Il grado gia' certificato non si tocca (i gradi non scendono).
+   */
+  function rescale(profile, mapEntry) {
+    const p = ensureProfile(profile);
+    const before = p.game.count ? p.game.rating : null;
+    const fixed = (entry) => {
+      const value = mapEntry(entry);
+      return typeof value === "number" && Number.isFinite(value) ? Math.round(value) : entry.botElo;
+    };
+    let cur = { rating: START_RATING, rd: START_RD };
+    const history = p.game.history.map((entry) => {
+      const botElo = fixed(entry);
+      if (typeof botElo !== "number") return entry;
+      const score = entry.result === "win" ? 1 : entry.result === "draw" ? 0.5 : 0;
+      const update = glickoUpdate(cur, botElo, BOT_RD, score, MIN_RD_GAMES);
+      cur = { rating: update.rating, rd: update.rd };
+      return { ...entry, botElo, scale: "umano", rating: update.rating, change: update.change };
+    });
+    if (history.length) {
+      p.game.rating = cur.rating;
+      p.game.rd = cur.rd;
+    }
+    p.game.history = history;
+    p.ratedGames = p.ratedGames.map((game) => (typeof game.botElo === "number" ? { ...game, botElo: fixed(game), scale: "umano" } : game));
+    p.wins = p.wins.map((win) => (typeof win.botElo === "number" ? { ...win, botElo: fixed(win), scale: "umano" } : win));
     return { profile: p, before, after: p.game.count ? p.game.rating : null };
   }
 
@@ -316,6 +347,7 @@
     ensureProfile,
     recordGame,
     recalibrate,
+    rescale,
     attachAccuracy,
     recordPuzzle,
     averageAccuracy,
