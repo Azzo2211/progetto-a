@@ -22,13 +22,14 @@ Poi apri **http://localhost:8765** (non aprire `index.html` con doppio click: St
 | `chess/analysis-core.js` | Probabilità di vittoria, precisione (metodo Lichess), classificazione mosse, pattern di errore, commenti del coach. |
 | `chess/bot.js` | I 19 livelli del bot (da 250 a 3600 Elo, su scala umana) e la scelta delle mosse. |
 | `chess/review.js` | Revisione della partita: analizza ogni posizione e costruisce il report. |
-| `chess/board-view.js` | Scacchiera: pezzi animati (si alzano e si appoggiano con l'ombra, il cavallo salta, il pezzo catturato cade con un taglio cremisi, il re trema allo scacco e cade allo scacco matto) ed effetti speciali in stile Classroom disattivabili (scie color ghiaccio, luce su traversa e colonna, mirino, linee di velocita' sulle catture, lampo in bianco e nero allo scacco); tocco-tocco o trascinamento (anche su telefono), premosse mentre il bot pensa (case in blu, si giocano da sole se ancora legali, donna automatica in promozione), frecce, promozione, temi di colore, suoni. |
+| `chess/board-view.js` | Scacchiera: pezzi animati (si alzano e si appoggiano con l'ombra, il cavallo salta, il pezzo catturato cade con un taglio cremisi, il re trema allo scacco e cade allo scacco matto) ed effetti speciali in stile Classroom disattivabili (scie color ghiaccio, luce su traversa e colonna, mirino, linee di velocita' sulle catture, lampo in bianco e nero allo scacco); tocco-tocco o trascinamento (anche su telefono), premosse in fila mentre il bot pensa, come su chess.com (fino a 8; la scacchiera le mostra già fatte con le case in rosso; si gioca la prima appena il bot muove, poi le altre una per mossa del bot; se una non è più legale si annullano tutte; tasto destro, tocco su una casa vuota o "Annulla premosse" per toglierle; donna automatica in promozione; a tempo costano 0,1 secondi), frecce, promozione, temi di colore, suoni. |
 | `chess/chess-ui.js` | Pagina scacchi: schede, scelta del bot, barre dei giocatori, coach, suggerimenti, fine partita. |
 | `chess/coach.js` | Coach in allenamento: pezzi in presa, matti in una, minacce del bot, consigli d'apertura. |
 | `chess/lessons.js` | 58 lezioni per grado (11 D, 13 C, 13 B, 11 A, 10 S): teoria in più parti con piani, schemi ricorrenti ed errori tipici, punti chiave, esempi guidati (anche partite celebri: l'Opera di Morphy, la Sempreverde, Lasker – Bauer, Réti – Tartakower, lo studio di Saavedra) ed esercizi controllati con Stockfish. |
 | `chess/trainer.js` | Esercizi sulla scacchiera principale (lezioni, puzzle, errori delle tue partite). |
 | `chess/learn-ui.js` / `chess/grade-ui.js` | Schede Lezioni e Grado. |
-| `chess/rating.js` | Rating Glicko contro i bot e sugli esercizi, requisiti dei gradi E-S. |
+| `chess/rating.js` | Rating Glicko contro i bot e sugli esercizi, rating separati di Lampo e Blitz, requisiti dei gradi E-S. |
+| `chess/clock.js` | Orologi delle partite a tempo: Lampo (1 minuto a testa) e Blitz (3 minuti). Partono con la prima mossa del Bianco, si basano sull'ora reale (continuano anche a schermo spento), decimi sotto i 10 secondi; tempo scaduto = sconfitta, ma patta se l'avversario non può dare matto. Il bot gestisce il suo tempo come una persona (meno in apertura e quando ne ha poco) con la stessa forza. |
 | `chess/skills.js` | Profilo di gioco a 6 categorie: eventi per mossa (errori e mosse buone) e aggiornamento dopo ogni partita. |
 | `chess/puzzles.json` | 4.070 esercizi dal database Lichess (CC0), da 400 a 2600 di rating. |
 | `assets/pieces/` | Set "Classroom" (predefinito, originale, disegnato in stile anime Classroom of the Elite), "Elite 3D" (stessi pezzi, resa realistica) e set di lichess.org (licenze in `assets/pieces/LICENSE.md`). |
@@ -40,6 +41,7 @@ Il grado non e' una stima a occhio: e' **certificato** solo quando tutti i requi
 - **Rating partite**: Glicko-1 contro i bot (ogni bot ha un Elo fisso su scala umana, vedi "Come gioca il bot"). Contano solo le partite *valutate* (niente suggerimenti, niente mosse annullate) di almeno 8 mosse.
 - **Rating esercizi**: Glicko-1 sui puzzle Lichess, che hanno un rating noto. Conta solo il primo tentativo.
 - **Precisione**: media delle ultime 5 partite valutate, calcolata da Stockfish.
+- **Partite a tempo**: Lampo (1 minuto) e Blitz (3 minuti) hanno ciascuna un rating Glicko separato, come sui siti di scacchi, e non contano per il grado (che si misura senza tempo). A tempo non si annullano mosse e il coach non ferma il bot.
 - **Requisiti per grado**: numero di partite, rating minimo, una vittoria contro un bot di quel livello, rating esercizi, precisione e lezioni del grado completate.
 
 | Grado | Elo | Partite | Esercizi | Vittoria contro | Precisione |

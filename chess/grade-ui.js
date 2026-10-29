@@ -62,6 +62,15 @@
           <strong>${acc !== null ? `${acc}%` : "--"}</strong>
           <small>ultime 5 partite valutate</small>
         </div>
+        ${["bullet", "blitz"].map((k) => {
+          const t = profile.timed && profile.timed[k];
+          if (!t || !t.count) return "";
+          return `<div class="measure">
+          <span>Rating ${k === "bullet" ? "Lampo" : "Blitz"}</span>
+          <strong>${t.rating}</strong>
+          <small>${t.count} ${t.count === 1 ? "partita" : "partite"} da ${k === "bullet" ? "1 minuto" : "3 minuti"} · non conta per il grado</small>
+        </div>`;
+        }).join("")}
       </section>
 
       ${next ? `

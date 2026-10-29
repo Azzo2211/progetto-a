@@ -47,6 +47,7 @@ const defaultState = {
     levelStats: {},
     levelScheme: 4,
     mode: "rated",
+    timeControl: "none",
     ui: { theme: "accademia", pieceSet: "cote", effects: true, sound: true, coords: true, evalBarInGame: false, orientation: "white" },
     rating: {},
     lessons: {},
@@ -1370,6 +1371,9 @@ function createNewGame() {
     botLabel: profile.label,
     // conto degli errori del bot in questa partita (errori "a budget", vedi chess/bot.js)
     botState: {},
+    // tempo: "none", "bullet" (Lampo 1 min) o "blitz" (3 min); orologi in chess/clock.js
+    tc: state && state.chess && window.ChessClock && ChessClock.timed(state.chess.timeControl) ? state.chess.timeControl : "none",
+    clock: state && state.chess && window.ChessClock ? ChessClock.create(state.chess.timeControl) : null,
     result: "in corso",
     status: "in corso",
     finalState: "in corso",
@@ -1616,6 +1620,8 @@ function chessFinalStateLabel(result, reason = null) {
   if (reason === "repetition") return "patta per ripetizione";
   if (reason === "insufficient") return "patta per materiale insufficiente";
   if (reason === "fifty") return "patta per regola delle 50 mosse";
+  if (reason === "timeout-draw") return "patta: tempo scaduto, ma l'avversario non può dare matto";
+  if (reason === "timeout") return "tempo scaduto";
   if (result === "draw") return "patta";
   if (reason === "resign") return "abbandono";
   if (!result || result === "partial" || result === "in corso") return "in corso";
@@ -1742,7 +1748,8 @@ function renderBoard(options = {}) {
     badge = { square: lastMove.to, cls: reviewQualityClass(reviewMove.quality), icon: meta.icon, label: meta.label };
   }
   view.render({
-    position: displayBoard,
+    // con le premosse la scacchiera le mostra gia' fatte, come su chess.com
+    position: pre && pre.position ? pre.position : displayBoard,
     lastMove,
     check: checkedKing ? coord(checkedKing.row, checkedKing.col) : null,
     mated,
@@ -1762,7 +1769,7 @@ function renderBoard(options = {}) {
   if (turn) {
     if (reviewBoard) turn.textContent = currentGame.reviewIndex >= 0 ? `Mossa ${currentGame.reviewIndex + 1}/${currentGame.moves.length}` : "Posizione iniziale";
     else if (chessGameOver) turn.textContent = "Partita conclusa";
-    else if (isBotTurn()) turn.textContent = pre && pre.pending ? "Il bot pensa · premossa pronta" : "Il bot pensa: puoi preparare una premossa";
+    else if (isBotTurn()) turn.textContent = pre && pre.pending ? `Il bot pensa · ${pre.pending === 1 ? "1 premossa pronta" : `${pre.pending} premosse pronte`}` : "Il bot pensa: puoi preparare le premosse";
     else turn.textContent = isKingInCheck(board, "w") ? "Sei sotto scacco" : "Tocca a te";
   }
   if (window.renderChessChrome) renderChessChrome(displayBoard);
@@ -1823,6 +1830,8 @@ function handleSquareClick(row, col) {
 }
 
 function makePlayerMove(move) {
+  // a tempo: se il tuo orologio e' arrivato a zero la mossa non vale
+  if (currentGame.clock && ChessClock.check(currentGame.clock)) { handleClockFlag(); return; }
   const beforeGameState = cloneGameState(gameState);
   history.push({ turn: "white", board: cloneBoard(board), gameState: beforeGameState });
   const before = cloneBoard(board);
@@ -1844,6 +1853,7 @@ function makePlayerMove(move) {
     seconds
   });
   const savedRecord = saveMoveData(record);
+  if (currentGame.clock && ChessClock.moveMade(currentGame.clock, "w", Date.now(), { premove: Boolean(move.premove) })) { handleClockFlag(); return; }
   lastMoveSquares = moveSquaresFromRecord(savedRecord);
   queueBackgroundAnalysis(savedRecord.fenAfter);
   if (window.playMoveSound) playMoveSound(savedRecord);
@@ -1851,8 +1861,9 @@ function makePlayerMove(move) {
     renderBoard();
     return;
   }
-  // In allenamento il coach puo' fermare il bot per farti correggere un errore grave.
-  const coachStops = window.coachAfterPlayerMove ? coachAfterPlayerMove(savedRecord) : false;
+  // In allenamento il coach puo' fermare il bot per farti correggere un errore grave
+  // (non nelle partite a tempo: l'orologio del bot correrebbe mentre aspetta).
+  const coachStops = window.coachAfterPlayerMove && !currentGame.clock ? coachAfterPlayerMove(savedRecord) : false;
   if (!coachStops && currentGame.rated && window.coachSay) {
     coachSay(`Hai giocato ${ChessAnalysis.figurine(savedRecord.san)}. Il bot sta pensando.`);
   }
@@ -1930,9 +1941,11 @@ async function makeBotMove() {
   }
   const startedAt = Date.now();
   if (!currentGame.botState || typeof currentGame.botState !== "object") currentGame.botState = {};
-  const choice = await ChessBot.chooseMove(chessEngines().play, fenBefore, level, { ply: currentGame.moves.length, state: currentGame.botState });
+  // a tempo il bot gestisce il suo orologio come una persona (stessa forza, ricerca piu' corta se serve)
+  const think = currentGame.clock ? ChessClock.botThink(currentGame.clock, "b", currentGame.moves.length) : null;
+  const choice = await ChessBot.chooseMove(chessEngines().play, fenBefore, level, { ply: currentGame.moves.length, state: currentGame.botState, maxTime: think ? Math.max(80, think * 0.8) : null });
   // Pausa minima per rendere la risposta naturale anche ai livelli bassi.
-  const minimumThink = 350 + Math.random() * 650;
+  const minimumThink = think !== null ? think : 350 + Math.random() * 650;
   const elapsed = Date.now() - startedAt;
   if (elapsed < minimumThink) await new Promise((resolve) => setTimeout(resolve, minimumThink - elapsed));
   if (positionChanged()) return;
@@ -1962,6 +1975,7 @@ async function makeBotMove() {
   record.botReason = choice.reason;
   record.comment = `Il bot gioca ${record.san}.`;
   const savedBotRecord = saveMoveData(record);
+  if (currentGame.clock && ChessClock.moveMade(currentGame.clock, "b", Date.now())) { handleClockFlag(); renderBoard(); return; }
   lastMoveSquares = moveSquaresFromRecord(savedBotRecord);
   queueBackgroundAnalysis(savedBotRecord.fenAfter);
   thinkStartedAt = Date.now();
@@ -2141,8 +2155,31 @@ function detectDrawByRules() {
   return null;
 }
 
+// Tempo scaduto: perde chi e' arrivato a zero, ma e' patta se l'avversario ha solo il re
+// (o re e un pezzo leggero contro il re nudo): non potrebbe mai dare matto.
+function handleClockFlag() {
+  const clock = currentGame.clock;
+  if (!clock || !clock.flag || chessGameOver) return;
+  clearBotTimer();
+  const flagged = clock.flag;
+  const pieces = (color) => board.flat().filter((p) => p && (color === "w" ? isWhite(p) : !isWhite(p)) && p.toLowerCase() !== "k").map((p) => p.toLowerCase());
+  const winner = pieces(flagged === "w" ? "b" : "w");
+  const loser = pieces(flagged);
+  const cannotMate = !winner.length || (winner.length === 1 && ["n", "b"].includes(winner[0]) && !loser.length);
+  if (cannotMate) finishGame("draw", "timeout-draw");
+  else finishGame(flagged === "w" ? "loss" : "win", "timeout");
+}
+
+// Orologi: un controllo ogni decimo di secondo (scade il tempo, si aggiornano i numeri).
+setInterval(() => {
+  if (!currentGame || !currentGame.clock || chessGameOver) return;
+  if (ChessClock.check(currentGame.clock)) handleClockFlag();
+  if (window.renderChessClocks) renderChessClocks();
+}, 100);
+
 function finishGame(result, reason = null) {
   if (chessGameOver) return;
+  if (currentGame.clock) ChessClock.stop(currentGame.clock);
   chessGameOver = true;
   if (window.resetChessHelpers) resetChessHelpers();
   setChessGameFinalState(result, reason);

@@ -254,6 +254,53 @@ test("rating ricalcolato sulla scala umana: i bot dello schema 3 valevano di piu
   assert.strictEqual(q.game.history[0].scale, "umano");
 });
 
+test("orologi Lampo e Blitz: partenza alla prima mossa, premossa da 0,1 s, tempo scaduto", () => {
+  const C = require(path.join(root, "chess", "clock.js"));
+  assert.strictEqual(C.create("none"), null);
+  const c = C.create("bullet");
+  assert.strictEqual(c.w, 60000);
+  const t0 = 1000000;
+  // la prima mossa del Bianco non consuma tempo, poi corre il Nero
+  assert.strictEqual(C.moveMade(c, "w", t0 + 5000), null);
+  assert.strictEqual(C.remaining(c, "w", t0 + 9000), 60000);
+  assert.strictEqual(C.remaining(c, "b", t0 + 7000), 58000);
+  C.moveMade(c, "b", t0 + 8000);
+  assert.strictEqual(c.b, 57000);
+  // premossa: 0,1 secondi qualunque sia il tempo passato
+  C.moveMade(c, "w", t0 + 8500, { premove: true });
+  assert.strictEqual(c.w, 59900);
+  // il bot finisce il tempo mentre pensa
+  assert.strictEqual(C.check(c, t0 + 8500 + 56000), null);
+  assert.strictEqual(C.check(c, t0 + 8500 + 57001), "b");
+  assert.strictEqual(c.b, 0);
+  assert.strictEqual(C.moveMade(c, "b", t0 + 70000), "b", "dopo la bandierina la mossa non conta");
+  // formato come sui siti: decimi sotto i 10 secondi
+  assert.strictEqual(C.format(180000), "3:00");
+  assert.strictEqual(C.format(59001), "1:00");
+  assert.strictEqual(C.format(9450), "0:09.4");
+  assert.strictEqual(C.format(-5), "0:00.0");
+  // il bot non brucia il tempo: poco in apertura, mai oltre un decimo del rimasto
+  const b = C.create("blitz");
+  C.moveMade(b, "w", t0);
+  const early = C.botThink(b, "b", 1, t0, () => 0.5);
+  const mid = C.botThink(b, "b", 41, t0, () => 0.5);
+  assert.ok(early < mid && mid <= 18000 && early >= 120, `${early} ${mid}`);
+  b.b = 8000;
+  assert.ok(C.botThink(b, "b", 60, t0, () => 1) <= 700);
+});
+
+test("Lampo e Blitz hanno un rating separato e non toccano il grado", () => {
+  const R = require(path.join(root, "chess", "rating.js"));
+  let p = R.createProfile();
+  const res = R.recordGame(p, { botElo: 1300, result: "win", tc: "bullet" });
+  p = res.profile;
+  assert.strictEqual(res.pool, "bullet");
+  assert.ok(p.timed.bullet.rating > 800 && p.timed.bullet.count === 1);
+  assert.strictEqual(p.game.count, 0, "il rating senza tempo non cambia");
+  assert.strictEqual(p.wins.length, 0, "non vale per i requisiti del grado");
+  assert.strictEqual(R.ensureProfile({}).timed.blitz.rating, 800);
+});
+
 test("in posizione vinta il bot preferisce chiudere", () => {
   assert.ok(Bot.selectionUtility({ mate: 2 }) > Bot.selectionUtility({ mate: 6 }));
   assert.ok(Bot.selectionUtility({ mate: 6 }) > Bot.selectionUtility({ cp: 4000 }));

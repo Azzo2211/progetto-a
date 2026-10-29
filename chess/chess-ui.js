@@ -25,8 +25,7 @@
   let showBestArrow = false;
   let hintState = null; // { fen, uci, level }
   let coachWarning = null; // avviso del coach che ferma il bot
-  let premove = null; // premossa: { from, to, gameId, ply } giocata appena tocca a te
-  let preSel = null; // pezzo scelto per la premossa mentre il bot pensa
+  let preSel = null; // pezzo scelto per la premossa mentre il bot pensa (premosse: vedi sotto)
 
   /* ------------------------------------------------------------ impostazioni */
 
@@ -92,28 +91,58 @@
   }
 
   /* ------------------------------------------------------------ premosse */
-  // Mentre il bot pensa puoi preparare la tua mossa: si gioca da sola appena tocca a te,
-  // se e' ancora legale (altrimenti si annulla). Una premossa alla volta, come su lichess.
+  // Come su chess.com: mentre il bot pensa prepari una o piu' mosse in fila. La scacchiera le
+  // mostra gia' fatte (case evidenziate); appena il bot muove si gioca la prima, se e' legale,
+  // poi la seconda dopo la mossa successiva del bot, e cosi' via. Se una non e' piu' legale si
+  // annullano tutte. Tasto destro sulla scacchiera (o tocco su una casa vuota) le annulla.
+  // Nelle partite a tempo una premossa costa 0,1 secondi.
+  const MAX_PREMOVES = 8;
+  let premoves = []; // [{ from, to, gameId }]
+
   function premoveMode() {
     return !reviewBoard && !chessGameOver && isBotTurn() && !coachWarning && !trainerOwnsBoard();
   }
 
-  // Valida finche' e' la stessa partita: durante il turno del bot, o subito dopo la sua mossa
-  // (in attesa di essere giocata). Una ripresa o una partita nuova la annullano.
-  function premoveValid() {
-    if (!premove || premove.gameId !== currentGame.id) return false;
-    const len = currentGame.moves.length;
-    return premove.ply === len || (premove.ply === len - 1 && !isBotTurn());
+  function premovesValid() {
+    if (premoves.length && premoves[0].gameId !== currentGame.id) premoves = [];
+    return premoves.length > 0;
   }
 
-  // Case raggiungibili "a scacchiera vuota": il bot deve ancora muovere, quindi non si sa
-  // cosa sara' libero o catturabile. Alla fine conta solo se la mossa e' legale in quel momento.
-  function premoveTargets(square) {
+  // La scacchiera "come sara'" dopo le premosse gia' preparate (solo per mostrarla e per
+  // scegliere le premosse dopo): pezzo spostato, arrocco con la torre, promozione a donna.
+  function virtualBoard() {
+    const b = board.map((row) => row.slice());
+    premoves.forEach((p) => {
+      const a = squareToRC(p.from);
+      const t = squareToRC(p.to);
+      let piece = b[a.row][a.col];
+      if (!piece) return;
+      if (piece === "K" && a.row === 7 && a.col === 4 && t.row === 7 && Math.abs(t.col - 4) === 2) {
+        const rookFrom = t.col === 6 ? 7 : 0;
+        const rookTo = t.col === 6 ? 5 : 3;
+        if (b[7][rookFrom] === "R") { b[7][rookTo] = "R"; b[7][rookFrom] = null; }
+      }
+      if (piece === "P" && t.row === 0) piece = "Q";
+      b[t.row][t.col] = piece;
+      b[a.row][a.col] = null;
+    });
+    return b;
+  }
+
+  // Case raggiungibili "a scacchiera vuota" (il bot deve ancora muovere: non si sa cosa sara'
+  // libero o catturabile), partendo dalla scacchiera con le premosse gia' fatte. Niente case
+  // occupate da pezzi tuoi. Alla fine conta solo se la mossa e' legale in quel momento.
+  function premoveTargets(square, vb = virtualBoard()) {
     const { row, col } = squareToRC(square);
-    const piece = board[row][col];
+    const piece = vb[row][col];
     if (!piece || !isWhite(piece)) return [];
     const out = [];
-    const add = (r, c) => { if (r >= 0 && r < 8 && c >= 0 && c < 8 && !(r === row && c === col)) out.push(coord(r, c)); };
+    const add = (r, c) => {
+      if (r < 0 || r > 7 || c < 0 || c > 7 || (r === row && c === col)) return;
+      const there = vb[r][c];
+      if (there && isWhite(there)) return;
+      out.push(coord(r, c));
+    };
     const kind = piece.toLowerCase();
     if (kind === "p") {
       add(row - 1, col);
@@ -124,9 +153,11 @@
       [[1, 2], [2, 1], [-1, 2], [-2, 1], [1, -2], [2, -1], [-1, -2], [-2, -1]].forEach(([dr, dc]) => add(row + dr, col + dc));
     } else if (kind === "k") {
       for (let dr = -1; dr <= 1; dr += 1) for (let dc = -1; dc <= 1; dc += 1) if (dr || dc) add(row + dr, col + dc);
-      if (row === 7 && col === 4) {
-        if (board[7][7] === "R") add(7, 6);
-        if (board[7][0] === "R") add(7, 2);
+      const rights = gameState && gameState.castling ? gameState.castling : {};
+      const kingMoved = premoves.some((p) => p.from === "e1");
+      if (row === 7 && col === 4 && !kingMoved) {
+        if (rights.K !== false && vb[7][7] === "R" && !vb[7][5] && !vb[7][6]) out.push("g1");
+        if (rights.Q !== false && vb[7][0] === "R" && !vb[7][1] && !vb[7][2] && !vb[7][3]) out.push("c1");
       }
     } else {
       const dirs = kind === "r" ? [[1, 0], [-1, 0], [0, 1], [0, -1]] : kind === "b" ? [[1, 1], [1, -1], [-1, 1], [-1, -1]] : [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
@@ -136,44 +167,48 @@
   }
 
   function setPremove(from, to) {
-    premove = { from, to, gameId: currentGame.id, ply: currentGame.moves.length };
+    if (premoves.length >= MAX_PREMOVES) { Kit.Sound.play("error"); preSel = null; renderBoard({ animate: false }); return; }
+    premoves.push({ from, to, gameId: currentGame.id });
     preSel = null;
     Kit.Sound.play("premove");
     renderBoard({ animate: false });
   }
 
   function clearPremove(render = true) {
-    const had = premove || preSel;
-    premove = null;
+    const had = premoves.length || preSel;
+    premoves = [];
     preSel = null;
     if (had && render) renderBoard({ animate: false });
+    return Boolean(had);
   }
   window.chessClearPremove = () => clearPremove(true);
 
-  function premoveGrab(square) {
+  function whiteAt(square, vb) {
     const { row, col } = squareToRC(square);
-    const piece = board[row][col];
-    if (!piece || !isWhite(piece)) return false;
+    const piece = vb[row][col];
+    return Boolean(piece && isWhite(piece));
+  }
+
+  function premoveGrab(square) {
+    if (!whiteAt(square, virtualBoard())) return false;
     preSel = square;
     renderBoard({ animate: false });
     return true;
   }
 
   function premoveTap(square, { wasSelected } = {}) {
-    if (preSel && preSel !== square && premoveTargets(preSel).includes(square)) {
+    const vb = virtualBoard();
+    if (preSel && preSel !== square && premoveTargets(preSel, vb).includes(square)) {
       setPremove(preSel, square);
       return;
     }
-    const { row, col } = squareToRC(square);
-    const piece = board[row][col];
-    if (piece && isWhite(piece) && !wasSelected) {
+    if (whiteAt(square, vb) && !wasSelected) {
       preSel = square;
       renderBoard({ animate: false });
       return;
     }
-    // tocco altrove: annulla la scelta e la premossa
-    clearPremove(true);
-    renderBoard({ animate: false });
+    // tocco altrove: annulla la scelta e tutte le premosse
+    if (!clearPremove(true)) renderBoard({ animate: false });
   }
 
   function premoveDrop(from, to) {
@@ -183,39 +218,57 @@
 
   // Cosa mostrare sulla scacchiera durante il turno del bot (chiamata da renderBoard).
   window.chessPremoveView = function chessPremoveView() {
-    if (premove && !premoveValid()) premove = null;
-    if (!premoveMode()) { preSel = null; return premove ? { marks: { [premove.from]: "premove", [premove.to]: "premove" }, selected: null, targets: [], active: false } : null; }
-    const marks = premove ? { [premove.from]: "premove", [premove.to]: "premove" } : {};
+    const pending = premovesValid();
+    const marks = {};
+    premoves.forEach((p) => { marks[p.from] = "premove"; marks[p.to] = "premove"; });
+    const position = pending ? virtualBoard() : null;
+    if (!premoveMode()) {
+      preSel = null;
+      // appena il bot ha mosso, la premossa resta disegnata finche' non viene giocata
+      return pending ? { marks, selected: null, targets: [], active: false, pending: premoves.length, position } : null;
+    }
     const targets = preSel ? premoveTargets(preSel).map((sq) => ({ square: sq, capture: false })) : [];
-    return { marks, selected: preSel, targets, active: true, pending: Boolean(premove) };
+    return { marks, selected: preSel, targets, active: true, pending: premoves.length, position };
   };
 
-  // Dopo la mossa del bot: gioca la premossa se e' legale, altrimenti la annulla.
+  // Dopo la mossa del bot: gioca la prima premossa se e' legale, altrimenti le annulla tutte.
   window.chessTryPremove = function chessTryPremove() {
-    if (!premove) return;
-    const p = premove;
-    premove = null;
-    preSel = null;
-    if (p.gameId !== currentGame.id || p.ply !== currentGame.moves.length - 1 || !gameInteractive()) { renderBoard({ animate: false }); return; }
+    if (!premovesValid()) return;
+    if (!gameInteractive()) { clearPremove(true); return; }
+    const p = premoves[0];
     const a = squareToRC(p.from);
     const b = squareToRC(p.to);
-    const move = getLegalMoves(board, a.row, a.col).find((m) => m.toRow === b.row && m.toCol === b.col);
-    if (!move || !board[a.row][a.col] || !isWhite(board[a.row][a.col])) {
+    const piece = board[a.row][a.col];
+    const move = piece && isWhite(piece) ? getLegalMoves(board, a.row, a.col).find((m) => m.toRow === b.row && m.toCol === b.col) : null;
+    if (!move) {
+      const n = premoves.length;
+      clearPremove(false);
       Kit.Sound.play("error");
       renderBoard({ animate: false });
       const turn = document.getElementById("turnStatus");
-      if (turn) turn.textContent = "Premossa annullata: non era più legale";
+      if (turn) turn.textContent = n > 1 ? "Premosse annullate: la prima non era più legale" : "Premossa annullata: non era più legale";
       return;
     }
-    const piece = board[move.fromRow][move.fromCol];
+    premoves.shift();
     // premossa di promozione: donna automatica (niente finestra di scelta)
-    const final = piece === "P" && move.toRow === 0 ? { ...move, promotion: "q" } : move;
+    const final = { ...(piece === "P" && move.toRow === 0 ? { ...move, promotion: "q" } : move), premove: true };
+    const gameId = currentGame.id;
+    const ply = currentGame.moves.length;
     window.setTimeout(() => {
-      if (!gameInteractive() || currentGame.moves.length !== p.ply + 1) return;
+      if (currentGame.id !== gameId || currentGame.moves.length !== ply || !gameInteractive()) { clearPremove(true); return; }
       hintState = null;
       makePlayerMove(final);
-    }, 120);
+    }, 30);
   };
+
+  // Tasto destro sulla scacchiera: annulla le premosse (come su chess.com).
+  document.addEventListener("contextmenu", (event) => {
+    const boardEl = document.getElementById("chessBoard");
+    if (!boardEl || !boardEl.contains(event.target) || trainerOwnsBoard()) return;
+    if (!premoves.length && !preSel) return;
+    event.preventDefault();
+    clearPremove(true);
+  });
 
   function gameGrab(square) {
     if (premoveMode()) return premoveGrab(square);
@@ -348,7 +401,11 @@
       const rating = ratingProfile();
       const est = estimatedElo();
       document.getElementById("bottomPlayerName").textContent = "Tu";
-      document.getElementById("bottomPlayerSub").textContent = `${isRatedGame() ? "Partita valutata" : "Allenamento"} · ${rating.game.count ? `rating ${rating.game.rating}` : est.elo ? `Elo stimato ${est.elo}` : "rating da stabilire"}`;
+      const tcPool = currentGame.clock && rating.timed ? rating.timed[currentGame.tc] : null;
+      const tcLabel = currentGame.clock && window.ChessClock ? window.ChessClock.control(currentGame.tc).label : "";
+      document.getElementById("bottomPlayerSub").textContent = tcPool
+        ? `${tcLabel} ${isRatedGame() ? "valutata" : "di allenamento"} · ${tcPool.count ? `rating ${tcLabel.toLowerCase()} ${tcPool.rating}` : `rating ${tcLabel.toLowerCase()} da stabilire`}`
+        : `${isRatedGame() ? "Partita valutata" : "Allenamento"} · ${rating.game.count ? `rating ${rating.game.rating}` : est.elo ? `Elo stimato ${est.elo}` : "rating da stabilire"}`;
       const cap = capturedPieces(displayBoard || board);
       document.getElementById("bottomCaptured").innerHTML = capturedHtml(cap.byWhite, "b", cap.diff);
       document.getElementById("topCaptured").innerHTML = capturedHtml(cap.byBlack, "w", -cap.diff);
@@ -364,6 +421,7 @@
     renderEvalBar();
     renderGameMoveList();
     renderPlayControls();
+    window.renderChessClocks();
   };
 
   /* ------------------------------------------------------- barra valutazione */
@@ -582,6 +640,52 @@
     renderBoard({ animate: false });
   }
 
+  /* ------------------------------------------------------------ tempo */
+
+  function timeControl() {
+    return window.ChessClock && ChessClock.timed(state.chess.timeControl) ? state.chess.timeControl : "none";
+  }
+
+  function renderTimeControl() {
+    const tc = timeControl();
+    document.querySelectorAll("[data-time-control]").forEach((button) => {
+      button.setAttribute("aria-checked", String(button.dataset.timeControl === tc));
+    });
+  }
+
+  function setTimeControl(tc) {
+    if (!window.ChessClock || tc === timeControl()) return;
+    state.chess.timeControl = ChessClock.timed(tc) ? tc : "none";
+    saveState();
+    renderTimeControl();
+    const label = ChessClock.control(state.chess.timeControl);
+    if (!getSafeChessMoves().length && !chessGameOver) {
+      currentGame.tc = state.chess.timeControl;
+      currentGame.clock = ChessClock.create(state.chess.timeControl);
+      coachSay(currentGame.clock ? `${label.label}: ${label.short} a testa. L'orologio parte con la tua prima mossa e ha un rating suo, separato da quello delle partite senza tempo.` : "Senza tempo: pensa quanto vuoi.");
+    } else {
+      coachSay(`La partita in corso resta com'è. La prossima sarà ${ChessClock.timed(tc) ? `${label.label.toLowerCase()} (${label.short})` : "senza tempo"}.`);
+    }
+    renderBoard({ animate: false });
+  }
+
+  // Orologi nelle barre dei giocatori (chiamata ogni decimo di secondo durante le partite a tempo).
+  window.renderChessClocks = function renderChessClocks() {
+    const clock = currentGame && currentGame.clock;
+    [["topClock", "b"], ["bottomClock", "w"]].forEach(([id, side]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.hidden = !clock;
+      if (!clock) return;
+      const ms = window.ChessClock.remaining(clock, side);
+      const text = window.ChessClock.format(ms);
+      if (el.textContent !== text) el.textContent = text;
+      el.classList.toggle("is-running", clock.started && !clock.stopped && clock.turn === side && !chessGameOver);
+      el.classList.toggle("is-low", ms < (clock.base <= 60000 ? 10000 : 20000));
+      el.classList.toggle("is-flag", clock.flag === side);
+    });
+  };
+
   function renderPlayControls() {
     const rated = isRatedGame();
     const moves = getSafeChessMoves().length;
@@ -591,7 +695,10 @@
     const review = document.getElementById("reviewGameBtn");
     if (!hint) return;
     hint.hidden = rated || chessGameOver;
-    undo.hidden = rated || chessGameOver;
+    // a tempo niente mossa annullata: l'orologio non torna indietro
+    undo.hidden = rated || chessGameOver || Boolean(currentGame.clock);
+    const clear = document.getElementById("premoveClearBtn");
+    if (clear) clear.hidden = !premovesValid() || chessGameOver;
     resign.hidden = chessGameOver || !moves;
     review.textContent = chessGameOver ? "Analizza la partita" : "Rivedi partita";
     review.hidden = rated && !chessGameOver;
@@ -705,6 +812,7 @@
 
   // Nuova partita: niente avvisi, suggerimenti o promozioni rimasti dalla precedente.
   window.resetChessHelpers = function resetChessHelpers() {
+    clearPremove(false);
     clearCoachWarning();
     hintState = null;
     showBestArrow = false;
@@ -1070,7 +1178,8 @@
       return null;
     }
     const before = certifiedGrade();
-    const res = window.ChessRating.recordGame(ratingProfile(), { botElo: currentGame.botElo, result, gameId: currentGame.id, date: new Date().toISOString() });
+    const tc = currentGame.clock ? currentGame.tc : null;
+    const res = window.ChessRating.recordGame(ratingProfile(), { botElo: currentGame.botElo, result, gameId: currentGame.id, date: new Date().toISOString(), tc });
     state.chess.rating = res.profile;
     currentGame.ratingRecorded = true;
     currentGame.ratingChange = res.change;
@@ -1078,7 +1187,8 @@
     const after = certifiedGrade();
     renderGradeChip();
     renderMentor();
-    return { change: res.change, rating: res.profile.game.rating, promoted: window.ChessRating.gradeIndex(after.key) > window.ChessRating.gradeIndex(before.key) ? after : null };
+    const poolLabel = tc && window.ChessClock ? window.ChessClock.control(tc).label : null;
+    return { change: res.change, rating: res.rating, pool: res.pool, poolLabel, promoted: window.ChessRating.gradeIndex(after.key) > window.ChessRating.gradeIndex(before.key) ? after : null };
   };
 
   /* ---------------------------------------------------- fine partita */
@@ -1114,7 +1224,7 @@
     const reasonText = chessFinalStateLabel(result, reason);
     const rated = Boolean(currentGame.rated);
     let ratingLine = rated ? "" : "Partita di allenamento: il rating non cambia.";
-    if (rated && ratingInfo) ratingLine = `Rating partite ${ratingInfo.rating} (${ratingInfo.change >= 0 ? "+" : ""}${ratingInfo.change})`;
+    if (rated && ratingInfo) ratingLine = `Rating ${ratingInfo.poolLabel ? ratingInfo.poolLabel : "partite"} ${ratingInfo.rating} (${ratingInfo.change >= 0 ? "+" : ""}${ratingInfo.change})`;
     else if (rated && !ratingInfo) ratingLine = "Nessuna mossa giocata: non conta per il rating.";
     box.className = `game-result result-${result}`;
     box.innerHTML = `
@@ -1195,6 +1305,8 @@
     });
     document.querySelectorAll("[data-open-tab]").forEach((button) => button.addEventListener("click", () => setTab(button.dataset.openTab)));
     document.querySelectorAll("[data-play-mode]").forEach((button) => button.addEventListener("click", () => setPlayMode(button.dataset.playMode)));
+    document.querySelectorAll("[data-time-control]").forEach((button) => button.addEventListener("click", () => setTimeControl(button.dataset.timeControl)));
+    document.getElementById("premoveClearBtn").addEventListener("click", () => clearPremove(true));
     document.getElementById("botLadder").addEventListener("click", (event) => {
       const chip = event.target.closest("[data-bot-level]");
       if (chip) pickBot(Number(chip.dataset.botLevel));
@@ -1268,6 +1380,11 @@
     if (currentGame && typeof currentGame.rated !== "boolean") currentGame.rated = chessMode() === "rated";
     bind();
     renderPlayMode();
+    renderTimeControl();
+    if (window.ChessClock && !getSafeChessMoves().length && currentGame.tc !== timeControl()) {
+      currentGame.tc = timeControl();
+      currentGame.clock = ChessClock.create(currentGame.tc);
+    }
     renderBotPicker();
     renderMentor();
     renderGradeChip();

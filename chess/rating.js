@@ -8,6 +8,9 @@
  *  2. Rating tattico: Glicko-1 sugli esercizi (puzzle Lichess con rating
  *     noto). Conta solo il primo tentativo di ogni esercizio.
  *  3. Precisione: media delle ultime partite valutate e revisionate.
+ * Le partite a tempo (Lampo 1 minuto, Blitz 3 minuti) hanno un rating separato ciascuna, come sui
+ * siti di scacchi: sotto pressione di tempo si gioca diversamente. Il grado si misura sulle
+ * partite senza tempo.
  *
  * Il grado e' "certificato" solo quando tutti i requisiti del grado sono
  * soddisfatti: rating, numero di partite, esercizi, una vittoria contro un
@@ -92,9 +95,13 @@
     return { rating: Math.round(rating), rd: Math.round(nextRd), expected: e, change: Math.round(rating - r) };
   }
 
+  const TIMED = ["bullet", "blitz"];
+  function newPool() { return { rating: START_RATING, rd: START_RD, count: 0, history: [] }; }
+
   function createProfile() {
     return {
       game: { rating: START_RATING, rd: START_RD, count: 0, history: [] },
+      timed: { bullet: newPool(), blitz: newPool() },
       puzzle: { rating: START_RATING + PUZZLE_OFFSET, rd: START_RD, count: 0, solved: 0, history: [], seen: {} },
       ratedGames: [],
       lessons: {},
@@ -105,8 +112,14 @@
   function ensureProfile(profile) {
     const base = createProfile();
     const p = profile && typeof profile === "object" ? profile : {};
+    const timed = {};
+    TIMED.forEach((k) => {
+      const t = p.timed && p.timed[k] && typeof p.timed[k] === "object" ? p.timed[k] : {};
+      timed[k] = { ...newPool(), ...t, history: Array.isArray(t.history) ? t.history : [] };
+    });
     return {
       game: { ...base.game, ...(p.game || {}) },
+      timed,
       puzzle: { ...base.puzzle, ...(p.puzzle || {}), seen: { ...((p.puzzle && p.puzzle.seen) || {}) } },
       ratedGames: Array.isArray(p.ratedGames) ? p.ratedGames : [],
       lessons: p.lessons && typeof p.lessons === "object" ? p.lessons : {},
@@ -117,9 +130,19 @@
   }
 
   // Registra una partita valutata contro un bot. result: "win" | "loss" | "draw".
-  function recordGame(profile, { botElo, result, accuracy = null, date = new Date().toISOString(), gameId = null }) {
+  // tc: "bullet" | "blitz" per le partite a tempo (rating separato, non contano per il grado).
+  function recordGame(profile, { botElo, result, accuracy = null, date = new Date().toISOString(), gameId = null, tc = null }) {
     const p = ensureProfile(profile);
     const score = result === "win" ? 1 : result === "draw" ? 0.5 : 0;
+    if (TIMED.includes(tc)) {
+      const pool = p.timed[tc];
+      const up = glickoUpdate(pool, botElo, BOT_RD, score, MIN_RD_GAMES);
+      pool.rating = up.rating;
+      pool.rd = up.rd;
+      pool.count += 1;
+      pool.history = pool.history.concat([{ date, rating: up.rating, change: up.change, botElo, result, gameId, scale: "umano" }]).slice(-60);
+      return { profile: p, change: up.change, expected: up.expected, pool: tc, rating: up.rating };
+    }
     const update = glickoUpdate(p.game, botElo, BOT_RD, score, MIN_RD_GAMES);
     p.game.rating = update.rating;
     p.game.rd = update.rd;
@@ -127,7 +150,7 @@
     p.game.history = p.game.history.concat([{ date, rating: update.rating, change: update.change, botElo, result, scale: "umano" }]).slice(-60);
     p.ratedGames = p.ratedGames.concat([{ gameId, date, botElo, result, accuracy, scale: "umano" }]).slice(-40);
     if (result === "win") p.wins = p.wins.concat([{ date, botElo, scale: "umano" }]).slice(-60);
-    return { profile: p, change: update.change, expected: update.expected };
+    return { profile: p, change: update.change, expected: update.expected, pool: "game", rating: update.rating };
   }
 
   /*
@@ -336,6 +359,7 @@
 
   return {
     GRADES,
+    TIMED,
     START_RATING,
     START_RD,
     PUZZLE_OFFSET,

@@ -322,11 +322,14 @@
     return base + (rng() < value - base ? 1 : 0);
   }
 
-  function searchOptions(levelConfig, rng = Math.random) {
+  // maxTime: tempo massimo per la ricerca (partite a tempo): Stockfish si ferma alla profondita'
+  // del livello o allo scadere del tempo, quello che arriva prima.
+  function searchOptions(levelConfig, rng = Math.random, maxTime = null) {
+    const caps = [levelConfig.movetime, maxTime].filter((v) => typeof v === "number" && v > 0);
     return {
       depth: roundDepth(levelConfig.depth, rng),
       multipv: levelConfig.multipv,
-      movetime: levelConfig.movetime || null
+      movetime: caps.length ? Math.round(Math.min(...caps)) : null
     };
   }
 
@@ -364,11 +367,11 @@
    * level: numero del livello (1-19) oppure una configurazione (per la taratura).
    * Restituisce { ok, uci, reason, loss, lines, depth } oppure { ok:false, error }.
    */
-  async function chooseMove(engine, fen, level, { rng = Math.random, ply = 0, state = null } = {}) {
+  async function chooseMove(engine, fen, level, { rng = Math.random, ply = 0, state = null, maxTime = null } = {}) {
     const A = analysis();
     const config = getLevel(level);
     const randomRoll = config.random > 0 ? rng() : 1;
-    const result = await engine.analyse(fen, searchOptions(config, rng));
+    const result = await engine.analyse(fen, searchOptions(config, rng, maxTime));
     if (!result || !result.ok || !result.lines.length) {
       return { ok: false, error: (result && result.error) || "Stockfish non ha restituito mosse" };
     }
