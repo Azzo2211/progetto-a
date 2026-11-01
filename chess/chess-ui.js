@@ -130,23 +130,25 @@
   }
 
   // Case raggiungibili "a scacchiera vuota" (il bot deve ancora muovere: non si sa cosa sara'
-  // libero o catturabile), partendo dalla scacchiera con le premosse gia' fatte. Niente case
-  // occupate da pezzi tuoi. Alla fine conta solo se la mossa e' legale in quel momento.
+  // libero o catturabile), partendo dalla scacchiera con le premosse gia' fatte. Come su
+  // chess.com valgono anche le case con un pezzo tuo: e' la ripresa (il bot cattura li' e tu
+  // riprendi). Solo il pedone non puo' avanzare su un pezzo tuo, perche' non sarebbe mai legale.
+  // Alla fine conta solo se la mossa e' legale in quel momento.
   function premoveTargets(square, vb = virtualBoard()) {
     const { row, col } = squareToRC(square);
     const piece = vb[row][col];
     if (!piece || !isWhite(piece)) return [];
     const out = [];
-    const add = (r, c) => {
+    const add = (r, c, { ontoOwn = true } = {}) => {
       if (r < 0 || r > 7 || c < 0 || c > 7 || (r === row && c === col)) return;
       const there = vb[r][c];
-      if (there && isWhite(there)) return;
+      if (!ontoOwn && there && isWhite(there)) return;
       out.push(coord(r, c));
     };
     const kind = piece.toLowerCase();
     if (kind === "p") {
-      add(row - 1, col);
-      if (row === 6) add(row - 2, col);
+      add(row - 1, col, { ontoOwn: false });
+      if (row === 6) add(row - 2, col, { ontoOwn: false });
       add(row - 1, col - 1);
       add(row - 1, col + 1);
     } else if (kind === "n") {
@@ -198,7 +200,8 @@
 
   function premoveTap(square, { wasSelected } = {}) {
     const vb = virtualBoard();
-    if (preSel && preSel !== square && premoveTargets(preSel, vb).includes(square)) {
+    // un tocco su un pezzo tuo cambia la scelta; la ripresa su un pezzo tuo si fa trascinando
+    if (preSel && preSel !== square && !whiteAt(square, vb) && premoveTargets(preSel, vb).includes(square)) {
       setPremove(preSel, square);
       return;
     }
@@ -227,7 +230,9 @@
       // appena il bot ha mosso, la premossa resta disegnata finche' non viene giocata
       return pending ? { marks, selected: null, targets: [], active: false, pending: premoves.length, position } : null;
     }
-    const targets = preSel ? premoveTargets(preSel).map((sq) => ({ square: sq, capture: false })) : [];
+    // i puntini solo sulle case libere o avversarie: sui pezzi tuoi sarebbero troppi
+    const vb = virtualBoard();
+    const targets = preSel ? premoveTargets(preSel, vb).filter((sq) => !whiteAt(sq, vb)).map((sq) => ({ square: sq, capture: false })) : [];
     return { marks, selected: preSel, targets, active: true, pending: premoves.length, position };
   };
 
