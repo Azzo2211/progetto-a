@@ -5,13 +5,16 @@
  *    altezza della sedia si parte).
  *  - Controllo del ginocchio ogni giorno (gonfiore, dolore a riposo, rispetto a ieri, cedimenti):
  *    verde = sessione normale, giallo = versione leggera, rosso = niente gambe oggi.
- *  - Programma del giorno: controllo, routine di estensione (2 volte finche' manca estensione),
- *    una sessione (gambe o parte alta, mai gambe due giorni di fila) con il blocco di tecnica
- *    marziale della fase, test della settimana.
+ *  - Programma del giorno: controllo, routine di estensione (finche' manca estensione), una
+ *    sessione (gambe o parte alta, mai gambe due giorni di fila) con il blocco di tecnica marziale
+ *    della fase, la routine «Estensione e calci» (allungamenti a ginocchio dritto e slanci lenti:
+ *    estensione e flessibilita' per i calci insieme), test della settimana.
  *  - Livelli degli esercizi: due «facile» di fila = livello su; «dolore» = livello giu'.
  *  - Fase dai test (criteri MOON e Grindem) con date minime dall'intervento.
  *  - Profilo a esagono (Estensione, Forza gambe, Parte alta, Controllo, Costanza, Tecnica
- *    marziale). Il recupero non entra nel rango generale: qui non conviene mai forzare per i punti.
+ *    marziale) e profilo «Per le arti marziali» (calci alti, calci laterali, camera e frustata,
+ *    gamba d'appoggio, spinta, pugni e prese) dai test, con il peso degli stili che fai.
+ *    Il recupero non entra nel rango generale: qui non conviene mai forzare per i punti.
  */
 (function (root, factory) {
   const D = root.RecoveryData || (typeof require === "function" ? require("./data.js") : null);
@@ -57,7 +60,7 @@
         if (Array.isArray(v) && v.length === 2 && v.every((x) => num(x) && x >= 0)) out[def.id] = [Math.min(v[0], def.max), Math.min(v[1], def.max)];
       } else if (def.options) {
         if (Number.isInteger(v) && v >= 0 && v < def.options.length) out[def.id] = v;
-      } else if (num(v) && v >= 0) out[def.id] = Math.min(v, def.max);
+      } else if (num(v) && v >= (def.min < 0 ? def.min : 0)) out[def.id] = Math.min(v, def.max);
     });
     return out;
   }
@@ -74,6 +77,7 @@
     }
     if (!isObj(lab.prefs)) lab.prefs = {};
     lab.prefs.sound = lab.prefs.sound !== false;
+    lab.prefs.styles = Array.isArray(lab.prefs.styles) ? [...new Set(lab.prefs.styles.filter((id) => D.STYLE_NEEDS[id]))].slice(0, 9) : [];
     if (!isObj(lab.checks)) lab.checks = {};
     Object.keys(lab.checks).forEach((k) => {
       const c = lab.checks[k];
@@ -319,10 +323,12 @@
   /* ------------------------------------------------------------ sessioni */
   function sessionsOn(lab, key) { return lab.sessions.filter((s) => dayKey(s.t) === key); }
   function extToday(lab, now = Date.now()) { const k = dayKey(now); return lab.ext.filter((t) => dayKey(t) === k).length; }
+  // Routine di estensione al giorno: la classica finche' manca estensione, piu' «Estensione e calci» (sempre).
   function extNeed(lab) {
     const heel = latestValue(lab, "heel");
-    return heel === 0 ? 1 : 2;
+    return heel === 0 ? 0 : 1;
   }
+  const STRETCH = ["ext", "kick"];
   const TRAINING = ["legs", "upperA", "upperB"];
 
   // La sessione consigliata oggi: gambe se ieri non le hai fatte e il ginocchio lo permette, altrimenti parte alta (A e B alternate).
@@ -349,15 +355,17 @@
     const light = r && r.level === "giallo";
     let ids;
     if (kind === "ext") ids = D.SESSIONS.ext.slice();
+    else if (kind === "kick") ids = D.SESSIONS.kick[ph].slice();
     else if (kind === "legs") ids = D.SESSIONS.legs[ph].slice();
     else if (kind === "upperA" || kind === "upperB") ids = D.SESSIONS[kind].slice();
     else ids = [];
-    if (kind !== "ext") ids = ids.concat(D.SESSIONS.martial[ph]);
+    if (!STRETCH.includes(kind)) ids = ids.concat(D.SESSIONS.martial[ph]);
     if (kind === "martial") ids = D.SESSIONS.martial[ph].slice();
-    // ginocchio giallo o rosso: niente impatto; rosso: tecnica solo da fermo
+    // ginocchio giallo o rosso: niente impatto; rosso: tecnica solo da fermo e da seduto, niente slanci
     if (light || red) ids = ids.filter((id) => !EX.get(id).impact);
-    if (red) ids = ids.filter((id) => EX.get(id).area !== "martial" || D.SESSIONS.martial[1].includes(id));
-    if (red && kind === "martial") ids = D.SESSIONS.martial[1].slice();
+    if (red) ids = ids.filter((id) => EX.get(id).area !== "martial" || (D.SESSIONS.martial[1].includes(id) && !STANDING_KICKS.includes(id)));
+    if (red && kind === "martial") ids = D.SESSIONS.martial[1].filter((id) => !STANDING_KICKS.includes(id));
+    if (red && kind === "kick") ids = ids.filter((id) => !STANDING_KICKS.includes(id));
     if (red && kind === "legs") ids = [];
     const items = ids.map((id) => {
       const e = EX.get(id);
@@ -367,6 +375,9 @@
     });
     return { kind, phase: ph, light: !!light, red: !!red, items };
   }
+
+  // esercizi in piedi su una gamba che il giorno «rosso» si saltano
+  const STANDING_KICKS = ["calci-rallentatore", "slancio-frontale", "slancio-laterale", "flessori-anca"];
 
   function startSession(lab, kind, now = Date.now()) {
     const s = buildSession(lab, kind, now);
@@ -411,7 +422,7 @@
     const entry = { t: now, kind: c.kind, phase: c.phase, results: { ...c.results }, knee, light: !!c.light, minutes: clamp(Math.round((now - c.startedAt) / 60000), 1, 180), done, total: c.items.length };
     lab.sessions.push(entry);
     if (lab.sessions.length > MAX_SESSIONS) lab.sessions.splice(0, lab.sessions.length - MAX_SESSIONS);
-    if (c.kind === "ext" && done > 0) { lab.ext.push(now); if (lab.ext.length > MAX_EXT) lab.ext.splice(0, lab.ext.length - MAX_EXT); }
+    if (STRETCH.includes(c.kind) && done > 0) { lab.ext.push(now); if (lab.ext.length > MAX_EXT) lab.ext.splice(0, lab.ext.length - MAX_EXT); }
     lab.current = null;
     return { entry, ups, downs };
   }
@@ -423,12 +434,13 @@
     steps.push({ id: "check", title: "Controllo del ginocchio", minutes: 1, done: !!todayCheck(lab, now) });
     // il primo test viene subito: decide la fase e quindi gli esercizi
     if (!lab.tests.length) steps.push({ id: "test", title: "Primo test: decide la tua fase", minutes: 12, done: false });
-    const need = extNeed(lab);
-    const ext = extToday(lab, now);
-    for (let i = 0; i < need; i += 1) steps.push({ id: `ext${i + 1}`, title: need > 1 ? `Routine di estensione (${i + 1} di ${need})` : "Routine di estensione", minutes: 12, done: ext > i, kind: "ext" });
+    const today = sessionsOn(lab, dayKey(now));
+    const heel = latestValue(lab, "heel");
+    if (extNeed(lab)) steps.push({ id: "ext1", title: "Routine di estensione", minutes: D.SESSION_INFO.ext.minutes, done: today.some((x) => x.kind === "ext"), kind: "ext" });
     const s = suggest(lab, now);
     if (s.kind === "rest") steps.push({ id: "session", title: "Riposo attivo: camminata di 20–30 minuti", minutes: 25, done: true, kind: "rest" });
     else steps.push({ id: "session", title: s.done ? `${D.SESSION_INFO[s.kind].label}: fatta` : D.SESSION_INFO[s.kind].label, minutes: D.SESSION_INFO[s.kind].minutes, done: s.done, kind: s.kind });
+    steps.push({ id: "kick", title: heel === 0 ? "Flessibilità per i calci (a muscoli caldi)" : "Estensione e calci (a muscoli caldi)", minutes: D.SESSION_INFO.kick.minutes, done: today.some((x) => x.kind === "kick"), kind: "kick" });
     if (lab.tests.length && testDue(lab, now)) steps.push({ id: "test", title: "Test della settimana", minutes: 12, done: false });
     return steps;
   }
@@ -456,7 +468,7 @@
     if (last && last.heel > 0) {
       const old = [...heels].reverse().find((t) => last.t - t.t >= 21 * DAY);
       if (old && last.heel >= old.heel) out.push({ level: "giallo", id: "ext", text: `L'estensione non migliora da almeno 3 settimane (${old.heel} cm allora, ${last.heel} cm ora). Con il lavoro di ogni giorno dovrebbe calare: fai controllare il ginocchio al chirurgo. A volte un piccolo nodulo di cicatrice davanti all'innesto (lesione «a ciclope») blocca gli ultimi gradi e lo stretching non basta.` });
-      else if (monthsSince(lab, now) >= 3) out.push({ level: "info", id: "ext-info", text: `Manca ancora estensione (${last.heel} cm). Routine due volte al giorno: se fra 3–4 settimane la differenza non cala, fai controllare il ginocchio.` });
+      else if (monthsSince(lab, now) >= 3) out.push({ level: "info", id: "ext-info", text: `Manca ancora estensione (${last.heel} cm). Ogni giorno la routine di estensione e quella «Estensione e calci»: se fra 3–4 settimane la differenza non cala, fai controllare il ginocchio.` });
     }
     return out;
   }
@@ -512,6 +524,70 @@
     return rows.map((r) => ({ ...r, measured: r.value != null, value: r.value == null ? 10 : Math.round(clamp(r.value, 10, 99)) }));
   }
 
+  /* ------------------------------------------------------------ arti marziali */
+  // Peso di ogni qualità per gli stili scelti (media dei bisogni, 0..3). Nessuno stile: tutto 1.
+  function styleFocus(styles) {
+    const list = (Array.isArray(styles) ? styles : []).filter((id) => D.STYLE_NEEDS[id]);
+    const out = {};
+    D.MA_GOALS.forEach((g) => {
+      out[g.id] = list.length ? list.reduce((a, id) => a + (D.STYLE_NEEDS[id].needs[g.id] || 0), 0) / list.length : 1;
+    });
+    return out;
+  }
+  // Le qualità che contano di più per gli stili (in ordine), al massimo n.
+  function topGoals(styles, n = 3) {
+    const f = styleFocus(styles);
+    return D.MA_GOALS.filter((g) => f[g.id] >= 2).sort((a, b) => f[b.id] - f[a.id]).slice(0, n);
+  }
+  // Quanto una sessione allena ogni qualità: somma di builds × serie, 0..3 rispetto alla qualità più allenata.
+  function sessionGoals(items) {
+    const sum = {};
+    D.MA_GOALS.forEach((g) => { sum[g.id] = 0; });
+    (items || []).forEach((x) => {
+      const e = EX.get(x.id);
+      if (!e) return;
+      const sets = (x.dose && x.dose.sets) || 1;
+      Object.entries(e.builds || {}).forEach(([k, w]) => { if (k in sum) sum[k] += w * sets; });
+    });
+    const max = Math.max(...Object.values(sum));
+    return D.MA_GOALS.map((g) => ({ ...g, raw: sum[g.id], dots: max > 0 ? Math.round((sum[g.id] / max) * 3) : 0 })).filter((g) => g.dots > 0).sort((a, b) => b.raw - a.raw);
+  }
+  // Un esercizio serve alle qualità più importanti degli stili scelti?
+  function forStyles(id, styles) {
+    const e = EX.get(id);
+    if (!e) return [];
+    const top = topGoals(styles, 3).map((g) => g.id);
+    return D.MA_GOALS.filter((g) => top.includes(g.id) && (e.builds[g.id] || 0) >= 2);
+  }
+
+  // Profilo «Per le arti marziali» dai test della settimana (null = da misurare).
+  function maProfile(lab, now = Date.now()) {
+    const L = (id) => latestLsi(lab, id);
+    const V = (id) => latestValue(lab, id);
+    const lsiScore = (id) => (L(id) == null ? null : lerp(L(id), LSI_MAP));
+    const reach = V("reach");
+    const kick = V("kickH");
+    const kickAbs = kick ? lerp(kick[0], [[50, 15], [70, 30], [90, 45], [110, 60], [130, 74], [150, 86], [175, 96]]) : null;
+    const straddle = V("straddle");
+    const heel = V("heel");
+    const slr = V("slr");
+    const step = V("stepdown");
+    const push = V("push");
+    const upProg = avg([levelProgress(lab, "upper", now), levelProgress(lab, "core", now)]);
+    const rows = [
+      { key: "alti", value: avg([reach == null ? null : lerp(reach, [[-25, 15], [-15, 30], [-5, 48], [0, 58], [8, 72], [15, 84], [25, 95]]), kickAbs]) },
+      { key: "aperti", value: straddle == null ? null : lerp(straddle, [[60, 15], [80, 28], [100, 42], [120, 56], [140, 70], [160, 82], [180, 92], [200, 98]]) },
+      { key: "frusta", value: avg([heel == null ? null : lerp(heel, [[0, 92], [0.5, 84], [1, 76], [2, 60], [3, 48], [5, 30], [8, 18]]), slr == null ? null : lerp(slr, [[0, 20], [10, 50], [20, 75], [30, 90]]), lsiScore("kickH")]) },
+      { key: "appoggio", value: avg([lsiScore("balance"), step == null ? null : [35, 62, 88][step], lsiScore("calf")]) },
+      { key: "potenza", value: avg([lsiScore("sit"), lsiScore("bridge"), lsiScore("hop")]) },
+      { key: "guardia", value: push == null ? null : lerp(push, [[0, 20], [5, 35], [10, 45], [20, 60], [30, 72], [40, 82], [55, 92]]) * 0.7 + (28 + (upProg || 0) * 62) * 0.3 }
+    ];
+    return rows.map((r) => {
+      const g = D.MA_GOALS.find((x) => x.id === r.key);
+      return { key: r.key, label: g.label, text: g.text, measured: r.value != null, value: r.value == null ? 10 : Math.round(clamp(r.value, 10, 99)) };
+    });
+  }
+
   function trend(lab, now = Date.now()) {
     if (!configured(lab)) return "Da impostare · 2 minuti";
     const p = phaseInfo(lab, now);
@@ -525,7 +601,7 @@
   const RISKS = [
     { id: "contact", re: /sparring|\blotta|proiez|takedown|atterram|single.?leg|double.?leg|spazzat|sgambett|sprawl|ashi.?barai|o.?soto/i, label: "contatto e lotta", until: 4, alt: "Al posto di questo: plank e dead bug per lo stesso tempo, o lo shadow della tua fase. Lotta, sprawl e proiezioni tornano in fase 4, dopo il nono mese e con l'ok del chirurgo." },
     { id: "spin", re: /girat[oa]|spinning|volant|saltat[oa]|in salto|\b360|\b540|giravolt|armada|meia.?lua de compasso|queixada|tornado|twimyo/i, label: "calci girati o saltati", until: 4, alt: "I calci girati e saltati tornano solo in fase 4. Fai la stessa combinazione con i pugni, o il calcio base lento se sei almeno in fase 3." },
-    { id: "kick", re: /\bcalci|kick|\bteep|(mae|mawashi|yoko|ushiro|hiza|fumikomi|kakato|ura)[- ]?geri|chagi|benção|martelo|ponteira|\bchapa/i, label: "calci", until: 4, soft: 3, alt: "Per ora niente calci: fai lo stesso round con pugni, parate e schivate a piedi fermi. I calci lenti e bassi tornano in fase 3 (Recupero, Calci tecnici lenti).", softAlt: "In fase 3 i calci si fanno lenti, bassi e al 50%, ruotando sull'avampiede della gamba d'appoggio. Velocità e altezza piene in fase 4." },
+    { id: "kick", re: /\bcalci|kick|\bteep|(mae|mawashi|yoko|ushiro|hiza|fumikomi|kakato|ura)[- ]?geri|chagi|benção|martelo|ponteira|\bchapa/i, label: "calci", until: 4, soft: 3, alt: "Per ora niente calci veri: fai lo stesso round con pugni, parate e schivate a piedi fermi, poi i Calci al rallentatore del Recupero (con la gamba operata, in appoggio sulla sana e la mano al muro). I calci lenti in movimento tornano in fase 3.", softAlt: "In fase 3 i calci si fanno lenti, bassi e al 50%, ruotando sull'avampiede della gamba d'appoggio. Velocità e altezza piene in fase 4." },
     { id: "jump", re: /\bsalt|\bbalz|pliometr|burpee|\bcorda|\bskip|jumping/i, label: "salti", until: 3, alt: "Al posto dei salti: camminata veloce sul posto o shadow da fermo per lo stesso tempo. I saltelli tornano in fase 3." },
     { id: "deep", re: /squat|accosciat|affond|lunge|\bginga|cavalier|\bkiba|horse|posizione bassa|ma bu|pistol|cosacco/i, label: "piegamenti profondi delle gambe", until: 3, alt: "Fai la versione del Recupero adatta alla tua fase (seduto-in piedi dalla sedia o affondo statico breve), senza scendere oltre dove non hai dolore." },
     { id: "pivot", re: /pivot|\bperno|cambi di direzione|cambio di direzione|zig.?zag/i, label: "pivot e cambi di direzione", until: 4, soft: 3, alt: "Per ora niente pivot: fai le combinazioni a piedi fermi, con il tallone che si alza e gira sull'avampiede, o la versione da seduto. I pivot lenti tornano in fase 3.", softAlt: "In fase 3 i pivot si fanno solo sull'avampiede, al 50–75% della velocità. Cambi di direzione veloci in fase 4." },
@@ -561,6 +637,7 @@
     lsi, latest, latestValue, latestLsi, recordTest, testDue, lastTestTime, criteriaFor, phaseInfo, phase,
     maxLevel, levelOf, setLevel, doseOf, doseText,
     suggest, buildSession, startSession, rate, cancelSession, finishSession, extToday, extNeed,
-    plan, streak, alerts, profile, trend, kneeRisk, dayKey
+    plan, streak, alerts, profile, trend, kneeRisk, dayKey,
+    styleFocus, topGoals, sessionGoals, forStyles, maProfile
   };
 });

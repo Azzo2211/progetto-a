@@ -3,7 +3,7 @@
  * ambulatorio al posto dell'ambra per tutto quello che riguarda il ginocchio. Il semaforo del
  * controllo del mattino (verde, giallo, rosso) e' l'unico punto in cui il colore alza la voce.
  */
-#defPanel-recovery { --r-c: #7fd18b; --r-soft: rgba(127, 209, 139, 0.12); --r-warn: #f0c35a; --r-warn-soft: rgba(240, 195, 90, 0.12); }
+#defPanel-recovery { --r-ma: #ff9a80; --r-ma-soft: rgba(255, 122, 89, 0.1); --r-c: #7fd18b; --r-soft: rgba(127, 209, 139, 0.12); --r-warn: #f0c35a; --r-warn-soft: rgba(240, 195, 90, 0.12); }
 #defense .rc-band { border-left-color: var(--r-c); }
 #defPanel-recovery .ma-nav button[aria-pressed="true"] { color: #0c2210; background: var(--r-c); border-color: var(--r-c); }
 #defPanel-recovery .def-primary { background: var(--r-c); color: #0c2210; }
@@ -31,6 +31,7 @@
 
 /* tipi di esercizio */
 .ma-kind.k-r-ext { background: var(--r-soft); color: var(--r-c); }
+.ma-kind.k-r-kick { background: rgba(214, 160, 255, 0.13); color: #d9b0ff; }
 .ma-kind.k-r-legs { background: rgba(60, 207, 126, 0.12); color: #6fe3a4; }
 .ma-kind.k-r-upper { background: rgba(124, 196, 255, 0.13); color: var(--d-rest); }
 .ma-kind.k-r-core { background: rgba(240, 195, 90, 0.12); color: var(--r-warn); }
@@ -84,7 +85,7 @@
 .rc-small-btn { padding: 6px 10px; font-size: 0.84rem; }
 
 /* scelta dell'allenamento */
-.rc-pick { grid-template-columns: repeat(5, minmax(0, 1fr)); max-width: none; }
+.rc-pick { grid-template-columns: repeat(6, minmax(0, 1fr)); max-width: none; }
 .rc-pick button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* programma, criteri, date */
@@ -179,8 +180,32 @@ li.no > .rc-mark { background: rgba(255, 91, 95, 0.22); color: #ff9a9c; }
 .rc-table th:first-child { text-align: left; }
 .rc-table thead th { border-top: 0; color: var(--d-faint); font-weight: 650; font-size: 0.8rem; }
 
+/* per le arti marziali: cosa allena ogni esercizio */
+.rc-ma { margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; background: var(--r-ma-soft); border: 1px solid rgba(255, 122, 89, 0.22); }
+.rc-ma-title { display: block; margin-bottom: 6px; color: var(--r-ma); font-size: 0.82rem; font-weight: 700; }
+.rc-goals { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.rc-goals li { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 999px; border: 1px solid var(--d-line); background: rgba(255, 255, 255, 0.03); font-size: 0.82rem; color: var(--d-muted); }
+.rc-goals li.mine { border-color: rgba(255, 154, 128, 0.6); color: var(--d-ink); background: rgba(255, 122, 89, 0.12); }
+.rc-dots { letter-spacing: 1px; font-size: 0.62rem; color: var(--r-ma); }
+.rc-goals li:not(.mine) .rc-dots { color: var(--d-faint); }
+.rc-ma-mine { margin: 8px 0 0; font-size: 0.86rem; color: var(--d-muted); line-height: 1.45; }
+.rc-ma-today { margin-top: 12px; }
+.rc-goalfilter { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; }
+.rc-goalfilter span { color: var(--d-faint); font-size: 0.82rem; margin-right: 2px; }
+.rc-goalfilter button, .rc-styles button { padding: 6px 11px; border-radius: 999px; border: 1px solid var(--d-line); background: transparent; color: var(--d-muted); font: inherit; font-size: 0.82rem; cursor: pointer; }
+.rc-goalfilter button.mine { border-color: rgba(255, 154, 128, 0.45); }
+.rc-goalfilter button[aria-pressed="true"], .rc-styles button[aria-pressed="true"] { border-color: var(--r-ma); background: rgba(255, 122, 89, 0.14); color: var(--d-ink); font-weight: 650; }
+.rc-goalfilter button:hover, .rc-styles button:hover { color: var(--d-ink); border-color: rgba(255, 154, 128, 0.6); }
+.rc-styles { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+#defPanel-recovery .rc-ma-card .def-radar .radar-shape { fill: rgba(255, 122, 89, 0.18); stroke: var(--r-ma); }
+#defPanel-recovery .rc-ma-card .def-radar .radar-dot { fill: var(--r-ma); }
+.rc-ma-card .rc-hex-total strong { color: var(--r-ma); }
+.rc-ma-card .rc-metrics li i { background: linear-gradient(90deg, var(--r-ma) var(--w), rgba(255, 255, 255, 0.07) var(--w)); }
+.rc-ma-card .rc-metrics li.mine span { color: var(--d-ink); font-weight: 650; }
+.rc-ma-card .rc-metrics li.mine span::after { content: " · conta per te"; color: var(--r-ma); font-weight: 600; font-size: 0.78rem; }
+
 /* esercizi */
-.rc-filter { margin: 4px 0 10px; }
+.rc-filter { margin: 4px 0 8px; }
 .rc-lib li { grid-template-columns: 118px minmax(0, 1fr) auto; }
 .rc-lib li.now { box-shadow: inset 3px 0 0 var(--r-c); }
 .rc-lib-btn { padding: 0; border: 0; background: none; color: var(--d-ink); font: inherit; font-weight: 650; text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255, 255, 255, 0.2); text-underline-offset: 3px; }

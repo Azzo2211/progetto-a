@@ -395,5 +395,180 @@
     mv("rec.legJab", "Colpi dritti lenti senza perdere l'equilibrio", [K(legG(), 300, 150), K(legG().twist(-15).straight("l", "head").act("arml"), 400, 200), K(legG(), 400, 100), K(legG().twist(25).straight("r", "head").act("armr"), 420, 200), K(legG(), 400, 300)], { props: WALL_SIDE });
     const kneeUp = standAt(0).guard("box").fists().footAt("l", [0.28, 0.6, -0.1], 0, 60).knee("l", [1, 1.2, 0]).heel("r", 15);
     mv("rec.legKnee", "Ginocchiata lenta con l'altra gamba, poi torna in guardia", [K(legG(false), 300, 150), K(kneeUp.act("legl"), 700, 500), K(legG(), 600, 300)], { props: WALL_SIDE });
+
+    /* ---------------- FLESSIBILITÀ PER I CALCI (gamba operata = destra, dritta) */
+    const WALL_FRONT = [box(0.58, 0.64, 0, 1.9, -0.6, 0.6)];
+    const WALL_NEAR = [box(0.5, 0.56, 0, 1.9, -0.6, 0.6)];
+    const WALL_LEFT = [box(-0.45, 0.6, 0, 1.9, -0.62, -0.56)];
+    const WALL_LEGS = [box(0.17, 0.23, 0, 1.25, -0.9, 0.9, { glass: true })];
+    const STOOL = [box(0.52, 0.84, 0, 0.3, -0.06, 0.3)];
+    const DEG = Math.PI / 180;
+    // polpaccio al muro: operata dietro e tesa, tallone giu'; lean = bacino verso il muro
+    const calfWall = (lean) => {
+      const b = st();
+      const px = lean ? 0.05 : -0.08;
+      const py = lean ? 0.85 : 0.89;
+      b.set("pel", [px, py, 0]).set("chest", [px + 0.22, py + 0.45, 0]).set("head", [px + 0.31, py + 0.63, 0]);
+      b.foot("l", 0.24, -0.12, 4, 0).knee("l", [1, 0.2, 0]);
+      b.foot("r", -0.39, 0.12, -4, 0).knee("r", [1, 0, 0]);
+      b.handW("l", 0.55, 1.3, -0.22, "open").handW("r", 0.55, 1.3, 0.22, "open").elbow("l", [0, -1, -0.5]).elbow("r", [0, -1, 0.5]);
+      return b;
+    };
+    mv("rec.calfWallSet", "Mani al muro, operata dietro e tesa, tallone a terra", [K(calfWall(0), 400, 1200)], { props: WALL_FRONT });
+    mv("rec.calfWallQuad", "Tallone dietro giù, coscia contratta, ginocchio dritto", [K(calfWall(0), 300, 300), K(calfWall(0).act("legr"), 400, 1400)], { props: WALL_FRONT });
+    mv("rec.calfWall", "Bacino verso il muro: il polpaccio dietro tira", [K(calfWall(0), 300, 200), K(calfWall(1).act("legr"), 1300, 1900)], { props: WALL_FRONT });
+    mv("rec.calfWallSwitch", "Resta respirando, poi cambia gamba", [K(calfWall(1).act("legr"), 300, 1400), K(calfWall(0), 900, 300), K(calfWall(1).mirror().act("legl"), 1200, 1200)], { props: WALL_FRONT });
+
+    // femorali: tallone destro sullo sgabello; hinge 0..1
+    const ham = (hinge) => {
+      const b = st();
+      const ang = hinge * 46 * DEG;
+      const px = -0.02 - 0.05 * hinge;
+      const py = 0.93 - 0.03 * hinge;
+      b.set("pel", [px, py, -0.01]).set("chest", [px + 0.5 * Math.sin(ang), py + 0.5 * Math.cos(ang), 0]).set("head", [px + 0.7 * Math.sin(ang) + 0.02 * hinge, py + 0.7 * Math.cos(ang), 0]);
+      b.foot("l", 0, -0.11, 4, 0).knee("l", [1, 0, 0]);
+      b.footAt("r", [0.66, 0.395, 0.12], 0, -84).knee("r", [0, 1, 0]);
+      if (hinge) b.handW("l", 0.27, 0.73, 0.03, "open").handW("r", 0.31, 0.71, 0.19, "open").elbow("l", [0.2, 0, -1]).elbow("r", [0.2, 0, 1]);
+      else b.handPel("l", 0.02, 0.04, -0.18, "open").handPel("r", 0.02, 0.04, 0.18, "open");
+      return b;
+    };
+    mv("rec.hamSet", "Tallone dell'operata sul rialzo, gamba tesa", [K(ham(0), 400, 1200)], { props: STOOL });
+    mv("rec.hamQuad", "Coscia contratta: ginocchio dritto, punta in alto", [K(ham(0), 300, 300), K(ham(0).act("legr"), 400, 1400)], { props: STOOL });
+    mv("rec.hamHinge", "Piega dalle anche con la schiena dritta", [K(ham(0), 300, 200), K(ham(1).act("legr", "torso"), 1500, 1700)], { props: STOOL });
+    mv("rec.hamHold", "Resta respirando: tira a metà coscia", [K(ham(1).act("legr"), 400, 2600)], { props: STOOL });
+
+    // gambe al muro: spread = gradi di apertura di ogni gamba
+    const legsUp = (spread, hands) => {
+      const b = lieBack();
+      const a = spread * DEG;
+      const y = 0.12 + 0.86 * Math.cos(a);
+      const z = 0.095 + 0.86 * Math.sin(a);
+      b.footAt("l", [0.1, y, -z], 180, 0).footAt("r", [0.1, y, z], 180, 0).knee("l", [-1, 0, 0]).knee("r", [-1, 0, 0]);
+      if (hands) b.handW("l", -0.1, 0.36, -0.16, "open").handW("r", -0.1, 0.36, 0.16, "open").elbow("l", [0, 0, -1]).elbow("r", [0, 0, 1]);
+      return b;
+    };
+    mv("rec.legsWall", "Sedere vicino al muro, gambe dritte appoggiate in alto", [K(legsUp(0), 400, 1200)], { props: WALL_LEGS });
+    mv("rec.legsWallQuad", "Ginocchia dritte, punte verso di te", [K(legsUp(0), 300, 300), K(legsUp(0).act("legl", "legr"), 400, 1400)], { props: WALL_LEGS });
+    mv("rec.legsWallV", "Lascia scivolare le gambe in una V, piano", [K(legsUp(0), 300, 200), K(legsUp(30).act("legl", "legr"), 2600, 2000)], { props: WALL_LEGS });
+    mv("rec.legsWallClose", "Per uscire riavvicina le gambe con le mani", [K(legsUp(30), 300, 600), K(legsUp(12, true).act("arml", "armr"), 1200, 300), K(legsUp(0, true), 900, 600)], { props: WALL_LEGS });
+
+    // estensione attiva: coscia destra in verticale, ext 0 (90 gradi) .. 1 (gamba tesa)
+    const ake = (ext, noHands) => {
+      const b = lieBack();
+      const knee = [0.0, 0.12 + 0.44, 0.1];
+      const th = (90 - ext * 78) * DEG; // angolo dello stinco dalla verticale
+      b.footAt("r", [knee[0] + 0.44 * Math.sin(th), knee[1] + 0.44 * Math.cos(th), 0.11], 0, ext > 0.5 ? -10 : -60).knee("r", [-1, 0.3, 0]);
+      if (!noHands) b.handW("l", -0.1, 0.42, 0.03, "open").handW("r", -0.1, 0.42, 0.17, "open").elbow("l", [0, 0, -1]).elbow("r", [0, 0, 1]);
+      return b;
+    };
+    mv("rec.akeSet", "Coscia dell'operata in verticale, mani dietro il ginocchio", [K(lieBack(), 300, 200), K(ake(0), 800, 1000)]);
+    mv("rec.akeHold90", "Ginocchio a 90 gradi, la coscia non si muove", [K(ake(0).act("legr"), 400, 1400)]);
+    mv("rec.akeExt", "Stendi verso il soffitto più che puoi", [K(ake(0), 300, 200), K(ake(1).act("legr"), 1300, 900), K(ake(0), 1600, 300)]);
+    mv("rec.akeHold", "Tieni 5 secondi, poi giù in 3", [K(ake(0), 300, 200), K(ake(1).act("legr"), 900, 2600), K(ake(0), 2200, 300)]);
+
+    // flessori dell'anca: passo lungo, operata dietro e tesa; push = bacino avanti
+    const hipFlex = (push, arm) => {
+      const b = st();
+      const px = push ? 0.03 : -0.06;
+      const py = push ? 0.85 : 0.88;
+      b.set("pel", [px, py, 0]).set("chest", [px - 0.04, py + 0.5, 0]).set("head", [px - 0.03, py + 0.7, 0]);
+      b.foot("l", 0.36, -0.12, 4, 0).knee("l", [1, 0.1, 0]);
+      b.foot("r", -0.5, 0.12, -4, 30).knee("r", [1, 0, 0]);
+      b.handPel("l", 0.02, 0.04, -0.18, "open").handPel("r", 0.02, 0.04, 0.18, "open");
+      if (arm) { b.lean(0, -0.08, 0); b.handW("r", px - 0.08, 1.86, 0.06, "open").elbow("r", [0, 0.2, 1]); }
+      return b;
+    };
+    mv("rec.hfSet", "Passo lungo: operata dietro e tesa, punta in avanti", [K(st(), 300, 200), K(hipFlex(0).act("legl", "legr"), 800, 1000)]);
+    mv("rec.hfQuad", "Ginocchio dietro dritto, quello davanti poco piegato", [K(hipFlex(0).act("legr"), 400, 1400)]);
+    mv("rec.hfPush", "Gluteo stretto, bacino avanti: tira davanti all'anca", [K(hipFlex(0), 300, 200), K(hipFlex(1).act("legr", "torso"), 1400, 1700)]);
+    mv("rec.hfArm", "Resta respirando; dal livello 3 anche il braccio in alto", [K(hipFlex(1).act("legr"), 400, 1200), K(hipFlex(1, true).act("legr", "armr"), 900, 1400), K(hipFlex(1), 800, 300)]);
+
+    // slancio frontale lento: mano sinistra al muro, gamba destra tesa su di "deg" gradi
+    const olf = (deg) => {
+      const b = standAt(0).foot("l", 0, -0.11, 4, 0);
+      const a = deg * DEG;
+      const hip = [-0.03, 0.95, 0.095];
+      b.set("pel", [-0.03 - 0.03 * (deg / 80), 0.95, 0]).set("chest", [-0.04 - 0.04 * (deg / 80), 1.45, -0.01]).set("head", [-0.03 - 0.05 * (deg / 80), 1.65, -0.01]);
+      b.footAt("r", [hip[0] + 0.86 * Math.sin(a), hip[1] - 0.86 * Math.cos(a), 0.12], 0, -deg * 0.85).knee("r", [Math.cos(a), Math.sin(a), 0]);
+      b.handW("l", 0.05, 1.22, -0.52, "open").elbow("l", [0, -1, -0.3]).handPel("r", 0.02, 0.04, 0.18, "open");
+      return b;
+    };
+    mv("rec.olfSet", "Di fianco al muro, mano sul muro, busto dritto", [K(olf(0), 400, 1200)], { props: WALL_LEFT });
+    mv("rec.olfQuad", "Coscia contratta, ginocchio dritto, punta tirata", [K(olf(0), 300, 200), K(olf(12).act("legr"), 500, 1200), K(olf(0), 500, 300)], { props: WALL_LEFT });
+    mv("rec.olf", "Su in 2 secondi a ginocchio dritto, tieni 1", [K(olf(0), 300, 200), K(olf(78).act("legr"), 1900, 1000), K(olf(0), 2700, 300)], { props: WALL_LEFT });
+    mv("rec.olfDown", "Giù in 3 secondi, poi l'altra gamba", [K(olf(78).act("legr"), 300, 400), K(olf(0).act("legr"), 2800, 500)], { props: WALL_LEFT });
+
+    // slancio laterale lento: di fronte al muro, gamba destra tesa di lato di "deg" gradi
+    const ols = (deg) => {
+      const b = standAt(0).foot("l", 0, -0.11, 4, 0);
+      const a = deg * DEG;
+      const hip = [-0.01, 0.95, 0.095];
+      const k = deg / 45;
+      b.set("pel", [-0.01, 0.95, -0.02 * k]).set("chest", [0.02, 1.45, -0.06 * k]).set("head", [0.03, 1.65, -0.08 * k]);
+      b.footAt("r", [hip[0] + 0.02, hip[1] - 0.86 * Math.cos(a), hip[2] + 0.86 * Math.sin(a)], 0, 0, -deg * 0.9).knee("r", [1, 0, 0]);
+      b.handW("l", 0.47, 1.3, -0.2, "open").handW("r", 0.47, 1.3, 0.2, "open").elbow("l", [0, -1, -0.5]).elbow("r", [0, -1, 0.5]);
+      return b;
+    };
+    mv("rec.olsSet", "Di fronte al muro, mani appoggiate all'altezza del petto", [K(ols(0), 400, 1200)], { props: WALL_NEAR });
+    mv("rec.olsQuad", "Ginocchio dritto, punta del piede in avanti", [K(ols(0), 300, 200), K(ols(8).act("legr"), 500, 1200), K(ols(0), 500, 300)], { props: WALL_NEAR });
+    mv("rec.ols", "Di lato in 2 secondi, tieni 1, busto dritto", [K(ols(0), 300, 200), K(ols(44).act("legr"), 1900, 1000), K(ols(0), 2700, 300)], { props: WALL_NEAR });
+    mv("rec.olsDown", "Giù in 3 secondi, poi l'altra gamba", [K(ols(44).act("legr"), 300, 400), K(ols(0).act("legr"), 2800, 500)], { props: WALL_NEAR });
+
+    // divaricata da seduto: lean 0 (busto dritto), 1 (avanti al centro), "l"/"r" (verso una gamba)
+    const strad = (lean) => {
+      const b = sitLong();
+      const a = 38 * DEG;
+      const fx = 0.86 * Math.cos(a);
+      const fz = 0.095 + 0.86 * Math.sin(a);
+      b.footAt("l", [fx, 0.075, -fz], 38, -80).footAt("r", [fx, 0.075, fz], -38, -80).knee("l", [0, 1, 0]).knee("r", [0, 1, 0]);
+      if (!lean) { b.handW("l", 0.02, 0.06, -0.3, "open").handW("r", 0.02, 0.06, 0.3, "open"); return b; }
+      const side = lean === "l" ? -1 : lean === "r" ? 1 : 0;
+      const cx = side ? 0.26 : 0.32;
+      b.set("chest", [cx, 0.53, side * 0.2]).set("head", [cx + 0.12, 0.65, side * 0.3]);
+      b.handW("l", side ? 0.5 : 0.6, side ? 0.1 : 0.06, side * 0.36 - (side ? 0.1 : 0.14), "open").handW("r", side ? 0.5 : 0.6, side ? 0.1 : 0.06, side * 0.36 + (side ? 0.1 : 0.14), "open").elbow("l", [0, 1, -0.5]).elbow("r", [0, 1, 0.5]);
+      return b;
+    };
+    mv("rec.strSit", "Seduto a gambe aperte e dritte, punte in alto", [K(strad(0), 400, 1200)]);
+    mv("rec.strQuad", "Ginocchia premute a terra: 5 secondi, rilassa", [K(strad(0), 300, 300), K(strad(0).act("legl", "legr"), 500, 1500), K(strad(0), 500, 400)]);
+    mv("rec.strFwd", "Piega in avanti dalle anche, schiena dritta", [K(strad(0), 300, 200), K(strad(1).act("torso"), 1500, 1700)]);
+    mv("rec.strSide", "Verso una gamba, poi verso l'altra", [K(strad(1), 300, 200), K(strad("r").act("torso"), 1200, 1300), K(strad(1), 900, 200), K(strad("l").act("torso"), 1200, 1300)]);
+
+    /* ---------------- CALCI AL RALLENTATORE (mano sinistra al muro, calcia la destra) */
+    const kickWall = (b) => b.handW("l", 0.0, 1.2, -0.52, "open").elbow("l", [0, -1, -0.3]).handPel("r", 0.04, 0.06, 0.2, "fist");
+    const skStand = () => kickWall(standAt(0).foot("l", 0, -0.11, 4, 0));
+    // frontale: 0 = in piedi, 1 = camera, 2 = gamba stesa
+    const skFront = (ph) => {
+      const b = skStand();
+      if (!ph) return b;
+      const hip = [-0.04, 0.94, 0.095];
+      b.set("pel", [-0.04, 0.94, 0]).set("chest", [-0.08, 1.44, -0.01]).set("head", [-0.07, 1.64, -0.01]);
+      const a = 70 * DEG;
+      if (ph === 1) {
+        const knee = [hip[0] + 0.44 * Math.sin(a), hip[1] - 0.44 * Math.cos(a)];
+        b.footAt("r", [knee[0] - 0.13, knee[1] - 0.42, 0.12], 0, 40).knee("r", [1, 0.6, 0]);
+      } else b.footAt("r", [hip[0] + 0.86 * Math.sin(a), hip[1] - 0.86 * Math.cos(a), 0.12], 0, 10).knee("r", [0.3, 1, 0]);
+      return kickWall(b);
+    };
+    // laterale: 0 = in piedi (piede d'appoggio gia' girato), 1 = camera, 2 = gamba stesa; il calcio va avanti
+    const CHAIR_BACK = [box(-0.95, -0.55, 0, 0.45, -0.45, -0.05), box(-0.61, -0.55, 0.45, 0.98, -0.45, -0.05)];
+    const skSide = (ph) => {
+      const b = st();
+      if (ph) {
+        b.set("pel", [-0.03, 0.95, 0]).set("chest", [-0.01, 1.45, 0]).set("head", [0, 1.65, 0]).foot("l", 0, -0.11, 4, 0).foot("r", 0, 0.11, -4, 0);
+        b.kick("r", "side", ph === 1 ? "chamber" : "ext", 0.78, { arms: "none" });
+      } else {
+        // gia' girato di lato: piede d'appoggio ruotato prima di alzare la gamba
+        b.set("pel", [-0.05, 0.95, 0]).set("chest", [-0.1, 1.44, 0]).set("head", [-0.1, 1.64, 0]).set("hipYaw", 60).set("chestYaw", 55);
+        const hl = b.hip("l");
+        const hr = b.hip("r");
+        b.foot("l", hl[0], hl[2] - 0.02, 70, 0).foot("r", hr[0] + 0.02, hr[2] + 0.02, 55, 0);
+      }
+      b.hand("l", [-0.56, 1.0, -0.25], "open").elbow("l", [0, -1, -0.3]).handPel("r", 0.04, 0.06, 0.2, "fist");
+      return b;
+    };
+    mv("rec.skSet", "Di fianco al muro, in appoggio sulla gamba sana", [K(skStand(), 400, 1200)], { props: WALL_LEFT });
+    mv("rec.skChamber", "Camera: ginocchio dell'operata su, punta tirata", [K(skStand(), 300, 200), K(skFront(1).act("legr"), 1100, 1100), K(skStand(), 900, 300)], { props: WALL_LEFT });
+    mv("rec.skFront", "Stendi in 3 secondi, coscia contratta 2 secondi", [K(skStand(), 300, 150), K(skFront(1).act("legr"), 900, 300), K(skFront(2).act("legr"), 2600, 1800), K(skFront(1).act("legr"), 1600, 200), K(skStand(), 800, 300)], { props: WALL_LEFT });
+    mv("rec.skSide", "Laterale: camera di lato, il tallone spinge in fuori", [K(skSide(0), 300, 200), K(skSide(1).act("legr"), 900, 300), K(skSide(2).act("legr"), 2600, 1600), K(skSide(1).act("legr"), 1500, 200), K(skSide(0), 800, 300)], { props: CHAIR_BACK });
   });
 })(typeof window !== "undefined" ? window : globalThis);

@@ -29,6 +29,7 @@
     setupEdit: false,
     setupErr: "",
     filter: "all",
+    goal: null,        // filtro della libreria per qualità marziale
     open: null,        // esercizio aperto nella libreria
     testMsg: null,
     timer: null,
@@ -56,7 +57,38 @@
   ];
   const TIME_HINT = { easy: "Comodo, potevo andare oltre", ok: "Impegnativo ma gestibile", hard: "Al limite, ho tenuto a fatica" };
   const RATE_LABEL = Object.fromEntries(RATE.map((r) => [r.v, r.label]));
-  const KINDS = ["ext", "legs", "upperA", "upperB", "martial"];
+  const KINDS = ["ext", "kick", "legs", "upperA", "upperB", "martial"];
+  const STRETCH = ["ext", "kick"];
+  const GOAL = Object.fromEntries(D.MA_GOALS.map((g) => [g.id, g]));
+
+  // Le arti marziali per cui il recupero lavora: scelte qui, altrimenti quelle allenate nella Difesa nelle ultime 6 settimane.
+  function myStyles(l) {
+    if (l.prefs.styles.length) return { ids: l.prefs.styles, auto: false };
+    const ml = typeof state !== "undefined" && state ? state.martialLab : null;
+    const count = {};
+    if (ml && Array.isArray(ml.sessions)) ml.sessions.forEach((x) => { if (x && D.STYLE_NEEDS[x.disc] && Date.now() - x.t < 42 * 86400000) count[x.disc] = (count[x.disc] || 0) + 1; });
+    const ids = Object.keys(count).sort((a, b) => count[b] - count[a]).slice(0, 3);
+    return { ids, auto: true };
+  }
+  // le qualità che contano per almeno uno degli stili (ognuno con le sue prime tre)
+  const topUnion = (ids) => [...new Set(ids.flatMap((id) => E.topGoals([id], 3).map((g) => g.id)))];
+  const lower = (t) => t.charAt(0).toLowerCase() + t.slice(1);
+  const styleNames = (ids) => ids.map((id) => D.STYLE_NEEDS[id].name);
+  const listIt = (xs) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} e ${xs[xs.length - 1]}`);
+  // chip delle qualità marziali di un esercizio: in evidenza quelle che contano per i tuoi stili
+  function goalChips(e, top) {
+    const list = Object.entries(e.builds || {}).sort((a, b) => b[1] - a[1]);
+    return `<ul class="rc-goals" aria-label="Cosa allena per le arti marziali">${list.map(([g, w]) => `<li class="${top.includes(g) ? "mine" : ""}" title="${esc(GOAL[g].text)}">${esc(GOAL[g].label)}<span class="rc-dots" aria-label="${w} su 3">${"●".repeat(w)}${"○".repeat(3 - w)}</span></li>`).join("")}</ul>`;
+  }
+  function maBlock(l, e) {
+    const st = myStyles(l);
+    const lines = st.ids.map((id) => ({ id, goals: E.forStyles(e.id, [id]) })).filter((x) => x.goals.length);
+    return `<div class="rc-ma">
+      <span class="rc-ma-title">Per le arti marziali</span>
+      ${goalChips(e, topUnion(st.ids))}
+      ${lines.length ? `<p class="rc-ma-mine">${lines.map((x) => `Per ${esc(D.STYLE_NEEDS[x.id].mine)}: ${esc(listIt(x.goals.map((g) => lower(g.label))))}.`).join(" ")}</p>` : ""}
+    </div>`;
+  }
 
   function lab() {
     state.recoveryLab = E.ensure(state.recoveryLab);
@@ -108,6 +140,8 @@
 
   /* ------------------------------------------------------------ l'omino */
   const demoCache = new Map();
+  // vista di partenza dell'omino: i movimenti di lato si capiscono meglio da davanti
+  const DEMO_VIEW = { "slancio-laterale": "front" };
   function demoOf(e) {
     if (demoCache.has(e.id)) return demoCache.get(e.id);
     let out = null;
@@ -122,11 +156,12 @@
           const seq = demo.steps.map((st) => {
             const still = st.frames.every((f) => !f.act || !f.act.length) && MM.keyFrames(st.frames, 2).length <= 1;
             const keys = still ? [] : MM.keyFrames(st.frames, 6);
-            const box = F.demoBox({ steps: [st], props: demo.props }, "tq");
+            const view = DEMO_VIEW[e.id] || "tq";
+            const box = F.demoBox({ steps: [st], props: demo.props }, view);
             const items = keys.map((k) => {
               const f = st.frames[k];
               const one = f.mv ? MM.get(f.mv) : null;
-              return { k, label: one ? one.label : st.label, html: F.svg(f.pose, { view: "tq", box, prev: k ? st.frames[k - 1].pose : null, act: f.act, props: demo.props, partner: f.partner }) };
+              return { k, label: one ? one.label : st.label, html: F.svg(f.pose, { view, box, prev: k ? st.frames[k - 1].pose : null, act: f.act, props: demo.props, partner: f.partner }) };
             });
             const sig = MM.sig || ((f) => JSON.stringify([f.pose, f.partner || 0]));
             const keySig = items.map((it) => sig(st.frames[it.k]));
@@ -174,7 +209,7 @@
     let curStep = -1;
     ui.playerId = id;
     ui.player = window.MartialFigure.player(host, dm.demo, {
-      view: "tq",
+      view: DEMO_VIEW[id] || "tq",
       reduced,
       state: keep,
       onStep(si) {
@@ -303,7 +338,15 @@
       const tag = k === sugKind ? (sug.done ? "fatto oggi" : "consigliato") : off ? "non oggi" : `${D.SESSION_INFO[k].minutes} min`;
       return `<button type="button" data-r="pick" data-kind="${k}" aria-pressed="${k === kind}" ${off ? "disabled" : ""}><strong>${esc(D.SESSION_INFO[k].short)}</strong><span>${tag}</span></button>`;
     }).join("")}</div>`;
-    const why = kind === sugKind ? sug.reason : kind === "ext" ? "La routine di estensione: prono appeso, tallone su rialzo e arco corto." : kind === "martial" ? "Solo il blocco di tecnica marziale della tua fase." : "Scelto da te: va bene, ma tieni le gambe ad almeno un giorno di distanza.";
+    const why = kind === sugKind ? sug.reason : kind === "ext" ? "La routine di estensione: prono appeso, tallone su rialzo e arco corto." : kind === "kick" ? "Allungamenti a ginocchio dritto e slanci lenti: recuperi gli ultimi gradi di estensione e intanto alzi i calci. Meglio a muscoli caldi, dopo l'allenamento." : kind === "martial" ? "Solo il blocco di tecnica marziale della tua fase." : "Scelto da te: va bene, ma tieni le gambe ad almeno un giorno di distanza.";
+    const st = myStyles(l);
+    const top = topUnion(st.ids);
+    const sg = E.sessionGoals(items).slice(0, 4);
+    const maToday = sg.length ? `<div class="rc-ma rc-ma-today">
+        <span class="rc-ma-title">Per le arti marziali, oggi alleni</span>
+        <ul class="rc-goals">${sg.map((g) => `<li class="${top.includes(g.id) ? "mine" : ""}" title="${esc(g.text)}">${esc(g.label)}<span class="rc-dots" aria-label="${g.dots} su 3">${"●".repeat(g.dots)}${"○".repeat(3 - g.dots)}</span></li>`).join("")}</ul>
+        <p class="rc-ma-mine">${st.ids.length ? st.ids.map((id) => `${esc(D.STYLE_NEEDS[id].name.split(" (")[0])}: contano di più ${esc(listIt(E.topGoals([id], 3).map((g) => lower(g.label))))}.`).join(" ") + (st.auto ? " (Stili presi dalla Difesa: li cambi in «Progressi».)" : "") : "Scegli le tue arti marziali in «Progressi»: le qualità che servono a loro vengono evidenziate."}</p>
+      </div>` : "";
     return `
       ${alertsHtml(l)}
       <article class="ma-today rc-today" style="--ma-c:${C}">
@@ -316,6 +359,7 @@
           <h3 class="ma-lv-title">${esc(info.label)}${sess.light ? " · versione leggera" : ""}</h3>
           <p>${esc(why)}</p>
           ${items.length ? preview(items) : `<p class="def-note">Con il ginocchio rosso oggi niente gambe: scegli la parte alta, la tecnica o la routine di estensione.</p>`}
+          ${maToday}
           <p class="ma-motto">«Ginocchio dritto, gambe forti, tecnica viva.»</p>
         </div>
         <div class="ma-today-side">
@@ -324,7 +368,7 @@
           <span class="ma-mins">circa ${minutes} minuti · ${plural(items.length, "esercizio", "esercizi")}</span>
           <span class="ma-mins">${esc(monthsText(l))}</span>
           ${doneKind.length ? `<p class="ma-done-note">Fatto oggi: ${doneKind[doneKind.length - 1].done}/${doneKind[doneKind.length - 1].total} esercizi.</p>` : ""}
-          <button type="button" class="def-${doneKind.length ? "ghost" : "primary"}" data-r="start" data-kind="${kind}" ${items.length ? "" : "disabled"}>${doneKind.length ? "Allenati di nuovo" : kind === "ext" ? "Inizia la routine" : "Inizia l'allenamento"}</button>
+          <button type="button" class="def-${doneKind.length ? "ghost" : "primary"}" data-r="start" data-kind="${kind}" ${items.length ? "" : "disabled"}>${doneKind.length ? "Allenati di nuovo" : STRETCH.includes(kind) ? "Inizia la routine" : "Inizia l'allenamento"}</button>
         </div>
       </article>
       ${planCard(l, steps)}
@@ -336,7 +380,7 @@
   function planCard(l, steps) {
     const row = (s) => {
       let action = "";
-      if (s.kind === "ext" && !s.done) action = `<button type="button" class="def-ghost" data-r="start" data-kind="ext">Inizia</button>`;
+      if (STRETCH.includes(s.kind) && !s.done) action = `<button type="button" class="def-ghost" data-r="start" data-kind="${s.kind}">Inizia</button>`;
       else if (s.id === "session" && !s.done && s.kind !== "rest") action = `<button type="button" class="def-ghost" data-r="start" data-kind="${s.kind}">Inizia</button>`;
       else if (s.id === "test") action = `<button type="button" class="def-ghost" data-r="view" data-view="test">Apri i test</button>`;
       return `<li class="${s.done ? "done" : ""}"><span class="ma-dot" aria-hidden="true">${s.done ? "✓" : ""}</span><span class="rc-step-copy"><strong>${esc(s.title)}</strong><em>${s.done ? "fatto" : `${s.minutes} min`}</em></span>${action}</li>`;
@@ -573,6 +617,7 @@
             </div>
             ${last ? `<p class="ma-last ${last.results[x.id] === "pain" ? "no" : "ok"}">L'ultima volta (${esc(dateShort(last.t))}): ${esc(RATE_LABEL[last.results[x.id]].toLowerCase())}</p>` : ""}
             <p class="ma-goal">${esc(e.goal)}</p>
+            ${maBlock(l, e)}
             ${e.safety ? `<p class="ma-safety"><strong>Sicurezza</strong>${esc(e.safety)}</p>` : ""}
             ${graftNote ? `<p class="ma-safety"><strong>Il tuo innesto</strong>${esc(graftNote)}</p>` : ""}
             ${timerMarkup()}
@@ -582,7 +627,7 @@
             <h4 class="ma-sub">Punti chiave</h4>
             <ul class="def-keys">${e.cues.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
             <div class="ma-errors"><h4 class="ma-sub">Errori tipici</h4><ul>${e.errors.map((y) => `<li><strong>${esc(y.e)}</strong><span>${esc(y.fix)}</span></li>`).join("")}</ul></div>
-            <div class="ma-success rc-martial"><strong>Per le arti marziali</strong><p>${esc(e.martial)}</p></div>
+            <div class="ma-success rc-martial"><strong>Cosa ti dà sul tatami</strong><p>${esc(e.martial)}</p></div>
             <div class="ma-vars">
               ${easier ? `<div class="ma-var rc-var"><p><strong>Troppo difficile?</strong> ${esc(easier.name)}: ${esc(easier.text)}</p><button type="button" class="def-ghost" data-r="lv" data-d="-1">Passa al livello ${x.lv}</button></div>` : ""}
               ${harder ? `<div class="ma-var hard rc-var"><p><strong>Troppo facile?</strong> ${esc(harder.name)}: ${esc(harder.text)}</p><button type="button" class="def-ghost" data-r="lv" data-d="1">Passa al livello ${x.lv + 2}</button></div>` : ""}
@@ -706,8 +751,8 @@
     return `
       <h3 class="def-section-title">Gli ultimi test</h3>
       <div class="rc-table-wrap"><table class="rc-table">
-        <thead><tr><th scope="col">Data</th><th scope="col">Talloni</th><th scope="col">Gamba tesa</th><th scope="col">Sedia</th><th scope="col">Polpacci</th><th scope="col">Ponte</th><th scope="col">Equilibrio</th></tr></thead>
-        <tbody>${rows.map((t) => `<tr><th scope="row">${esc(dateShort(t.t))}</th><td>${t.heel == null ? "—" : `${dec(t.heel)} cm`}</td><td>${t.slr == null ? "—" : t.slr}</td><td>${pct(t.sit)}</td><td>${pct(t.calf)}</td><td>${pct(t.bridge)}</td><td>${pct(t.balance)}</td></tr>`).join("")}</tbody>
+        <thead><tr><th scope="col">Data</th><th scope="col">Talloni</th><th scope="col">Gamba tesa</th><th scope="col">Sedia</th><th scope="col">Polpacci</th><th scope="col">Ponte</th><th scope="col">Equilibrio</th><th scope="col">Allungo</th><th scope="col">Divaricata</th><th scope="col">Slancio</th></tr></thead>
+        <tbody>${rows.map((t) => `<tr><th scope="row">${esc(dateShort(t.t))}</th><td>${t.heel == null ? "—" : `${dec(t.heel)} cm`}</td><td>${t.slr == null ? "—" : t.slr}</td><td>${pct(t.sit)}</td><td>${pct(t.calf)}</td><td>${pct(t.bridge)}</td><td>${pct(t.balance)}</td><td>${t.reach == null ? "—" : `${t.reach > 0 ? "+" : ""}${t.reach} cm`}</td><td>${t.straddle == null ? "—" : `${t.straddle} cm`}</td><td>${t.kickH == null ? "—" : `${t.kickH[0]} cm`}</td></tr>`).join("")}</tbody>
       </table></div>
       <p class="def-note">Le percentuali sono la gamba operata rispetto alla sana.</p>`;
   }
@@ -716,6 +761,8 @@
   function usedIn(id) {
     const where = [];
     if (D.SESSIONS.ext.includes(id)) where.push("estensione");
+    const kick = [1, 2, 3, 4].filter((n) => D.SESSIONS.kick[n].includes(id));
+    if (kick.length) where.push(kick.length === 4 ? "estensione e calci" : `estensione e calci, fase ${kick[0]}${kick.length > 1 ? `-${kick[kick.length - 1]}` : ""}`);
     const legs = [1, 2, 3, 4].filter((n) => D.SESSIONS.legs[n].includes(id));
     if (legs.length) where.push(`gambe, fase ${legs.join("-")}`);
     if (D.SESSIONS.upperA.includes(id)) where.push("parte alta A");
@@ -727,13 +774,15 @@
   function libraryView(l) {
     const ph = E.configured(l) ? E.phase(l) : 1;
     const chips = [["all", "Tutti"]].concat(D.AREAS.map((a) => [a.id, a.label]));
-    const list = D.EXERCISES.filter((e) => ui.filter === "all" || e.area === ui.filter);
+    const list = D.EXERCISES.filter((e) => (ui.filter === "all" || e.area === ui.filter) && (!ui.goal || (e.builds[ui.goal] || 0) >= 2));
+    const top = topUnion(myStyles(l).ids);
     const opened = ui.open && D.EXERCISES.find((e) => e.id === ui.open);
     return `
       <div class="rc-intro"><h2 class="ma-h2">Gli esercizi</h2><p class="def-note">Tutti gli esercizi del piano con l'omino che mostra ogni passo e i livelli. Nell'allenamento il livello si sceglie da solo (due «facile» di fila lo alzano, il dolore lo abbassa), ma puoi cambiarlo tu.</p></div>
       ${opened ? libDetail(l, opened, ph) : ""}
       <div class="ma-nav rc-filter" role="group" aria-label="Filtra per zona">${chips.map(([id, label]) => `<button type="button" data-r="filter" data-v="${id}" aria-pressed="${ui.filter === id}">${esc(label)}</button>`).join("")}</div>
-      <ol class="ma-preview rc-lib">${list.map((e) => `<li class="${opened && opened.id === e.id ? "now" : ""}">${kindTag(e)}<button type="button" class="rc-lib-btn" data-r="lib-open" data-id="${e.id}">${esc(e.name)}</button><em>${esc(usedIn(e.id).join(" · ") || "fuori dalle sessioni")}</em></li>`).join("")}</ol>`;
+      <div class="rc-goalfilter" role="group" aria-label="Filtra per cosa allena nelle arti marziali"><span>Per le arti marziali:</span>${D.MA_GOALS.map((g) => `<button type="button" class="${top.includes(g.id) ? "mine" : ""}" data-r="goal" data-v="${g.id}" aria-pressed="${ui.goal === g.id}">${esc(g.label)}</button>`).join("")}</div>
+      ${list.length ? `<ol class="ma-preview rc-lib">${list.map((e) => `<li class="${opened && opened.id === e.id ? "now" : ""}">${kindTag(e)}<button type="button" class="rc-lib-btn" data-r="lib-open" data-id="${e.id}">${esc(e.name)}</button><em>${esc(usedIn(e.id).join(" · ") || "fuori dalle sessioni")}${Object.keys(e.builds).length ? ` · ${esc(Object.entries(e.builds).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([g]) => GOAL[g].label.toLowerCase()).join(", "))}` : ""}</em></li>`).join("")}</ol>` : `<p class="def-note">Nessun esercizio in questa zona allena molto questa qualità: togli uno dei due filtri.</p>`}`;
   }
   function libDetail(l, e, ph) {
     const lv = E.levelOf(l, e.id, ph);
@@ -742,6 +791,7 @@
         <div class="ma-ex-top">${kindTag(e)}<button type="button" class="def-ghost" data-r="lib-close">Chiudi</button></div>
         <h3 data-focus-title>${esc(e.name)}</h3>
         <p class="ma-goal">${esc(e.goal)}</p>
+        ${maBlock(l, e)}
         ${e.safety ? `<p class="ma-safety"><strong>Sicurezza</strong>${esc(e.safety)}</p>` : ""}
         <p class="ma-how">${esc(e.how)}</p>
         <h4 class="ma-sub">Come si fa</h4>
@@ -751,7 +801,7 @@
         <div class="ma-errors"><h4 class="ma-sub">Errori tipici</h4><ul>${e.errors.map((y) => `<li><strong>${esc(y.e)}</strong><span>${esc(y.fix)}</span></li>`).join("")}</ul></div>
         <h4 class="ma-sub">Livelli</h4>
         <ol class="rc-levels">${e.levels.map((L, i) => `<li class="${i === lv && E.configured(l) ? "now" : ""}"><strong>${esc(L.name)}</strong> ${esc(L.text)} <span>${esc(doseText({ ...e.dose, ...(L.dose || {}) }))}${L.phase ? ` · dalla fase ${L.phase}` : ""}${L.minMonths ? ` · dal ${L.minMonths}° mese` : ""}${i === lv && E.configured(l) ? " · il tuo livello" : ""}</span></li>`).join("")}</ol>
-        <div class="ma-success rc-martial"><strong>Per le arti marziali</strong><p>${esc(e.martial)}</p></div>
+        <div class="ma-success rc-martial"><strong>Cosa ti dà sul tatami</strong><p>${esc(e.martial)}</p></div>
       </article>`;
   }
 
@@ -788,6 +838,26 @@
       <ul class="rc-metrics">${vals.map((v) => `<li class="${v.measured ? "" : "todo"}"><span>${esc(v.label)}</span><strong>${v.measured ? v.value : "da misurare"}</strong>${v.measured ? `<i style="--w:${v.value}%"></i>` : ""}</li>`).join("")}</ul>
       <p class="def-note">Il recupero non entra nel rango generale: qui non conviene mai forzare per prendere punti.</p>`;
   }
+  function maHex(l) {
+    const vals = E.maProfile(l);
+    const st = myStyles(l);
+    const top = topUnion(st.ids);
+    let i = -1;
+    const svg = (typeof buildRadarMarkup === "function" ? buildRadarMarkup(vals.map((v) => ({ label: v.label, value: v.value })), 380, 190, 98, true) : "")
+      .replace(/(<text class="radar-value"[^>]*>)[^<]*(<\/text>)/g, (m, a, b) => { i += 1; const v = vals[i]; return v ? `${a}${v.measured ? v.value : "da misurare"}${b}` : m; });
+    const measured = vals.filter((v) => v.measured);
+    // per i tuoi stili: media pesata con quanto conta ogni qualità
+    const f = E.styleFocus(st.ids);
+    const wsum = measured.reduce((a, v) => a + f[v.key], 0);
+    const score = measured.length && wsum ? Math.round(measured.reduce((a, v) => a + v.value * f[v.key], 0) / wsum) : null;
+    const chips = Object.entries(D.STYLE_NEEDS).map(([id, x]) => `<button type="button" data-r="style" data-v="${id}" aria-pressed="${st.ids.includes(id)}">${esc(x.name)}</button>`).join("");
+    return `<svg class="def-radar rc-radar" viewBox="0 0 380 380" role="img" aria-label="Per le arti marziali: ${vals.map((v) => `${esc(v.label)} ${v.measured ? v.value : "da misurare"}`).join(", ")}">${svg}</svg>
+      <p class="rc-hex-total"><strong>${score == null ? "—" : score}</strong> <span>${score == null ? "si misura con i test della settimana (allungo, divaricata, slancio)" : st.ids.length ? `pronto per ${esc(listIt(st.ids.map((id) => D.STYLE_NEEDS[id].mine)))}, sulle voci misurate` : "media delle voci misurate"}</span></p>
+      <ul class="rc-metrics">${vals.map((v) => `<li class="${v.measured ? "" : "todo"} ${top.includes(v.key) ? "mine" : ""}"><span title="${esc(v.text)}">${esc(v.label)}</span><strong>${v.measured ? v.value : "da misurare"}</strong>${v.measured ? `<i style="--w:${v.value}%"></i>` : ""}</li>`).join("")}</ul>
+      <h4 class="ma-sub">Le tue arti marziali</h4>
+      <div class="rc-styles" role="group" aria-label="Le tue arti marziali">${chips}</div>
+      <p class="def-note">${st.ids.length ? `${st.auto ? "Prese dalla Difesa (cosa hai allenato di recente). " : ""}${esc(st.ids.map((id) => D.STYLE_NEEDS[id].text).join(" "))}` : "Tocca gli stili che fai: nelle schede degli esercizi vengono evidenziate le qualità che servono a loro."}${!st.auto && st.ids.length ? ` <button type="button" class="def-ghost rc-small-btn" data-r="style-auto">Usa quelli della Difesa</button>` : ""}</p>`;
+  }
   function extChart(l) {
     const pts = l.tests.filter((t) => t.heel !== undefined).slice(-12);
     if (pts.length < 2) return `<p class="def-note">Il grafico dell'estensione compare dal secondo test.</p>`;
@@ -817,14 +887,17 @@
     const now = Date.now();
     const weeks = [3, 2, 1, 0].map((w) => {
       const to = now - w * 7 * 86400000, from = to - 7 * 86400000;
-      const s = l.sessions.filter((x) => x.t > from && x.t <= to && x.kind !== "ext" && x.kind !== "martial").length;
+      const s = l.sessions.filter((x) => x.t > from && x.t <= to && !STRETCH.includes(x.kind) && x.kind !== "martial").length;
       const ex = new Set(l.ext.filter((t) => t > from && t <= to).map(E.dayKey)).size;
       return { label: w === 0 ? "Questa settimana" : w === 1 ? "Settimana scorsa" : `${w} settimane fa`, s, ex };
     });
     const recent = [...l.sessions].reverse().slice(0, 8);
     return `
       <div class="rc-grid">
-        <article class="rc-card"><h3>Profilo del recupero</h3>${hexProfile(l)}</article>
+        <div>
+          <article class="rc-card"><h3>Profilo del recupero</h3>${hexProfile(l)}</article>
+          <article class="rc-card rc-ma-card"><h3>Per le arti marziali</h3>${maHex(l)}</article>
+        </div>
         <div>
           <article class="rc-card"><h3>Estensione</h3><p class="def-note rc-tight">Differenza dei talloni a pancia in giù: più bassa è meglio.</p>${extChart(l)}</article>
           <article class="rc-card"><h3>Simmetria delle gambe</h3>${lsiBars(l)}</article>
@@ -834,7 +907,7 @@
           </article>
         </div>
       </div>
-      ${recent.length ? `<h3 class="def-section-title">Ultimi allenamenti</h3><ol class="ma-preview">${recent.map((s) => `<li><span class="ma-kind k-r-${s.kind === "ext" ? "ext" : s.kind === "legs" ? "legs" : s.kind === "martial" ? "martial" : "upper"}">${esc(dateShort(s.t))}</span><strong>${esc(D.SESSION_INFO[s.kind].label)}</strong><em>${s.done}/${s.total} · fase ${s.phase}${s.light ? " · leggera" : ""}${s.knee === 2 ? " · dolore" : s.knee === 1 ? " · fastidio" : ""}</em></li>`).join("")}</ol>` : ""}`;
+      ${recent.length ? `<h3 class="def-section-title">Ultimi allenamenti</h3><ol class="ma-preview">${recent.map((s) => `<li><span class="ma-kind k-r-${STRETCH.includes(s.kind) || s.kind === "legs" || s.kind === "martial" ? s.kind : "upper"}">${esc(dateShort(s.t))}</span><strong>${esc(D.SESSION_INFO[s.kind].label)}</strong><em>${s.done}/${s.total} · fase ${s.phase}${s.light ? " · leggera" : ""}${s.knee === 2 ? " · dolore" : s.knee === 1 ? " · fastidio" : ""}</em></li>`).join("")}</ol>` : ""}`;
   }
 
   function needSetup() {
@@ -983,6 +1056,20 @@
       case "demo-step": if (ui.player) { ui.player.loopStep(Number(el.dataset.step)); ui.player.play(); showDemo(); } break;
       case "demo-frame": if (ui.player) ui.player.showFrame(Number(el.dataset.step), Number(el.dataset.frame)); break;
       case "filter": ui.filter = el.dataset.v; render(false); break;
+      case "goal": ui.goal = ui.goal === el.dataset.v ? null : el.dataset.v; render(false); break;
+      case "style": {
+        const id = el.dataset.v;
+        const cur = myStyles(l);
+        // dalla Difesa (scelta automatica) il primo tocco sceglie solo quello stile; poi si aggiungono e tolgono
+        let next = cur.auto ? [] : cur.ids.slice();
+        next = next.includes(id) ? next.filter((x) => x !== id) : next.concat(id);
+        l.prefs.styles = next.filter((x) => D.STYLE_NEEDS[x]);
+        if (!l.prefs.styles.length) l.prefs.styles = [];
+        save();
+        render(false);
+        break;
+      }
+      case "style-auto": l.prefs.styles = []; save(); render(false); break;
       case "lib-open": ui.open = el.dataset.id; render(true); break;
       case "lib-close": ui.open = null; render(false); break;
       default: break;

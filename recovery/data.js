@@ -22,6 +22,7 @@
 
   const AREAS = [
     { id: "ext", label: "Estensione" },
+    { id: "kick", label: "Flessibilità" },
     { id: "legs", label: "Gambe" },
     { id: "upper", label: "Parte alta" },
     { id: "core", label: "Tronco" },
@@ -33,16 +34,16 @@
       n: 1,
       name: "Estensione e controllo",
       goal: "Ginocchio dritto come l'altro, quadricipite che risponde subito, niente gonfiore dopo le sessioni.",
-      focus: "Ogni giorno la routine di estensione due volte. Forza con il ginocchio poco piegato: l'altezza della sedia decide quanto scendi. Parte alta piena.",
-      difesaYes: ["Shadow da seduto e parate a piedi fermi", "Tecnica delle braccia, guardia e respirazione", "Esercizi per la parte alta e per il tronco"],
-      difesaNo: ["Calci, salti, corda e sprawl", "Squat profondi, affondi e posizioni basse (cavaliere, ginga)", "Pivot sul piede, corsa, lotta e proiezioni"]
+      focus: "Ogni giorno la routine di estensione e quella «Estensione e calci», che allunga femorali, polpacci e adduttori a ginocchio dritto. Forza con il ginocchio poco piegato: l'altezza della sedia decide quanto scendi. Parte alta piena.",
+      difesaYes: ["Shadow da seduto e parate a piedi fermi", "Calci al rallentatore al muro con l'operata, in appoggio sulla sana", "Slanci lenti a gamba tesa e stretching per i calci", "Esercizi per la parte alta e per il tronco"],
+      difesaNo: ["Calci veri (veloci, all'impatto, ruotando sull'operata), salti, corda e sprawl", "Squat profondi, affondi e posizioni basse (cavaliere, ginga)", "Pivot sul piede, corsa, lotta e proiezioni"]
     },
     {
       n: 2,
       name: "Forza",
       goal: "Quadricipite e glutei forti su ogni gamba, equilibrio su una gamba, ginocchio in linea quando ti pieghi.",
       focus: "Esercizi su una gamba, profondità che cresce poco a poco, carico con i manubri. In piedi torni a tirare colpi a piedi fermi.",
-      difesaYes: ["Shadow in piedi a piedi fermi, ruotando sull'avampiede", "Passi in guardia avanti e indietro", "Colpi e ginocchiate lente in equilibrio"],
+      difesaYes: ["Shadow in piedi a piedi fermi, ruotando sull'avampiede", "Passi in guardia avanti e indietro", "Calci al rallentatore anche in appoggio sull'operata, circolare basso lento", "Slanci controllati a gamba tesa, colpi e ginocchiate lente in equilibrio"],
       difesaNo: ["Calci veloci, salti e corda", "Cambi di direzione e pivot veloci", "Sprawl, lotta, proiezioni e sparring"]
     },
     {
@@ -73,7 +74,7 @@
 
   const GRAFTS = [
     { id: "rotuleo", label: "Tendine rotuleo", tip: "Con il tendine rotuleo stare in ginocchio può dar fastidio per mesi: metti un cuscino o scegli le versioni in piedi e da sdraiato. Dolore davanti alla rotula negli esercizi per il quadricipite: carico più basso per qualche sessione." },
-    { id: "semitendinoso", label: "Flessori (semitendinoso)", tip: "Con il tendine preso dai flessori, quei muscoli recuperano più lentamente: stacco rumeno e curl scivolato salgono con calma. Niente Nordic curl senza l'ok del fisioterapista; fermati se senti tirare dietro la coscia, dove è stato preso il tendine." },
+    { id: "semitendinoso", label: "Flessori (semitendinoso)", tip: "Con il tendine preso dai flessori, quei muscoli recuperano più lentamente: stacco rumeno e curl scivolato salgono con calma, e lo stretching dei femorali (tallone sul rialzo, estensione attiva, slanci) resta leggero, senza molleggiare. Niente Nordic curl senza l'ok del fisioterapista; fermati se senti tirare dietro la coscia, dove è stato preso il tendine." },
     { id: "quadricipitale", label: "Tendine quadricipitale", tip: "Con il tendine quadricipitale il quadricipite è il muscolo da ricostruire per primo: estensione da seduto, arco corto e sedia sono i tuoi esercizi chiave." },
     { id: "nonso", label: "Non lo so", tip: "Chiedi al chirurgo o guarda la lettera di dimissione: il tipo di innesto cambia qualche dettaglio (in ginocchio, flessori)." }
   ];
@@ -175,6 +176,242 @@
       martial: "È l'ultimo tratto del calcio frontale e del circolare: un quadricipite che chiude forte gli ultimi gradi dà potenza al colpo."
     },
 
+    /* ------------------------------------------------------------------ FLESSIBILITÀ PER I CALCI
+     * Doppio lavoro: ognuno tiene il ginocchio operato dritto mentre allunga (o lo chiude da solo
+     * in fondo), quindi è anche lavoro di estensione; e ognuno serve all'altezza dei calci.
+     */
+    {
+      id: "femorali-rialzo", area: "kick", name: "Femorali col tallone sul rialzo",
+      goal: "Allungare i femorali con il ginocchio operato dritto: il busto che si piega in avanti stende il ginocchio e insieme dà altezza al calcio frontale.",
+      how: "In piedi davanti a un gradino o a una sedia, il tallone dell'operata sopra e la gamba tesa, punta del piede verso l'alto. Ti pieghi in avanti dalle anche con la schiena dritta finché senti tirare dietro la coscia, e resti lì respirando.",
+      steps: [
+        "Tallone dell'operata su un rialzo (prima un gradino, poi una sedia), gamba tesa, piede d'appoggio dritto in avanti.",
+        "Contrai la coscia: ginocchio dritto del tutto, punta del piede che guarda in alto.",
+        "Piega dalle anche con la schiena dritta, mani sulle cosce, finché senti tirare a metà coscia, dietro.",
+        "Resta respirando lento per tutto il tempo, poi fai l'altra gamba."
+      ],
+      cues: [
+        "Pancia verso la coscia, non naso verso il ginocchio: la schiena resta dritta.",
+        "Deve tirare a metà coscia: se tira dietro il ginocchio, abbassa il rialzo o piegati meno.",
+        "Il bacino resta dritto: l'anca della gamba alta non sale."
+      ],
+      errors: [
+        { e: "Schiena curva per arrivare più giù", fix: "Così allunghi la schiena, non i femorali: petto avanti e piega dalle anche." },
+        { e: "Ginocchio che si piega appena", fix: "Tieni la coscia contratta per tutto il tempo: il punto è proprio stendere il ginocchio mentre allunghi." },
+        { e: "Molleggiare", fix: "Fermo e lento: è lo stiramento statico quello che dà più ampiezza nel tempo." }
+      ],
+      dose: { sets: 2, work: 45, rest: 15, perSide: true },
+      safety: "Con l'innesto preso dai flessori (semitendinoso) vai piano: stiramento leggero, mai dolore dove è stato preso il tendine. Formicolio lungo la gamba: piegati meno e abbassa la punta.",
+      levels: [
+        { name: "Gradino basso", text: "Tallone su un gradino di 15–20 cm, busto quasi dritto." },
+        { name: "Sedia", text: "Tallone su una sedia, piega dalle anche.", dose: { sets: 3 } },
+        { name: "Contrai e rilassa", text: "Sulla sedia: 5 secondi spingi il tallone contro la sedia, poi rilassa ed espira scendendo un po' di più. 4 volte per serie.", dose: { sets: 3, work: 60 } },
+        { name: "Piano più alto", text: "Tallone su un tavolo basso o un davanzale, stessa tecnica.", dose: { sets: 3, work: 60 }, phase: 2 }
+      ],
+      martial: "Femorali lunghi vogliono dire calcio frontale e ad ascia (ap chagi, naeryo chagi, kakato geri) più alti senza piegare il ginocchio, e un laterale che arriva al busto. Il ginocchio dritto sotto stiramento è anche lavoro di estensione."
+    },
+    {
+      id: "polpaccio-muro", area: "kick", name: "Polpaccio a ginocchio teso al muro",
+      goal: "Allungare il gemello, il muscolo del polpaccio che passa dietro il ginocchio: quando è corto tiene il ginocchio un po' piegato.",
+      how: "Mani al muro, gamba operata dietro e tesa con il tallone a terra, gamba sana davanti piegata. Porti il bacino verso il muro finché senti tirare il polpaccio, con il ginocchio dietro sempre dritto.",
+      steps: [
+        "Mani al muro all'altezza delle spalle, operata dietro di un passo lungo, piede dritto in avanti.",
+        "Tallone dietro piantato a terra, ginocchio dietro dritto e coscia contratta.",
+        "Porta il bacino verso il muro piegando il ginocchio davanti, finché il polpaccio tira.",
+        "Resta respirando, poi cambia gamba."
+      ],
+      cues: [
+        "Piede dietro dritto, non girato in fuori.",
+        "Tallone giù: se si alza, accorcia il passo.",
+        "Ginocchio dietro dritto per tutto il tempo: è lì che il gemello tira."
+      ],
+      errors: [
+        { e: "Tallone che si stacca", fix: "Passo più corto: il tallone a terra è l'esercizio." },
+        { e: "Ginocchio dietro piegato", fix: "Così allunghi il soleo, non il gemello: contrai la coscia e stendi." }
+      ],
+      dose: { sets: 2, work: 45, rest: 15, perSide: true },
+      safety: "Stiramento al polpaccio sì, dolore dietro il ginocchio no: accorcia il passo.",
+      levels: [
+        { name: "Al muro", text: "Passo medio, bacino verso il muro." },
+        { name: "Punta sul muro", text: "Punta del piede appoggiata al muro, tallone a terra e ginocchio dritto: porta il bacino in avanti." },
+        { name: "Contrai e rilassa", text: "5 secondi spingi la punta contro il pavimento, poi rilassa e avvicina il bacino al muro. 4 volte per serie.", dose: { sets: 2, work: 60 } },
+        { name: "Talloni giù dal gradino", text: "Avampiedi sul bordo di un gradino, ginocchia dritte, una mano al muro: lascia scendere i talloni sotto il gradino.", phase: 2 }
+      ],
+      martial: "Polpacci lunghi tengono a terra il tallone d'appoggio quando calci alto e lasciano dritto e stabile il ginocchio della gamba d'appoggio; servono anche al gioco di gambe sugli avampiedi."
+    },
+    {
+      id: "gambe-muro-v", area: "kick", name: "Gambe al muro a V",
+      goal: "Aprire gli adduttori con le ginocchia dritte e senza carico: la gravità apre le gambe, il ginocchio operato resta steso contro il muro.",
+      how: "Sdraiato sulla schiena con il sedere vicino al muro e le gambe dritte in alto, appoggiate al muro. Lasci scivolare le gambe in una V, piano, finché senti tirare l'interno coscia, e resti lì respirando.",
+      steps: [
+        "Sdraiati di fianco al muro e ruota: sedere vicino al muro, gambe dritte appoggiate in alto.",
+        "Ginocchia dritte, punte dei piedi verso di te, schiena bassa appoggiata a terra.",
+        "Lascia scivolare le gambe in una V, lentamente, finché tira l'interno coscia.",
+        "Resta respirando lento; per uscire riavvicina le gambe aiutandoti con le mani."
+      ],
+      cues: [
+        "Rilassa: è la gravità che apre, non i muscoli.",
+        "Deve tirare l'interno coscia, non l'interno del ginocchio.",
+        "Il retro delle ginocchia guarda il muro: gambe dritte."
+      ],
+      errors: [
+        { e: "Gambe che si aprono di colpo", fix: "Accompagna con le mani e scendi un poco per volta." },
+        { e: "Tira dentro il ginocchio", fix: "Chiudi la V: gli adduttori devono sentire il carico, il ginocchio no." }
+      ],
+      dose: { sets: 2, work: 90, rest: 20 },
+      safety: "Fastidio nella parte interna del ginocchio: chiudi la V. Il menisco e il legamento collaterale non vanno stirati.",
+      levels: [
+        { name: "V piccola", text: "Apri poco, due serie da un minuto e mezzo." },
+        { name: "V larga", text: "Lascia aprire di più, due minuti.", dose: { sets: 2, work: 120 } },
+        { name: "Contrai e rilassa", text: "Mani sull'interno delle cosce: 5 secondi spingi le gambe contro le mani, poi rilassa e lascia aprire di più. 4 volte per serie.", dose: { sets: 2, work: 120 } }
+      ],
+      martial: "Adduttori lunghi sono la base del calcio laterale (yeop chagi), del circolare alto, dei calci ad arco della capoeira e della spaccata laterale. Qui li apri senza mettere il ginocchio sotto carico."
+    },
+    {
+      id: "estensione-attiva", area: "kick", name: "Estensione attiva a 90°",
+      goal: "Stendere il ginocchio da solo con la coscia in alto: il quadricipite chiude gli ultimi gradi mentre i femorali si allungano, come nel calcio frontale.",
+      how: "Sdraiato sulla schiena, porti la coscia dell'operata in verticale e la tieni con le mani dietro il ginocchio. Stendi la gamba verso il soffitto più che puoi, tieni 5 secondi con la coscia contratta e torni giù in 3 secondi.",
+      steps: [
+        "Sdraiato, gamba sana distesa. Coscia dell'operata in verticale, mani dietro il ginocchio.",
+        "Ginocchio piegato a 90°, coscia ferma: non si muove per tutto l'esercizio.",
+        "Stendi la gamba verso il soffitto più che puoi, punta tirata verso di te.",
+        "Tieni 5 secondi contraendo la coscia, poi giù in 3 secondi. Alla fine l'altra gamba."
+      ],
+      cues: [
+        "La coscia resta in verticale: se scende è più facile, ma non conta.",
+        "In fondo prova a stendere ancora un po': quello è il grado che manca.",
+        "Espira mentre stendi."
+      ],
+      errors: [
+        { e: "Coscia che scappa verso il pavimento", fix: "Tienila con le mani: si allena proprio l'estensione con la coscia in alto." },
+        { e: "Slancio", fix: "Su lento, tenuta, giù lento: ogni ripetizione è un piccolo stiramento attivo." }
+      ],
+      dose: { sets: 3, reps: 8, rest: 30, perSide: true },
+      safety: "Crampi dietro la coscia: abbassa un po' la coscia (60–70°) e continua. Con l'innesto dai flessori niente slanci in fondo.",
+      levels: [
+        { name: "Coscia a 70°", text: "Coscia un po' inclinata verso il pavimento: stendere è più facile." },
+        { name: "Coscia a 90°", text: "Coscia in verticale, 5 secondi di tenuta." },
+        { name: "Tenuta 10 secondi", text: "Coscia in verticale, 10 secondi in fondo con la punta tirata.", dose: { sets: 3, reps: 6 } },
+        { name: "Senza mani", text: "Coscia in verticale tenuta su dai flessori dell'anca, senza mani: è la camera del calcio frontale, da sdraiato.", phase: 2 }
+      ],
+      martial: "È il gesto del calcio frontale da sdraiato: coscia su (la camera) e gamba che si stende fino in fondo. Più gradi qui vogliono dire un frontale più alto e una frustata che arriva tesa."
+    },
+    {
+      id: "flessori-anca", area: "kick", name: "Flessori dell'anca, gamba dietro tesa",
+      goal: "Allungare i flessori dell'anca con il ginocchio dietro steso: la gamba operata si stende sotto carico mentre l'anca si apre davanti.",
+      how: "Passo lungo con l'operata dietro e tesa, ginocchio davanti poco piegato, mani su un tavolo o sui fianchi. Stringi il gluteo dietro e porti il bacino in avanti finché senti tirare davanti all'anca. In piedi, senza appoggiare il ginocchio a terra.",
+      steps: [
+        "Passo lungo con l'operata dietro, punta dritta in avanti; mani su un tavolo per l'equilibrio.",
+        "Ginocchio dietro dritto e coscia contratta; il ginocchio davanti si piega poco, sopra il piede.",
+        "Stringi il gluteo dietro e porta il pube verso l'alto: il bacino si raddrizza e tira davanti all'anca.",
+        "Resta respirando, poi cambia gamba (con l'operata davanti piegala solo quanto è comodo)."
+      ],
+      cues: [
+        "Prima il bacino, poi l'avanzamento: con il gluteo stretto bastano pochi centimetri.",
+        "Busto dritto, niente schiena inarcata.",
+        "Ginocchio dietro dritto: è il lavoro di estensione."
+      ],
+      errors: [
+        { e: "Schiena inarcata", fix: "Pancia in dentro e gluteo stretto: così tira l'anca, non la schiena." },
+        { e: "Ginocchio davanti oltre la punta", fix: "Allunga il passo: la piega davanti resta piccola." }
+      ],
+      dose: { sets: 2, work: 40, rest: 15, perSide: true },
+      safety: "Si fa in piedi: niente ginocchio a terra (con il tendine rotuleo dà fastidio). Con l'operata davanti piega solo fin dove non hai dolore.",
+      levels: [
+        { name: "Mani sul tavolo", text: "Passo medio, mani su un tavolo, gluteo stretto." },
+        { name: "Passo lungo", text: "Passo più lungo, mani sui fianchi.", dose: { sets: 3 } },
+        { name: "Braccio in alto", text: "Alza il braccio dal lato della gamba dietro e inclina il busto dalla parte opposta.", dose: { sets: 3 } },
+        { name: "Contrai e rilassa", text: "5 secondi spingi il piede dietro contro il pavimento, poi rilassa e porta il bacino in avanti. 4 volte per serie.", dose: { sets: 3, work: 60 }, phase: 2 }
+      ],
+      martial: "Flessori dell'anca lunghi lasciano salire il ginocchio nella camera senza che il bacino si chiuda, e danno ampiezza ai calci alti e alla guardia lunga. Anca aperta davanti vuol dire anche un laterale che arriva dritto."
+    },
+    {
+      id: "slancio-frontale", area: "kick", name: "Slancio frontale lento (ap olligi)",
+      goal: "Alzare la gamba tesa davanti, lenta e controllata: il quadricipite tiene il ginocchio dritto mentre i femorali si allungano. È lo stretching attivo dei calci alti.",
+      how: "In piedi di fianco al muro, una mano appoggiata. Alzi la gamba tesa davanti a te in 2 secondi, più in alto che puoi senza piegare il ginocchio, tieni 1 secondo e scendi in 3. Prima l'operata, poi la sana.",
+      steps: [
+        "Di fianco al muro, mano sul muro, busto dritto, gamba d'appoggio dritta ma non bloccata.",
+        "Contrai la coscia della gamba che sale: ginocchio dritto, punta tirata verso di te.",
+        "Sali in 2 secondi più in alto che puoi senza piegare il ginocchio, tieni 1 secondo.",
+        "Scendi in 3 secondi fino a terra. Tutte le ripetizioni, poi l'altra gamba."
+      ],
+      cues: [
+        "Il ginocchio dritto vale più dell'altezza.",
+        "Busto alto: non andare incontro alla gamba con la schiena.",
+        "La gamba d'appoggio non si piega e il tallone resta a terra."
+      ],
+      errors: [
+        { e: "Ginocchio che si piega in alto", fix: "Sali meno: l'altezza vera è quella a ginocchio dritto." },
+        { e: "Gamba lanciata", fix: "Due secondi su e tre giù: è un sollevamento, non un calcio." }
+      ],
+      dose: { sets: 2, reps: 8, rest: 30, perSide: true },
+      safety: "In fase 1 solo lento. Gli slanci ritmici arrivano dal livello 3, in fase 2, quando il ginocchio si stende come l'altro.",
+      levels: [
+        { name: "Lento all'altezza dell'anca", text: "Fino all'anca o poco sotto, mano al muro." },
+        { name: "Più in alto, 3 secondi", text: "Più in alto che puoi a ginocchio dritto, 3 secondi di tenuta in cima.", dose: { sets: 3, reps: 6 } },
+        { name: "Slanci controllati", text: "Slanci ritmici a ginocchio dritto, ampiezza che cresce: frena la gamba in cima e in fondo.", dose: { sets: 2, reps: 10 }, phase: 2 },
+        { name: "Senza appoggio", text: "Senza mano al muro, dalla guardia: la gamba d'appoggio tiene da sola.", dose: { sets: 2, reps: 10 }, phase: 2 }
+      ],
+      martial: "L'ap olligi è lo stretching classico del taekwondo prima dei calci: allena l'altezza del frontale e dell'ascia, e la gamba d'appoggio impara a tenere il bacino dritto."
+    },
+    {
+      id: "slancio-laterale", area: "kick", name: "Slancio laterale lento (yeop olligi)",
+      goal: "Alzare la gamba tesa di lato, lenta: apre l'anca per il laterale e il circolare e allena il medio gluteo che tiene il ginocchio in linea.",
+      how: "In piedi di fronte al muro, mani appoggiate. Alzi la gamba tesa di lato in 2 secondi con la punta in avanti (o appena verso il basso), tieni 1 secondo e scendi in 3. Busto dritto, ginocchio dritto.",
+      steps: [
+        "Di fronte al muro, mani appoggiate all'altezza del petto, piedi sotto le anche.",
+        "Ginocchio della gamba che sale dritto, punta del piede in avanti.",
+        "Alza di lato in 2 secondi, tieni 1 secondo senza piegare il busto dall'altra parte.",
+        "Scendi in 3 secondi. Tutte le ripetizioni, poi l'altra gamba."
+      ],
+      cues: [
+        "Guida il tallone: la punta non sale verso il soffitto.",
+        "Busto dritto: se si piega di lato, sali meno.",
+        "Il piede d'appoggio non gira."
+      ],
+      errors: [
+        { e: "Punta del piede verso l'alto", fix: "Così lavora il flessore e non l'anca di lato: punta in avanti o appena giù." },
+        { e: "Busto che si piega per salire di più", fix: "L'altezza deve venire dall'anca: sali meno e resta dritto." }
+      ],
+      dose: { sets: 2, reps: 8, rest: 30, perSide: true },
+      safety: "Ginocchio dritto e movimento lento: il ginocchio non deve sentire torsioni. Fastidio nell'interno del ginocchio d'appoggio: sali meno.",
+      levels: [
+        { name: "Lento a mezza altezza", text: "Fin dove il busto resta dritto." },
+        { name: "Tenuta 3 secondi", text: "Più in alto, 3 secondi in cima.", dose: { sets: 3, reps: 6 } },
+        { name: "Slanci controllati", text: "Slanci laterali ritmici a ginocchio dritto, ampiezza che cresce.", dose: { sets: 2, reps: 10 }, phase: 2 },
+        { name: "In guardia, senza mani", text: "Dalla guardia, senza appoggio, busto che si inclina come nel calcio laterale.", dose: { sets: 2, reps: 10 }, phase: 2 }
+      ],
+      martial: "Lo yeop olligi prepara il calcio laterale e il circolare: anca che si apre e gamba d'appoggio stabile. Il medio gluteo che lavora qui è lo stesso che tiene il ginocchio in linea quando calci."
+    },
+    {
+      id: "divaricata", area: "kick", name: "Divaricata da seduto",
+      goal: "Allungare adduttori e femorali con le ginocchia dritte e premute a terra: ogni contrazione è anche un esercizio di estensione.",
+      how: "Seduto a gambe larghe e dritte, punte dei piedi verso il soffitto. Spingi le ginocchia verso il pavimento contraendo le cosce, poi ti pieghi in avanti con la schiena dritta: al centro e verso ogni gamba.",
+      steps: [
+        "Seduto a terra con la schiena al muro (o su un cuscino se il bacino si chiude), gambe aperte e dritte.",
+        "Punte verso il soffitto e ginocchia premute a terra: 5 contrazioni da 5 secondi.",
+        "Mani avanti, piega dalle anche con la schiena dritta, al centro, e resta respirando.",
+        "Ruota il busto verso una gamba e resta, poi verso l'altra."
+      ],
+      cues: [
+        "Ginocchia e punte guardano in alto: le gambe non ruotano in dentro.",
+        "Petto avanti, non testa giù.",
+        "Seduto su un cuscino il bacino si raddrizza e scendi meglio."
+      ],
+      errors: [
+        { e: "Schiena curva", fix: "Siediti su un cuscino o un libro e piega dalle anche: lo stiramento va negli adduttori." },
+        { e: "Ginocchia che si piegano", fix: "Contrai le cosce: ginocchia dritte e premute giù." }
+      ],
+      dose: { sets: 3, work: 45, rest: 15 },
+      safety: "Fastidio nella parte interna del ginocchio: chiudi un po' le gambe. Mai allargare a scatti.",
+      levels: [
+        { name: "Schiena al muro", text: "Schiena al muro, gambe aperte quanto è comodo: posizione e contrazioni delle cosce." },
+        { name: "Busto avanti", text: "Lontano dal muro, piega in avanti al centro." },
+        { name: "Verso ogni gamba", text: "Centro, sinistra, destra: una serie ciascuno." },
+        { name: "Contrai e rilassa", text: "5 secondi spingi i talloni contro il pavimento, poi rilassa e scendi un po' di più. 4 volte per serie.", dose: { sets: 3, work: 60 } }
+      ],
+      martial: "La divaricata misura e allena la spaccata laterale: adduttori e femorali lunghi danno altezza al laterale, al circolare e all'ascia."
+    },
     /* ------------------------------------------------------------------ GAMBE */
     {
       id: "slr", area: "legs", name: "Sollevamento a gamba tesa",
@@ -1315,6 +1552,37 @@
       martial: "Coordinazione, ritmo e polpacci per stare sugli avampiedi tutti i round."
     },
     {
+      id: "calci-rallentatore", area: "martial", name: "Calci al rallentatore al muro",
+      goal: "Allenare il calcio frontale e il laterale con la gamba operata senza velocità né impatto: ogni calcio finisce con il ginocchio dritto del tutto, che è proprio l'estensione da recuperare.",
+      how: "In piedi sulla gamba sana, una mano al muro. Con l'operata carichi il ginocchio (la camera), stendi la gamba in 3 secondi fino al ginocchio dritto, contrai la coscia 2 secondi, ricarichi e appoggi. Calcio basso: all'altezza dell'anca o sotto.",
+      steps: [
+        "Di fianco al muro, mano sul muro, in appoggio sulla gamba sana con il ginocchio morbido.",
+        "Camera: porta su il ginocchio dell'operata fino all'altezza dell'anca, punta del piede tirata.",
+        "Stendi in 3 secondi fino al ginocchio dritto del tutto e contrai la coscia 2 secondi: il calcio finisce qui, senza scatto.",
+        "Ricarica in 2 secondi e appoggia piano. Dal livello 2 anche il laterale: camera di lato, il tallone spinge in fuori."
+      ],
+      cues: [
+        "Lento vuol dire lento: niente slancio e niente schiocco del ginocchio in fondo.",
+        "Gli ultimi gradi contano di più: in fondo il ginocchio si chiude con la coscia, come nel tallone su rialzo.",
+        "Il piede d'appoggio è già girato prima di alzare la gamba: non ruota sotto il carico."
+      ],
+      errors: [
+        { e: "Calcio tirato veloce a ginocchio bloccato", fix: "Tre secondi per stendere, due di tenuta: è la frustata vista al rallentatore, non un calcio vero." },
+        { e: "Calcio troppo alto", fix: "Anca o sotto: l'altezza arriva con la flessibilità della routine Estensione e calci, non forzando qui." },
+        { e: "Busto che cade all'indietro", fix: "Busto dritto e mano al muro; abbassa il bersaglio." }
+      ],
+      dose: { sets: 3, reps: "6 per tipo", rest: 45 },
+      safety: "Fino alla fase 2 calci solo con l'operata, in appoggio sulla sana. Se il ginocchio fa male in fondo all'estensione, fermati un po' prima e chiudi gli ultimi gradi con il tallone su rialzo.",
+      levels: [
+        { name: "Frontale al rallentatore", text: "Solo il frontale con l'operata, all'altezza del ginocchio di un avversario: camera, stendi in 3 secondi, tieni 2." },
+        { name: "Frontale e laterale", text: "Aggiungi il laterale: camera di lato, il tallone spinge in fuori all'altezza dell'anca, ginocchio dritto in fondo." },
+        { name: "Tenuta in fuori", text: "Frontale e laterale all'altezza dell'anca, 5 secondi di tenuta a gamba tesa: il quadricipite chiude e tiene.", dose: { sets: 3, reps: "5 per tipo" } },
+        { name: "Anche in appoggio sull'operata", text: "Dopo l'operata calcia con la sana: la gamba operata fa da appoggio, ginocchio morbido sopra il piede.", phase: 2 },
+        { name: "Circolare al rallentatore", text: "Aggiungi il circolare basso: piede d'appoggio già girato, camera di lato, stendi verso la coscia di un avversario.", phase: 2 }
+      ],
+      martial: "È il calcio frontale (ap chagi, mae geri) e il laterale (yeop chagi, yoko geri) visti al rallentatore: camera alta, estensione completa, ritorno controllato. Allena la frustata e insieme recupera gli ultimi gradi di estensione."
+    },
+    {
       id: "calci-lenti", area: "martial", name: "Calci tecnici lenti",
       goal: "Ritrovare i calci poco a poco: prima lenti e bassi, con la gamba d'appoggio che gira bene.",
       how: "Calci lenti e controllati a bassa altezza: prima il frontale spinto, poi il circolare basso, ruotando sull'avampiede della gamba d'appoggio.",
@@ -1384,9 +1652,16 @@
     },
     upperA: ["floor-press", "rematore", "lento", "curl", "tricipiti", "contadino", "dead-bug"],
     upperB: ["piegamenti", "rematore-tavolo", "pullover", "alzate-laterali", "ytw", "plank-laterale", "hollow"],
+    // Estensione e calci: allungamenti a ginocchio dritto e slanci lenti, ogni giorno dopo l'allenamento
+    kick: {
+      1: ["polpaccio-muro", "femorali-rialzo", "estensione-attiva", "gambe-muro-v", "flessori-anca", "slancio-frontale", "slancio-laterale"],
+      2: ["femorali-rialzo", "estensione-attiva", "divaricata", "flessori-anca", "polpaccio-muro", "slancio-frontale", "slancio-laterale"],
+      3: ["slancio-frontale", "slancio-laterale", "femorali-rialzo", "divaricata", "flessori-anca", "estensione-attiva", "polpaccio-muro"],
+      4: ["slancio-frontale", "slancio-laterale", "femorali-rialzo", "divaricata", "flessori-anca", "gambe-muro-v", "polpaccio-muro"]
+    },
     martial: {
-      1: ["shadow-seduto", "parate"],
-      2: ["shadow-fermo", "colpi-equilibrio", "passi-guardia"],
+      1: ["shadow-seduto", "parate", "calci-rallentatore"],
+      2: ["shadow-fermo", "colpi-equilibrio", "calci-rallentatore", "passi-guardia"],
       3: ["shadow-movimento", "corda", "calci-lenti"],
       4: ["shadow-movimento", "calci-lenti", "sparring"]
     }
@@ -1394,6 +1669,7 @@
 
   const SESSION_INFO = {
     ext: { label: "Routine di estensione", short: "Estensione", minutes: 12 },
+    kick: { label: "Estensione e calci", short: "Calci", minutes: 25 },
     legs: { label: "Gambe e tecnica", short: "Gambe", minutes: 45 },
     upperA: { label: "Parte alta A e tecnica", short: "Parte alta A", minutes: 40 },
     upperB: { label: "Parte alta B e tecnica", short: "Parte alta B", minutes: 40 },
@@ -1456,6 +1732,21 @@
       better: "high"
     },
     {
+      id: "reach", name: "Seduto e allungo a ginocchia tese", unit: "cm", step: 1, min: -40, max: 40, from: 1,
+      how: "Seduto a terra con le gambe unite e dritte, i piedi contro uno scatolone o il muro. Senza piegare le ginocchia scivola in avanti con le mani una sopra l'altra, lento, e tieni 2 secondi. Misura dove arrivano le dita rispetto alle punte dei piedi: 0 vuol dire che le tocchi, numero negativo se ti fermi prima (−10 = 10 cm prima), positivo se le superi. Il migliore di 2.",
+      better: "high"
+    },
+    {
+      id: "straddle", name: "Divaricata da seduto", unit: "cm", step: 1, min: 40, max: 250, from: 1,
+      how: "Seduto con la schiena al muro, gambe dritte e punte verso l'alto: apri le gambe quanto riesci senza fastidio al ginocchio e misura la distanza tra i due talloni. Sempre nello stesso modo (con o senza cuscino), così i numeri si confrontano.",
+      better: "high"
+    },
+    {
+      id: "kickH", name: "Slancio frontale: altezza del tallone", unit: "cm", step: 1, min: 30, max: 230, perLeg: true, from: 1,
+      how: "Di fianco a una porta o a un muro, mano appoggiata: alza la gamba tesa davanti, lenta, con il ginocchio dritto del tutto, e tieni 1 secondo in cima. Qualcuno segna l'altezza del tallone e la misura da terra (oppure fai un video di lato). Prima la sana, poi l'operata. Il migliore di 3.",
+      better: "high"
+    },
+    {
       id: "hop", name: "Salto in lungo su una gamba", unit: "cm", step: 1, min: 0, max: 300, perLeg: true, from: 3,
       how: "Da fermo su una gamba, salti in avanti il più lontano possibile e atterri fermo sulla stessa gamba per 2 secondi (se non sei fermo, non vale). Misura dalla punta di partenza al tallone di arrivo. Il migliore di 3, prima la sana. Solo dalla fase 3.",
       better: "high"
@@ -1475,6 +1766,8 @@
     shelbourne: { label: "Shelbourne KD e colleghi. Loss of normal knee motion after ACL reconstruction is associated with radiographic arthritic changes. Am J Sports Med 2012 (riassunto di Mike Reinold).", url: "https://mikereinold.com/what-has-the-biggest-impact-on-outcomes-following-acl-reconstruction-surgery/" },
     cyclops: { label: "Jackson DW, Schaefer RK. Cyclops syndrome: loss of extension following intra-articular ACL reconstruction. Arthroscopy 1990.", url: "https://pubmed.ncbi.nlm.nih.gov/2206179/" },
     schoenfeld: { label: "Schoenfeld BJ, Grgic J, Ogborn D, Krieger JW. Strength and hypertrophy adaptations between low- vs. high-load resistance training: a systematic review and meta-analysis. J Strength Cond Res 2017;31(12):3508–3523.", url: "https://pubmed.ncbi.nlm.nih.gov/28834797/" },
+    behm: { label: "Behm DG, Blazevich AJ, Kay AD, McHugh M. Acute effects of muscle stretching on physical performance, range of motion, and injury incidence in healthy active individuals: a systematic review. Appl Physiol Nutr Metab 2016;41(1):1–11.", url: "https://pure.northampton.ac.uk/en/publications/acute-effects-of-muscle-stretching-on-physical-performance-range-/" },
+    thomas: { label: "Thomas E, Bianco A, Paoli A, Palma A. The relation between stretching typology and stretching duration: the effects on range of motion. Int J Sports Med 2018;39(4):243–254.", url: "https://pubmed.ncbi.nlm.nih.gov/29506306/" },
     morton: { label: "Morton RW e colleghi. A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength. Br J Sports Med 2018;52(6):376–384.", url: "https://bjsm.bmj.com/content/52/6/376" }
   };
 
@@ -1509,6 +1802,17 @@
         "Una revisione degli studi (Perriman 2018) non ha trovato differenze di lassità del ginocchio, forza o funzione tra esercizi in catena aperta (gamba libera, come l'estensione da seduto) e in catena chiusa (piede a terra, come lo squat). Servono tutti e due: la catena aperta isola il quadricipite, la chiusa insegna a usarlo in piedi."
       ],
       sources: ["moon", "perriman"]
+    },
+    {
+      id: "calci",
+      title: "Estensione e calci: lo stesso lavoro",
+      lead: "Gli ultimi gradi di estensione e l'altezza dei calci dipendono dagli stessi muscoli. Per questo ogni giorno c'è una routine che allena tutte e due le cose.",
+      body: [
+        "Dietro il ginocchio passano i femorali e il gemello del polpaccio: quando sono corti tengono il ginocchio un po' piegato e abbassano il calcio frontale. Allungarli con il ginocchio dritto e la coscia contratta (tallone sul rialzo, polpaccio al muro, divaricata, estensione attiva a 90°) recupera estensione e dà altezza ai calci. Le linee guida MOON mettono lo stretching di tutti i gruppi principali già dalle prime settimane, e l'estensione in catena aperta su tutto l'arco dalla 7ª–12ª settimana: a 4 mesi i calci al rallentatore, senza velocità né impatto, sono dentro questi tempi.",
+        "Per l'ampiezza conta il tempo totale: nella revisione di Thomas (2018) lo stiramento statico ha dato più guadagni del balistico e del «contrai e rilassa», con almeno 5 giorni a settimana e almeno 5 minuti a settimana per ogni gruppo muscolare. La routine Estensione e calci li supera da sola.",
+        "Prima di calciare forte, invece, meglio lo stretching dinamico: secondo la revisione di Behm (2016) le tenute statiche lunghe (oltre 60 secondi) subito prima tolgono un po' di forza, quelle brevi seguite da movimenti dinamici quasi niente. Per questo la routine si fa dopo l'allenamento, e gli slanci ritmici arrivano in fase 2, quando il ginocchio si stende come l'altro."
+      ],
+      sources: ["moonPdf", "thomas", "behm"]
     },
     {
       id: "criteri",
@@ -1554,5 +1858,52 @@
     }
   ];
 
-  return { AREAS, PHASES, GATES, GRAFTS, FLEX, EXERCISES, SESSIONS, SESSION_INFO, TESTS, SOURCES, LESSONS };
+  /*
+   * Arti marziali: le sei qualità che il recupero allena (l'esagono «Per le arti marziali»),
+   * quanto ogni esercizio le allena (1–3) e quanto contano per ogni stile della Difesa (0–3).
+   */
+  const MA_GOALS = [
+    { id: "alti", label: "Calci alti", text: "Femorali e polpacci lunghi con il ginocchio dritto: frontale, ascia e laterale che salgono." },
+    { id: "aperti", label: "Calci laterali", text: "Adduttori lunghi e anca che si apre: laterale, circolare, calci ad arco e spaccata." },
+    { id: "frusta", label: "Camera e frustata", text: "Il ginocchio sale veloce nella camera e la gamba si stende fino in fondo: è l'estensione completa." },
+    { id: "appoggio", label: "Gamba d'appoggio", text: "Equilibrio su una gamba, ginocchio in linea sopra il piede, avampiede che gira." },
+    { id: "potenza", label: "Spinta e potenza", text: "Gambe forti per spostamenti esplosivi, ginocchiate, cambi di livello e calci pesanti." },
+    { id: "guardia", label: "Pugni e prese", text: "Spalle, braccia e tronco: guardia alta, colpi che arrivano, clinch e lotta." }
+  ];
+  const BUILDS = {
+    "prono-appeso": { frusta: 1, alti: 1 }, "tallone-rialzo": { frusta: 1, appoggio: 1 }, "arco-corto": { frusta: 2 },
+    "femorali-rialzo": { alti: 3 }, "polpaccio-muro": { appoggio: 2, alti: 1 }, "gambe-muro-v": { aperti: 3, alti: 1 },
+    "estensione-attiva": { alti: 3, frusta: 2 }, "flessori-anca": { frusta: 2, alti: 1, potenza: 1 },
+    "slancio-frontale": { alti: 3, frusta: 1, appoggio: 1 }, "slancio-laterale": { aperti: 3, appoggio: 1 }, "divaricata": { aperti: 3, alti: 2 },
+    "slr": { frusta: 2, alti: 1 }, "sedia": { potenza: 2 }, "muro": { potenza: 1, appoggio: 1 }, "ponte": { potenza: 2 },
+    "polpacci": { appoggio: 1, potenza: 1 }, "abduzione": { appoggio: 2, aperti: 1 }, "equilibrio": { appoggio: 3 },
+    "step-up": { potenza: 2, appoggio: 1 }, "split-squat": { potenza: 2, appoggio: 1 }, "stacco-rumeno": { potenza: 2, alti: 1 },
+    "estensione-seduto": { frusta: 3 }, "curl-scivolato": { frusta: 1, potenza: 1 }, "step-down": { appoggio: 3 }, "stella": { appoggio: 3 },
+    "pogo": { potenza: 2, appoggio: 1 }, "atterraggio": { appoggio: 2, potenza: 1 }, "corsa": { potenza: 1, appoggio: 1 },
+    "agilita": { appoggio: 2, potenza: 2 }, "salto-una-gamba": { potenza: 2, appoggio: 2 },
+    "floor-press": { guardia: 3 }, "piegamenti": { guardia: 3 }, "rematore": { guardia: 3 }, "rematore-tavolo": { guardia: 3 },
+    "lento": { guardia: 3 }, "alzate-laterali": { guardia: 2 }, "curl": { guardia: 2 }, "tricipiti": { guardia: 2 },
+    "pullover": { guardia: 2 }, "ytw": { guardia: 2 }, "contadino": { guardia: 2, appoggio: 1 },
+    "dead-bug": { guardia: 1, frusta: 1 }, "plank-laterale": { guardia: 1, appoggio: 1 }, "hollow": { guardia: 1, frusta: 1 },
+    "shadow-seduto": { guardia: 3 }, "parate": { guardia: 3 }, "shadow-fermo": { guardia: 3, potenza: 1 },
+    "colpi-equilibrio": { appoggio: 2, guardia: 1, frusta: 1 }, "passi-guardia": { appoggio: 2, potenza: 1 },
+    "shadow-movimento": { guardia: 2, appoggio: 2 }, "corda": { appoggio: 2, potenza: 1 },
+    "calci-rallentatore": { frusta: 3, alti: 1, aperti: 1, appoggio: 1 }, "calci-lenti": { frusta: 2, appoggio: 2, aperti: 1 },
+    "sparring": { guardia: 2, appoggio: 1, potenza: 1 }
+  };
+  EXERCISES.forEach((e) => { e.builds = BUILDS[e.id] || {}; });
+  // gli stili della Difesa (stessi id di defense/martial-data.js)
+  const STYLE_NEEDS = {
+    taekwondo: { mine: "il tuo taekwondo", name: "Taekwondo", needs: { alti: 3, aperti: 3, frusta: 3, appoggio: 2, potenza: 1, guardia: 0 }, text: "Il taekwondo vive di calci alti e veloci: femorali e adduttori lunghi, una camera rapida e una gamba d'appoggio che gira stabile." },
+    karate: { mine: "il tuo karate", name: "Karate", needs: { alti: 2, aperti: 2, frusta: 3, appoggio: 2, potenza: 1, guardia: 2 }, text: "Nel karate calci e pugni contano uguale: camera netta per mae, yoko e mawashi geri, posizioni stabili, pugni che partono dall'anca." },
+    muaythai: { mine: "la tua muay thai", name: "Muay Thai", needs: { alti: 1, aperti: 1, frusta: 1, appoggio: 3, potenza: 3, guardia: 2 }, text: "Nella muay thai il circolare gira su una gamba d'appoggio solida e parte dall'anca; poi ginocchiate e clinch: servono forza ed equilibrio." },
+    boxe: { mine: "la tua boxe", name: "Boxe", needs: { alti: 0, aperti: 0, frusta: 0, appoggio: 2, potenza: 2, guardia: 3 }, text: "Nella boxe le gambe portano i colpi: gioco di gambe sugli avampiedi e spinta del diretto da terra." },
+    capoeira: { mine: "la tua capoeira", name: "Capoeira", needs: { alti: 2, aperti: 3, frusta: 1, appoggio: 2, potenza: 2, guardia: 1 }, text: "La capoeira chiede anche aperte per la ginga e i calci ad arco (meia lua), e tanta forza sulle gambe." },
+    kungfu: { mine: "il tuo kung fu", name: "Kung Fu (Wing Chun)", needs: { alti: 0, aperti: 1, frusta: 1, appoggio: 2, potenza: 1, guardia: 3 }, text: "Nel Wing Chun conta la struttura: posizione stabile, calci bassi e diretti, mani veloci." },
+    lotta: { mine: "la tua lotta", name: "Lotta", needs: { alti: 0, aperti: 1, frusta: 0, appoggio: 1, potenza: 3, guardia: 3 }, text: "Nella lotta servono gambe che spingono nei cambi di livello e braccia e tronco che tengono la presa." },
+    sambo: { mine: "il tuo sambo", name: "Sambo", needs: { alti: 0, aperti: 1, frusta: 0, appoggio: 2, potenza: 3, guardia: 3 }, text: "Nel sambo proiezioni e leve: gambe esplosive, equilibrio nelle prese, braccia e tronco forti." },
+    systema: { mine: "il tuo systema", name: "Systema", needs: { alti: 0, aperti: 1, frusta: 0, appoggio: 2, potenza: 1, guardia: 2 }, text: "Nel systema contano rilassamento, equilibrio e movimento morbido: gambe stabili e tronco forte." }
+  };
+
+  return { AREAS, PHASES, GATES, GRAFTS, FLEX, EXERCISES, SESSIONS, SESSION_INFO, TESTS, SOURCES, LESSONS, MA_GOALS, STYLE_NEEDS };
 });

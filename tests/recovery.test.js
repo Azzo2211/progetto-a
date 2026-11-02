@@ -67,14 +67,19 @@ test("Esercizi: id unici e schema completo", () => {
 });
 
 test("Sessioni: ogni id esiste, le aree sono giuste e ogni fase ha gambe e tecnica", () => {
-  const all = [D.SESSIONS.ext, D.SESSIONS.upperA, D.SESSIONS.upperB, ...Object.values(D.SESSIONS.legs), ...Object.values(D.SESSIONS.martial)].flat();
+  const all = [D.SESSIONS.ext, D.SESSIONS.upperA, D.SESSIONS.upperB, ...Object.values(D.SESSIONS.legs), ...Object.values(D.SESSIONS.martial), ...Object.values(D.SESSIONS.kick)].flat();
   all.forEach((id) => assert.ok(E.EX.has(id), `manca ${id}`));
   D.SESSIONS.ext.forEach((id) => assert.strictEqual(E.EX.get(id).area, "ext"));
   [1, 2, 3, 4].forEach((n) => {
     assert.ok(D.SESSIONS.legs[n].length >= 6, `gambe fase ${n}`);
     D.SESSIONS.legs[n].forEach((id) => assert.strictEqual(E.EX.get(id).area, "legs", id));
     D.SESSIONS.martial[n].forEach((id) => assert.strictEqual(E.EX.get(id).area, "martial", id));
+    // Estensione e calci: solo esercizi di flessibilità, nessuno con impatto, tutti con il primo livello libero
+    assert.ok(D.SESSIONS.kick[n].length >= 6, `calci fase ${n}`);
+    D.SESSIONS.kick[n].forEach((id) => { assert.strictEqual(E.EX.get(id).area, "kick", id); assert.ok(!E.EX.get(id).impact, id); });
   });
+  // ogni esercizio di flessibilità è usato
+  D.EXERCISES.filter((e) => e.area === "kick").forEach((e) => assert.ok(Object.values(D.SESSIONS.kick).some((l) => l.includes(e.id)), e.id));
   // nessun impatto nelle fasi 1 e 2
   [1, 2].forEach((n) => D.SESSIONS.legs[n].concat(D.SESSIONS.martial[n]).forEach((id) => assert.ok(!E.EX.get(id).impact, `${id} in fase ${n}`)));
   // gli esercizi della parte alta non chiedono di stare in ginocchio
@@ -136,10 +141,11 @@ test("Controllo: verde, giallo, rosso", () => {
 });
 
 /* ------------------------------------------------------------ programma e sessioni */
-test("Programma: controllo, due routine finché manca estensione, sessione, test", () => {
+test("Programma: controllo, estensione finché manca, sessione, Estensione e calci, test", () => {
   const lab = fresh();
   let steps = E.plan(lab, T0);
-  assert.deepStrictEqual(steps.map((s) => s.id), ["check", "test", "ext1", "ext2", "session"]);
+  assert.deepStrictEqual(steps.map((s) => s.id), ["check", "test", "ext1", "session", "kick"]);
+  assert.strictEqual(steps.find((s) => s.id === "kick").kind, "kick");
   assert.strictEqual(steps.find((s) => s.id === "session").kind, "legs");
   E.checkIn(lab, { swelling: 0, pain: 0, trend: 0 }, T0);
   E.startSession(lab, "ext", T0);
@@ -147,11 +153,18 @@ test("Programma: controllo, due routine finché manca estensione, sessione, test
   E.finishSession(lab, {}, T0 + 15 * 60000);
   steps = E.plan(lab, T0 + 20 * 60000);
   assert.ok(steps.find((s) => s.id === "check").done);
-  assert.ok(steps.find((s) => s.id === "ext1").done && !steps.find((s) => s.id === "ext2").done);
-  // estensione completa: una sola routine
+  assert.ok(steps.find((s) => s.id === "ext1").done && !steps.find((s) => s.id === "kick").done);
+  // anche la routine Estensione e calci conta come estensione del giorno
+  E.startSession(lab, "kick", T0 + 16 * 60000);
+  D.SESSIONS.kick[1].forEach((id) => E.rate(lab, id, "ok"));
+  E.finishSession(lab, {}, T0 + 40 * 60000);
+  assert.ok(E.plan(lab, T0 + 41 * 60000).find((s) => s.id === "kick").done);
+  assert.strictEqual(E.extToday(lab, T0 + 41 * 60000), 2);
+  // estensione completa: niente routine classica, resta Flessibilità per i calci
   E.recordTest(lab, { heel: 0 }, T0 + 30 * 60000);
   steps = E.plan(lab, T0 + 31 * 60000);
-  assert.deepStrictEqual(steps.filter((s) => s.kind === "ext").length, 1);
+  assert.deepStrictEqual(steps.filter((s) => s.kind === "ext").length, 0);
+  assert.ok(/Flessibilità per i calci/.test(steps.find((s) => s.id === "kick").title));
   assert.ok(!steps.some((s) => s.id === "test"), "test appena fatto");
   assert.ok(E.plan(lab, T0 + 7 * DAY).some((s) => s.id === "test"), "test dopo una settimana");
 });
@@ -343,6 +356,52 @@ test("Stato rovinato: ensure ripara tutto senza eccezioni", () => {
   assert.deepStrictEqual(lab.tests, [{ t: 5, gait: 1 }]);
   assert.strictEqual(lab.current, null);
   assert.doesNotThrow(() => { E.plan(lab, T0); E.profile(lab, T0); E.alerts(lab, T0); E.phaseInfo(lab, T0); E.ensure(null); E.ensure("x"); });
+});
+
+test("Arti marziali: cosa allena ogni esercizio, stili, profilo dai test", () => {
+  const goals = D.MA_GOALS.map((g) => g.id);
+  assert.strictEqual(goals.length, 6);
+  D.EXERCISES.forEach((e) => {
+    const k = Object.keys(e.builds);
+    assert.ok(k.length >= 1, `${e.id}: builds`);
+    k.forEach((g) => { assert.ok(goals.includes(g), `${e.id}: ${g}`); assert.ok([1, 2, 3].includes(e.builds[g]), `${e.id}: peso ${g}`); });
+  });
+  Object.entries(D.STYLE_NEEDS).forEach(([id, st]) => {
+    assert.deepStrictEqual(Object.keys(st.needs).sort(), goals.slice().sort(), id);
+    assert.ok(st.text.length > 40 && st.name && /^(il tuo|la tua) /.test(st.mine), id);
+  });
+  // gli stili sono quelli della Difesa
+  global.window = global.window || {};
+  require(path.join(__dirname, "..", "defense", "martial-data.js"));
+  const disc = window.MartialDisciplines.map((d) => d.id).sort();
+  assert.deepStrictEqual(Object.keys(D.STYLE_NEEDS).sort(), disc);
+  // taekwondo: calci alti, laterali e camera prima di tutto; la routine Estensione e calci allena soprattutto i calci alti
+  assert.deepStrictEqual(E.topGoals(["taekwondo"]).map((g) => g.id).sort(), ["alti", "aperti", "frusta"]);
+  assert.deepStrictEqual(E.topGoals(["boxe"]).map((g) => g.id)[0], "guardia");
+  assert.strictEqual(E.topGoals([]).length, 0);
+  const lab = fresh();
+  const kick = E.sessionGoals(E.buildSession(lab, "kick", T0).items);
+  assert.strictEqual(kick[0].id, "alti");
+  assert.ok(kick.some((g) => g.id === "aperti"));
+  assert.ok(E.forStyles("gambe-muro-v", ["taekwondo"]).some((g) => g.id === "aperti"));
+  assert.deepStrictEqual(E.forStyles("gambe-muro-v", ["boxe"]), []);
+  // profilo: da misurare senza test, poi sale con i numeri; il seduto e allungo accetta valori negativi
+  assert.ok(E.maProfile(lab, T0).every((r) => !r.measured));
+  E.recordTest(lab, { reach: -12, straddle: 95, kickH: [80, 110], heel: 2, slr: 10 }, T0);
+  assert.strictEqual(E.latestValue(lab, "reach"), -12);
+  const p1 = Object.fromEntries(E.maProfile(lab, T0).map((r) => [r.key, r]));
+  assert.ok(p1.alti.measured && p1.aperti.measured && p1.frusta.measured && !p1.guardia.measured);
+  E.recordTest(lab, { reach: 6, straddle: 140, kickH: [125, 130], heel: 0, slr: 22 }, T0 + 7 * DAY);
+  const p2 = Object.fromEntries(E.maProfile(lab, T0 + 7 * DAY).map((r) => [r.key, r]));
+  ["alti", "aperti", "frusta"].forEach((k) => assert.ok(p2[k].value > p1[k].value, k));
+  // stili salvati: solo id veri, senza doppioni
+  const l2 = E.ensure({ prefs: { styles: ["taekwondo", "boh", "taekwondo", "boxe"] } }, T0);
+  assert.deepStrictEqual(l2.prefs.styles, ["taekwondo", "boxe"]);
+  // ginocchio rosso: niente slanci né calci al rallentatore
+  E.checkIn(lab, { swelling: 2, pain: 6, trend: 1 }, T0 + 7 * DAY);
+  const red = E.buildSession(lab, "kick", T0 + 7 * DAY).items.map((x) => x.id);
+  assert.ok(red.length >= 3 && !red.some((id) => /slancio|calci-/.test(id)), red.join());
+  assert.ok(!E.buildSession(lab, "upperA", T0 + 7 * DAY).items.some((x) => x.id === "calci-rallentatore"));
 });
 
 test("Omino: ogni esercizio ha una dimostrazione per passo, con mosse vere e pose senza avvisi", () => {
