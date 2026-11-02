@@ -586,7 +586,7 @@
     const k = kneeOf(e);
     if (!k) return "";
     const labels = k.risks.map((r) => r.label).join(", ");
-    return `<div class="ma-knee${k.soft ? " soft" : ""}" role="note"><strong>Ginocchio in recupero · fase ${k.phase}: ${k.soft ? "con cautela" : "fai l'alternativa"}</strong><p>Dentro c'è: ${esc(labels)}. ${k.risks.map((r) => esc(r.alt)).join(" ")}</p><a href="#recovery">Apri il Recupero</a></div>`;
+    return `<div class="ma-knee${k.soft ? " soft" : ""}" role="note"><strong>Ginocchio in recupero · fase ${k.phase}: ${k.soft ? "con cautela" : "fai l'alternativa"}</strong><p>Dentro c'è: ${esc(labels)}. ${k.risks.map((r) => esc(r.alt)).join(" ")}</p><a href="#defense/recupero">Apri il Recupero</a></div>`;
   }
 
   function sessionView(l) {

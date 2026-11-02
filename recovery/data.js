@@ -1378,7 +1378,7 @@
     ext: ["prono-appeso", "tallone-rialzo", "arco-corto"],
     legs: {
       1: ["slr", "sedia", "muro", "ponte", "polpacci", "abduzione", "equilibrio"],
-      2: ["sedia", "estensione-seduto", "step-up", "split-squat", "stacco-rumeno", "curl-scivolato", "step-down", "polpacci"],
+      2: ["sedia", "estensione-seduto", "step-up", "split-squat", "stacco-rumeno", "curl-scivolato", "step-down", "polpacci", "stella"],
       3: ["pogo", "atterraggio", "sedia", "split-squat", "estensione-seduto", "stacco-rumeno", "step-down", "corsa"],
       4: ["agilita", "salto-una-gamba", "sedia", "split-squat", "stacco-rumeno", "estensione-seduto", "curl-scivolato", "corsa"]
     },

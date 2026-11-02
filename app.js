@@ -108,7 +108,6 @@ const routes = [
   "culture",
   "planning",
   "defense",
-  "recovery",
   "aim",
   "logic",
   "memory",
@@ -796,8 +795,16 @@ function uniqueList(items) {
   return [...new Set(items.filter(Boolean))];
 }
 
+// Indirizzi con una sotto-scheda: #defense/recupero apre la Difesa sulla scheda Recupero.
+// Il vecchio #recovery (quando il Recupero era un reparto a parte) porta li'.
+const routeAliases = { recovery: "defense/recupero", recupero: "defense/recupero" };
 function routeToCurrentHash() {
-  const route = window.location.hash.replace("#", "") || "dashboard";
+  let hash = window.location.hash.replace("#", "") || "dashboard";
+  if (routeAliases[hash]) {
+    hash = routeAliases[hash];
+    try { window.history.replaceState(null, "", `#${hash}`); } catch (error) { /* niente */ }
+  }
+  const [route, sub] = hash.split("/");
   const activeRoute = routes.includes(route) ? route : "dashboard";
   document.querySelectorAll(".page").forEach((page) => {
     page.classList.toggle("active-page", page.id === activeRoute);
@@ -806,6 +813,7 @@ function routeToCurrentHash() {
     link.classList.toggle("active", link.dataset.route === activeRoute);
   });
   document.body.dataset.route = activeRoute;
+  if (sub) document.dispatchEvent(new CustomEvent("app:subroute", { detail: { route: activeRoute, sub } }));
   // su telefono il menu e' una striscia: la voce attiva va portata in vista
   const nav = document.querySelector(".nav-list");
   const activeLink = nav && nav.querySelector(".nav-link.active");
@@ -946,7 +954,7 @@ const todaySources = [
   { route: "logic", name: "Logica", engine: "LogicEngine", lab: "logicLab" },
   { route: "influence", name: "Influenza", engine: "InfluenceEngine", lab: "influenceLab" },
   { route: "mentalist", name: "Mentalista", engine: "MentalistEngine", lab: "mentalistLab" },
-  { route: "recovery", name: "Recupero", engine: "RecoveryEngine", lab: "recoveryLab" }
+  { route: "defense", href: "defense/recupero", icon: "#i-recovery", name: "Recupero", engine: "RecoveryEngine", lab: "recoveryLab" }
 ];
 function todayItems() {
   const items = [];
@@ -956,7 +964,7 @@ function todayItems() {
     try {
       const steps = E.plan(E.ensure(state[src.lab]));
       const left = steps.filter((x) => !x.done);
-      items.push({ route: src.route, name: src.name, left: left.length, total: steps.length, minutes: left.reduce((sum, x) => sum + (x.minutes || 0), 0), text: left.length ? left[0].title : "Programma di oggi completato" });
+      items.push({ route: src.route, href: src.href, icon: src.icon, name: src.name, left: left.length, total: steps.length, minutes: left.reduce((sum, x) => sum + (x.minutes || 0), 0), text: left.length ? left[0].title : "Programma di oggi completato" });
     } catch (error) { /* reparto non leggibile: lo salto */ }
   });
   try {
@@ -981,9 +989,9 @@ function renderTodayPlan() {
   const ordered = pending.concat(items.filter((x) => x.left === 0));
   list.innerHTML = ordered.map((x) => {
     const icon = document.querySelector(`.nav-link[data-route="${x.route}"] use`);
-    const href = icon ? icon.getAttribute("href") : "#i-dashboard";
+    const href = x.icon || (icon ? icon.getAttribute("href") : "#i-dashboard");
     return `<li class="today-item ${x.left ? "" : "done"}" data-route="${x.route}">
-      <a href="#${x.route}">
+      <a href="#${x.href || x.route}">
         <svg class="today-icon" aria-hidden="true"><use href="${href}"/></svg>
         <span class="today-copy"><strong>${x.name}</strong><span>${x.text}</span></span>
         <span class="today-count">${x.left ? (x.open ? `${x.minutes} min` : x.route === "culture" ? `${x.minutes} min` : `${x.left} ${x.left === 1 ? "passo" : "passi"}`) : "fatto"}</span>

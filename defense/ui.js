@@ -2,7 +2,8 @@
  * Progetto A - Difesa: interfaccia del modulo.
  *
  * Schede: Programma (sessioni guidate + libreria delle tecniche con figura animata),
- * Riflessi (Semaforo, Direzione, Periferica), Situazioni (decisioni a tempo), Profilo.
+ * Riflessi (Semaforo, Direzione, Periferica), Situazioni (decisioni a tempo), Profilo;
+ * Arti marziali (defense/martial-ui.js) e Recupero del ginocchio (recovery/ui.js, anche da #defense/recupero).
  * Dati: DefenseProgram, DefenseSituations, DefenseScenes. Motore: DefenseEngine.
  * Usa le globali di app.js: state, saveState, renderDashboard, buildRadarMarkup, rankFromScore.
  */
@@ -172,6 +173,11 @@
       b.tabIndex = on ? 0 : -1;
     });
     document.querySelectorAll(".def-panel").forEach((p) => { p.hidden = p.id !== `defPanel-${tab}`; });
+    // l'indirizzo segue la scheda del recupero, cosi' ricaricando si torna li'
+    if (/^#defense(\/|$)/.test(location.hash)) {
+      const want = tab === "recovery" ? "#defense/recupero" : "#defense";
+      if (location.hash !== want) window.history.replaceState(null, "", want);
+    }
     render();
   }
 
@@ -183,6 +189,7 @@
 
   function stopEverything() {
     if (window.DefenseMartialUI) window.DefenseMartialUI.stop();
+    if (window.DefenseRecoveryUI) window.DefenseRecoveryUI.stop();
     if (ui.tick) { clearInterval(ui.tick); ui.tick = null; }
     if (ui.test) abortTest();
     if (ui.situ && ui.situ.timer) { clearTimeout(ui.situ.timer); ui.situ.timer = null; }
@@ -193,6 +200,7 @@
     renderChip();
     destroyFigs();
     if (ui.tab === "martial") { if (window.DefenseMartialUI) window.DefenseMartialUI.render(); }
+    else if (ui.tab === "recovery") { if (window.DefenseRecoveryUI) window.DefenseRecoveryUI.render(); }
     else if (ui.tab === "program") renderProgram();
     else if (ui.tab === "reflex") renderReflex();
     else if (ui.tab === "situ") renderSitu();
@@ -1649,6 +1657,10 @@
     if ("speechSynthesis" in window) {
       try { window.speechSynthesis.onvoiceschanged = () => { itVoice = null; }; } catch (e) { /* niente */ }
     }
-    setTab("martial");
+    // #defense/recupero (anche dal quadro) apre la scheda Recupero
+    document.addEventListener("app:subroute", (event) => {
+      if (event.detail && event.detail.route === "defense" && event.detail.sub === "recupero" && ui.tab !== "recovery") setTab("recovery");
+    });
+    setTab(/^#(defense\/recupero|recovery|recupero)$/.test(location.hash) ? "recovery" : "martial");
   });
 })();

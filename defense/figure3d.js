@@ -238,17 +238,26 @@
       });
       const armPts = [sk.sh[s], sk.elbow[s], sk.hand[s]].map(pr);
       const grip = (sk.grip && sk.grip[s]) || "fist";
-      const handItem = grip === "fist"
+      const handItem = grip === "fist" || grip === "db"
         ? { k: "dot", c: armPts[2], r: W.fist }
         : { k: "seg", a: armPts[2], b: pr(add(sk.hand[s], mul(norm(sub(sk.hand[s], sk.elbow[s])), grip === "blade" ? 0.1 : 0.085))), w: grip === "blade" ? 0.05 : 0.065 };
+      const armItems = [
+        { k: "seg", a: armPts[0], b: armPts[1], w: W.upper },
+        { k: "seg", a: armPts[1], b: armPts[2], w: W.fore },
+        handItem
+      ];
+      // manubrio: barra attraverso il pugno, perpendicolare all'avambraccio (di base lungo la destra del busto)
+      if (grip === "db") {
+        const fa = norm(sub(sk.hand[s], sk.elbow[s]));
+        let ax = sub(sk.chF.right, mul(fa, dot(sk.chF.right, fa)));
+        if (len(ax) < 0.3) ax = sub(sk.chF.fwd, mul(fa, dot(sk.chF.fwd, fa)));
+        ax = norm(ax);
+        armItems.push({ k: "db", a: pr(add(sk.hand[s], mul(ax, -0.11))), b: pr(add(sk.hand[s], mul(ax, 0.11))) });
+      }
       groups.push({
         depth: (armPts[0][2] + armPts[1][2] * 2 + armPts[2][2] * 2) / 5,
         tone: tone(s, nearArm, "arm"), role,
-        items: [
-          { k: "seg", a: armPts[0], b: armPts[1], w: W.upper },
-          { k: "seg", a: armPts[1], b: armPts[2], w: W.fore },
-          handItem
-        ]
+        items: armItems
       });
     });
     // busto: poligono arrotondato tra spalle e anche (piu' stretto delle spalle vere)
@@ -282,9 +291,29 @@
     return groups;
   }
 
+  // Angoli di un oggetto a scatola (letto, sedia, gradino, muro, tavolo).
+  const boxCorners = (pp) => {
+    const out = [];
+    [pp.x0, pp.x1].forEach((x) => [pp.y0, pp.y1].forEach((y) => [pp.z0, pp.z1].forEach((z) => out.push([x, y, z]))));
+    return out;
+  };
   function propPrims(props, cam) {
     const groups = [];
     (props || []).forEach((pp) => {
+      if (pp.k === "box") {
+        // facce visibili: sopra (se la telecamera e' piu' alta) e i fianchi rivolti verso la telecamera.
+        // Disegnata prima della figura: chi ci sta sopra o davanti resta sempre visibile.
+        const C = (x, y, z) => P2(cam, [x, y, z]);
+        const { x0, x1, y0, y1, z0, z1 } = pp;
+        const faces = [];
+        if (cam.toCam[1] > 0) faces.push({ n: "top", pts: [C(x0, y1, z0), C(x1, y1, z0), C(x1, y1, z1), C(x0, y1, z1)] });
+        if (cam.toCam[0] > 0) faces.push({ n: "side", pts: [C(x1, y0, z0), C(x1, y1, z0), C(x1, y1, z1), C(x1, y0, z1)] });
+        if (cam.toCam[0] < 0) faces.push({ n: "side", pts: [C(x0, y0, z0), C(x0, y1, z0), C(x0, y1, z1), C(x0, y0, z1)] });
+        if (cam.toCam[2] > 0) faces.push({ n: "front", pts: [C(x0, y0, z1), C(x1, y0, z1), C(x1, y1, z1), C(x0, y1, z1)] });
+        if (cam.toCam[2] < 0) faces.push({ n: "front", pts: [C(x0, y0, z0), C(x1, y0, z0), C(x1, y1, z0), C(x0, y1, z0)] });
+        groups.push({ depth: -1000, tone: "prop", role: "prop", items: faces.map((f) => ({ k: "face", pts: f.pts, cls: `mf-box mf-box-${f.n}${pp.glass ? " mf-glass" : ""}` })) });
+        return;
+      }
       if (pp.k === "bag") {
         const c = [pp.x, (pp.y0 + pp.y1) / 2, pp.z || 0];
         const top = P2(cam, [pp.x, pp.y1, pp.z || 0]);
@@ -363,7 +392,10 @@
       take(add(s.head, [0, DIM.headR, 0]));
       take([s.pel[0], 0, s.pel[2]]);
     });
-    (props || []).forEach((pp) => { if (pp.k === "bag") { take([pp.x, pp.y1, pp.z || 0]); take([pp.x, pp.y0, pp.z || 0]); } });
+    (props || []).forEach((pp) => {
+      if (pp.k === "bag") { take([pp.x, pp.y1, pp.z || 0]); take([pp.x, pp.y0, pp.z || 0]); }
+      if (pp.k === "box" && !pp.noFrame) boxCorners(pp).forEach(take);
+    });
     const pad = 0.16;
     return { x: x0 - pad, y: y0 - pad, w: x1 - x0 + pad * 2, h: y1 - y0 + pad * 2 };
   }
@@ -394,6 +426,10 @@
           fill += `<circle class="mf-eye" cx="${f1(it.c[0])}" cy="${f1(it.c[1])}" r="${f1(it.r)}" stroke-width="0"/>`;
         } else if (it.k === "chain") {
           fill += `<line class="mf-chain" x1="${f1(it.a[0])}" y1="${f1(it.a[1])}" x2="${f1(it.b[0])}" y2="${f1(it.b[1])}"/>`;
+        } else if (it.k === "face") {
+          fill += `<polygon class="${it.cls}" points="${it.pts.map((q) => `${f1(q[0])},${f1(q[1])}`).join(" ")}"/>`;
+        } else if (it.k === "db") {
+          fill += `<line class="mf-dbbar" x1="${f1(it.a[0])}" y1="${f1(it.a[1])}" x2="${f1(it.b[0])}" y2="${f1(it.b[1])}"/><circle class="mf-dbplate" cx="${f1(it.a[0])}" cy="${f1(it.a[1])}" r="0.036"/><circle class="mf-dbplate" cx="${f1(it.b[0])}" cy="${f1(it.b[1])}" r="0.036"/>`;
         } else if (it.k === "cyl") {
           const x = it.top[0];
           fill += `<path class="mf-bag" d="M${f1(x - it.r)} ${f1(it.top[1])}L${f1(x - it.r)} ${f1(it.bot[1])}A${f1(it.r)} ${f1(it.ry)} 0 0 0 ${f1(x + it.r)} ${f1(it.bot[1])}L${f1(x + it.r)} ${f1(it.top[1])}Z"/><ellipse class="mf-bagtop" cx="${f1(x)}" cy="${f1(it.top[1])}" rx="${f1(it.r)}" ry="${f1(it.ry)}"/>`;

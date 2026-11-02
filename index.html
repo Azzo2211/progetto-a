@@ -12,19 +12,19 @@
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <title>Metodo Integrale</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d1626'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-size='28' font-weight='700' text-anchor='middle' fill='%23e6c777'%3EMI%3C/text%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="styles.css?v=20261102-1" />
-    <link rel="stylesheet" href="chess/board-view.css?v=20261102-1" />
-    <link rel="stylesheet" href="chess/chess-ui.css?v=20261102-1" />
-    <link rel="stylesheet" href="scenarios/scenarios.css?v=20261102-1" />
-    <link rel="stylesheet" href="culture/culture.css?v=20261102-1" />
-    <link rel="stylesheet" href="defense/defense.css?v=20261102-1" />
-    <link rel="stylesheet" href="defense/martial.css?v=20261102-1" />
-    <link rel="stylesheet" href="aim/aim.css?v=20261102-1" />
-    <link rel="stylesheet" href="memory/memory.css?v=20261102-1" />
-    <link rel="stylesheet" href="influence/influence.css?v=20261102-1" />
-    <link rel="stylesheet" href="logic/logic.css?v=20261102-1" />
-    <link rel="stylesheet" href="mentalist/mentalist.css?v=20261102-1" />
-    <link rel="stylesheet" href="recovery/recovery.css?v=20261102-1" />
+    <link rel="stylesheet" href="styles.css?v=20261102-3" />
+    <link rel="stylesheet" href="chess/board-view.css?v=20261102-3" />
+    <link rel="stylesheet" href="chess/chess-ui.css?v=20261102-3" />
+    <link rel="stylesheet" href="scenarios/scenarios.css?v=20261102-3" />
+    <link rel="stylesheet" href="culture/culture.css?v=20261102-3" />
+    <link rel="stylesheet" href="defense/defense.css?v=20261102-3" />
+    <link rel="stylesheet" href="defense/martial.css?v=20261102-3" />
+    <link rel="stylesheet" href="aim/aim.css?v=20261102-3" />
+    <link rel="stylesheet" href="memory/memory.css?v=20261102-3" />
+    <link rel="stylesheet" href="influence/influence.css?v=20261102-3" />
+    <link rel="stylesheet" href="logic/logic.css?v=20261102-3" />
+    <link rel="stylesheet" href="mentalist/mentalist.css?v=20261102-3" />
+    <link rel="stylesheet" href="recovery/recovery.css?v=20261102-3" />
   </head>
   <body>
     <svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
@@ -73,7 +73,6 @@
           <a href="#culture" class="nav-link" data-route="culture"><svg class="nav-icon" aria-hidden="true"><use href="#i-culture"/></svg><span>Cultura</span></a>
           <a href="#planning" class="nav-link" data-route="planning"><svg class="nav-icon" aria-hidden="true"><use href="#i-planning"/></svg><span>Piani</span></a>
           <a href="#defense" class="nav-link" data-route="defense"><svg class="nav-icon" aria-hidden="true"><use href="#i-defense"/></svg><span>Difesa</span></a>
-          <a href="#recovery" class="nav-link" data-route="recovery"><svg class="nav-icon" aria-hidden="true"><use href="#i-recovery"/></svg><span>Recupero</span></a>
           <a href="#aim" class="nav-link" data-route="aim"><svg class="nav-icon" aria-hidden="true"><use href="#i-target"/></svg><span>Mira</span></a>
           <a href="#logic" class="nav-link" data-route="logic"><svg class="nav-icon" aria-hidden="true"><use href="#i-logic"/></svg><span>Logica</span></a>
           <a href="#memory" class="nav-link" data-route="memory"><svg class="nav-icon" aria-hidden="true"><use href="#i-memory"/></svg><span>Memoria</span></a>
@@ -168,13 +167,8 @@
             </a>
             <a class="mode-card" href="#defense">
               <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-defense"/></svg><strong>Difesa personale</strong></span>
-              <p>Arti marziali 5 giorni a settimana col metodo Johan Seong, più difesa, riflessi e decisioni.</p>
+              <p>Arti marziali 5 giorni a settimana col metodo Johan Seong, più difesa, riflessi, decisioni e il recupero del ginocchio.</p>
               <div class="mini-indicators" id="defenseCardIndicators"></div>
-            </a>
-            <a class="mode-card" href="#recovery">
-              <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-recovery"/></svg><strong>Recupero</strong></span>
-              <p>Dopo il crociato: estensione ogni giorno, forza per gambe e parte alta, tecnica marziale sicura per la fase.</p>
-              <div class="mini-indicators" id="recoveryCardIndicators"></div>
             </a>
             <a class="mode-card" href="#aim">
               <span class="mode-card-head"><svg class="mode-icon" aria-hidden="true"><use href="#i-target"/></svg><strong>Mira per Valorant</strong></span>
@@ -604,18 +598,20 @@
             <div>
               <p class="eyebrow">Arti marziali e difesa</p>
               <h1>Guarda, copia, fallo tuo. Uno stile al giorno.</h1>
-              <p class="page-subtitle">Cinque allenamenti a settimana tra boxe, muay thai, taekwondo, karate, capoeira, lotta, wing chun e la scuola russo-sovietica di sambo e systema. Ogni livello: impara, ripeti, prova. In più difesa personale, riflessi misurati e decisioni a tempo.</p>
+              <p class="page-subtitle">Cinque allenamenti a settimana tra boxe, muay thai, taekwondo, karate, capoeira, lotta, wing chun e la scuola russo-sovietica di sambo e systema. Ogni livello: impara, ripeti, prova. In più difesa personale, riflessi misurati, decisioni a tempo e il recupero del ginocchio dopo il crociato.</p>
             </div>
             <button class="def-chip" id="defChip" type="button" title="Apri l'allenamento di oggi"></button>
           </div>
           <div class="def-tabs" role="tablist" aria-label="Sezioni della difesa">
             <button type="button" role="tab" id="defTab-martial" data-def-tab="martial" aria-controls="defPanel-martial" aria-selected="true">Arti marziali</button>
+            <button type="button" role="tab" id="defTab-recovery" data-def-tab="recovery" aria-controls="defPanel-recovery" aria-selected="false" tabindex="-1">Recupero</button>
             <button type="button" role="tab" id="defTab-program" data-def-tab="program" aria-controls="defPanel-program" aria-selected="false" tabindex="-1">Difesa</button>
             <button type="button" role="tab" id="defTab-reflex" data-def-tab="reflex" aria-controls="defPanel-reflex" aria-selected="false" tabindex="-1">Riflessi</button>
             <button type="button" role="tab" id="defTab-situ" data-def-tab="situ" aria-controls="defPanel-situ" aria-selected="false" tabindex="-1">Situazioni</button>
             <button type="button" role="tab" id="defTab-profile" data-def-tab="profile" aria-controls="defPanel-profile" aria-selected="false" tabindex="-1">Profilo</button>
           </div>
           <div class="def-panel" id="defPanel-martial" role="tabpanel" aria-labelledby="defTab-martial"></div>
+          <div class="def-panel" id="defPanel-recovery" role="tabpanel" aria-labelledby="defTab-recovery" hidden></div>
           <div class="def-panel" id="defPanel-program" role="tabpanel" aria-labelledby="defTab-program" hidden></div>
           <div class="def-panel" id="defPanel-reflex" role="tabpanel" aria-labelledby="defTab-reflex" hidden></div>
           <div class="def-panel" id="defPanel-situ" role="tabpanel" aria-labelledby="defTab-situ" hidden></div>
@@ -703,27 +699,6 @@
           <div class="mnt-sr" id="mntLive" aria-live="polite"></div>
         </section>
 
-        <section id="recovery" class="page rc-page">
-          <div class="page-heading rc-heading">
-            <div>
-              <p class="eyebrow">Recupero</p>
-              <h1>Ginocchio dritto, gambe forti, tecnica viva.</h1>
-              <p class="page-subtitle">Il piano dopo la ricostruzione del crociato: estensione ogni giorno, forza per gambe e parte alta con manubri e corpo libero, e la tecnica marziale che il ginocchio può già fare. Si avanza per criteri, con i test di ogni settimana, sulle linee guida MOON e sugli studi più citati.</p>
-            </div>
-            <button class="rc-chip" id="rcChip" type="button" title="Torna al programma di oggi"></button>
-          </div>
-          <div class="rc-tabs" role="group" aria-label="Sezioni del recupero">
-            <button type="button" data-rc-tab="today" aria-pressed="true">Oggi</button>
-            <button type="button" data-rc-tab="phases" aria-pressed="false">Fasi</button>
-            <button type="button" data-rc-tab="test" aria-pressed="false">Test</button>
-            <button type="button" data-rc-tab="library" aria-pressed="false">Esercizi</button>
-            <button type="button" data-rc-tab="why" aria-pressed="false">Perché</button>
-            <button type="button" data-rc-tab="progress" aria-pressed="false">Progressi</button>
-          </div>
-          <div id="rcPanel"></div>
-          <div class="rc-sr" id="rcLive" aria-live="polite"></div>
-        </section>
-
         <section id="aesthetic" class="page">
           <div class="page-heading">
             <div>
@@ -759,84 +734,86 @@
 
     <!-- Scacchi: libreria regole, libro aperture, analisi, motore Stockfish, bot e revisione -->
     <script src="vendor/chess.js?v=1.4.0"></script>
-    <script src="chess/opening-book.js?v=20261102-1"></script>
-    <script src="chess/analysis-core.js?v=20261102-1"></script>
-    <script src="chess/engine.js?v=20261102-1"></script>
-    <script src="chess/bot.js?v=20261102-1"></script>
-    <script src="chess/review.js?v=20261102-1"></script>
-    <script src="chess/board-view.js?v=20261102-1"></script>
-    <script src="chess/clock.js?v=20261102-1"></script>
-    <script src="chess/rating.js?v=20261102-1"></script>
-    <script src="chess/skills.js?v=20261102-1"></script>
-    <script src="chess/lessons.js?v=20261102-1"></script>
-    <script src="chess/coach.js?v=20261102-1"></script>
-    <script src="chess/trainer.js?v=20261102-1"></script>
-    <script src="scenarios/engine.js?v=20261102-1"></script>
-    <script src="scenarios/exams.js?v=20261102-1"></script>
-    <script src="scenarios/free.js?v=20261102-1"></script>
-    <script src="culture/engine.js?v=20261102-1"></script>
-    <script src="culture/cards.js?v=20261102-1"></script>
-    <script src="culture/uni-engine.js?v=20261102-1"></script>
-    <script src="defense/keepawake.js?v=20261102-1"></script>
-    <script src="defense/engine.js?v=20261102-1"></script>
-    <script src="defense/program.js?v=20261102-1"></script>
-    <script src="defense/situations.js?v=20261102-1"></script>
-    <script src="defense/figure.js?v=20261102-1"></script>
-    <script src="defense/scenes.js?v=20261102-1"></script>
-    <script src="defense/martial.js?v=20261102-1"></script>
-    <script src="defense/martial-data.js?v=20261102-1"></script>
-    <script src="defense/martial-lookism.js?v=20261102-1"></script>
-    <script src="defense/figure3d.js?v=20261102-1"></script>
-    <script src="defense/moves.js?v=20261102-1"></script>
-    <script src="defense/moves/comuni.js?v=20261102-1"></script>
-    <script src="defense/moves/boxe.js?v=20261102-1"></script>
-    <script src="defense/moves/muaythai.js?v=20261102-1"></script>
-    <script src="defense/moves/taekwondo.js?v=20261102-1"></script>
-    <script src="defense/moves/karate.js?v=20261102-1"></script>
-    <script src="defense/moves/capoeira.js?v=20261102-1"></script>
-    <script src="defense/moves/lotta.js?v=20261102-1"></script>
-    <script src="defense/moves/kungfu.js?v=20261102-1"></script>
-    <script src="defense/moves/systema.js?v=20261102-1"></script>
-    <script src="defense/moves/sambo.js?v=20261102-1"></script>
-    <script src="defense/martial-demos.js?v=20261102-1"></script>
-    <script src="app.js?v=20261102-1"></script>
-    <script src="chess/chess-ui.js?v=20261102-1"></script>
-    <script src="chess/learn-ui.js?v=20261102-1"></script>
-    <script src="chess/grade-ui.js?v=20261102-1"></script>
-    <script src="cote-theme.js?v=20261102-1"></script>
-    <script src="scenarios/ui.js?v=20261102-1"></script>
-    <script src="culture/uni-ui.js?v=20261102-1"></script>
-    <script src="culture/ui.js?v=20261102-1"></script>
-    <script src="recovery/data.js?v=20261102-1"></script>
-    <script src="recovery/engine.js?v=20261102-1"></script>
-    <script src="defense/martial-fix.js?v=20261102-1"></script>
-    <script src="defense/martial-ui.js?v=20261102-1"></script>
-    <script src="defense/ui.js?v=20261102-1"></script>
-    <script src="aim/engine.js?v=20261102-1"></script>
-    <script src="aim/game.js?v=20261102-1"></script>
-    <script src="aim/ui.js?v=20261102-1"></script>
-    <script src="memory/data.js?v=20261102-1"></script>
-    <script src="memory/faces.js?v=20261102-1"></script>
-    <script src="memory/engine.js?v=20261102-1"></script>
-    <script src="memory/ui.js?v=20261102-1"></script>
-    <script src="influence/tactics.js?v=20261102-1"></script>
-    <script src="influence/deals.js?v=20261102-1"></script>
-    <script src="influence/drills.js?v=20261102-1"></script>
-    <script src="influence/data.js?v=20261102-1"></script>
-    <script src="influence/engine.js?v=20261102-1"></script>
-    <script src="influence/ui.js?v=20261102-1"></script>
-    <script src="logic/gen.js?v=20261102-1"></script>
-    <script src="logic/traps.js?v=20261102-1"></script>
-    <script src="logic/data.js?v=20261102-1"></script>
-    <script src="logic/engine.js?v=20261102-1"></script>
-    <script src="logic/ui.js?v=20261102-1"></script>
-    <script src="mentalist/gen.js?v=20261102-1"></script>
-    <script src="mentalist/interro.js?v=20261102-1"></script>
-    <script src="mentalist/reading.js?v=20261102-1"></script>
-    <script src="mentalist/cases.js?v=20261102-1"></script>
-    <script src="mentalist/data.js?v=20261102-1"></script>
-    <script src="mentalist/engine.js?v=20261102-1"></script>
-    <script src="mentalist/ui.js?v=20261102-1"></script>
-    <script src="recovery/ui.js?v=20261102-1"></script>
+    <script src="chess/opening-book.js?v=20261102-3"></script>
+    <script src="chess/analysis-core.js?v=20261102-3"></script>
+    <script src="chess/engine.js?v=20261102-3"></script>
+    <script src="chess/bot.js?v=20261102-3"></script>
+    <script src="chess/review.js?v=20261102-3"></script>
+    <script src="chess/board-view.js?v=20261102-3"></script>
+    <script src="chess/clock.js?v=20261102-3"></script>
+    <script src="chess/rating.js?v=20261102-3"></script>
+    <script src="chess/skills.js?v=20261102-3"></script>
+    <script src="chess/lessons.js?v=20261102-3"></script>
+    <script src="chess/coach.js?v=20261102-3"></script>
+    <script src="chess/trainer.js?v=20261102-3"></script>
+    <script src="scenarios/engine.js?v=20261102-3"></script>
+    <script src="scenarios/exams.js?v=20261102-3"></script>
+    <script src="scenarios/free.js?v=20261102-3"></script>
+    <script src="culture/engine.js?v=20261102-3"></script>
+    <script src="culture/cards.js?v=20261102-3"></script>
+    <script src="culture/uni-engine.js?v=20261102-3"></script>
+    <script src="defense/keepawake.js?v=20261102-3"></script>
+    <script src="defense/engine.js?v=20261102-3"></script>
+    <script src="defense/program.js?v=20261102-3"></script>
+    <script src="defense/situations.js?v=20261102-3"></script>
+    <script src="defense/figure.js?v=20261102-3"></script>
+    <script src="defense/scenes.js?v=20261102-3"></script>
+    <script src="defense/martial.js?v=20261102-3"></script>
+    <script src="defense/martial-data.js?v=20261102-3"></script>
+    <script src="defense/martial-lookism.js?v=20261102-3"></script>
+    <script src="defense/figure3d.js?v=20261102-3"></script>
+    <script src="defense/moves.js?v=20261102-3"></script>
+    <script src="defense/moves/comuni.js?v=20261102-3"></script>
+    <script src="defense/moves/boxe.js?v=20261102-3"></script>
+    <script src="defense/moves/muaythai.js?v=20261102-3"></script>
+    <script src="defense/moves/taekwondo.js?v=20261102-3"></script>
+    <script src="defense/moves/karate.js?v=20261102-3"></script>
+    <script src="defense/moves/capoeira.js?v=20261102-3"></script>
+    <script src="defense/moves/lotta.js?v=20261102-3"></script>
+    <script src="defense/moves/kungfu.js?v=20261102-3"></script>
+    <script src="defense/moves/systema.js?v=20261102-3"></script>
+    <script src="defense/moves/sambo.js?v=20261102-3"></script>
+    <script src="defense/moves/recupero.js?v=20261102-3"></script>
+    <script src="defense/martial-demos.js?v=20261102-3"></script>
+    <script src="app.js?v=20261102-3"></script>
+    <script src="chess/chess-ui.js?v=20261102-3"></script>
+    <script src="chess/learn-ui.js?v=20261102-3"></script>
+    <script src="chess/grade-ui.js?v=20261102-3"></script>
+    <script src="cote-theme.js?v=20261102-3"></script>
+    <script src="scenarios/ui.js?v=20261102-3"></script>
+    <script src="culture/uni-ui.js?v=20261102-3"></script>
+    <script src="culture/ui.js?v=20261102-3"></script>
+    <script src="recovery/data.js?v=20261102-3"></script>
+    <script src="recovery/engine.js?v=20261102-3"></script>
+    <script src="recovery/demos.js?v=20261102-3"></script>
+    <script src="defense/martial-fix.js?v=20261102-3"></script>
+    <script src="defense/martial-ui.js?v=20261102-3"></script>
+    <script src="defense/ui.js?v=20261102-3"></script>
+    <script src="aim/engine.js?v=20261102-3"></script>
+    <script src="aim/game.js?v=20261102-3"></script>
+    <script src="aim/ui.js?v=20261102-3"></script>
+    <script src="memory/data.js?v=20261102-3"></script>
+    <script src="memory/faces.js?v=20261102-3"></script>
+    <script src="memory/engine.js?v=20261102-3"></script>
+    <script src="memory/ui.js?v=20261102-3"></script>
+    <script src="influence/tactics.js?v=20261102-3"></script>
+    <script src="influence/deals.js?v=20261102-3"></script>
+    <script src="influence/drills.js?v=20261102-3"></script>
+    <script src="influence/data.js?v=20261102-3"></script>
+    <script src="influence/engine.js?v=20261102-3"></script>
+    <script src="influence/ui.js?v=20261102-3"></script>
+    <script src="logic/gen.js?v=20261102-3"></script>
+    <script src="logic/traps.js?v=20261102-3"></script>
+    <script src="logic/data.js?v=20261102-3"></script>
+    <script src="logic/engine.js?v=20261102-3"></script>
+    <script src="logic/ui.js?v=20261102-3"></script>
+    <script src="mentalist/gen.js?v=20261102-3"></script>
+    <script src="mentalist/interro.js?v=20261102-3"></script>
+    <script src="mentalist/reading.js?v=20261102-3"></script>
+    <script src="mentalist/cases.js?v=20261102-3"></script>
+    <script src="mentalist/data.js?v=20261102-3"></script>
+    <script src="mentalist/engine.js?v=20261102-3"></script>
+    <script src="mentalist/ui.js?v=20261102-3"></script>
+    <script src="recovery/ui.js?v=20261102-3"></script>
   </body>
 </html>

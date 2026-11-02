@@ -1,8 +1,10 @@
 /*
- * Progetto A - Recupero: la pagina (Oggi, Fasi, Test, Esercizi, Perché, Progressi), la sessione
- * guidata con il timer e la scheda nel quadro.
- * Motore: window.RecoveryEngine (dati in window.RecoveryData). Stato: state.recoveryLab.
- * Usa le globali di app.js: state, saveState, renderDashboard, buildRadarMarkup.
+ * Progetto A - Difesa › Recupero: la scheda del recupero del ginocchio dentro la pagina Difesa.
+ * Viste: Oggi (controllo del ginocchio, allenamento del giorno, programma), Fasi, Test, Esercizi,
+ * Perché, Progressi. L'allenamento ha la stessa forma di quelli delle arti marziali: elenco a
+ * sinistra, scheda dell'esercizio con il timer, l'omino che mostra ogni passo, errori tipici.
+ * Motore: window.RecoveryEngine (dati in RecoveryData, dimostrazioni in RecoveryDemos).
+ * Stato: state.recoveryLab. Globali di app.js: state, saveState, renderDashboard, buildRadarMarkup.
  * Il timer conta sull'ora vera e tiene lo schermo acceso con DefenseAwake (defense/keepawake.js).
  */
 (function () {
@@ -10,21 +12,29 @@
 
   const E = window.RecoveryEngine;
   const D = window.RecoveryData;
+  const DM = window.RecoveryDemos || {};
   if (!E || !D) return;
 
+  const C = "#7fd18b"; // il colore del recupero
+  const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const ui = {
-    tab: "today",      // today | phases | test | library | why | progress
-    ex: 0,             // esercizio aperto nella sessione
+    view: "today",     // today | phases | test | library | why | progress
+    pick: null,        // allenamento scelto oggi (altrimenti quello consigliato)
+    ex: 0,
     exFor: null,
-    finishing: false,  // domanda sul ginocchio prima di chiudere
-    summary: null,     // riepilogo dopo la sessione
-    check: null,       // bozza del controllo del giorno
+    finishing: false,
+    summary: null,
+    check: null,
     checkEdit: false,
     setupEdit: false,
+    setupErr: "",
     filter: "all",
+    open: null,        // esercizio aperto nella libreria
     testMsg: null,
     timer: null,
-    setupErr: ""
+    player: null,
+    playerId: null,
+    playerState: null
   };
 
   const $ = (id) => document.getElementById(id);
@@ -32,8 +42,10 @@
   const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
   const dateShort = (t) => new Date(t).toLocaleDateString("it-IT", { day: "numeric", month: "short" });
   const dateLong = (t) => new Date(t).toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" });
+  const dayLabel = (t) => new Date(t).toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" });
   const dec = (v) => String(v).replace(".", ",");
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const pad = (n) => String(n).padStart(2, "0");
   const AREA = Object.fromEntries(D.AREAS.map((a) => [a.id, a.label]));
   const RATE = [
     { v: "easy", label: "Facile", hint: "Ne avevi ancora parecchie" },
@@ -44,6 +56,7 @@
   ];
   const TIME_HINT = { easy: "Comodo, potevo andare oltre", ok: "Impegnativo ma gestibile", hard: "Al limite, ho tenuto a fatica" };
   const RATE_LABEL = Object.fromEntries(RATE.map((r) => [r.v, r.label]));
+  const KINDS = ["ext", "legs", "upperA", "upperB", "martial"];
 
   function lab() {
     state.recoveryLab = E.ensure(state.recoveryLab);
@@ -52,11 +65,9 @@
   function save() {
     if (typeof saveState === "function") saveState();
     if (typeof renderDashboard === "function") renderDashboard();
-    renderChip();
-    renderCard();
   }
   function announce(text) {
-    const live = $("rcLive");
+    const live = $("defLive");
     if (!live) return;
     live.textContent = "";
     setTimeout(() => { live.textContent = text; }, 30);
@@ -68,6 +79,14 @@
     const weeks = Math.floor(((m - whole) * 30.44) / 7);
     return `${whole === 1 ? "1 mese" : `${whole} mesi`}${weeks ? ` e ${plural(weeks, "settimana", "settimane")}` : ""} dall'intervento`;
   }
+  function doseText(d) {
+    if (!d) return "";
+    const side = d.perSide ? " per lato" : "";
+    const time = (s) => (s >= 60 && s % 60 === 0 ? `${s / 60} min` : s >= 60 ? `${Math.floor(s / 60)}:${pad(s % 60)} min` : `${s} s`);
+    const main = d.work != null ? (d.sets > 1 ? `${d.sets} × ${time(d.work)}${side}` : `${time(d.work)}${side}`) : d.sets > 1 ? `${d.sets} × ${d.reps}${side}` : `${d.reps}${side}`;
+    return d.rest && d.sets > 1 ? `${main} · recupero ${time(d.rest)}` : main;
+  }
+  const kindTag = (e) => `<span class="ma-kind k-r-${e.area}">${esc(AREA[e.area])}</span>`;
 
   /* ------------------------------------------------------------ suoni */
   let audio = null;
@@ -87,54 +106,101 @@
     } catch (e) { /* audio non disponibile */ }
   }
 
-  /* ------------------------------------------------------------ chip e scheda nel quadro */
-  function renderChip() {
-    const box = $("rcChip");
-    if (!box) return;
-    const l = lab();
-    if (!E.configured(l)) {
-      box.innerHTML = `<span class="rc-chip-num">?</span><span class="rc-chip-copy"><strong>Da impostare</strong><span>Due minuti per partire</span></span>`;
-      return;
+  /* ------------------------------------------------------------ l'omino */
+  const demoCache = new Map();
+  function demoOf(e) {
+    if (demoCache.has(e.id)) return demoCache.get(e.id);
+    let out = null;
+    const F = window.MartialFigure;
+    const MM = window.MartialMoves;
+    const spec = DM[e.id];
+    if (F && MM && Array.isArray(spec) && spec.length === e.steps.length) {
+      try {
+        const demo = MM.demoFor(spec);
+        demo.steps.forEach((st) => { st.label = String(st.label).replace(/([A-Za-zÀ-ÿ])'([A-Za-zÀ-ÿ0-9])/g, "$1’$2"); });
+        if (demo.steps.length === e.steps.length) {
+          const seq = demo.steps.map((st) => {
+            const still = st.frames.every((f) => !f.act || !f.act.length) && MM.keyFrames(st.frames, 2).length <= 1;
+            const keys = still ? [] : MM.keyFrames(st.frames, 6);
+            const box = F.demoBox({ steps: [st], props: demo.props }, "tq");
+            const items = keys.map((k) => {
+              const f = st.frames[k];
+              const one = f.mv ? MM.get(f.mv) : null;
+              return { k, label: one ? one.label : st.label, html: F.svg(f.pose, { view: "tq", box, prev: k ? st.frames[k - 1].pose : null, act: f.act, props: demo.props, partner: f.partner }) };
+            });
+            const sig = MM.sig || ((f) => JSON.stringify([f.pose, f.partner || 0]));
+            const keySig = items.map((it) => sig(st.frames[it.k]));
+            const toKey = st.frames.map((f, j) => {
+              const same = keySig.indexOf(sig(f));
+              if (same >= 0) return same;
+              let before = 0;
+              items.forEach((it, n) => { if (it.k <= j) before = n; });
+              return before;
+            });
+            return { items, toKey };
+          });
+          out = { demo, seq };
+        }
+      } catch (err) { out = null; }
     }
-    const p = E.phase(l);
-    const heel = E.latestValue(l, "heel");
-    box.innerHTML = `<span class="rc-chip-num">${p}</span><span class="rc-chip-copy"><strong>Fase ${p} · ${esc(D.PHASES[p - 1].name)}</strong><span>${esc(monthsText(l))}${heel == null ? "" : heel === 0 ? " · estensione completa" : ` · talloni −${dec(heel)} cm`}</span></span>`;
+    demoCache.set(e.id, out);
+    while (demoCache.size > 10) demoCache.delete(demoCache.keys().next().value);
+    return out;
   }
-
-  function renderCard() {
-    const box = $("recoveryCardIndicators");
-    if (!box) return;
-    const l = lab();
-    const vals = E.profile(l);
-    const p = E.configured(l) ? E.phase(l) : null;
-    box.classList.add("dashboard-card-profile");
-    const svg = typeof buildRadarMarkup === "function" ? buildRadarMarkup(vals.map((v) => ({ label: v.label, value: v.value })), 180, 90, 80, false) : "";
-    box.innerHTML = `
-      <div class="dashboard-card-top">
-        <svg class="dashboard-card-radar" viewBox="0 0 180 180" role="img" aria-label="Profilo del recupero: ${vals.map((v) => `${esc(v.label)} ${v.measured ? v.value : "da misurare"}`).join(", ")}">${svg}</svg>
-        <div class="dashboard-card-average">
-          <strong>${p ? `F${p}` : "—"}</strong>
-          <span class="card-rank rc-card-tag">${p ? `Fase ${p} di 4` : "Da impostare"}</span>
-        </div>
-      </div>
-      <dl class="card-values">${vals.map((v) => `<div><dt>${esc(v.label)}</dt><dd>${v.measured ? v.value : "—"}</dd></div>`).join("")}</dl>
-      <div class="dashboard-card-trend">${esc(E.trend(l))} · fuori dal rango</div>`;
+  function seqMarkup(dm, i) {
+    const s = dm.seq[i];
+    if (!s || !s.items.length) return "";
+    return `<div class="ma-seq" role="group" aria-label="Immagini del passo ${i + 1}">
+      <button type="button" class="ma-seq-play" data-r="demo-step" data-step="${i}" aria-label="Guarda solo il passo ${i + 1} nel video" title="Guarda solo questo passo"><span class="ma-tri" aria-hidden="true"></span></button>
+      ${s.items.map((it, n) => `<button type="button" class="ma-seq-img" data-r="demo-frame" data-step="${i}" data-frame="${it.k}" data-key="${n}" aria-label="Passo ${i + 1}, immagine ${n + 1} di ${s.items.length}: ${esc(it.label)}" title="${esc(it.label)}">${it.html}</button>`).join("")}
+    </div>`;
   }
-
-  /* ------------------------------------------------------------ esagono */
-  function hexProfile(l) {
-    const vals = E.profile(l);
-    let i = -1;
-    const svg = (typeof buildRadarMarkup === "function" ? buildRadarMarkup(vals.map((v) => ({ label: v.label, value: v.value })), 380, 190, 98, true) : "")
-      .replace(/(<text class="radar-value"[^>]*>)[^<]*(<\/text>)/g, (m, a, b) => { i += 1; const v = vals[i]; return v ? `${a}${v.measured ? v.value : "da misurare"}${b}` : m; });
-    const measured = vals.filter((v) => v.measured);
-    const total = measured.length ? Math.round(measured.reduce((s, v) => s + v.value, 0) / measured.length) : null;
-    return `<div class="rc-hex">
-      <svg class="rc-hex-svg" viewBox="0 0 380 380" role="img" aria-label="Profilo del recupero: ${vals.map((v) => `${esc(v.label)} ${v.measured ? v.value : "da misurare"}`).join(", ")}">${svg}</svg>
-      <div class="rc-hex-total"><strong>${total == null ? "—" : total}</strong><span>${total == null ? "fai il primo test per vedere il profilo" : `media delle voci misurate · ${plural(measured.length, "voce", "voci")} su 6`}</span></div>
-    </div>
-    <ul class="rc-metrics">${vals.map((v) => `<li class="${v.measured ? "" : "todo"}"><span>${esc(v.label)}</span><strong>${v.measured ? v.value : "da misurare"}</strong>${v.measured ? `<i style="--w:${v.value}%"></i>` : ""}</li>`).join("")}</ul>
-    <p class="rc-small">Il recupero non entra nel rango generale: qui non conviene mai forzare per prendere punti.</p>`;
+  function howMarkup(e) {
+    const dm = demoOf(e);
+    if (!dm) return `<ol class="def-steps">${e.steps.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>`;
+    return `<div class="ma-howgrid">
+      <div class="ma-demo" data-demo="${esc(e.id)}"></div>
+      <ol class="def-steps has-seq">${e.steps.map((x, i) => `<li data-step="${i}"><div class="ma-step"><span class="ma-step-text">${esc(x)}</span>${seqMarkup(dm, i)}</div></li>`).join("")}</ol>
+    </div>`;
+  }
+  function mountDemo(box) {
+    const host = box.querySelector(".ma-demo[data-demo]");
+    if (!host || !window.MartialFigure) return;
+    const id = host.dataset.demo;
+    const dm = demoCache.get(id);
+    if (!dm) return;
+    const keep = ui.playerState && ui.playerState.id === id ? ui.playerState.state : null;
+    const list = host.parentElement.querySelector(".def-steps.has-seq");
+    let curStep = -1;
+    ui.playerId = id;
+    ui.player = window.MartialFigure.player(host, dm.demo, {
+      view: "tq",
+      reduced,
+      state: keep,
+      onStep(si) {
+        curStep = si;
+        if (list) list.querySelectorAll("li[data-step]").forEach((li) => li.classList.toggle("is-playing", Number(li.dataset.step) === si));
+      },
+      onFrame(si, k) {
+        if (!list) return;
+        const key = dm.seq[si] ? dm.seq[si].toKey[k] : -1;
+        list.querySelectorAll(".ma-seq-img[aria-current]").forEach((b) => b.removeAttribute("aria-current"));
+        const b = list.querySelector(`.ma-seq-img[data-step="${si}"][data-key="${key}"]`);
+        if (b && si === curStep) b.setAttribute("aria-current", "true");
+      }
+    });
+  }
+  function dropDemo() {
+    if (!ui.player) return;
+    ui.playerState = { id: ui.playerId, state: ui.player.state() };
+    ui.player.destroy();
+    ui.player = null;
+  }
+  function showDemo() {
+    const stage = $("defPanel-recovery").querySelector(".ma-demo .mf-stage");
+    if (!stage) return;
+    const r = stage.getBoundingClientRect();
+    if (r.bottom < 40 || r.top > window.innerHeight - 40) stage.scrollIntoView({ block: "nearest", behavior: reduced ? "auto" : "smooth" });
   }
 
   /* ------------------------------------------------------------ OGGI */
@@ -149,126 +215,150 @@
     const def = (() => { const d = new Date(); d.setMonth(d.getMonth() - 4); return d.toISOString().slice(0, 10); })();
     const today = new Date().toISOString().slice(0, 10);
     return `
-      <article class="rc-card rc-setup">
-        <h2>${first ? "Prima di partire: due minuti" : "I dati dell'intervento"}</h2>
-        <p>${first ? "Servono per calcolare le date, scegliere da dove partire e darti i consigli giusti per il tuo innesto. Il piano poi si aggiusta da solo con i test di ogni settimana." : "Se cambi «quanto riesci a piegare» puoi far ripartire i livelli di sedia e affondo da lì."}</p>
-        <form id="rcSetup" class="rc-form" novalidate>
-          <label class="rc-field"><span>Data dell'intervento</span><input type="date" name="surgery" value="${esc(s.surgery || def)}" max="${today}" required /><small>${s.surgery ? "" : "Ho messo 4 mesi fa: correggi con la data esatta."}</small></label>
-          <fieldset class="rc-field"><legend>Gamba operata</legend><div class="rc-seg">${["destra", "sinistra"].map((v) => `<label><input type="radio" name="side" value="${v}" ${(s.side || "destra") === v ? "checked" : ""} /><span>${v[0].toUpperCase() + v.slice(1)}</span></label>`).join("")}</div></fieldset>
-          <label class="rc-field"><span>Da dove è stato preso il nuovo legamento</span><select name="graft">${D.GRAFTS.map((g) => `<option value="${g.id}" ${(s.graft || "nonso") === g.id ? "selected" : ""}>${esc(g.label)}</option>`).join("")}</select></label>
-          <fieldset class="rc-field"><legend>Oggi, con il peso sopra, quanto riesci a piegare il ginocchio?</legend><div class="rc-options">${D.FLEX.map((f) => `<label><input type="radio" name="flex" value="${f.id}" ${(s.flex ?? 0) === f.id ? "checked" : ""} /><span>${esc(f.label)}</span></label>`).join("")}</div></fieldset>
-          ${first ? "" : `<label class="rc-check"><input type="checkbox" name="resetLevels" /><span>Fai ripartire sedia, seduta al muro e affondo da questa risposta</span></label>`}
-          ${ui.setupErr ? `<p class="rc-error" role="alert">${esc(ui.setupErr)}</p>` : ""}
-          <div class="rc-actions"><button type="submit" class="primary-action">${first ? "Inizia il piano" : "Salva"}</button>${first ? "" : `<button type="button" class="ghost-action" data-r="setup-cancel">Annulla</button>`}</div>
-        </form>
+      <article class="ma-today rc-setup" style="--ma-c:${C}">
+        <div class="ma-today-main">
+          <span class="def-kicker">${first ? "Prima di partire · due minuti" : "I dati dell'intervento"}</span>
+          <h2 data-focus-title>${first ? "Recupero del ginocchio" : "Modifica i dati"}</h2>
+          <p class="ma-tagline">${first ? "Servono per calcolare le date, scegliere da dove partire e darti i consigli giusti per il tuo innesto. Poi il piano si aggiusta da solo con i test di ogni settimana." : "Se cambi «quanto riesci a piegare» puoi far ripartire da lì i livelli di sedia, seduta al muro e affondo."}</p>
+          <form id="rcSetup" class="rc-form" novalidate>
+            <label class="rc-field"><span>Data dell'intervento</span><input type="date" name="surgery" value="${esc(s.surgery || def)}" max="${today}" required /><small>${s.surgery ? "" : "Ho messo 4 mesi fa: correggi con la data esatta."}</small></label>
+            <fieldset class="rc-field"><legend>Gamba operata</legend><div class="rc-seg">${["destra", "sinistra"].map((v) => `<label><input type="radio" name="side" value="${v}" ${(s.side || "destra") === v ? "checked" : ""} /><span>${v[0].toUpperCase() + v.slice(1)}</span></label>`).join("")}</div></fieldset>
+            <label class="rc-field"><span>Da dove è stato preso il nuovo legamento</span><select name="graft">${D.GRAFTS.map((g) => `<option value="${g.id}" ${(s.graft || "nonso") === g.id ? "selected" : ""}>${esc(g.label)}</option>`).join("")}</select></label>
+            <fieldset class="rc-field"><legend>Oggi, con il peso sopra, quanto riesci a piegare il ginocchio?</legend><div class="rc-options">${D.FLEX.map((f) => `<label><input type="radio" name="flex" value="${f.id}" ${(s.flex ?? 0) === f.id ? "checked" : ""} /><span>${esc(f.label)}</span></label>`).join("")}</div></fieldset>
+            ${first ? "" : `<label class="rc-check-line"><input type="checkbox" name="resetLevels" /><span>Fai ripartire sedia, seduta al muro e affondo da questa risposta</span></label>`}
+            ${ui.setupErr ? `<p class="rc-error" role="alert">${esc(ui.setupErr)}</p>` : ""}
+            <div class="def-row"><button type="submit" class="def-primary">${first ? "Inizia il piano" : "Salva"}</button>${first ? "" : `<button type="button" class="def-ghost" data-r="setup-cancel">Annulla</button>`}</div>
+          </form>
+        </div>
+        <div class="ma-today-side rc-setup-side">
+          <p class="def-note">Il piano non sostituisce il fisioterapista: è il lavoro di tutti i giorni tra un controllo e l'altro, sulle linee guida MOON e sugli studi più citati (le fonti sono in «Perché»).</p>
+        </div>
       </article>`;
   }
 
-  function checkCard(chk) {
+  function checkBox(chk) {
     const d = ui.check || (chk ? { swelling: chk.swelling, pain: chk.pain, trend: chk.trend, gaveWay: chk.gaveWay } : { swelling: null, pain: 0, trend: null, gaveWay: false });
     ui.check = d;
     const seg = (field, opts) => `<div class="rc-seg" role="group">${opts.map(([v, label]) => `<button type="button" data-r="ck" data-f="${field}" data-v="${v}" aria-pressed="${d[field] === v}">${label}</button>`).join("")}</div>`;
     const ready = d.swelling !== null && d.trend !== null;
     return `
-      <article class="rc-card rc-check-card">
-        <h2>Com'è il ginocchio stamattina?</h2>
-        <p class="rc-small">Trenta secondi: decide se oggi la sessione è normale, leggera o senza gambe.</p>
+      <div class="rc-check" role="group" aria-labelledby="rcCheckT">
+        <p id="rcCheckT"><strong>Com'è il ginocchio stamattina?</strong> Trenta secondi: decide se oggi l'allenamento è normale, leggero o senza gambe.</p>
         <div class="rc-q"><span>Gonfiore</span>${seg("swelling", [[0, "Nessuno"], [1, "Poco"], [2, "Evidente"]])}</div>
         <div class="rc-q"><span>Rispetto a ieri</span>${seg("trend", [[-1, "Meglio"], [0, "Uguale"], [1, "Peggio"]])}</div>
         <div class="rc-q"><label for="rcPain">Dolore a riposo <output id="rcPainOut">${d.pain} su 10</output></label><input id="rcPain" type="range" min="0" max="10" step="1" value="${d.pain}" data-r="pain" /></div>
-        <div class="rc-q"><span>Da ieri il ginocchio ha ceduto (si è «spostato»)?</span>${seg("gaveWay", [[false, "No"], [true, "Sì"]])}</div>
-        <div class="rc-actions"><button type="button" class="primary-action" data-r="ck-save" ${ready ? "" : "disabled"}>Salva il controllo</button>${chk ? `<button type="button" class="ghost-action" data-r="ck-cancel">Annulla</button>` : ""}${ready ? "" : `<span class="rc-small">Rispondi a gonfiore e «rispetto a ieri».</span>`}</div>
-      </article>`;
+        <div class="rc-q"><span>Da ieri il ginocchio ha ceduto?</span>${seg("gaveWay", [[false, "No"], [true, "Sì"]])}</div>
+        <div class="def-row"><button type="button" class="def-primary" data-r="ck-save" ${ready ? "" : "disabled"}>Salva il controllo</button>${chk ? `<button type="button" class="def-ghost" data-r="ck-cancel">Annulla</button>` : ""}${ready ? "" : `<span class="def-note">Rispondi a gonfiore e «rispetto a ieri».</span>`}</div>
+      </div>`;
   }
 
-  function readyCard(r) {
-    const title = { verde: "Verde: sessione normale", giallo: "Giallo: versione leggera", rosso: "Rosso: oggi niente gambe" }[r.level];
-    return `
-      <article class="rc-card rc-ready ${r.level}">
-        <div class="rc-ready-top"><span class="rc-light" aria-hidden="true"></span><h2>${title}</h2><button type="button" class="ghost-action small" data-r="ck-edit">Modifica</button></div>
-        ${r.reasons.length ? `<p class="rc-small">Perché: ${esc(r.reasons.join(", "))}.</p>` : ""}
-        <p>${esc(r.advice)}</p>
-      </article>`;
+  function readyLine(r) {
+    const title = { verde: "Ginocchio verde: allenamento normale", giallo: "Ginocchio giallo: versione leggera", rosso: "Ginocchio rosso: oggi niente gambe" }[r.level];
+    return `<div class="rc-ready ${r.level}"><span class="rc-light" aria-hidden="true"></span><div><strong>${title}</strong><p>${esc(r.advice)}${r.reasons.length ? ` <em>(${esc(r.reasons.join(", "))})</em>` : ""}</p></div><button type="button" class="def-ghost rc-small-btn" data-r="ck-edit">Modifica</button></div>`;
   }
 
-  function stepsCard(l, r) {
-    const steps = E.plan(l);
-    const sug = E.suggest(l);
-    const done = steps.filter((s) => s.done).length;
-    const row = (s) => {
-      let action = "";
-      if (s.id === "check") action = s.done ? "" : `<span class="rc-small">qui sopra</span>`;
-      else if (s.kind === "ext" && !s.done) action = `<button type="button" class="primary-action small" data-r="start" data-kind="ext">Inizia</button>`;
-      else if (s.id === "session" && !s.done && s.kind !== "rest") action = `<button type="button" class="primary-action small" data-r="start" data-kind="${s.kind}">Inizia</button>`;
-      else if (s.id === "test") action = `<button type="button" class="primary-action small alt" data-r="tab" data-tab="test">Apri i test</button>`;
-      const sub = s.id === "session" && !s.done && sug.reason ? `<small>${esc(sug.reason)}${r && r.level === "giallo" && s.kind !== "rest" ? " Versione leggera." : ""}</small>` : s.kind === "ext" && !s.done ? `<small>Prono appeso, tallone su rialzo, arco corto.</small>` : "";
-      return `<li class="${s.done ? "done" : ""}"><span class="rc-dot" aria-hidden="true">${s.done ? "✓" : ""}</span><span class="rc-step-copy"><strong>${esc(s.title)}</strong>${sub}</span><span class="rc-step-min">${s.done ? "fatto" : `${s.minutes} min`}</span>${action ? `<span class="rc-step-act">${action}</span>` : ""}</li>`;
-    };
-    return `
-      <article class="rc-card">
-        <div class="rc-card-head"><h2>Il programma di oggi</h2><span class="rc-count">${done} di ${steps.length}</span></div>
-        <ol class="rc-steps">${steps.map(row).join("")}</ol>
-      </article>`;
+  function ring(pct, size = 96) {
+    const r = size / 2 - 5;
+    const c = 2 * Math.PI * r;
+    return `<svg class="ma-ring" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true">
+      <circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="ma-ring-bg"></circle>
+      ${pct > 0 ? `<circle cx="${size / 2}" cy="${size / 2}" r="${r}" class="ma-ring-fg" style="stroke:${C};stroke-dasharray:${((pct / 100) * c).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 ${size / 2} ${size / 2})"></circle>` : ""}
+      <text x="50%" y="54%" text-anchor="middle" class="ma-ring-text">${pct}%</text>
+    </svg>`;
   }
 
-  function phaseTrack(l, pi) {
-    const miss = pi.missing.slice(0, 4);
-    return `
-      <article class="rc-card rc-track-card">
-        <h2>Le fasi</h2>
-        <ol class="rc-track">${D.PHASES.map((p) => `<li class="${p.n < pi.phase ? "past" : p.n === pi.phase ? "now" : ""}"><span>${p.n}</span><em>${esc(p.name)}</em></li>`).join("")}</ol>
-        ${pi.capped ? `<p class="rc-alert rosso">Un cedimento recente ti tiene alla fase 2 finché non ti vede il chirurgo.</p>` : ""}
-        ${pi.next ? `<p class="rc-small"><strong>Per la fase ${pi.next.n}</strong> ${miss.length ? "manca:" : ""}</p>
-        <ul class="rc-miss">${miss.map((c) => `<li class="${c.met === false ? "no" : "todo"}"><span>${esc(c.text)}</span><em>${esc(c.value)}</em></li>`).join("")}${pi.missing.length > miss.length ? `<li class="more">e altri ${pi.missing.length - miss.length}</li>` : ""}</ul>` : `<p>Sei all'ultima fase: forza due volte a settimana e sparring per gradi.</p>`}
-        <button type="button" class="ghost-action small" data-r="tab" data-tab="phases">Tutte le fasi e i criteri</button>
-      </article>`;
+  function preview(items) {
+    return `<ol class="ma-preview">${items.map((x) => `<li>${kindTag(x.e)}<strong>${esc(x.e.name)}</strong><em>${esc(doseText(x.dose))}</em></li>`).join("")}</ol>`;
   }
-
-  function extraCard(l, r) {
-    const red = r && r.level === "rosso";
-    const kinds = ["ext", "legs", "upperA", "upperB", "martial"];
-    return `
-      <article class="rc-card">
-        <h2>Allenamento in più</h2>
-        <div class="rc-extra">${kinds.map((k) => {
-          const info = D.SESSION_INFO[k];
-          const off = red && k === "legs";
-          return `<button type="button" class="rc-extra-btn" data-r="start" data-kind="${k}" ${off ? `disabled title="Oggi il ginocchio è rosso: niente gambe"` : ""}><strong>${esc(info.short)}</strong><span>${off ? "non oggi" : `${info.minutes} min`}</span></button>`;
-        }).join("")}</div>
-      </article>`;
-  }
-
-  function gatesCard(l) {
-    const g = E.gates(l);
-    return `
-      <article class="rc-card">
-        <h2>Date minime</h2>
-        <p class="rc-small">Prima contano i criteri dei test; queste date sono un limite in più.</p>
-        <ul class="rc-gates">${g.map((x) => `<li class="${x.open ? "open" : ""}"><span>${esc(x.label)}</span><em>${x.open ? "da " : "dal "}${x.months}° mese · ${esc(dateShort(x.date))}</em></li>`).join("")}</ul>
-      </article>`;
-  }
-
-  const DISCLAIMER = `<p class="rc-disclaimer">Questo piano non sostituisce il fisioterapista né il chirurgo: è il lavoro di tutti i giorni tra un controllo e l'altro. Dolore acuto, ginocchio che cede, gonfiore che cresce o estensione che non migliora: fermati e fatti vedere.</p>`;
+  const withEx = (s) => s.items.map((x) => ({ ...x, e: E.EX.get(x.id) }));
 
   function todayView(l) {
-    if (!E.configured(l) || ui.setupEdit) return `${alertsHtml(l)}${setupCard(l, !E.configured(l))}${DISCLAIMER}`;
+    if (!E.configured(l) || ui.setupEdit) return `${alertsHtml(l)}${setupCard(l, !E.configured(l))}`;
+    const now = Date.now();
     const chk = E.todayCheck(l);
     const r = E.readiness(l);
+    const red = r && r.level === "rosso";
     const pi = E.phaseInfo(l);
+    const ph = D.PHASES[pi.phase - 1];
+    const sug = E.suggest(l);
+    const sugKind = sug.kind === "rest" ? "ext" : sug.kind;
+    let kind = ui.pick && KINDS.includes(ui.pick) ? ui.pick : sugKind;
+    if (red && kind === "legs") kind = "upperA";
+    const sess = E.buildSession(l, kind);
+    const items = withEx(sess);
+    const info = D.SESSION_INFO[kind];
+    const steps = E.plan(l);
+    const doneToday = l.sessions.filter((s) => E.dayKey(s.t) === E.dayKey(now));
+    const doneKind = doneToday.filter((s) => s.kind === kind);
+    const next = pi.next;
+    const met = next ? next.criteria.filter((c) => c.met === true).length : 1;
+    const pct = next ? Math.round((met / next.criteria.length) * 100) : 100;
+    const minutes = Math.max(5, Math.round(items.reduce((s, x) => {
+      const d = x.dose;
+      const per = d.work != null ? d.work : 40;
+      return s + (d.sets || 1) * (per * (d.perSide ? 2 : 1) + (d.rest || 0));
+    }, 0) / 60));
+    const picker = `<div class="ma-sesspick rc-pick" role="group" aria-label="Allenamento di oggi">${KINDS.map((k) => {
+      const off = red && k === "legs";
+      const tag = k === sugKind ? (sug.done ? "fatto oggi" : "consigliato") : off ? "non oggi" : `${D.SESSION_INFO[k].minutes} min`;
+      return `<button type="button" data-r="pick" data-kind="${k}" aria-pressed="${k === kind}" ${off ? "disabled" : ""}><strong>${esc(D.SESSION_INFO[k].short)}</strong><span>${tag}</span></button>`;
+    }).join("")}</div>`;
+    const why = kind === sugKind ? sug.reason : kind === "ext" ? "La routine di estensione: prono appeso, tallone su rialzo e arco corto." : kind === "martial" ? "Solo il blocco di tecnica marziale della tua fase." : "Scelto da te: va bene, ma tieni le gambe ad almeno un giorno di distanza.";
     return `
       ${alertsHtml(l)}
-      <div class="rc-grid">
-        <div class="rc-col">
-          ${!chk || ui.checkEdit ? checkCard(chk) : readyCard(r)}
-          ${stepsCard(l, r)}
+      <article class="ma-today rc-today" style="--ma-c:${C}">
+        <div class="ma-today-main">
+          <span class="def-kicker">Oggi · ${esc(dayLabel(now))}${doneToday.length ? " · fatto" : ""}</span>
+          <h2 data-focus-title>${esc(info.label)} <span class="ma-lv">Fase ${pi.phase}: ${esc(ph.name)}</span></h2>
+          <p class="ma-tagline">${esc(ph.goal)}</p>
+          ${!chk || ui.checkEdit ? checkBox(chk) : readyLine(r)}
+          ${picker}
+          <h3 class="ma-lv-title">${esc(info.label)}${sess.light ? " · versione leggera" : ""}</h3>
+          <p>${esc(why)}</p>
+          ${items.length ? preview(items) : `<p class="def-note">Con il ginocchio rosso oggi niente gambe: scegli la parte alta, la tecnica o la routine di estensione.</p>`}
+          <p class="ma-motto">«Ginocchio dritto, gambe forti, tecnica viva.»</p>
         </div>
-        <div class="rc-col">
-          ${phaseTrack(l, pi)}
-          ${extraCard(l, r)}
-          ${gatesCard(l)}
+        <div class="ma-today-side">
+          ${ring(pct)}
+          <span class="ma-copy-label">${next ? `criteri per la fase ${next.n}` : "ultima fase"}</span>
+          <span class="ma-mins">circa ${minutes} minuti · ${plural(items.length, "esercizio", "esercizi")}</span>
+          <span class="ma-mins">${esc(monthsText(l))}</span>
+          ${doneKind.length ? `<p class="ma-done-note">Fatto oggi: ${doneKind[doneKind.length - 1].done}/${doneKind[doneKind.length - 1].total} esercizi.</p>` : ""}
+          <button type="button" class="def-${doneKind.length ? "ghost" : "primary"}" data-r="start" data-kind="${kind}" ${items.length ? "" : "disabled"}>${doneKind.length ? "Allenati di nuovo" : kind === "ext" ? "Inizia la routine" : "Inizia l'allenamento"}</button>
         </div>
-      </div>
-      ${DISCLAIMER}`;
+      </article>
+      ${planCard(l, steps)}
+      ${missCard(pi)}
+      ${gatesStrip(l)}
+      <p class="def-disclaimer">Questo piano non sostituisce il fisioterapista né il chirurgo. Dolore acuto, ginocchio che cede, gonfiore che cresce o estensione che non migliora: fermati e fatti vedere.</p>`;
+  }
+
+  function planCard(l, steps) {
+    const row = (s) => {
+      let action = "";
+      if (s.kind === "ext" && !s.done) action = `<button type="button" class="def-ghost" data-r="start" data-kind="ext">Inizia</button>`;
+      else if (s.id === "session" && !s.done && s.kind !== "rest") action = `<button type="button" class="def-ghost" data-r="start" data-kind="${s.kind}">Inizia</button>`;
+      else if (s.id === "test") action = `<button type="button" class="def-ghost" data-r="view" data-view="test">Apri i test</button>`;
+      return `<li class="${s.done ? "done" : ""}"><span class="ma-dot" aria-hidden="true">${s.done ? "✓" : ""}</span><span class="rc-step-copy"><strong>${esc(s.title)}</strong><em>${s.done ? "fatto" : `${s.minutes} min`}</em></span>${action}</li>`;
+    };
+    const done = steps.filter((s) => s.done).length;
+    return `<div class="rc-plan"><h3 class="def-section-title">Il programma di oggi <span>${done} di ${steps.length}</span></h3><ol class="rc-steps">${steps.map(row).join("")}</ol></div>`;
+  }
+
+  function missCard(pi) {
+    if (!pi.next) return "";
+    const miss = pi.missing.slice(0, 4);
+    return `<div class="rc-miss-wrap"><h3 class="def-section-title">Per la fase ${pi.next.n}: ${esc(pi.next.name)}</h3>
+      ${pi.capped ? `<p class="rc-alert rosso">Un cedimento recente ti tiene alla fase 2 finché non ti vede il chirurgo.</p>` : ""}
+      <ul class="rc-miss">${miss.map((c) => `<li class="${c.met === false ? "no" : "todo"}"><span class="rc-mark" aria-hidden="true">${c.met === false ? "✗" : "?"}</span><span>${esc(c.text)}</span><em>${esc(c.value)}</em></li>`).join("")}</ul>
+      ${pi.missing.length > miss.length ? `<p class="def-note">E altri ${pi.missing.length - miss.length}: li trovi tutti in «Fasi».</p>` : ""}
+    </div>`;
+  }
+
+  function gatesStrip(l) {
+    const g = E.gates(l);
+    return `<div class="rc-gates-wrap"><h3 class="def-section-title">Date minime</h3><p class="def-note rc-tight">Prima contano i criteri dei test; queste date sono un limite in più.</p>
+      <ol class="ma-strip rc-gates">${g.map((x) => `<li class="ma-strip-day ${x.open ? "s-done" : ""}" style="--ma-c:${x.open ? C : "transparent"}"><span>dal ${x.months}° mese</span><strong>${esc(x.label)}</strong><em>${x.open ? "aperto" : esc(dateShort(x.date))}</em></li>`).join("")}</ol></div>`;
   }
 
   /* ------------------------------------------------------------ timer */
@@ -300,9 +390,9 @@
     if (ui.timer && window.DefenseAwake) DefenseAwake.release();
     ui.timer = null;
   }
-  const mmss = (s) => { const t = Math.max(0, Math.ceil(s)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; };
+  const mmss = (s) => { const t = Math.max(0, Math.ceil(s)); return `${pad(Math.floor(t / 60))}:${pad(t % 60)}`; };
   function timerMarkup() {
-    return `<div class="rc-timer" id="rcTimer"><div class="rc-timer-top"><span id="rcTPhase"></span><span class="rc-sets" id="rcTSets"></span></div><div class="rc-timer-clock" id="rcTClock" aria-hidden="true"></div><p class="rc-task" id="rcTTask" hidden></p><div class="rc-bar"><i id="rcTBar"></i></div><div class="rc-actions" id="rcTCtrl"></div><p class="rc-small" id="rcTAwake" hidden></p></div>`;
+    return `<div class="ma-timer" id="rcTimer"><div class="ma-timer-top"><span id="rcTPhase"></span><span class="ma-sets" id="rcTSets"></span></div><div class="ma-timer-clock" id="rcTClock" aria-hidden="true"></div><p class="ma-task" id="rcTTask" hidden></p><div class="def-clockbar"><i id="rcTBar"></i></div><div class="def-row" id="rcTCtrl"></div><p class="ma-awake" id="rcTAwake" hidden></p></div>`;
   }
   function paintTimer() {
     const t = ui.timer;
@@ -312,7 +402,7 @@
     if (!t || !phase || !clock || !ctrl) return;
     const p = t.phases[Math.min(t.i, t.phases.length - 1)];
     const box = $("rcTimer");
-    if (box) box.className = `rc-timer ${t.finished ? "finished" : p.type}`;
+    if (box) box.className = `ma-timer ${t.finished ? "finished" : p.type}`;
     const sets = $("rcTSets");
     if (sets) sets.innerHTML = Array.from({ length: t.sets }, (_, i) => `<i class="${i + 1 < p.set || t.finished ? "done" : i + 1 === p.set ? "now" : ""}"></i>`).join("");
     const key = `${t.i}|${t.running}|${t.finished}`;
@@ -320,10 +410,10 @@
       const had = ctrl.contains(document.activeElement) ? document.activeElement.dataset.r : null;
       t.ctrlKey = key;
       ctrl.innerHTML = t.finished
-        ? `<button type="button" class="ghost-action small" data-r="t-reset">Ricomincia</button><span class="rc-small">Ora segna com'è andata.</span>`
+        ? `<button type="button" class="def-ghost" data-r="t-reset">Ricomincia</button><span class="def-note">Ora segna com'è andata.</span>`
         : p.type === "reps"
-          ? `<button type="button" class="primary-action small" data-r="t-done">Serie fatta</button><button type="button" class="ghost-action small" data-r="t-reset">Ricomincia</button>`
-          : `${t.running ? `<button type="button" class="primary-action small" data-r="t-pause">Pausa</button>` : `<button type="button" class="primary-action small" data-r="t-start">${t.i === 0 && t.left === p.secs ? "Avvia" : "Riprendi"}</button>`}<button type="button" class="ghost-action small" data-r="t-skip">${p.type === "work" ? "Fine serie" : "Salta"}</button><button type="button" class="ghost-action small" data-r="t-reset">Ricomincia</button>`;
+          ? `<button type="button" class="def-primary" data-r="t-done">Serie fatta</button><button type="button" class="def-ghost" data-r="t-reset">Ricomincia</button>`
+          : `${t.running ? `<button type="button" class="def-primary" data-r="t-pause">Pausa</button>` : `<button type="button" class="def-primary" data-r="t-start">${t.i === 0 && t.left === p.secs ? "Avvia" : "Riprendi"}</button>`}<button type="button" class="def-ghost" data-r="t-skip">${p.type === "work" ? "Fine serie" : "Salta"}</button><button type="button" class="def-ghost" data-r="t-reset">Ricomincia</button>`;
       if (had) { const again = ctrl.querySelector(`[data-r="${had}"]`) || ctrl.querySelector("button"); if (again) again.focus({ preventScroll: true }); }
     }
     const awake = $("rcTAwake");
@@ -341,7 +431,7 @@
     const bar = $("rcTBar");
     if (t.finished) { phase.textContent = "Esercizio finito"; clock.textContent = "Fatto"; if (bar) bar.style.width = "100%"; return; }
     const side = p.side ? ` · ${p.side}` : "";
-    if (p.type === "reps") { phase.textContent = `Serie ${p.set} di ${t.sets}${side}`; clock.textContent = `${p.reps} rip.`; if (bar) bar.style.width = "100%"; return; }
+    if (p.type === "reps") { phase.textContent = `Serie ${p.set} di ${t.sets}${side}`; clock.textContent = `${p.reps}`; if (bar) bar.style.width = "100%"; return; }
     phase.textContent = p.type === "rest" ? `Recupero · poi serie ${p.set + 1}` : p.type === "switch" ? "Cambia lato" : `Serie ${p.set} di ${t.sets}${side}`;
     clock.textContent = mmss(t.left);
     if (bar) bar.style.width = `${clamp((t.left / p.secs) * 100, 0, 100)}%`;
@@ -377,7 +467,7 @@
     if (whole !== prev && whole <= 3 && whole > 0 && !document.hidden) beep(740, 60, 0.05);
     if (t.left <= 0) nextPhase(true); else paintTimer();
   }
-  // Dopo una sospensione (schermo spento): salta le fasi a tempo gia' finite.
+  // dopo una sospensione (schermo spento): salta le fasi a tempo gia' finite
   function catchUp() {
     const t = ui.timer;
     if (!t || !t.running) return;
@@ -421,7 +511,7 @@
     else { if (aw && p.type === "reps") aw.release(); paintTimer(); }
   }
 
-  /* ------------------------------------------------------------ SESSIONE */
+  /* ------------------------------------------------------------ ALLENAMENTO */
   function sessionItems(l) {
     const c = l.current;
     return c.items.map((id) => {
@@ -443,11 +533,12 @@
     ui.ex = clamp(ui.ex, 0, items.length - 1);
     const marked = items.filter((x) => c.results[x.id] !== undefined).length;
     const info = D.SESSION_INFO[c.kind];
+    if (ui.finishing) return finishView(l, items, marked);
     const list = items.map((x, i) => {
       const r = c.results[x.id];
-      return `<li class="${i === ui.ex ? "now" : ""} ${r ? `r-${r}` : ""}"><button type="button" data-r="goto" data-i="${i}"><span class="rc-dot" aria-hidden="true">${r ? (r === "skip" ? "–" : r === "pain" ? "!" : "✓") : i + 1}</span><span>${esc(x.e.name)}<small>${esc(AREA[x.e.area])}</small></span><span class="rc-sr">${r ? RATE_LABEL[r] : "da fare"}</span></button></li>`;
+      const cls = r === "pain" ? "no" : r && r !== "skip" ? "ok" : "";
+      return `<li class="${i === ui.ex ? "now" : ""} ${cls}"><button type="button" data-r="goto" data-i="${i}"><span class="ma-dot" aria-hidden="true">${r ? (r === "skip" ? "–" : r === "pain" ? "!" : "✓") : i + 1}</span><span>${esc(x.e.name)}<small class="rc-listtag">${esc(AREA[x.e.area])}</small></span><span class="def-sr">${r ? RATE_LABEL[r] : "da fare"}</span></button></li>`;
     }).join("");
-    if (ui.finishing) return finishView(l, items, marked);
     const x = items[ui.ex];
     const e = x.e;
     const lvMax = E.maxLevel(l, e, c.phase);
@@ -457,49 +548,54 @@
     const result = c.results[x.id];
     const last = [...l.sessions].reverse().find((s) => s.results[x.id] && s.results[x.id] !== "skip");
     const graft = l.setup && l.setup.graft;
-    const graftNote = (graft === "rotuleo" && /ginocchio dietro|in ginocchio/i.test(e.steps.join(" "))) ? "Innesto dal tendine rotuleo: se appoggiare il ginocchio dà fastidio, metti un cuscino." : "";
+    const graftNote = graft === "rotuleo" && /ginocchio dietro|in ginocchio/i.test(e.steps.join(" ")) ? "Innesto dal tendine rotuleo: se appoggiare il ginocchio dà fastidio, metti un cuscino." : "";
+    const easier = x.lv > 0 ? e.levels[x.lv - 1] : null;
+    const harder = x.lv < lvMax ? e.levels[x.lv + 1] : null;
     return `
-      <div class="rc-session">
-        <div class="rc-session-head">
-          <div><span class="rc-kicker">${esc(info.label)} · fase ${c.phase}${c.light ? " · versione leggera" : ""}${c.red ? " · ginocchio a riposo" : ""}</span><h2>Esercizio ${ui.ex + 1} di ${items.length}</h2></div>
-          <div class="rc-session-tools">
-            <span class="rc-count">${marked}/${items.length} segnati</span>
-            <button type="button" class="ghost-action small" data-r="sound" aria-pressed="${l.prefs.sound}">Suoni</button>
-            <button type="button" class="ghost-action small" data-r="cancel">Annulla</button>
+      <div class="ma-body ma-session" style="--ma-c:${C}">
+        <div class="ma-session-head">
+          <div><span class="def-kicker">${esc(info.label)} · fase ${c.phase}${c.light ? " · versione leggera" : ""}${c.red ? " · ginocchio a riposo" : ""}</span><h2>Esercizio ${ui.ex + 1} di ${items.length}</h2></div>
+          <div class="ma-session-tools">
+            <span class="ma-count">${marked}/${items.length} segnati</span>
+            <button type="button" class="def-ghost def-toggle" data-r="sound" aria-pressed="${l.prefs.sound}">Suoni</button>
+            <button type="button" class="def-ghost" data-r="cancel">Annulla</button>
           </div>
         </div>
-        <div class="rc-session-grid">
-          <ol class="rc-exlist">${list}</ol>
-          <article class="rc-ex">
-            <div class="rc-ex-top"><span class="rc-area a-${e.area}">${esc(AREA[e.area])}</span><span class="rc-dose">${esc(E.doseText(x.dose))}</span></div>
-            <h3 data-focus-title tabindex="-1">${esc(e.name)}</h3>
+        <div class="ma-session-grid">
+          <ol class="ma-exlist">${list}</ol>
+          <article class="ma-ex">
+            <div class="ma-ex-top">${kindTag(e)}<span class="ma-dose">${esc(doseText(x.dose))}</span></div>
+            <h3 data-focus-title>${esc(e.name)}</h3>
             <div class="rc-level">
-              <button type="button" class="ghost-action small" data-r="lv" data-d="-1" ${x.lv <= 0 ? "disabled" : ""} aria-label="Livello più facile">‹ Più facile</button>
-              <div class="rc-level-mid"><span>Livello ${x.lv + 1} di ${e.levels.length}</span><strong>${esc(L.name)}</strong></div>
-              <button type="button" class="ghost-action small" data-r="lv" data-d="1" ${x.lv >= lvMax ? "disabled" : ""} aria-label="Livello più difficile">Più difficile ›</button>
+              <span class="rc-level-n">Livello ${x.lv + 1} di ${e.levels.length}</span>
+              <strong>${esc(L.name)}</strong>
+              <span class="rc-level-text">${esc(L.text)}${lockWhy ? ` Il livello dopo si apre ${esc(lockWhy)}.` : ""}</span>
             </div>
-            <p class="rc-level-text">${esc(L.text)}${lockWhy ? ` <span class="rc-small">Il livello dopo si apre ${esc(lockWhy)}.</span>` : ""}</p>
-            ${last ? `<p class="rc-last">L'ultima volta (${esc(dateShort(last.t))}): ${esc(RATE_LABEL[last.results[x.id]].toLowerCase())}.</p>` : ""}
-            <p class="rc-goal">${esc(e.goal)}</p>
-            ${e.safety ? `<p class="rc-safety"><strong>Sicurezza</strong>${esc(e.safety)}</p>` : ""}
-            ${graftNote ? `<p class="rc-safety"><strong>Il tuo innesto</strong>${esc(graftNote)}</p>` : ""}
+            ${last ? `<p class="ma-last ${last.results[x.id] === "pain" ? "no" : "ok"}">L'ultima volta (${esc(dateShort(last.t))}): ${esc(RATE_LABEL[last.results[x.id]].toLowerCase())}</p>` : ""}
+            <p class="ma-goal">${esc(e.goal)}</p>
+            ${e.safety ? `<p class="ma-safety"><strong>Sicurezza</strong>${esc(e.safety)}</p>` : ""}
+            ${graftNote ? `<p class="ma-safety"><strong>Il tuo innesto</strong>${esc(graftNote)}</p>` : ""}
             ${timerMarkup()}
-            <p class="rc-how">${esc(e.how)}</p>
-            <h4>Come si fa</h4>
-            <ol class="rc-list">${e.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>
-            <h4>Punti chiave</h4>
-            <ul class="rc-list">${e.cues.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
-            <details class="rc-errors"><summary>Errori tipici</summary><ul>${e.errors.map((x2) => `<li><strong>${esc(x2.e)}</strong><span>${esc(x2.fix)}</span></li>`).join("")}</ul></details>
-            <p class="rc-martial"><strong>Per le arti marziali</strong>${esc(e.martial)}</p>
-            <div class="rc-rate" role="group" aria-label="Com'è andata">
-              ${RATE.map((r) => `<button type="button" class="rc-rate-btn r-${r.v}" data-r="rate" data-v="${r.v}" aria-pressed="${result === r.v}"><strong>${r.label}</strong><span>${x.dose.work != null && TIME_HINT[r.v] ? TIME_HINT[r.v] : r.hint}</span></button>`).join("")}
+            <p class="ma-how">${esc(e.how)}</p>
+            <h4 class="ma-sub">Come si fa</h4>
+            ${howMarkup(e)}
+            <h4 class="ma-sub">Punti chiave</h4>
+            <ul class="def-keys">${e.cues.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
+            <div class="ma-errors"><h4 class="ma-sub">Errori tipici</h4><ul>${e.errors.map((y) => `<li><strong>${esc(y.e)}</strong><span>${esc(y.fix)}</span></li>`).join("")}</ul></div>
+            <div class="ma-success rc-martial"><strong>Per le arti marziali</strong><p>${esc(e.martial)}</p></div>
+            <div class="ma-vars">
+              ${easier ? `<div class="ma-var rc-var"><p><strong>Troppo difficile?</strong> ${esc(easier.name)}: ${esc(easier.text)}</p><button type="button" class="def-ghost" data-r="lv" data-d="-1">Passa al livello ${x.lv}</button></div>` : ""}
+              ${harder ? `<div class="ma-var hard rc-var"><p><strong>Troppo facile?</strong> ${esc(harder.name)}: ${esc(harder.text)}</p><button type="button" class="def-ghost" data-r="lv" data-d="1">Passa al livello ${x.lv + 2}</button></div>` : ""}
             </div>
-            ${result === "pain" ? `<p class="rc-alert giallo">Alla fine della sessione questo esercizio scende di un livello. Se il dolore resta anche da fermo, chiudi qui la sessione per le gambe.</p>` : ""}
-            <div class="rc-actions rc-ex-nav">
-              ${ui.ex > 0 ? `<button type="button" class="ghost-action small" data-r="goto" data-i="${ui.ex - 1}">‹ Precedente</button>` : ""}
-              ${ui.ex < items.length - 1 ? `<button type="button" class="ghost-action small" data-r="goto" data-i="${ui.ex + 1}">Successivo ›</button>` : ""}
-              <button type="button" class="primary-action" data-r="finish" ${marked ? "" : "disabled"}>Concludi la sessione</button>
-              ${marked < items.length ? `<span class="rc-small">${marked ? `Gli esercizi non segnati contano come saltati.` : "Segna almeno un esercizio per concludere."}</span>` : ""}
+            <div class="rc-rate" role="group" aria-label="Com'è andata">
+              ${RATE.map((r) => `<button type="button" class="ma-res rc-res r-${r.v}" data-r="rate" data-v="${r.v}" aria-pressed="${result === r.v}"><strong>${r.label}</strong><span>${x.dose.work != null && TIME_HINT[r.v] ? TIME_HINT[r.v] : r.hint}</span></button>`).join("")}
+            </div>
+            ${result === "pain" ? `<p class="rc-alert giallo">Alla fine dell'allenamento questo esercizio scende di un livello. Se il dolore resta anche da fermo, chiudi qui le gambe per oggi.</p>` : ""}
+            <div class="def-row ma-ex-nav">
+              ${ui.ex > 0 ? `<button type="button" class="def-ghost" data-r="goto" data-i="${ui.ex - 1}">‹ Precedente</button>` : ""}
+              ${ui.ex < items.length - 1 ? `<button type="button" class="def-ghost" data-r="goto" data-i="${ui.ex + 1}">Successivo ›</button>` : ""}
+              <button type="button" class="def-primary" data-r="finish" ${marked ? "" : "disabled"}>Concludi l'allenamento</button>
+              ${marked < items.length ? `<span class="def-note">${marked ? "Gli esercizi non segnati contano come saltati." : "Segna almeno un esercizio per concludere."}</span>` : ""}
             </div>
           </article>
         </div>
@@ -508,20 +604,21 @@
 
   function finishView(l, items, marked) {
     const c = l.current;
-    const ext = c.kind === "ext";
     return `
-      <div class="rc-session">
-        <article class="rc-card rc-finish">
-          <span class="rc-kicker">${esc(D.SESSION_INFO[c.kind].label)} · ${marked} di ${items.length} esercizi segnati</span>
-          <h2 data-focus-title tabindex="-1">Durante la sessione, il ginocchio?</h2>
-          <p class="rc-small">Serve per decidere i livelli: con dolore non si sale.</p>
-          <div class="rc-rate three" role="group" aria-label="Il ginocchio durante la sessione">
-            <button type="button" class="rc-rate-btn r-easy" data-r="done" data-knee="0"><strong>Niente</strong><span>Nessun fastidio</span></button>
-            <button type="button" class="rc-rate-btn r-hard" data-r="done" data-knee="1"><strong>Fastidio leggero</strong><span>Fino a 3 su 10, passa presto</span></button>
-            <button type="button" class="rc-rate-btn r-pain" data-r="done" data-knee="2"><strong>Dolore</strong><span>Oltre 3 su 10</span></button>
+      <div class="ma-body">
+        <article class="ma-summary rc-finish" style="--ma-c:${C}">
+          <div class="ma-summary-score"><strong>${marked}/${items.length}</strong><span>esercizi segnati</span></div>
+          <div>
+            <span class="def-kicker">${esc(D.SESSION_INFO[c.kind].label)}</span>
+            <h2 data-focus-title>Durante l'allenamento, il ginocchio?</h2>
+            <p class="def-note">Serve per decidere i livelli: con dolore non si sale.</p>
+            <div class="rc-rate three" role="group" aria-label="Il ginocchio durante l'allenamento">
+              <button type="button" class="ma-res rc-res r-easy" data-r="done" data-knee="0"><strong>Niente</strong><span>Nessun fastidio</span></button>
+              <button type="button" class="ma-res rc-res r-hard" data-r="done" data-knee="1"><strong>Fastidio leggero</strong><span>Fino a 3 su 10, passa presto</span></button>
+              <button type="button" class="ma-res rc-res r-pain" data-r="done" data-knee="2"><strong>Dolore</strong><span>Oltre 3 su 10</span></button>
+            </div>
+            <div class="def-row"><button type="button" class="def-ghost" data-r="finish-back">‹ Torna agli esercizi</button></div>
           </div>
-          ${ext ? `<p class="rc-small">La routine conta per oggi appena la chiudi.</p>` : ""}
-          <div class="rc-actions"><button type="button" class="ghost-action small" data-r="finish-back">‹ Torna agli esercizi</button></div>
         </article>
       </div>`;
   }
@@ -531,16 +628,22 @@
     const en = s.res.entry;
     const steps = E.plan(l).filter((x) => !x.done);
     return `
-      <article class="rc-card rc-summary">
-        <span class="rc-kicker">${esc(D.SESSION_INFO[en.kind].label)} · ${en.minutes} min</span>
-        <h2 data-focus-title tabindex="-1">Sessione salvata</h2>
-        <p>${en.done} esercizi fatti su ${en.total}.${en.knee === 2 ? " Hai segnato dolore al ginocchio: domani fai con calma il controllo del mattino." : ""}</p>
-        ${s.res.ups.length ? `<h3>Livello in più</h3><ul class="rc-list">${s.res.ups.map((u) => `<li><strong>${esc(u.name)}</strong>: ${esc(u.to)}</li>`).join("")}</ul>` : ""}
-        ${s.res.downs.length ? `<h3>Un passo indietro</h3><ul class="rc-list">${s.res.downs.map((u) => `<li><strong>${esc(u.name)}</strong>: ${esc(u.to)}</li>`).join("")}</ul>` : ""}
-        ${!s.res.ups.length && !s.res.downs.length && en.kind !== "ext" ? `<p class="rc-small">Un livello sale dopo due «facile» di fila sullo stesso esercizio.</p>` : ""}
-        ${steps.length ? `<p class="rc-small">Ancora oggi: ${esc(steps.map((x) => x.title.toLowerCase()).join(", "))}.</p>` : `<p class="rc-small">Programma di oggi completato.</p>`}
-        <div class="rc-actions"><button type="button" class="primary-action" data-r="summary-close">Torna a Oggi</button></div>
-      </article>`;
+      <div class="ma-body">
+        <article class="ma-summary" style="--ma-c:${C}">
+          <div class="ma-summary-score"><strong>${en.done}/${en.total}</strong><span>esercizi fatti</span></div>
+          <div>
+            <span class="def-kicker">${esc(D.SESSION_INFO[en.kind].label)} · ${en.minutes} min</span>
+            <h2 data-focus-title>Allenamento salvato</h2>
+            <ul class="ma-sum-list">${Object.entries(en.results).map(([id, v]) => `<li class="${v === "pain" || v === "skip" ? "no" : "ok"}"><span>${v === "pain" ? "!" : v === "skip" ? "–" : "✓"}</span>${esc(E.EX.get(id).name)} · ${esc(RATE_LABEL[v].toLowerCase())}</li>`).join("")}</ul>
+            ${s.res.ups.length ? `<p class="ma-reco up"><strong>Livello in più:</strong> ${s.res.ups.map((u) => `${esc(u.name)} (${esc(u.to)})`).join(", ")}.</p>` : ""}
+            ${s.res.downs.length ? `<p class="ma-reco"><strong>Un passo indietro:</strong> ${s.res.downs.map((u) => `${esc(u.name)} (${esc(u.to)})`).join(", ")}.</p>` : ""}
+            ${en.knee === 2 ? `<p class="ma-reco">Hai segnato dolore al ginocchio: domani fai con calma il controllo del mattino.</p>` : ""}
+            ${!s.res.ups.length && !s.res.downs.length && en.kind !== "ext" ? `<p class="def-note">Un livello sale dopo due «facile» di fila sullo stesso esercizio.</p>` : ""}
+            <p class="def-note">${steps.length ? `Ancora oggi: ${esc(steps.map((x) => x.title.toLowerCase()).join(", "))}.` : "Programma di oggi completato."}</p>
+            <div class="def-row"><button type="button" class="def-primary" data-r="summary-close">Torna a Oggi</button></div>
+          </div>
+        </article>
+      </div>`;
   }
 
   /* ------------------------------------------------------------ FASI */
@@ -549,16 +652,16 @@
     const pi = E.phaseInfo(l);
     const mark = (m) => (m === true ? "ok" : m === false ? "no" : "todo");
     return `
-      <div class="rc-intro"><h2>Si avanza per criteri</h2><p>Ogni fase si apre quando i test della settimana superano tutti i suoi criteri, e mai prima delle date minime. Le soglie vengono dalle linee guida MOON e dallo studio di Grindem; i test di casa sono un'approssimazione di quelli del fisioterapista.</p></div>
+      <div class="rc-intro"><h2 class="ma-h2">Si avanza per criteri</h2><p class="def-note">Ogni fase si apre quando i test della settimana superano tutti i suoi criteri, e mai prima delle date minime. Le soglie vengono dalle linee guida MOON e dallo studio di Grindem; i test di casa sono un'approssimazione di quelli del fisioterapista.</p></div>
       <div class="rc-phases">${pi.phases.map((p) => `
         <article class="rc-card rc-phase ${p.n === pi.phase ? "now" : p.n < pi.phase ? "past" : ""}">
-          <div class="rc-phase-head"><span class="rc-phase-n">${p.n}</span><div><h3>${esc(p.name)}</h3><span class="rc-small">${p.n === pi.phase ? "La tua fase" : p.n < pi.phase ? "Superata" : "Più avanti"}</span></div></div>
+          <div class="rc-phase-head"><span class="rc-phase-n">${p.n}</span><div><h3>${esc(p.name)}</h3><span class="def-note rc-tight">${p.n === pi.phase ? "La tua fase" : p.n < pi.phase ? "Superata" : "Più avanti"}</span></div></div>
           <p>${esc(p.goal)}</p>
-          <p class="rc-small">${esc(p.focus)}</p>
-          ${p.criteria.length ? `<h4>Per entrare</h4><ul class="rc-crit">${p.criteria.map((c) => `<li class="${mark(c.met)}"><span class="rc-mark" aria-hidden="true">${c.met === true ? "✓" : c.met === false ? "✗" : "?"}</span><span>${esc(c.text)}</span><em>${esc(c.value)}</em></li>`).join("")}</ul>` : `<p class="rc-small">Si parte da qui.</p>`}
-          <div class="rc-difesa"><div><h4>In Difesa sì</h4><ul>${p.difesaYes.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div><div><h4>In Difesa non ancora</h4><ul>${p.difesaNo.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></div>
+          <p class="def-note">${esc(p.focus)}</p>
+          ${p.criteria.length ? `<h4 class="ma-sub">Per entrare</h4><ul class="rc-crit">${p.criteria.map((c) => `<li class="${mark(c.met)}"><span class="rc-mark" aria-hidden="true">${c.met === true ? "✓" : c.met === false ? "✗" : "?"}</span><span>${esc(c.text)}</span><em>${esc(c.value)}</em></li>`).join("")}</ul>` : `<p class="def-note">Si parte da qui.</p>`}
+          <div class="rc-difesa"><div><h4 class="ma-sub">Nelle arti marziali sì</h4><ul>${p.difesaYes.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div><div><h4 class="ma-sub">Non ancora</h4><ul>${p.difesaNo.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></div>
         </article>`).join("")}</div>
-      ${gatesCard(l)}`;
+      ${gatesStrip(l)}`;
   }
 
   /* ------------------------------------------------------------ TEST */
@@ -580,11 +683,10 @@
     };
     const list = D.TESTS.filter((t) => ph >= t.from);
     const later = D.TESTS.filter((t) => ph < t.from);
-    const due = E.testDue(l);
     const msg = ui.testMsg;
     return `
-      <div class="rc-intro"><h2>Test della settimana</h2><p>Una volta a settimana, a ginocchio riposato (non dopo la sessione per le gambe). Compila quello che riesci: i campi vuoti tengono il valore dell'ultima volta. La fase si aggiorna da sola.${due ? "" : " Questa settimana li hai già fatti: puoi rifarli se vuoi."}</p></div>
-      ${msg ? `<div class="rc-card rc-test-msg ${msg.up ? "up" : ""}" role="status"><h3>${esc(msg.title)}</h3><p>${esc(msg.text)}</p></div>` : ""}
+      <div class="rc-intro"><h2 class="ma-h2">Test della settimana</h2><p class="def-note">Una volta a settimana, a ginocchio riposato (non dopo l'allenamento delle gambe). Compila quello che riesci: i campi vuoti tengono il valore dell'ultima volta. La fase si aggiorna da sola.${E.testDue(l) ? "" : " Questa settimana li hai già fatti: puoi rifarli se vuoi."}</p></div>
+      ${msg ? `<div class="ma-reco ${msg.up ? "up" : ""}" role="status"><strong>${esc(msg.title)}</strong><br>${esc(msg.text)}</div>` : ""}
       <form id="rcTestForm" class="rc-tests" novalidate>
         ${list.map((t) => `
           <div class="rc-card rc-test" role="group" aria-labelledby="rcT-${t.id}">
@@ -592,7 +694,7 @@
             <details><summary>Come si fa</summary><p>${esc(t.how)}</p></details>
             ${input(t)}
           </div>`).join("")}
-        <div class="rc-actions rc-test-save"><button type="submit" class="primary-action">Salva i test</button><span class="rc-small">${later.length ? `Più avanti: ${esc(later.map((t) => t.name.toLowerCase()).join(", "))} (dalla fase 3).` : ""}</span></div>
+        <div class="def-row rc-test-save"><button type="submit" class="def-primary">Salva i test</button><span class="def-note">${later.length ? `Più avanti: ${esc(later.map((t) => t.name.toLowerCase()).join(", "))} (dalla fase 3).` : ""}</span></div>
       </form>
       ${historyTable(l)}`;
   }
@@ -600,77 +702,95 @@
   function historyTable(l) {
     const rows = l.tests.slice(-8).reverse();
     if (!rows.length) return "";
-    const cell = (v) => (v == null ? "—" : v);
+    const pct = (v) => (E.lsi(v) == null ? "—" : `${E.lsi(v)}%`);
     return `
-      <article class="rc-card">
-        <h2>Gli ultimi test</h2>
-        <div class="rc-table-wrap"><table class="rc-table">
-          <thead><tr><th scope="col">Data</th><th scope="col">Talloni</th><th scope="col">Gamba tesa</th><th scope="col">Sedia</th><th scope="col">Polpacci</th><th scope="col">Ponte</th><th scope="col">Equilibrio</th></tr></thead>
-          <tbody>${rows.map((t) => `<tr><th scope="row">${esc(dateShort(t.t))}</th><td>${t.heel == null ? "—" : `${dec(t.heel)} cm`}</td><td>${cell(t.slr)}</td><td>${E.lsi(t.sit) == null ? "—" : `${E.lsi(t.sit)}%`}</td><td>${E.lsi(t.calf) == null ? "—" : `${E.lsi(t.calf)}%`}</td><td>${E.lsi(t.bridge) == null ? "—" : `${E.lsi(t.bridge)}%`}</td><td>${E.lsi(t.balance) == null ? "—" : `${E.lsi(t.balance)}%`}</td></tr>`).join("")}</tbody>
-        </table></div>
-        <p class="rc-small">Le percentuali sono la gamba operata rispetto alla sana.</p>
-      </article>`;
+      <h3 class="def-section-title">Gli ultimi test</h3>
+      <div class="rc-table-wrap"><table class="rc-table">
+        <thead><tr><th scope="col">Data</th><th scope="col">Talloni</th><th scope="col">Gamba tesa</th><th scope="col">Sedia</th><th scope="col">Polpacci</th><th scope="col">Ponte</th><th scope="col">Equilibrio</th></tr></thead>
+        <tbody>${rows.map((t) => `<tr><th scope="row">${esc(dateShort(t.t))}</th><td>${t.heel == null ? "—" : `${dec(t.heel)} cm`}</td><td>${t.slr == null ? "—" : t.slr}</td><td>${pct(t.sit)}</td><td>${pct(t.calf)}</td><td>${pct(t.bridge)}</td><td>${pct(t.balance)}</td></tr>`).join("")}</tbody>
+      </table></div>
+      <p class="def-note">Le percentuali sono la gamba operata rispetto alla sana.</p>`;
   }
 
   /* ------------------------------------------------------------ ESERCIZI */
   function usedIn(id) {
     const where = [];
-    if (D.SESSIONS.ext.includes(id)) where.push("routine di estensione");
-    [1, 2, 3, 4].forEach((n) => { if (D.SESSIONS.legs[n].includes(id)) where.push(`gambe, fase ${n}`); });
+    if (D.SESSIONS.ext.includes(id)) where.push("estensione");
+    const legs = [1, 2, 3, 4].filter((n) => D.SESSIONS.legs[n].includes(id));
+    if (legs.length) where.push(`gambe, fase ${legs.join("-")}`);
     if (D.SESSIONS.upperA.includes(id)) where.push("parte alta A");
     if (D.SESSIONS.upperB.includes(id)) where.push("parte alta B");
-    [1, 2, 3, 4].forEach((n) => { if (D.SESSIONS.martial[n].includes(id)) where.push(`tecnica, fase ${n}`); });
+    const mart = [1, 2, 3, 4].filter((n) => D.SESSIONS.martial[n].includes(id));
+    if (mart.length) where.push(`tecnica, fase ${mart.join("-")}`);
     return where;
   }
   function libraryView(l) {
     const ph = E.configured(l) ? E.phase(l) : 1;
     const chips = [["all", "Tutti"]].concat(D.AREAS.map((a) => [a.id, a.label]));
     const list = D.EXERCISES.filter((e) => ui.filter === "all" || e.area === ui.filter);
+    const opened = ui.open && D.EXERCISES.find((e) => e.id === ui.open);
     return `
-      <div class="rc-intro"><h2>Gli esercizi</h2><p>Tutti gli esercizi del piano con i loro livelli. Nella sessione il livello si sceglie da solo (due «facile» di fila lo alzano, il dolore lo abbassa), ma puoi cambiarlo tu.</p></div>
-      <div class="rc-filter" role="group" aria-label="Filtra per zona">${chips.map(([id, label]) => `<button type="button" data-r="filter" data-v="${id}" aria-pressed="${ui.filter === id}">${esc(label)}</button>`).join("")}</div>
-      <div class="rc-lib">${list.map((e) => {
-        const lv = E.levelOf(l, e.id, ph);
-        return `
-        <details class="rc-card rc-lib-item">
-          <summary><span class="rc-area a-${e.area}">${esc(AREA[e.area])}</span><strong>${esc(e.name)}</strong><span class="rc-small">${esc(usedIn(e.id).join(" · ") || "fuori dalle sessioni")}</span></summary>
-          <p class="rc-goal">${esc(e.goal)}</p>
-          <p>${esc(e.how)}</p>
-          <h4>Come si fa</h4><ol class="rc-list">${e.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>
-          <h4>Punti chiave</h4><ul class="rc-list">${e.cues.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
-          <h4>Errori tipici</h4><ul class="rc-list">${e.errors.map((x) => `<li><strong>${esc(x.e)}</strong>: ${esc(x.fix)}</li>`).join("")}</ul>
-          ${e.safety ? `<p class="rc-safety"><strong>Sicurezza</strong>${esc(e.safety)}</p>` : ""}
-          <h4>Livelli</h4>
-          <ol class="rc-levels">${e.levels.map((L, i) => `<li class="${i === lv && E.configured(l) ? "now" : ""}"><strong>${esc(L.name)}</strong> ${esc(L.text)} <span class="rc-small">${esc(E.doseText({ ...e.dose, ...(L.dose || {}) }))}${L.phase ? ` · dalla fase ${L.phase}` : ""}${L.minMonths ? ` · dal ${L.minMonths}° mese` : ""}</span></li>`).join("")}</ol>
-          <p class="rc-martial"><strong>Per le arti marziali</strong>${esc(e.martial)}</p>
-        </details>`;
-      }).join("")}</div>`;
+      <div class="rc-intro"><h2 class="ma-h2">Gli esercizi</h2><p class="def-note">Tutti gli esercizi del piano con l'omino che mostra ogni passo e i livelli. Nell'allenamento il livello si sceglie da solo (due «facile» di fila lo alzano, il dolore lo abbassa), ma puoi cambiarlo tu.</p></div>
+      ${opened ? libDetail(l, opened, ph) : ""}
+      <div class="ma-nav rc-filter" role="group" aria-label="Filtra per zona">${chips.map(([id, label]) => `<button type="button" data-r="filter" data-v="${id}" aria-pressed="${ui.filter === id}">${esc(label)}</button>`).join("")}</div>
+      <ol class="ma-preview rc-lib">${list.map((e) => `<li class="${opened && opened.id === e.id ? "now" : ""}">${kindTag(e)}<button type="button" class="rc-lib-btn" data-r="lib-open" data-id="${e.id}">${esc(e.name)}</button><em>${esc(usedIn(e.id).join(" · ") || "fuori dalle sessioni")}</em></li>`).join("")}</ol>`;
+  }
+  function libDetail(l, e, ph) {
+    const lv = E.levelOf(l, e.id, ph);
+    return `
+      <article class="ma-ex rc-lib-detail" style="--ma-c:${C}">
+        <div class="ma-ex-top">${kindTag(e)}<button type="button" class="def-ghost" data-r="lib-close">Chiudi</button></div>
+        <h3 data-focus-title>${esc(e.name)}</h3>
+        <p class="ma-goal">${esc(e.goal)}</p>
+        ${e.safety ? `<p class="ma-safety"><strong>Sicurezza</strong>${esc(e.safety)}</p>` : ""}
+        <p class="ma-how">${esc(e.how)}</p>
+        <h4 class="ma-sub">Come si fa</h4>
+        ${howMarkup(e)}
+        <h4 class="ma-sub">Punti chiave</h4>
+        <ul class="def-keys">${e.cues.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>
+        <div class="ma-errors"><h4 class="ma-sub">Errori tipici</h4><ul>${e.errors.map((y) => `<li><strong>${esc(y.e)}</strong><span>${esc(y.fix)}</span></li>`).join("")}</ul></div>
+        <h4 class="ma-sub">Livelli</h4>
+        <ol class="rc-levels">${e.levels.map((L, i) => `<li class="${i === lv && E.configured(l) ? "now" : ""}"><strong>${esc(L.name)}</strong> ${esc(L.text)} <span>${esc(doseText({ ...e.dose, ...(L.dose || {}) }))}${L.phase ? ` · dalla fase ${L.phase}` : ""}${L.minMonths ? ` · dal ${L.minMonths}° mese` : ""}${i === lv && E.configured(l) ? " · il tuo livello" : ""}</span></li>`).join("")}</ol>
+        <div class="ma-success rc-martial"><strong>Per le arti marziali</strong><p>${esc(e.martial)}</p></div>
+      </article>`;
   }
 
   /* ------------------------------------------------------------ PERCHÉ */
   function whyView(l) {
     const g = l.setup ? D.GRAFTS.find((x) => x.id === l.setup.graft) : null;
     return `
-      <div class="rc-intro"><h2>Perché il piano è fatto così</h2><p>Ogni scelta viene da uno studio o da una linea guida. Le fonti sono in fondo a ogni scheda.</p></div>
+      <div class="rc-intro"><h2 class="ma-h2">Perché il piano è fatto così</h2><p class="def-note">Ogni scelta viene da uno studio o da una linea guida. Le fonti sono in fondo a ogni scheda.</p></div>
       ${l.setup ? `<article class="rc-card rc-mine">
-        <div class="rc-card-head"><h2>Il tuo intervento</h2><button type="button" class="ghost-action small" data-r="setup-edit">Modifica</button></div>
+        <div class="rc-card-head"><h3>Il tuo intervento</h3><button type="button" class="def-ghost" data-r="setup-edit">Modifica</button></div>
         <p>Gamba ${esc(sideLabel(l))}, intervento del ${esc(dateLong(E.surgeryTime(l)))} (${esc(monthsText(l))}). Innesto: ${esc(g ? g.label.toLowerCase() : "non indicato")}.</p>
-        ${g ? `<p class="rc-small">${esc(g.tip)}</p>` : ""}
+        ${g ? `<p class="def-note">${esc(g.tip)}</p>` : ""}
       </article>` : ""}
       <div class="rc-lessons">${D.LESSONS.map((x) => `
         <article class="rc-card rc-lesson">
           <h3>${esc(x.title)}</h3>
           <p class="rc-lead">${esc(x.lead)}</p>
           ${x.body.map((p) => `<p>${esc(p)}</p>`).join("")}
-          <ul class="rc-sources">${x.sources.map((s) => `<li><a href="${esc(D.SOURCES[s].url)}" target="_blank" rel="noopener noreferrer">${esc(D.SOURCES[s].label)}<span class="rc-sr"> (si apre in una nuova scheda)</span></a></li>`).join("")}</ul>
+          <ul class="rc-sources">${x.sources.map((s) => `<li><a href="${esc(D.SOURCES[s].url)}" target="_blank" rel="noopener noreferrer">${esc(D.SOURCES[s].label)}<span class="def-sr"> (si apre in una nuova scheda)</span></a></li>`).join("")}</ul>
         </article>`).join("")}</div>
-      ${DISCLAIMER}`;
+      <p class="def-disclaimer">Questo piano non sostituisce il fisioterapista né il chirurgo: è il lavoro di tutti i giorni tra un controllo e l'altro.</p>`;
   }
 
   /* ------------------------------------------------------------ PROGRESSI */
+  function hexProfile(l) {
+    const vals = E.profile(l);
+    let i = -1;
+    const svg = (typeof buildRadarMarkup === "function" ? buildRadarMarkup(vals.map((v) => ({ label: v.label, value: v.value })), 380, 190, 98, true) : "")
+      .replace(/(<text class="radar-value"[^>]*>)[^<]*(<\/text>)/g, (m, a, b) => { i += 1; const v = vals[i]; return v ? `${a}${v.measured ? v.value : "da misurare"}${b}` : m; });
+    const measured = vals.filter((v) => v.measured);
+    const total = measured.length ? Math.round(measured.reduce((s, v) => s + v.value, 0) / measured.length) : null;
+    return `<svg class="def-radar rc-radar" viewBox="0 0 380 380" role="img" aria-label="Profilo del recupero: ${vals.map((v) => `${esc(v.label)} ${v.measured ? v.value : "da misurare"}`).join(", ")}">${svg}</svg>
+      <p class="rc-hex-total"><strong>${total == null ? "—" : total}</strong> <span>${total == null ? "fai il primo test per vedere il profilo" : `media delle voci misurate · ${plural(measured.length, "voce", "voci")} su 6`}</span></p>
+      <ul class="rc-metrics">${vals.map((v) => `<li class="${v.measured ? "" : "todo"}"><span>${esc(v.label)}</span><strong>${v.measured ? v.value : "da misurare"}</strong>${v.measured ? `<i style="--w:${v.value}%"></i>` : ""}</li>`).join("")}</ul>
+      <p class="def-note">Il recupero non entra nel rango generale: qui non conviene mai forzare per prendere punti.</p>`;
+  }
   function extChart(l) {
     const pts = l.tests.filter((t) => t.heel !== undefined).slice(-12);
-    if (pts.length < 2) return `<p class="rc-small">Il grafico dell'estensione compare dal secondo test.</p>`;
+    if (pts.length < 2) return `<p class="def-note">Il grafico dell'estensione compare dal secondo test.</p>`;
     const W = 520, H = 180, P = 34;
     const maxV = Math.max(2, ...pts.map((p) => p.heel));
     const t0 = pts[0].t, t1 = pts[pts.length - 1].t;
@@ -688,9 +808,9 @@
   }
   function lsiBars(l) {
     const rows = D.TESTS.filter((t) => t.perLeg).map((t) => ({ t, v: E.latestLsi(l, t.id) })).filter((r) => r.v != null);
-    if (!rows.length) return `<p class="rc-small">Le barre compaiono dopo il primo test con le due gambe.</p>`;
+    if (!rows.length) return `<p class="def-note">Le barre compaiono dopo il primo test con le due gambe.</p>`;
     return `<ul class="rc-lsi">${rows.map((r) => `<li><span>${esc(r.t.name)}</span><div class="rc-lsi-bar"><i style="--w:${Math.min(110, r.v) / 1.1}%"></i><b class="m80" title="80%"></b><b class="m90" title="90%"></b></div><strong>${r.v}%</strong></li>`).join("")}</ul>
-      <p class="rc-small">Le tacche segnano l'80% (corsa e salti) e il 90% (ritorno al contatto).</p>`;
+      <p class="def-note">Le tacche segnano l'80% (corsa e salti) e il 90% (ritorno al contatto).</p>`;
   }
   function progressView(l) {
     if (!E.configured(l)) return needSetup();
@@ -704,58 +824,61 @@
     const recent = [...l.sessions].reverse().slice(0, 8);
     return `
       <div class="rc-grid">
-        <div class="rc-col"><article class="rc-card"><h2>Profilo del recupero</h2>${hexProfile(l)}</article></div>
-        <div class="rc-col">
-          <article class="rc-card"><h2>Estensione</h2><p class="rc-small">Differenza dei talloni a pancia in giù: più bassa è meglio.</p>${extChart(l)}</article>
-          <article class="rc-card"><h2>Simmetria delle gambe</h2>${lsiBars(l)}</article>
-          <article class="rc-card"><h2>Costanza</h2>
-            <ul class="rc-weeks">${weeks.map((w) => `<li><span>${esc(w.label)}</span><strong>${plural(w.s, "sessione", "sessioni")}</strong><em>estensione in ${plural(w.ex, "giorno", "giorni")}</em></li>`).join("")}</ul>
-            <p class="rc-small">${E.streak(l) ? `${plural(E.streak(l), "giorno", "giorni")} di fila con almeno una routine o una sessione.` : "Inizia oggi la serie."}</p>
+        <article class="rc-card"><h3>Profilo del recupero</h3>${hexProfile(l)}</article>
+        <div>
+          <article class="rc-card"><h3>Estensione</h3><p class="def-note rc-tight">Differenza dei talloni a pancia in giù: più bassa è meglio.</p>${extChart(l)}</article>
+          <article class="rc-card"><h3>Simmetria delle gambe</h3>${lsiBars(l)}</article>
+          <article class="rc-card"><h3>Costanza</h3>
+            <ul class="rc-weeks">${weeks.map((w) => `<li><span>${esc(w.label)}</span><strong>${plural(w.s, "allenamento", "allenamenti")}</strong><em>estensione in ${plural(w.ex, "giorno", "giorni")}</em></li>`).join("")}</ul>
+            <p class="def-note">${E.streak(l) ? `${plural(E.streak(l), "giorno", "giorni")} di fila con almeno una routine o un allenamento.` : "Inizia oggi la serie."}</p>
           </article>
         </div>
       </div>
-      ${recent.length ? `<article class="rc-card"><h2>Ultime sessioni</h2><ul class="rc-history">${recent.map((s) => `<li><span>${esc(dateShort(s.t))}</span><strong>${esc(D.SESSION_INFO[s.kind].label)}</strong><em>${s.done}/${s.total} · fase ${s.phase}${s.light ? " · leggera" : ""}${s.knee === 2 ? " · dolore" : s.knee === 1 ? " · fastidio" : ""}</em></li>`).join("")}</ul></article>` : ""}`;
+      ${recent.length ? `<h3 class="def-section-title">Ultimi allenamenti</h3><ol class="ma-preview">${recent.map((s) => `<li><span class="ma-kind k-r-${s.kind === "ext" ? "ext" : s.kind === "legs" ? "legs" : s.kind === "martial" ? "martial" : "upper"}">${esc(dateShort(s.t))}</span><strong>${esc(D.SESSION_INFO[s.kind].label)}</strong><em>${s.done}/${s.total} · fase ${s.phase}${s.light ? " · leggera" : ""}${s.knee === 2 ? " · dolore" : s.knee === 1 ? " · fastidio" : ""}</em></li>`).join("")}</ol>` : ""}`;
   }
 
   function needSetup() {
-    return `<article class="rc-card"><h2>Prima imposta il piano</h2><p>Servono la data dell'intervento e due risposte veloci.</p><div class="rc-actions"><button type="button" class="primary-action" data-r="tab" data-tab="today">Imposta</button></div></article>`;
+    return `<div class="ma-reco"><strong>Prima imposta il piano.</strong> Servono la data dell'intervento e due risposte veloci. <button type="button" class="def-ghost rc-small-btn" data-r="view" data-view="today">Imposta</button></div>`;
   }
 
-  /* ------------------------------------------------------------ render */
+  /* ------------------------------------------------------------ disegno */
   function render(focus) {
-    const panel = $("rcPanel");
-    const page = $("recovery");
-    if (!panel || !page) return;
+    const box = $("defPanel-recovery");
+    if (!box) return;
+    dropDemo();
     const l = lab();
     const running = !!l.current;
-    page.classList.toggle("rc-running", running || !!ui.summary);
-    document.querySelectorAll("#recovery [data-rc-tab]").forEach((b) => b.setAttribute("aria-pressed", String(!running && !ui.summary && b.dataset.rcTab === ui.tab)));
-    if (!running) stopTimer();
-    let html;
-    if (ui.summary) html = summaryView(l);
-    else if (running) html = sessionView(l);
-    else if (ui.tab === "phases") html = phasesView(l);
-    else if (ui.tab === "test") html = testView(l);
-    else if (ui.tab === "library") html = libraryView(l);
-    else if (ui.tab === "why") html = whyView(l);
-    else if (ui.tab === "progress") html = progressView(l);
-    else html = todayView(l);
-    panel.innerHTML = html;
-    if (running && !ui.finishing) {
+    const views = [["today", "Oggi"], ["phases", "Fasi"], ["test", "Test"], ["library", "Esercizi"], ["why", "Perché"], ["progress", "Progressi"]];
+    const nav = `<div class="ma-nav" role="group" aria-label="Recupero">${views.map(([k, label]) => `<button type="button" data-r="view" data-view="${k}" aria-pressed="${ui.view === k}">${label}${k === "today" && running ? ` <span class="ma-live" title="Allenamento in corso">●</span><span class="def-sr"> (allenamento in corso)</span>` : ""}</button>`).join("")}</div>`;
+    let body;
+    if (ui.view === "today") body = running ? sessionView(l) : ui.summary ? summaryView(l) : todayView(l);
+    else if (ui.view === "phases") body = phasesView(l);
+    else if (ui.view === "test") body = testView(l);
+    else if (ui.view === "library") body = libraryView(l);
+    else if (ui.view === "why") body = whyView(l);
+    else body = progressView(l);
+    const head = E.configured(l) ? `Fase ${E.phase(l)} · ${esc(D.PHASES[E.phase(l) - 1].name)} · ${esc(monthsText(l))}` : "Dopo il crociato: estensione, forza delle gambe e tecnica che il ginocchio può già fare.";
+    box.innerHTML = `
+      <div class="ma-band rc-band">
+        <div><span class="ma-band-title">Recupero del ginocchio</span><span class="ma-band-sub">${head}</span></div>
+        ${nav}
+      </div>
+      <div class="rc-body">${body}</div>`;
+    if (running && ui.view === "today" && !ui.finishing) {
       const x = sessionItems(l)[ui.ex];
       ensureTimer(x.id, x.lv, x.dose);
       paintTimer();
     }
-    renderChip();
+    mountDemo(box);
     if (focus) {
-      const target = panel.querySelector("[data-focus-title]") || panel.querySelector("h2");
+      const target = box.querySelector("[data-focus-title]") || box.querySelector("h2, h3");
       if (target) { if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1"); target.focus({ preventScroll: true }); }
-      const top = page.getBoundingClientRect().top + window.scrollY - 8;
-      if (page.getBoundingClientRect().top < 0 || focus === "top") window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
+      const r = box.getBoundingClientRect();
+      if (r.top < 0 || focus === "top") window.scrollTo({ top: Math.max(0, window.scrollY + r.top - 10), behavior: "auto" });
     }
   }
-  function setTab(tab) {
-    ui.tab = tab;
+  function setView(view) {
+    ui.view = view;
     ui.testMsg = null;
     ui.setupEdit = false;
     render(true);
@@ -766,15 +889,14 @@
     const el = event.target.closest("[data-r]");
     if (!el || el.disabled) return;
     const l = lab();
-    const act = el.dataset.r;
-    switch (act) {
-      case "tab": setTab(el.dataset.tab); break;
+    switch (el.dataset.r) {
+      case "view": if (ui.view === "today" && el.dataset.view !== "today" && ui.timer && ui.timer.running) timerPause(); setView(el.dataset.view); break;
       case "ck": {
         const f = el.dataset.f;
         const v = el.dataset.v === "true" ? true : el.dataset.v === "false" ? false : Number(el.dataset.v);
         ui.check = { ...(ui.check || {}), [f]: v };
         render(false);
-        const again = document.querySelector(`#rcPanel [data-r="ck"][data-f="${f}"][data-v="${el.dataset.v}"]`);
+        const again = document.querySelector(`#defPanel-recovery [data-r="ck"][data-f="${f}"][data-v="${el.dataset.v}"]`);
         if (again) again.focus({ preventScroll: true });
         break;
       }
@@ -782,21 +904,31 @@
         E.checkIn(l, ui.check || {});
         ui.check = null;
         ui.checkEdit = false;
+        ui.pick = null;
         save();
         render(false);
         const r = E.readiness(l);
-        announce(r ? `Controllo salvato: ${r.level}` : "Controllo salvato");
+        announce(r ? `Controllo salvato: ginocchio ${r.level}` : "Controllo salvato");
         break;
       }
       case "ck-edit": ui.checkEdit = true; ui.check = null; render(false); break;
       case "ck-cancel": ui.checkEdit = false; ui.check = null; render(false); break;
-      case "setup-edit": ui.setupEdit = true; ui.tab = "today"; ui.setupErr = ""; render(true); break;
+      case "pick": {
+        ui.pick = el.dataset.kind;
+        render(false);
+        const b = document.querySelector(`#defPanel-recovery [data-r="pick"][data-kind="${el.dataset.kind}"]`);
+        if (b) b.focus({ preventScroll: true });
+        break;
+      }
+      case "setup-edit": ui.setupEdit = true; ui.view = "today"; ui.setupErr = ""; render(true); break;
       case "setup-cancel": ui.setupEdit = false; ui.setupErr = ""; render(true); break;
       case "start": {
         const s = E.startSession(l, el.dataset.kind);
-        if (!s) { announce("Oggi questa sessione non è disponibile"); break; }
+        if (!s) { announce("Oggi questo allenamento non è disponibile"); break; }
+        ui.view = "today";
         ui.exFor = null;
         ui.finishing = false;
+        ui.summary = null;
         save();
         render("top");
         break;
@@ -820,9 +952,8 @@
         if (c.results[x.id] && c.results[x.id] !== "pain") {
           const next = items.findIndex((y, i) => i > ui.ex && c.results[y.id] === undefined);
           const any = next >= 0 ? next : items.findIndex((y) => c.results[y.id] === undefined);
-          if (any >= 0) { stopTimer(); ui.ex = any; render(true); break; }
-          ui.finishing = true;
           stopTimer();
+          if (any >= 0) ui.ex = any; else ui.finishing = true;
           render(true);
           break;
         }
@@ -835,24 +966,28 @@
         const res = E.finishSession(l, { knee: Number(el.dataset.knee) });
         ui.finishing = false;
         ui.summary = res ? { res } : null;
+        ui.pick = null;
         save();
         render("top");
-        announce("Sessione salvata");
+        announce("Allenamento salvato");
         break;
       }
-      case "summary-close": ui.summary = null; ui.tab = "today"; render("top"); break;
+      case "summary-close": ui.summary = null; ui.view = "today"; render("top"); break;
       case "cancel": E.cancelSession(l); ui.finishing = false; stopTimer(); save(); render("top"); break;
       case "sound": l.prefs.sound = !l.prefs.sound; save(); render(false); break;
       case "t-start": timerStart(); break;
       case "t-pause": timerPause(); break;
       case "t-skip": if (ui.timer) { ui.timer.left = 0; nextPhase(false); } break;
       case "t-done": nextPhase(true); break;
-      case "t-reset": { const t = ui.timer; if (t) { clearInterval(t.tick); if (window.DefenseAwake) DefenseAwake.release(); ui.timer = null; } const x = sessionItems(l)[ui.ex]; ensureTimer(x.id, x.lv, x.dose); paintTimer(); break; }
+      case "t-reset": { if (ui.timer) { clearInterval(ui.timer.tick); if (window.DefenseAwake) DefenseAwake.release(); ui.timer = null; } const x = sessionItems(l)[ui.ex]; ensureTimer(x.id, x.lv, x.dose); paintTimer(); break; }
+      case "demo-step": if (ui.player) { ui.player.loopStep(Number(el.dataset.step)); ui.player.play(); showDemo(); } break;
+      case "demo-frame": if (ui.player) ui.player.showFrame(Number(el.dataset.step), Number(el.dataset.frame)); break;
       case "filter": ui.filter = el.dataset.v; render(false); break;
+      case "lib-open": ui.open = el.dataset.id; render(true); break;
+      case "lib-close": ui.open = null; render(false); break;
       default: break;
     }
   }
-
   function onInput(event) {
     const t = event.target;
     if (t.dataset.r === "pain") {
@@ -861,7 +996,6 @@
       if (out) out.textContent = `${t.value} su 10`;
     }
   }
-
   function onSubmit(event) {
     const form = event.target;
     const l = lab();
@@ -890,33 +1024,35 @@
       const res = E.recordTest(l, data);
       if (!res.ok) { ui.testMsg = { title: "Niente da salvare", text: res.error }; render(false); return; }
       const pi = E.phaseInfo(l);
+      const lower = (s) => s.charAt(0).toLowerCase() + s.slice(1);
       ui.testMsg = res.after > res.before
         ? { up: true, title: `Fase ${res.after}: ${D.PHASES[res.after - 1].name}`, text: `Hai superato tutti i criteri. ${D.PHASES[res.after - 1].focus}` }
         : res.after < res.before
           ? { title: `Di nuovo fase ${res.after}`, text: "Un criterio non è più rispettato: si torna un passo indietro finché il test non torna buono." }
-          : { title: `Test salvati · fase ${res.after}`, text: pi.next ? `Per la fase ${pi.next.n} manca: ${pi.missing.map((c) => c.text.charAt(0).toLowerCase() + c.text.slice(1)).join("; ")}.` : "Sei all'ultima fase." };
+          : { title: `Test salvati · fase ${res.after}`, text: pi.next ? `Per la fase ${pi.next.n} manca: ${pi.missing.map((c) => lower(c.text)).join("; ")}.` : "Sei all'ultima fase." };
       save();
       render("top");
       announce(ui.testMsg.title);
     }
   }
 
-  window.RecoveryUI = { render, setTab, debug: ui };
+  window.DefenseRecoveryUI = {
+    render,
+    setView,
+    stop() {
+      if (ui.timer && ui.timer.running) timerPause();
+      dropDemo();
+    },
+    debug: ui
+  };
   window.recoveryTrend = () => E.trend(lab());
 
   document.addEventListener("DOMContentLoaded", () => {
-    const page = $("recovery");
-    if (page) {
-      page.addEventListener("click", (event) => {
-        const tab = event.target.closest("[data-rc-tab]");
-        if (tab) { if (lab().current || ui.summary) return; setTab(tab.dataset.rcTab); return; }
-        if (event.target.closest("#rcChip")) { if (!lab().current) setTab("today"); return; }
-        onClick(event);
-      });
-      page.addEventListener("input", onInput);
-      page.addEventListener("submit", onSubmit);
-      render(false);
-    }
-    renderCard();
+    const box = $("defPanel-recovery");
+    if (!box) return;
+    box.addEventListener("click", onClick);
+    box.addEventListener("input", onInput);
+    box.addEventListener("submit", onSubmit);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden && ui.timer && ui.timer.running) timerTick(); });
   });
 })();

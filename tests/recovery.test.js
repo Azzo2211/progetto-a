@@ -345,5 +345,45 @@ test("Stato rovinato: ensure ripara tutto senza eccezioni", () => {
   assert.doesNotThrow(() => { E.plan(lab, T0); E.profile(lab, T0); E.alerts(lab, T0); E.phaseInfo(lab, T0); E.ensure(null); E.ensure("x"); });
 });
 
+test("Omino: ogni esercizio ha una dimostrazione per passo, con mosse vere e pose senza avvisi", () => {
+  const DEF = path.join(__dirname, "..", "defense");
+  const F = require(path.join(DEF, "figure3d.js"));
+  globalThis.MartialFigure = F;
+  const M = require(path.join(DEF, "moves.js"));
+  ["comuni", "boxe", "muaythai", "recupero"].forEach((s) => require(path.join(DEF, "moves", `${s}.js`)));
+  const DEMOS = require(path.join(__dirname, "..", "recovery", "demos.js"));
+  const allowed = /^(rec|gen|boxe|muaythai)\./;
+  D.EXERCISES.forEach((e) => {
+    const spec = DEMOS[e.id];
+    assert.ok(Array.isArray(spec), `${e.id}: manca la dimostrazione`);
+    assert.strictEqual(spec.length, e.steps.length, `${e.id}: una riga per passo`);
+    spec.forEach((row, i) => {
+      assert.ok(row[0].length >= 6 && row[0].length <= 52, `${e.id} passo ${i + 1}: didascalia di ${row[0].length} caratteri`);
+      const moves = row.slice(1);
+      assert.ok(moves.length >= 1, `${e.id} passo ${i + 1}: nessuna mossa`);
+      moves.forEach((m) => {
+        const name = m.replace(/\*\d$/, "");
+        assert.ok(M.has(name), `${e.id} passo ${i + 1}: la mossa ${m} non esiste`);
+        assert.ok(allowed.test(name), `${e.id}: ${name} non e' una mossa del recupero o della tecnica`);
+      });
+    });
+    const demo = M.demoFor(spec);
+    assert.strictEqual(demo.steps.length, e.steps.length, `${e.id}: passi della dimostrazione`);
+    demo.steps.forEach((s, i) => {
+      const ms = s.frames.reduce((a, f) => a + f.t + f.h, 0);
+      assert.ok(ms >= 600 && ms <= 16000, `${e.id} passo ${i + 1}: dura ${ms} ms`);
+    });
+  });
+  const extra = Object.keys(DEMOS).filter((id) => !E.EX.get(id));
+  assert.deepStrictEqual(extra, [], "dimostrazioni di esercizi che non esistono");
+  const rec = M.names().filter((n) => n.startsWith("rec."));
+  assert.ok(rec.length >= 60, `${rec.length} mosse del recupero`);
+  const warn = [];
+  rec.forEach((n) => M.get(n).frames.forEach((f, i) => F.check(f.pose).forEach((w) => warn.push(`${n}[${i}] ${w}`))));
+  assert.deepStrictEqual(warn.slice(0, 5), [], `${warn.length} pose con avvisi`);
+  const unused = rec.filter((n) => !Object.values(DEMOS).some((rows) => rows.some((r) => r.slice(1).some((m) => m.replace(/\*\d$/, "") === n))));
+  assert.deepStrictEqual(unused, [], "mosse del recupero mai usate");
+});
+
 console.log(`\nRecupero: ${passed} test superati${failed.length ? `, ${failed.length} falliti` : ""}.`);
 if (failed.length) process.exit(1);

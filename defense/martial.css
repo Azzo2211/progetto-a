@@ -551,3 +551,11 @@
 .ma-knee.soft strong { color: #e6d595; }
 .ma-knee p { margin: 4px 0 6px; }
 .ma-knee a { color: #b9e6ad; font-weight: 700; font-size: 0.84rem; }
+/* oggetti in scena del Recupero (letto, sedia, gradino, muro, tavolo) e manubri */
+.mf .mf-box { stroke: #07090c; stroke-width: 0.012; stroke-linejoin: round; }
+.mf .mf-box-top { fill: #4a5562; }
+.mf .mf-box-side { fill: #343d47; }
+.mf .mf-box-front { fill: #2b323a; }
+.mf .mf-glass { fill-opacity: 0.45; }
+.mf .mf-fill .mf-dbbar { stroke: #c9d2dc; stroke-width: 0.026; stroke-linecap: round; }
+.mf .mf-fill .mf-dbplate { fill: #9aa6b2; stroke: #07090c; stroke-width: 0.01; }
