@@ -51,8 +51,22 @@
     red: "#d9480f",
     blue: "#1c7ed6",
     yellow: "#f2b01e",
-    gold: "#e6c777"
+    gold: "#e6c777",
+    // frecce disegnate dall'utente col tasto destro (come su chess.com)
+    user: "#ffaa00",
+    userGreen: "#9fcf3f",
+    userRed: "#f05a4a",
+    userBlue: "#48c1f9"
   };
+
+  // Colore di freccia/evidenziazione secondo i tasti premuti: normale arancione,
+  // Shift verde, Ctrl (o Cmd) rosso, Alt blu.
+  function annotationColor(event) {
+    if (event && event.shiftKey) return "userGreen";
+    if (event && (event.ctrlKey || event.metaKey)) return "userRed";
+    if (event && event.altKey) return "userBlue";
+    return "user";
+  }
 
   function squareToXY(square) {
     return { file: FILES.indexOf(square[0]), rank: Number(square[1]) - 1 };
@@ -232,6 +246,10 @@
       this.pieceEls = new Map();
       this.vm = {};
       this.drag = null;
+      // annotazioni dell'utente: frecce e case evidenziate col tasto destro
+      this.userArrows = [];
+      this.userMarks = new Map(); // square -> colore
+      this.annot = null; // freccia in corso di disegno
       this.build();
       this.applyTheme();
     }
@@ -253,6 +271,9 @@
       arrows.setAttribute("class", "bv-arrows");
       arrows.setAttribute("viewBox", "0 0 800 800");
       arrows.setAttribute("aria-hidden", "true");
+      const userMarks = document.createElement("div");
+      userMarks.className = "bv-user-marks";
+      userMarks.setAttribute("aria-hidden", "true");
       const fx = document.createElement("div");
       fx.className = "bv-fx";
       const pieces = document.createElement("div");
@@ -261,12 +282,13 @@
       fxTop.className = "bv-fx-top";
       const overlay = document.createElement("div");
       overlay.className = "bv-overlay";
-      root.append(squares, fx, arrows, pieces, fxTop, overlay);
+      root.append(squares, userMarks, fx, arrows, pieces, fxTop, overlay);
       this.container.innerHTML = "";
       this.container.appendChild(root);
       this.root = root;
       this.squaresEl = squares;
       this.arrowsEl = arrows;
+      this.userMarksEl = userMarks;
       this.piecesEl = pieces;
       this.fxEl = fx;
       this.fxTopEl = fxTop;
@@ -306,6 +328,7 @@
         this.pieceEls.forEach((entry, square) => this.placeEl(entry.el, square, false));
         this.renderMarks();
         this.renderArrows();
+        this.renderUserMarks();
         this.renderBadge();
       }
       if (before.pieceSet !== this.options.pieceSet) {
@@ -727,6 +750,10 @@
      * }
      */
     render(vm = {}) {
+      // una mossa giocata cancella frecce ed evidenziazioni (come su chess.com)
+      const moveKey = vm.lastMove ? `${vm.lastMove.from}-${vm.lastMove.to}` : "";
+      if (this.lastMoveKey !== undefined && moveKey !== this.lastMoveKey) this.clearAnnotations({ render: false });
+      this.lastMoveKey = moveKey;
       this.vm = vm;
       this.root.classList.toggle("is-interactive", Boolean(vm.interactive));
       this.root.classList.toggle("is-premove", Boolean(vm.premove));
@@ -818,15 +845,56 @@
       });
     }
 
+    // Toglie tutte le frecce e le case evidenziate dall'utente.
+    clearAnnotations({ render = true } = {}) {
+      const had = this.userArrows.length > 0 || this.userMarks.size > 0 || this.annot;
+      this.userArrows = [];
+      this.userMarks.clear();
+      this.annot = null;
+      if (had && render) {
+        this.renderArrows();
+        this.renderUserMarks();
+      }
+      return Boolean(had);
+    }
+
+    // Aggiunge la freccia (o la toglie se c'e' gia' uguale; se c'e' con altro colore la ricolora).
+    toggleUserArrow(from, to, color = "user") {
+      const index = this.userArrows.findIndex((a) => a.from === from && a.to === to);
+      if (index >= 0 && this.userArrows[index].color === color) this.userArrows.splice(index, 1);
+      else if (index >= 0) this.userArrows[index].color = color;
+      else this.userArrows.push({ from, to, color });
+      this.renderArrows();
+    }
+
+    toggleUserMark(square, color = "user") {
+      if (this.userMarks.get(square) === color) this.userMarks.delete(square);
+      else this.userMarks.set(square, color);
+      this.renderUserMarks();
+    }
+
+    renderUserMarks() {
+      if (!this.userMarksEl) return;
+      const html = [];
+      this.userMarks.forEach((color, square) => {
+        const { x, y } = this.squareOffset(square);
+        html.push(`<span class="bv-user-mark bv-user-mark-${color}" style="left:${x * 12.5}%;top:${y * 12.5}%"></span>`);
+      });
+      this.userMarksEl.innerHTML = html.join("");
+    }
+
     renderArrows() {
-      const arrows = (this.vm && this.vm.arrows) || [];
+      const arrows = ((this.vm && this.vm.arrows) || []).concat(this.userArrows || []);
+      if (this.annot && this.annot.to && this.annot.to !== this.annot.from) {
+        arrows.push({ from: this.annot.from, to: this.annot.to, color: this.annot.color });
+      }
       const center = (square) => {
         const { x, y } = this.squareOffset(square);
         return { x: x * 100 + 50, y: y * 100 + 50 };
       };
       const shapes = arrows.filter((a) => a && a.from && a.to && a.from !== a.to).map((arrow) => {
         const color = ARROW_COLORS[arrow.color] || arrow.color || ARROW_COLORS.green;
-        const opacity = arrow.opacity || 0.82;
+        const opacity = arrow.opacity || (String(arrow.color || "").startsWith("user") ? 0.8 : 0.82);
         const a = center(arrow.from);
         const b = center(arrow.to);
         const df = Math.abs(squareToXY(arrow.from).file - squareToXY(arrow.to).file);
@@ -895,8 +963,70 @@
       return xyToSquare(file, rank);
     }
 
+    // Tasto destro: premi e trascina per una freccia, premi e rilascia sulla
+    // stessa casa per evidenziarla. Funziona anche quando non e' il tuo turno.
+    handleAnnotationDown(event) {
+      if (this.promotionOpen) return;
+      const square = this.squareFromPoint(event.clientX, event.clientY);
+      if (!square) return;
+      event.preventDefault();
+      this.annot = { from: square, to: square, color: annotationColor(event), pointerId: event.pointerId };
+      const move = (e) => {
+        if (!this.annot) return;
+        const over = this.squareFromPoint(e.clientX, e.clientY);
+        if (over && over !== this.annot.to) {
+          this.annot.to = over;
+          this.renderArrows();
+        }
+      };
+      const up = (e) => {
+        // il tasto destro rilasciato: con eventi "chord" pointerup puo' arrivare
+        // come pointermove con buttons senza il bit 2
+        if (e.type === "pointermove" && (e.buttons & 2)) return;
+        this.root.removeEventListener("pointermove", watch);
+        this.root.removeEventListener("pointerup", up);
+        this.root.removeEventListener("pointercancel", cancel);
+        const annot = this.annot;
+        this.annot = null;
+        if (!annot) return;
+        const target = this.squareFromPoint(e.clientX, e.clientY) || annot.to;
+        const color = annotationColor(e) === "user" ? annot.color : annotationColor(e);
+        if (target === annot.from) {
+          this.renderArrows();
+          this.toggleUserMark(annot.from, color);
+        } else {
+          this.toggleUserArrow(annot.from, target, color);
+        }
+      };
+      const watch = (e) => {
+        if (!(e.buttons & 2)) return up(e);
+        move(e);
+      };
+      const cancel = () => {
+        this.root.removeEventListener("pointermove", watch);
+        this.root.removeEventListener("pointerup", up);
+        this.root.removeEventListener("pointercancel", cancel);
+        this.annot = null;
+        this.renderArrows();
+      };
+      try {
+        this.root.setPointerCapture(event.pointerId);
+      } catch (error) {
+        /* cattura non disponibile */
+      }
+      this.root.addEventListener("pointermove", watch);
+      this.root.addEventListener("pointerup", up);
+      this.root.addEventListener("pointercancel", cancel);
+    }
+
     handlePointerDown(event) {
+      if (event.button === 2) {
+        this.handleAnnotationDown(event);
+        return;
+      }
       if (event.button !== undefined && event.button !== 0) return;
+      // clic sinistro: cancella frecce ed evidenziazioni (la mossa continua normalmente)
+      this.clearAnnotations();
       Sound.unlock();
       if (!this.vm.interactive || this.promotionOpen) return;
       const square = this.squareFromPoint(event.clientX, event.clientY);

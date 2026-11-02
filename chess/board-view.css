@@ -574,3 +574,23 @@
   .bv-ghost, .bv-scan, .bv-lock, .bv-burst, .bv-aura { display: none; }
   .bv .bv-squares, .bv .bv-pieces { transition: none; }
 }
+
+/* case evidenziate dall'utente col tasto destro (sotto i pezzi, come su chess.com) */
+.bv-user-marks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+  overflow: hidden;
+}
+.bv-user-mark {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+  background: rgba(235, 97, 80, 0.8);
+}
+.bv-user-mark-userGreen { background: rgba(172, 206, 89, 0.8); }
+.bv-user-mark-userRed { background: rgba(235, 97, 80, 0.8); }
+.bv-user-mark-userBlue { background: rgba(82, 176, 220, 0.8); }
+.bv-user-mark-user { background: rgba(235, 97, 80, 0.8); }
