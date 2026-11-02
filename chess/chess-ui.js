@@ -838,6 +838,7 @@
     if (last.turn !== "white") return;
     board = cloneBoard(last.board);
     gameState = cloneGameState(last.gameState);
+    if (last.botState) currentGame.botState = JSON.parse(JSON.stringify(last.botState));
     history = history.slice(0, -1);
     currentGame.moves.pop();
     currentGame.moveList = currentGame.moves;
@@ -953,9 +954,9 @@
     const stats = getLevelStats(level);
     const avg = stats.accuracyGames ? Math.round(stats.accuracySum / stats.accuracyGames) : null;
     const record = stats.games ? `Contro questo bot: ${stats.wins} vinte, ${stats.draws} patte, ${stats.losses} perse${avg !== null ? `, precisione media ${avg}%` : ""}.` : "Non hai ancora giocato contro questo bot.";
-    const fixedElo = config.full ? "" : ` Elo fisso ${config.elo}, su scala umana: gioca sempre a questo livello.`;
+    const fixedElo = config.full ? "" : ` Elo fisso ${config.elo}, su scala umana: gioca sempre a questo livello, partita dopo partita, anche se perdi o annulli le mosse. Il bot lo cambi solo tu.`;
     const engine = isStockfishEngineEnabled() ? "" : ` Motore: ${getEngineStatusText()}.`;
-    const hint = suggested === level ? " Avversario adatto al tuo livello." : suggested ? ` Consigliato per te: ${getBotLevelConfig(suggested).elo} (casa con il bordo blu).` : "";
+    const hint = suggested === level ? " Avversario adatto al tuo livello." : suggested ? ` Consigliato per te: ${getBotLevelConfig(suggested).elo} (casa con il bordo blu: è solo un consiglio, il bot non cambia da solo).` : "";
     document.getElementById("botLevelText").textContent = `${record}${fixedElo}${hint}${engine}`;
     renderRecalNote();
     document.getElementById("botPrevBtn").disabled = level <= 1;

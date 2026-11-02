@@ -1704,6 +1704,7 @@ function undoMovePair() {
   if (!lastWhiteState) return;
   board = cloneBoard(lastWhiteState.board);
   gameState = cloneGameState(lastWhiteState.gameState || createInitialGameState());
+  if (lastWhiteState.botState) currentGame.botState = JSON.parse(JSON.stringify(lastWhiteState.botState));
   history = history.slice(0, lastWhiteIndex);
   selectedSquare = null;
   chessGameOver = false;
@@ -1843,7 +1844,8 @@ function makePlayerMove(move) {
   // a tempo: se il tuo orologio e' arrivato a zero la mossa non vale
   if (currentGame.clock && ChessClock.check(currentGame.clock)) { handleClockFlag(); return; }
   const beforeGameState = cloneGameState(gameState);
-  history.push({ turn: "white", board: cloneBoard(board), gameState: beforeGameState });
+  // con la posizione si salva anche il conto degli errori del bot: annullando la mossa torna com'era
+  history.push({ turn: "white", board: cloneBoard(board), gameState: beforeGameState, botState: cloneBotState() });
   const before = cloneBoard(board);
   const movedPiece = before[move.fromRow][move.fromCol];
   const seconds = Math.round((Date.now() - thinkStartedAt) / 1000);
@@ -1925,6 +1927,12 @@ function buildPlainMoveRecord({ side, color, move, piece, before, after, fenBefo
   };
 }
 
+// Conto degli errori del bot (chess/bot.js, errori "a budget"): fa parte della partita come la posizione.
+function cloneBotState() {
+  const st = currentGame && currentGame.botState && typeof currentGame.botState === "object" ? currentGame.botState : {};
+  return JSON.parse(JSON.stringify(st));
+}
+
 async function makeBotMove() {
   botMoveTimer = null;
   if (chessGameOver) return;
@@ -1953,7 +1961,10 @@ async function makeBotMove() {
   if (!currentGame.botState || typeof currentGame.botState !== "object") currentGame.botState = {};
   // a tempo il bot gestisce il suo orologio come una persona (stessa forza, ricerca piu' corta se serve)
   const think = currentGame.clock ? ChessClock.botThink(currentGame.clock, "b", currentGame.moves.length) : null;
-  const choice = await ChessBot.chooseMove(chessEngines().play, fenBefore, level, { ply: currentGame.moves.length, state: currentGame.botState, maxTime: think ? Math.max(80, think * 0.8) : null });
+  // il bot lavora su una copia del suo conto degli errori: vale solo se la mossa viene giocata
+  // (se annulli mentre pensa, o torni indietro, il bot non accumula errori in piu' e non si indebolisce)
+  const botState = cloneBotState();
+  const choice = await ChessBot.chooseMove(chessEngines().play, fenBefore, level, { ply: currentGame.moves.length, state: botState, maxTime: think ? Math.max(80, think * 0.8) : null });
   // Pausa minima per rendere la risposta naturale anche ai livelli bassi.
   const minimumThink = think !== null ? think : 350 + Math.random() * 650;
   const elapsed = Date.now() - startedAt;
@@ -1965,7 +1976,8 @@ async function makeBotMove() {
     coach.textContent = `Stockfish non e' riuscito a muovere: ${currentGame.engineError}. Ricarica la pagina dal server locale.`;
     return;
   }
-  history.push({ turn: "black", board: cloneBoard(board), gameState: beforeGameState });
+  history.push({ turn: "black", board: cloneBoard(board), gameState: beforeGameState, botState: cloneBotState() });
+  currentGame.botState = botState;
   const movedPiece = board[botMove.fromRow][botMove.fromCol];
   const before = cloneBoard(board);
   board = applyMove(board, botMove);
