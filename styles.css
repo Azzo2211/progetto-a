@@ -2227,6 +2227,7 @@ input:focus {
 [data-route="culture"], #culture, .mode-card[href="#culture"] { --acc: #1f7a6d; --acc-hi: #6fd2bf; }
 [data-route="planning"], #planning, .mode-card[href="#planning"] { --acc: #3d5a80; --acc-hi: #9db9e0; }
 [data-route="defense"], #defense, .mode-card[href="#defense"] { --acc: #c4621f; --acc-hi: #f0a93a; }
+[data-route="recovery"], #recovery, .mode-card[href="#recovery"] { --acc: #3f7a3a; --acc-hi: #9ad48a; }
 [data-route="aim"], #aim, .mode-card[href="#aim"] { --acc: #0e8aa8; --acc-hi: #33e0ff; }
 [data-route="logic"], #logic, .mode-card[href="#logic"] { --acc: #2446a8; --acc-hi: #8fa8ff; }
 [data-route="memory"], #memory, .mode-card[href="#memory"] { --acc: #5b3fd1; --acc-hi: #b3a2ff; }

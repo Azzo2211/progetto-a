@@ -291,6 +291,22 @@ La pagina Mentalista (cartella `mentalist/`) è ispirata a Patrick Jane della se
 
 **Profilo (6 categorie, esagono)**: Osservazione (gioco di Kim), Deduzione (chi mente?), Lettura, Interrogatorio (verdetti più tecnica), Casi (media dei primi tentativi), Metodo (verifiche delle lezioni). Con pochi dati le categorie partono da 35.
 
+## Modulo recupero: dopo il crociato, con le arti marziali
+
+La pagina Recupero (cartella `recovery/`) è il piano di tutti i giorni dopo la ricostruzione del legamento crociato anteriore, pensato per chi si allena nelle arti marziali: estensione del ginocchio, forza per gambe e parte alta con manubri e corpo libero, e la tecnica marziale che il ginocchio può già fare. Non sostituisce fisioterapista e chirurgo e non entra nel rango generale (qui non conviene forzare per i punti).
+
+| File | Cosa fa |
+|---|---|
+| `recovery/data.js` | 4 fasi (estensione e controllo, forza, corsa e salti con tecnica in movimento, ritorno al combattimento), 45 esercizi con obiettivo, passi, punti chiave, errori, dose, sicurezza, livelli e cosa danno alle arti marziali; sessioni (routine di estensione, gambe per fase, parte alta A e B, tecnica marziale per fase), 12 test della settimana, 7 lezioni con le fonti. |
+| `recovery/engine.js` | Controllo del ginocchio ogni mattina (verde, giallo = versione leggera senza impatto, rosso = niente gambe), programma del giorno (routine di estensione due volte finché manca estensione, mai gambe due giorni di fila), livelli (due «facile» di fila = su, «dolore» = giù, limiti di fase e di mese), fase dai test con date minime (corsa dal 3° mese, salti dal 4°, pivot e calci veloci dal 6°, contatto dal 9°), avvisi (cedimento, gonfiore ripetuto, estensione ferma da 3 settimane), profilo a esagono, avvisi per gli esercizi della Difesa. Senza DOM, testato in `tests/recovery.test.js`. |
+| `recovery/ui.js`, `recovery/recovery.css` | La pagina: Oggi, Fasi, Test, Esercizi, Perché, Progressi; la sessione guidata con timer che non si ferma a schermo spento. |
+
+**Criteri delle fasi**: fase 2 con talloni a non più di 1 cm, 20 sollevamenti a gamba tesa senza ritardo (MOON), niente gonfiore, passo normale; fase 3 dal 4° mese con estensione completa, test su una gamba almeno all'80% dell'altra e discesa dal gradino in linea; fase 4 dal 9° mese con i test al 90% (Grindem 2016), salto su una gamba al 90%, nessun cedimento e l'ok del chirurgo.
+
+**Difesa**: con il recupero impostato, nella sessione di arti marziali gli esercizi con calci, salti, squat profondi, pivot, corsa, lotta o appoggio in ginocchio hanno un segno e un'alternativa adatta alla fase.
+
+**Fonti**: linee guida MOON (Wright e colleghi, Sports Health 2015) e protocollo di Vanderbilt; Grindem e colleghi, Br J Sports Med 2016; Perriman, Leahy e Semciw, JOSPT 2018; Shelbourne e colleghi, Am J Sports Med 2012; Jackson e Schaefer, Arthroscopy 1990; Schoenfeld e colleghi, J Strength Cond Res 2017; Morton e colleghi, Br J Sports Med 2018.
+
 ## Test
 
 ```powershell
@@ -307,6 +323,7 @@ node tests/memory.test.js
 node tests/influence.test.js
 node tests/logic.test.js
 node tests/mentalist.test.js
+node tests/recovery.test.js
 node tools/verify-lessons.js           # controlla esempi ed esercizi delle lezioni con Stockfish
 node tools/calibrate.js sf:8,12 30     # livelli 8 e 12 contro Stockfish con forza limitata all'Elo del livello
 node tools/calibrate.js match:3-4 50   # scontro diretto tra due livelli (per quelli sotto 1320)

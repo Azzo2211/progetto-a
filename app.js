@@ -108,6 +108,7 @@ const routes = [
   "culture",
   "planning",
   "defense",
+  "recovery",
   "aim",
   "logic",
   "memory",
@@ -944,7 +945,8 @@ const todaySources = [
   { route: "memory", name: "Memoria", engine: "MemoryEngine", lab: "memoryLab" },
   { route: "logic", name: "Logica", engine: "LogicEngine", lab: "logicLab" },
   { route: "influence", name: "Influenza", engine: "InfluenceEngine", lab: "influenceLab" },
-  { route: "mentalist", name: "Mentalista", engine: "MentalistEngine", lab: "mentalistLab" }
+  { route: "mentalist", name: "Mentalista", engine: "MentalistEngine", lab: "mentalistLab" },
+  { route: "recovery", name: "Recupero", engine: "RecoveryEngine", lab: "recoveryLab" }
 ];
 function todayItems() {
   const items = [];

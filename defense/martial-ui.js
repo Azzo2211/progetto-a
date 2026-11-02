@@ -573,6 +573,22 @@
   }
 
   /* ---------------------------------------------------------- allenamento */
+  // Ginocchio in recupero (reparto Recupero): avviso sugli esercizi che il ginocchio non deve ancora fare.
+  function kneeOf(e) {
+    const R = window.RecoveryEngine;
+    if (!R || !state.recoveryLab) return null;
+    try {
+      const lab = R.ensure(state.recoveryLab);
+      return R.kneeRisk(lab, { title: e.name, body: `${e.goal || ""} ${e.how || ""}` });
+    } catch (err) { return null; }
+  }
+  function kneeNote(e) {
+    const k = kneeOf(e);
+    if (!k) return "";
+    const labels = k.risks.map((r) => r.label).join(", ");
+    return `<div class="ma-knee${k.soft ? " soft" : ""}" role="note"><strong>Ginocchio in recupero · fase ${k.phase}: ${k.soft ? "con cautela" : "fai l'alternativa"}</strong><p>Dentro c'è: ${esc(labels)}. ${k.risks.map((r) => esc(r.alt)).join(" ")}</p><a href="#recovery">Apri il Recupero</a></div>`;
+  }
+
   function sessionView(l) {
     const c = l.current;
     const d = BY.get(c.disc);
@@ -594,7 +610,7 @@
     const preps = ex.filter((x) => x.prepFor === e.id);
     const list = ex.map((x, i) => {
       const r = c.results[x.id];
-      return `<li class="${i === ui.ex ? "now" : ""} ${r === true ? "ok" : r === false ? "no" : ""}${x.fix ? " is-fix" : ""}"><button type="button" data-mact="goto" data-index="${i}"><span class="ma-dot" aria-hidden="true">${r === true ? "✓" : r === false ? "✗" : i + 1}</span><span>${esc(x.name)}${x.fix ? `<small class="ma-fixtag">correttivo · ${esc(x.fix.label)}</small>` : ""}</span><span class="def-sr">${r === true ? "riuscito" : r === false ? "non ancora" : "da fare"}</span></button></li>`;
+      return `<li class="${i === ui.ex ? "now" : ""} ${r === true ? "ok" : r === false ? "no" : ""}${x.fix ? " is-fix" : ""}"><button type="button" data-mact="goto" data-index="${i}"><span class="ma-dot" aria-hidden="true">${r === true ? "✓" : r === false ? "✗" : i + 1}</span><span>${esc(x.name)}${x.fix ? `<small class="ma-fixtag">correttivo · ${esc(x.fix.label)}</small>` : ""}${(() => { const k = kneeOf(x); return k ? `<small class="ma-kneetag${k.soft ? " soft" : ""}">ginocchio: ${k.soft ? "con cautela" : "alternativa"}</small>` : ""; })()}</span><span class="def-sr">${r === true ? "riuscito" : r === false ? "non ancora" : "da fare"}</span></button></li>`;
     }).join("");
     const whyList = (c.reasons && c.reasons[e.id]) || [];
     const nextOpen = ex.findIndex((x, i) => i !== ui.ex && c.results[x.id] === undefined);
@@ -630,6 +646,7 @@
             <div class="ma-ex-top"><span class="ma-kind k-${e.kind}">${e.fix ? `Correttivo · ${esc(e.fix.label)}` : KIND[e.kind] || e.kind}</span><span class="ma-dose">${esc(doseText(e.dose, e.kind))}</span></div>
             <h3 data-focus-title>${esc(e.name)}</h3>
             ${e.fix ? `<p class="ma-fix-why">${esc(e.fix.because)}${e.fix.regionLabel ? ` Scelto per ${esc(e.fix.regionLabel)}.` : ""}</p>` : ""}
+            ${kneeNote(e)}
             ${last ? `<p class="ma-last ${last.ok ? "ok" : "no"}">L'ultima volta (${esc(new Date(last.t).toLocaleDateString("it-IT", { day: "numeric", month: "short" }))}): ${last.ok ? "riuscito" : "non ancora: oggi concentrati su questo"}</p>` : ""}
             ${e.goal ? `<p class="ma-goal">${prose(e.goal)}</p>` : ""}
             ${target ? `<p class="ma-prep">Prepara: <strong>${esc(target.name)}</strong></p>` : ""}

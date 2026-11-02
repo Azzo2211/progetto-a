@@ -541,3 +541,13 @@
   .ma-preview li.is-fix .ma-kind { grid-column: 1 / -1; justify-self: start; }
   .ma-weak-list li { flex-direction: column; align-items: stretch; }
 }
+
+/* Ginocchio in recupero (reparto Recupero): avviso sull'esercizio e segno nella lista */
+.ma-kneetag { display: block; margin-top: 1px; font-size: 0.72rem; font-weight: 700; color: #9ad48a; letter-spacing: 0.01em; }
+.ma-kneetag.soft { color: #d6c27a; }
+.ma-knee { margin: 4px 0 12px; padding: 10px 14px; border-left: 3px solid #9ad48a; background: rgba(154, 212, 138, 0.09); border-radius: 0 10px 10px 0; font-size: 0.9rem; line-height: 1.5; }
+.ma-knee.soft { border-left-color: #d6c27a; background: rgba(214, 194, 122, 0.09); }
+.ma-knee strong { display: block; color: #b9e6ad; font-size: 0.82rem; }
+.ma-knee.soft strong { color: #e6d595; }
+.ma-knee p { margin: 4px 0 6px; }
+.ma-knee a { color: #b9e6ad; font-weight: 700; font-size: 0.84rem; }
