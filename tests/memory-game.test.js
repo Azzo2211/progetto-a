@@ -302,7 +302,8 @@ test("Stato rovinato del gioco: sistemato senza errori", () => {
   assert.deepStrictEqual(Object.keys(g.daily), ["2026-10-22"]);
   assert.deepStrictEqual(Object.keys(g.time), []);
   assert.deepStrictEqual(g.covered, ["2026-10-21"]);
-  assert.strictEqual(g.events.length, 1);
+  // oltre all'avviso buono, c'e' quello dei premi arretrati del personaggio (il piano 1 era completato)
+  assert.deepStrictEqual(g.events.map((e) => e.text), ["ok", "Premi per quello che avevi già fatto"]);
   const fresh = E.ensure(null).game;
   assert.deepStrictEqual([fresh.xp, fresh.minutes, fresh.shields], [0, 30, 1]);
   assert.ok(G.status(E.ensure(null), T0, true));

@@ -44,7 +44,7 @@
           <span>${mem.pct == null ? "Quando impari le prime cose (immagini, schede, carte), qui vedi quanto ne ricorderesti adesso." : `di ${plural(mem.n, "cosa imparata", "cose imparate")} la ricorderesti adesso${mem.low ? ` · ${mem.low} da ripassare presto` : ""}. Obiettivo: ${target}% o più.`}</span>
           ${mem.pct == null ? "" : `<div class="mem-meter" role="img" aria-label="Memoria attuale ${pct1(mem.pct)} per cento, obiettivo ${target}"><i style="width:${Math.max(2, Math.min(100, mem.pct))}%"></i><b style="left:${target}%"></b></div>`}
         </div>
-        <div class="mem-hud-stat"><span class="mem-kicker">Livello</span><strong>${lv.level}</strong><div class="mem-xpbar" role="img" aria-label="${lv.into} punti su ${lv.need} per il livello ${lv.level + 1}"><i style="width:${Math.round(lv.pct * 100)}%"></i></div><span>${lv.into}/${lv.need} punti · oggi +${st.todayXp}</span></div>
+        ${(K.hudChar && K.hudChar(l, st)) || `<div class="mem-hud-stat"><span class="mem-kicker">Livello</span><strong>${lv.level}</strong><div class="mem-xpbar" role="img" aria-label="${lv.into} punti su ${lv.need} per il livello ${lv.level + 1}"><i style="width:${Math.round(lv.pct * 100)}%"></i></div><span>${lv.into}/${lv.need} punti · oggi +${st.todayXp}</span></div>`}
         <div class="mem-hud-stat"><span class="mem-kicker">Titolo</span><strong class="word">${esc(st.title)}</strong><span>${st.seals}/6 sigilli · ${st.stars}/${st.starsMax} stelle</span></div>
         <div class="mem-hud-stat"><span class="mem-kicker">Serie</span><strong>${st.streak.n}</strong><span>${esc(streakLine(st.streak))}</span></div>
         <div class="mem-hud-stat"><span class="mem-kicker">Oggi</span><strong>${st.minutes}<small>/${st.budget} min</small></strong><div class="mem-xpbar time" role="img" aria-label="${st.minutes} minuti di ${st.budget}"><i style="width:${timePct}%"></i></div><span>${st.minutes >= st.budget ? "tempo fatto: il resto è bonus" : "contati mentre ti alleni"}</span></div>
@@ -275,7 +275,7 @@
     el.innerHTML = `${e.type === "boss" ? CROWN : e.type === "star" ? STAR : ""}<div><strong>${esc(e.text)}</strong>${e.sub ? `<span>${esc(e.sub)}</span>` : ""}</div>`;
     box.appendChild(el);
     requestAnimationFrame(() => el.classList.add("in"));
-    const long = e.type === "boss" || e.type === "level" || e.type === "missions";
+    const long = e.type === "boss" || e.type === "level" || e.type === "missions" || e.type === "form";
     setTimeout(() => { el.classList.remove("in"); setTimeout(() => { el.remove(); showNext(); }, 260); }, long ? 3400 : 2300);
   }
   K.afterRender = () => {
@@ -283,9 +283,10 @@
     if (!ev.length) return;
     if (typeof saveState === "function") saveState();
     ev.forEach((e) => queue.push(e));
-    // niente avvisi vecchi: un solo livello (l'ultimo), i guardiani sempre, al massimo quattro in fila
-    const lastLevel = queue.map((e) => e.type).lastIndexOf("level");
-    const keep = queue.filter((e, i) => e.type !== "level" || i === lastLevel);
+    // niente avvisi vecchi: un solo livello e una sola forma (gli ultimi), i guardiani sempre, al massimo quattro in fila
+    const types = queue.map((e) => e.type);
+    const last = { level: types.lastIndexOf("level"), form: types.lastIndexOf("form") };
+    const keep = queue.filter((e, i) => !(e.type in last) || i === last[e.type]);
     while (keep.length > 4) { const i = keep.findIndex((e) => e.type !== "boss" && e.type !== "level"); keep.splice(i >= 0 ? i : 0, 1); }
     queue.length = 0;
     keep.forEach((e) => queue.push(e));

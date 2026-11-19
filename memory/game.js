@@ -21,6 +21,8 @@
   const E = root.MemoryEngine || (typeof require === "function" ? require("./engine.js") : null);
   const S = root.MemorySRS || (typeof require === "function" ? require("./srs.js") : null);
   const CO = root.MemoryCourse || (typeof require === "function" ? require("./course.js") : null);
+  // il personaggio e gli scrigni (facoltativo: senza, il gioco funziona lo stesso)
+  const GA = root.MemoryGacha || (typeof require === "function" ? require("./gacha.js") : null);
   if (!E || !S || !CO || !E.hooks) return {};
 
   const DAY = 86400000;
@@ -32,6 +34,8 @@
   const MINUTES = [30, 45, 60, 90, 120];   // tempo al giorno a scelta
   const MAX_SHIELDS = 3;
   const XP = { day: 100, precise: 50, challenge: 100, boss: 250, mission: 50, allMissions: 100 };
+  // cristalli per gli scrigni: solo allenandosi (100 = un'evocazione)
+  const GEMS = { level: 50, day: 10, precise: 15, challenge: 25, boss: 100, mission: 10, allMissions: 25, record: 10 };
 
   /* ------------------------------------------------------------ guardiani e sfide */
   const BOSSES = {
@@ -133,8 +137,29 @@
     g.daily[k] = (g.daily[k] || 0) + xp;
     trimKeys(g.daily, 90);
     const after = levelOf(g.xp).level;
-    if (after > before) push(lab, { type: "level", text: `Livello ${after}`, sub: "Più ricordi, più sali." }, now);
+    if (after > before) {
+      const ch = g.char;
+      let sub = "Più ricordi, più sali.";
+      if (ch && GA) {
+        GA.award(ch, GEMS.level * (after - before));
+        let gold = 0;
+        for (let L = before + 1; L <= after; L += 1) if (L % 5 === 0) gold += 1;
+        if (gold) GA.addChest(ch, "oro", gold);
+        sub = `+${GEMS.level * (after - before)} cristalli${gold === 1 ? " e uno scrigno d'oro" : gold > 1 ? ` e ${gold} scrigni d'oro` : ""}`;
+      }
+      push(lab, { type: "level", text: `Livello ${after}`, sub }, now);
+      if (ch && GA) {
+        const f = GA.formOf(after);
+        if (f.n > ch.form) { ch.form = f.n; push(lab, { type: "form", text: `Nuova forma: ${f.name}`, sub: f.line }, now); }
+      }
+    }
     return xp;
+  }
+  function gem(lab, n) {
+    if (lab.game && lab.game.char && GA) GA.award(lab.game.char, n);
+  }
+  function chest(lab, kind) {
+    if (lab.game && lab.game.char && GA) GA.addChest(lab.game.char, kind);
   }
   // punti di una voce del registro: solo per quello che hai ricordato
   function xpOf(e) {
@@ -162,13 +187,18 @@
     s[which] = t;
     if (which === "s" && BOSSES[day]) {
       g.seals[day] = t;
+      gem(lab, GEMS.boss);
+      chest(lab, "guardiano");
       gain(lab, XP.boss, t);
       g.shields = Math.min(MAX_SHIELDS, g.shields + 1);
-      push(lab, { type: "boss", day, text: `${BOSSES[day].name}: sconfitto`, sub: `Sigillo ${Object.keys(g.seals).length} di 6 · titolo: ${titleOf(lab)} · +1 scudo` }, t);
+      push(lab, { type: "boss", day, text: `${BOSSES[day].name}: sconfitto`, sub: `Sigillo ${Object.keys(g.seals).length} di 6 · titolo: ${titleOf(lab)} · scrigno del guardiano e uno scudo` }, t);
       return true;
     }
+    const gems = which === "c" ? GEMS.day : which === "p" ? GEMS.precise : GEMS.challenge;
+    gem(lab, gems);
+    if (which === "c") chest(lab, "piano");
     gain(lab, which === "c" ? XP.day : which === "p" ? XP.precise : XP.challenge, t);
-    push(lab, { type: "star", day, which, text: which === "c" ? `Piano ${day} completato` : which === "p" ? `Piano ${day}: preciso` : `Piano ${day}: sfida superata` }, t);
+    push(lab, { type: "star", day, which, text: which === "c" ? `Piano ${day} completato` : which === "p" ? `Piano ${day}: preciso` : `Piano ${day}: sfida superata`, sub: g.char ? `+${gems} cristalli${which === "c" ? " e uno scrigno" : ""}` : "" }, t);
     return true;
   }
   function onChallenge(lab, e) {
@@ -376,6 +406,7 @@
       const def = MISSIONS[x.id];
       if (def && def.check(lab, now, x)) {
         day.done[x.id] = now;
+        gem(lab, GEMS.mission);
         gain(lab, XP.mission, now);
         push(lab, { type: "mission", text: "Missione compiuta", sub: def.label(lab, x) }, now);
         changed = true;
@@ -383,6 +414,7 @@
     });
     if (!num(day.all) && day.list.length && day.list.every((x) => num(day.done[x.id]))) {
       day.all = now;
+      gem(lab, GEMS.allMissions);
       gain(lab, XP.allMissions, now);
       g.shieldProgress += 1;
       let sub = `Verso il prossimo scudo: ${g.shieldProgress} di 3 giorni`;
@@ -545,7 +577,8 @@
       changed, xp: g.xp, level: levelOf(g.xp), title: titleOf(lab), seals: Object.keys(g.seals).length,
       stars, starsMax: CO.LENGTH * 3, missions, allMissions: num(md.all),
       mem: memoryNow(lab, now), target: lab.prefs.retention, minutes: minutesToday(lab, now), budget: g.minutes,
-      streak: streakInfo(lab, now), todayXp: g.daily[k] || 0
+      streak: streakInfo(lab, now), todayXp: g.daily[k] || 0,
+      char: g.char && GA ? { name: g.char.name, crystals: g.char.crystals, dust: g.char.dust, chests: GA.chestsTotal(g.char), form: GA.formOf(levelOf(g.xp).level), next: GA.nextForm(levelOf(g.xp).level), fresh: GA.unseen(g.char).length } : null
     };
   }
   function popEvents(lab) {
@@ -595,11 +628,37 @@
       shields: Number.isInteger(x.shields) ? clamp(x.shields, 0, MAX_SHIELDS) : 1,
       shieldProgress: Number.isInteger(x.shieldProgress) ? clamp(x.shieldProgress, 0, 2) : 0,
       covered: Array.isArray(x.covered) ? x.covered.filter(isDayKey).slice(-60) : [],
-      events: Array.isArray(x.events) ? x.events.filter((e) => isObj(e) && typeof e.text === "string").slice(-12) : []
+      events: Array.isArray(x.events) ? x.events.filter((e) => isObj(e) && typeof e.text === "string").slice(-12) : [],
+      char: GA ? GA.ensureChar(x.char) : null
     };
     trimKeys(lab.game.daily, 90);
     trimKeys(lab.game.time, 60);
     trimKeys(lab.game.memo, 120);
+    if (GA && lab.game.char && !isObj(x.char)) backPay(lab);
+  }
+  // chi si allenava gia' prima del personaggio riceve i premi di quello che aveva fatto
+  function backPay(lab) {
+    const g = lab.game;
+    const ch = g.char;
+    const lv = levelOf(g.xp).level;
+    let gems = GEMS.level * (lv - 1);
+    const gold = Math.floor(lv / 5);
+    let piano = 0;
+    let guard = 0;
+    Object.keys(g.stars).forEach((d) => {
+      const s = g.stars[d];
+      if (s.c) { gems += GEMS.day; piano += 1; }
+      if (s.p) gems += GEMS.precise;
+      if (s.s) { if (BOSSES[Number(d)]) { gems += GEMS.boss; guard += 1; } else gems += GEMS.challenge; }
+    });
+    if (!gems && !gold && !piano && !guard) return;
+    GA.award(ch, gems);
+    if (piano) GA.addChest(ch, "piano", piano);
+    if (gold) GA.addChest(ch, "oro", gold);
+    if (guard) GA.addChest(ch, "guardiano", guard);
+    ch.form = GA.formOf(lv).n;
+    const n = piano + gold + guard;
+    push(lab, { type: "level", text: "Premi per quello che avevi già fatto", sub: `+${gems} cristalli${n ? ` e ${n === 1 ? "uno scrigno" : `${n} scrigni`}` : ""}` });
   }
 
   /* ------------------------------------------------------------ agganci */
@@ -607,6 +666,7 @@
   E.hooks.log.push((lab, e) => {
     if (!lab.game) return;
     const xp = xpOf(e);
+    if (isObj(e.m) && e.m.rec && e.kind.startsWith("dis:")) gem(lab, GEMS.record);
     if (xp) gain(lab, xp, e.t);
     const md = /^course:day(\d+)$/.exec(e.kind);
     if (md) setStar(lab, Number(md[1]), "c", e.t);
@@ -618,7 +678,7 @@
   });
 
   return {
-    MINUTES, MAX_SHIELDS, XP, BOSSES, MISSIONS, FOCUS,
+    MINUTES, MAX_SHIELDS, XP, GEMS, BOSSES, MISSIONS, FOCUS,
     levelOf, xpOf, gain, challengeFor, challengeWon, challengeOpen, titleOf, dayQuality, floorOf, starCount, setStar,
     memoryNow, addActiveTime, minutesToday, setMinutes, weakPoint, extraPlan, status, popEvents, ensureGame, fmtMem
   };
