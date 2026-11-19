@@ -68,6 +68,7 @@
 }
 .mem-card h2 { margin: 0 0 8px; font-size: clamp(1.25rem, 2vw, 1.55rem); }
 .mem-card h3 { margin: 18px 0 6px; font-size: 1rem; }
+.mem-card > h3:first-child { margin-top: 0; }
 .mem-card p { margin: 0 0 10px; max-width: 70ch; }
 .mem-lead { font-size: 1.05rem; color: #2d3a43; }
 .mem-small { color: var(--muted); font-size: 0.84rem; }
@@ -211,6 +212,7 @@ div.mem-feedback .primary-action { justify-self: start; }
 .mem-practice { background: var(--surface-soft); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px 20px; margin-bottom: 14px; }
 .mem-practice h3 { margin: 0 0 6px; font-size: 1rem; }
 .mem-practice p { margin: 0 0 10px; }
+.mem-practice .mem-actions + p { margin-top: 10px; }
 .mem-palaces { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
 .mem-palaces li { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
 .mem-palaces li div { flex: 1 1 200px; display: grid; }
@@ -386,3 +388,302 @@ div.mem-feedback .primary-action { justify-self: start; }
 
 .mem-side .mem-hex { margin: 0 0 14px; }
 .mem-side-how { margin-top: 4px !important; padding-top: 12px; border-top: 1px solid var(--line); }
+
+/* ================================================================ parti nuove (memory/ui-plus.js) */
+
+/* ---------------------------------------------------------------- liste e pezzi comuni */
+.mem-plain { margin: 0 0 10px; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+.mem-linkbtn { padding: 0; border: 0; background: none; color: var(--m-violet); font: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.mem-bar { height: 8px; border-radius: 5px; background: #e2e6eb; overflow: hidden; }
+.mem-bar i { display: block; height: 100%; border-radius: 5px; background: var(--m-violet); }
+.mem-tip { margin: 0 0 8px; padding: 10px 12px; border-left: 3px solid var(--m-amber); border-radius: 0 8px 8px 0; background: #fff8e8; font-size: 0.9rem; color: #2d3a43; max-width: 70ch; }
+.mem-opt { display: inline-block; margin-left: 6px; padding: 1px 8px; border: 1px solid var(--line-strong); border-radius: 999px; font-size: 0.72rem; font-style: normal; font-weight: 700; color: var(--muted); vertical-align: 2px; }
+.mem-field select { min-height: 42px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); font: inherit; font-weight: 400; }
+.mem-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.mem-inline select { width: auto; }
+.mem-alert .ghost-action { justify-self: start; }
+
+/* lezioni: aperte nel percorso, chiudibili */
+details.mem-lesson > summary { position: relative; display: grid; gap: 2px; padding-right: 32px; list-style: none; cursor: pointer; }
+details.mem-lesson > summary::-webkit-details-marker { display: none; }
+details.mem-lesson > summary::after { content: "+"; position: absolute; top: 50%; right: 0; transform: translateY(-50%); display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line-strong); color: var(--muted); font-weight: 700; }
+details.mem-lesson[open] > summary { margin-bottom: 12px; }
+details.mem-lesson[open] > summary::after { content: "–"; }
+details.mem-lesson > summary strong { font-size: 1.08rem; }
+.mem-lesson h3 { margin-top: 16px; }
+.mem-lessons { margin-top: 22px; }
+.mem-lessons h3 { margin: 0 0 4px; font-size: 1.05rem; }
+.mem-lesson-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.mem-lesson-list button { width: 100%; height: 100%; display: grid; align-content: start; gap: 3px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.mem-lesson-list button:hover { border-color: var(--m-violet); }
+.mem-lesson-list strong { font-size: 0.95rem; }
+.mem-lesson-list span { color: var(--muted); font-size: 0.84rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ---------------------------------------------------------------- percorso */
+.mem-course-hero { border-top: 4px solid var(--m-violet); }
+.mem-weeks { list-style: none; counter-reset: wk; margin: 14px 0 4px; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 18px; }
+.mem-weeks li { counter-increment: wk; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 2px 10px; align-items: start; }
+.mem-weeks li::before { content: counter(wk); grid-row: span 2; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: var(--m-stage); color: var(--m-amber); font-weight: 760; font-variant-numeric: tabular-nums; }
+.mem-weeks span { color: var(--muted); font-size: 0.86rem; }
+.mem-course-head { display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 4px 20px; align-items: center; }
+.mem-course-title h2 { margin: 2px 0 10px; }
+.mem-course-progress { display: grid; gap: 6px; max-width: 520px; }
+.mem-course-progress > span { color: var(--muted); font-size: 0.84rem; }
+.mem-week-strip { grid-column: 1 / -1; list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.mem-week-strip li { display: grid; gap: 1px; min-width: 0; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface-soft); }
+.mem-week-strip span { font-weight: 760; font-variant-numeric: tabular-nums; color: var(--muted); }
+.mem-week-strip em { font-style: normal; font-size: 0.76rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mem-week-strip li.past { background: var(--m-violet-soft); border-color: #c9bff2; }
+.mem-week-strip li.past span { color: var(--m-violet); }
+.mem-week-strip li.now { background: var(--m-stage); border-color: var(--m-stage); }
+.mem-week-strip li.now span { color: var(--m-amber); }
+.mem-week-strip li.now em { color: #d9d3f3; }
+.mem-course-tasks { margin-top: 4px; }
+.mem-restart { margin: 2px 0 14px; font-size: 0.86rem; color: var(--muted); }
+.mem-restart summary { cursor: pointer; width: fit-content; }
+.mem-restart p { margin: 8px 0; }
+/* la giornata del percorso nel programma di oggi */
+.mem-course-banner {
+  display: grid; gap: 2px; width: 100%; margin: 10px 0 6px; padding: 12px 16px;
+  border: 0; border-radius: 12px; color: #fff; text-align: left; font: inherit; cursor: pointer;
+  background: radial-gradient(circle at 0% 0%, var(--m-stage-2), var(--m-stage) 75%);
+}
+.mem-course-banner:hover { box-shadow: inset 0 0 0 2px var(--m-violet); }
+.mem-course-banner .mem-kicker { color: var(--m-amber); }
+.mem-course-banner strong { font-size: 1.02rem; }
+.mem-course-banner > span:last-child { color: #c9c2e8; font-size: 0.86rem; }
+
+/* ---------------------------------------------------------------- ripasso */
+.mem-rev-today { display: flex; gap: 22px; align-items: center; }
+.mem-rev-rows { flex: 1; min-width: 0; max-width: 620px; list-style: none; margin: 0; padding: 0; }
+.mem-rev-rows li { display: grid; grid-template-columns: minmax(0, 1fr) 44px minmax(0, 92px) 96px; gap: 10px; align-items: center; min-height: 46px; padding: 6px 0; border-top: 1px solid var(--line); }
+.mem-rev-rows li:first-child { border-top: 0; }
+.mem-rev-rows b { font-size: 1.15rem; font-variant-numeric: tabular-nums; text-align: right; }
+.mem-rev-rows em { font-style: normal; font-size: 0.8rem; color: var(--muted); }
+.mem-rev-rows li > button { justify-self: end; }
+.mem-decks { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.mem-decks li { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--surface-soft); border: 1px solid var(--line); }
+.mem-decks li > div { flex: 1 1 220px; display: grid; gap: 2px; min-width: 0; }
+.mem-decks li span { color: var(--muted); font-size: 0.84rem; }
+.mem-deck-new { display: grid; grid-template-columns: 170px minmax(0, 1fr) 200px; gap: 0 12px; align-items: end; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+.mem-deck-new .mem-actions { grid-column: 1 / -1; margin-top: 4px; }
+.mem-targets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 8px 0 12px; }
+.mem-targets button { display: grid; align-content: start; gap: 4px; padding: 12px 14px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.mem-targets button:hover { border-color: var(--m-violet); }
+.mem-targets button[aria-pressed="true"] { border-color: var(--m-violet); background: var(--m-violet-soft); box-shadow: inset 0 0 0 1px var(--m-violet); }
+.mem-targets strong { font-size: 0.95rem; }
+.mem-targets span { color: var(--muted); font-size: 0.82rem; }
+.mem-cardlist { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 6px; }
+.mem-cardlist li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; }
+.mem-cardlist li > div { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.mem-cardlist strong { font-size: 0.92rem; }
+.mem-cardlist span { font-size: 0.86rem; color: #2d3a43; white-space: pre-line; }
+.mem-cardlist em { font-style: normal; font-size: 0.8rem; color: var(--muted); }
+.mem-cardlist small { color: var(--muted); font-size: 0.76rem; white-space: nowrap; }
+.mem-cardlist .ghost-action { min-width: 34px; padding: 0 8px; }
+
+/* scheda da ripassare: la domanda sullo schermo scuro, come tutto cio' che si ricorda */
+.mem-flash { text-align: center; }
+.mem-flash .mem-hint { margin: 6px 0 10px; }
+.mem-flash-q {
+  display: grid; place-items: center; align-content: center; gap: 6px; min-height: 150px; padding: 26px 20px;
+  border-radius: 14px; color: var(--m-stage-ink); overflow-wrap: anywhere;
+  background: radial-gradient(circle at 50% 0%, var(--m-stage-2), var(--m-stage) 70%);
+  font-size: clamp(1.3rem, 3.4vw, 2rem); font-weight: 700; line-height: 1.25; white-space: pre-line;
+}
+.mem-flash-q small { display: block; font-size: 0.92rem; font-weight: 400; color: #c9c2e8; }
+.mem-pao-q { font-size: clamp(3.2rem, 12vw, 5rem); font-stretch: 75%; color: var(--m-amber); font-variant-numeric: tabular-nums; }
+.mem-pao-q small { letter-spacing: 0.3em; font-size: 1.1rem; font-weight: 700; }
+.mem-flash-input { display: block; width: min(100%, 420px); min-height: 46px; margin: 14px auto 0; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 10px; font: inherit; font-size: 1.05rem; text-align: center; }
+.mem-flash .mem-actions { justify-content: center; }
+.mem-flash-a { display: grid; gap: 4px; max-width: 560px; margin: 14px auto 0; padding: 14px 16px; border-radius: 12px; background: var(--m-violet-soft); }
+.mem-flash-a strong { font-size: 1.3rem; white-space: pre-line; overflow-wrap: anywhere; }
+.mem-flash-a span { color: var(--muted); font-size: 0.9rem; white-space: pre-line; }
+.mem-flash-a em { font-style: normal; font-size: 0.86rem; color: var(--muted); }
+.mem-flash-a em.ok { color: var(--m-ok); font-weight: 700; }
+.mem-flash-a em.ko { color: var(--m-ko); font-weight: 700; }
+.mem-grades { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 560px; margin: 14px auto 0; }
+.mem-grade {
+  --g: var(--m-ok);
+  display: grid; justify-items: center; gap: 2px; padding: 10px 6px 12px;
+  border: 1px solid var(--line-strong); border-top: 4px solid var(--g); border-radius: 12px;
+  background: var(--surface); color: var(--ink); font: inherit; cursor: pointer;
+}
+.mem-grade.g1 { --g: var(--m-ko); }
+.mem-grade.g2 { --g: #c98a12; }
+.mem-grade.g3 { --g: var(--m-ok); }
+.mem-grade.g4 { --g: var(--m-violet); }
+.mem-grade:hover { border-color: var(--g); }
+.mem-grade.hint { box-shadow: 0 0 0 2px var(--g); }
+.mem-grade kbd { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--surface-soft); border: 1px solid var(--line); font: inherit; font-size: 0.74rem; color: var(--muted); }
+.mem-grade strong { font-size: 0.95rem; }
+.mem-grade span { font-size: 0.78rem; color: var(--muted); }
+
+/* ---------------------------------------------------------------- sistema delle carte */
+.mem-cs-intro { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 22px; margin: 10px auto 14px; padding: 22px; max-width: 460px; border-radius: 14px; background: var(--m-stage); color: var(--m-stage-ink); }
+.mem-cs-intro > div { display: grid; gap: 4px; text-align: left; }
+.mem-cs-intro > div strong { font-size: 3.4rem; line-height: 1; font-stretch: 75%; color: var(--m-amber); font-variant-numeric: tabular-nums; }
+.mem-cs-intro > div span { font-size: 1.7rem; font-weight: 700; }
+.mem-cs-q { display: grid; place-items: center; margin: 10px auto 14px; padding: 22px; max-width: 460px; border-radius: 14px; background: var(--m-stage); }
+.mem-cardsys-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 6px; margin-top: 10px; }
+.mem-cardsys-grid > div { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: 6px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); font-size: 0.8rem; }
+.mem-cardsys-grid .mem-card-face { grid-row: span 2; width: 32px; height: 44px; border-radius: 5px; }
+.mem-cardsys-grid .mem-card-face b { font-size: 0.78rem; }
+.mem-cardsys-grid .mem-card-face i { font-size: 0.86rem; }
+.mem-cardsys-grid > div > b { font-variant-numeric: tabular-nums; color: var(--muted); }
+.mem-cardsys-grid > div > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mem-cardsys-grid > .seen { border-color: #c9bff2; }
+.mem-cardsys-grid > .known { background: var(--m-violet-soft); border-color: var(--m-violet); }
+.mem-cardsys-grid > .known > b { color: var(--m-violet); }
+
+/* ---------------------------------------------------------------- persona-azione-oggetto */
+.mem-pao-group { margin: 8px 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.mem-pao-group summary { display: flex; justify-content: space-between; gap: 10px; padding: 10px 14px; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; }
+.mem-pao-group summary span { color: var(--muted); font-weight: 400; }
+.mem-pao-rows { display: grid; gap: 6px; padding: 0 10px 12px; }
+.mem-pao-row { display: grid; grid-template-columns: 28px 34px minmax(0, 1fr) minmax(0, 1fr) minmax(64px, 110px); gap: 6px; align-items: center; }
+.mem-pao-row b { font-variant-numeric: tabular-nums; }
+.mem-pao-row em { font-style: normal; font-size: 0.8rem; color: var(--m-violet); font-weight: 700; letter-spacing: 0.06em; }
+.mem-pao-row input { width: 100%; min-width: 0; min-height: 36px; padding: 0 8px; border: 1px solid var(--line-strong); border-radius: 8px; font: inherit; font-size: 0.9rem; }
+.mem-pao-row span { font-size: 0.82rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mem-pao-try { margin-top: 14px; padding-top: 4px; border-top: 1px solid var(--line); }
+.mem-pao-try .mem-field input { max-width: 260px; font-size: 1.1rem; letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
+.mem-pao-story { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 6px; }
+.mem-pao-story li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.mem-pao-story b { padding: 2px 8px; border-radius: 6px; background: var(--m-stage); color: var(--m-amber); font-variant-numeric: tabular-nums; letter-spacing: 0.06em; }
+.mem-pao-story i { color: var(--muted); }
+
+/* ---------------------------------------------------------------- usala */
+.mem-area-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.mem-area-list button {
+  width: 100%; height: 100%; display: grid; align-content: start; gap: 4px; padding: 16px 18px;
+  border: 1px solid var(--line); border-left: 4px solid var(--m-violet); border-radius: 12px;
+  background: var(--surface); color: var(--ink); font: inherit; text-align: left; cursor: pointer; box-shadow: var(--shadow);
+}
+.mem-area-list button:hover { border-color: var(--m-violet); }
+.mem-area-list strong { font-size: 1.05rem; }
+.mem-area-list span { color: var(--muted); font-size: 0.88rem; }
+.mem-tools { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.mem-tools li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-soft); }
+.mem-tools li > strong, .mem-tools li > span { grid-column: 1; }
+.mem-tools li > span { color: var(--muted); font-size: 0.86rem; }
+.mem-tools li > button { grid-column: 2; grid-row: 1 / span 2; }
+
+/* testi a memoria: il testo si legge come una pagina, in un carattere da libro */
+.mem-text-modes { list-style: none; padding: 0; margin: 12px 0 14px; }
+.mem-text {
+  margin: 6px 0 12px; padding: 16px 20px; border-radius: 12px; background: var(--surface-soft); border: 1px solid var(--line);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  font-size: 1.14rem; line-height: 1.7; color: var(--ink);
+}
+.mem-text p { margin: 0; max-width: none; }
+.mem-text.initials { letter-spacing: 0.08em; }
+.mem-text-line { display: block; width: calc(100% + 12px); margin: 0 -6px; padding: 1px 6px; border: 0; border-radius: 6px; background: transparent; color: var(--ink); font: inherit; letter-spacing: inherit; text-align: left; cursor: pointer; }
+.mem-text-line:hover { background: var(--m-violet-soft); }
+.mem-text-line.open { letter-spacing: normal; color: var(--m-violet-dark); }
+.mem-blank { display: inline-block; min-width: 3ch; margin: 0 1px; padding: 0 3px; border: 0; border-bottom: 2px solid var(--m-violet); border-radius: 4px 4px 0 0; background: var(--m-violet-soft); color: var(--m-violet-dark); font: inherit; line-height: 1.35; cursor: pointer; }
+.mem-blank.open { background: rgba(91, 63, 209, 0.06); border-bottom-color: transparent; }
+.mem-text.check span.ok { color: var(--ink); }
+.mem-text.check span.ko { color: var(--m-ko); background: var(--m-ko-soft); border-radius: 3px; padding: 0 2px; }
+.mem-textcard .mem-big { margin: 4px 0 12px; }
+
+/* ---------------------------------------------------------------- scacchi */
+.mem-chess-q { text-align: center; }
+.mem-chess-q .mem-small { margin: 14px auto 0; }
+.mem-chess-sq { display: grid; place-items: center; min-height: 150px; max-width: 460px; margin: 10px auto 14px; border-radius: 14px; background: var(--m-stage); color: var(--m-amber); font-size: clamp(3rem, 12vw, 4.6rem); font-weight: 760; font-stretch: 75%; font-variant-numeric: tabular-nums; }
+.mem-options.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mem-options.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.mem-options.two .mem-option, .mem-options.four .mem-option { justify-content: center; }
+.mem-feedback-line { margin: 12px 0 0; font-weight: 700; }
+.mem-feedback-line.ok { color: var(--m-ok); }
+.mem-feedback-line.ko { color: var(--m-ko); }
+.mem-board { display: block; width: 100%; max-width: 380px; height: auto; margin: 10px auto; }
+.mem-board .lt { fill: #f0d9b5; }
+.mem-board .dk { fill: #b58863; }
+.mem-board .co { font-size: 11px; fill: var(--muted); }
+.mem-stage .mem-board .co { fill: #c9c2e8; }
+.mem-flash-check { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 6px; }
+.mem-flash-check li.ok b { color: var(--m-ok); }
+.mem-flash-check li.ko b { color: var(--m-ko); }
+.mem-flash-check em { font-style: normal; color: var(--muted); font-size: 0.86rem; }
+
+/* ---------------------------------------------------------------- immagini, date, palazzo a due */
+.mem-loci.two { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.mem-img-rows { display: grid; gap: 10px; }
+.mem-img-row { display: flex; align-items: center; gap: 8px; }
+.mem-img { position: relative; flex: 1 1 0; min-width: 0; max-width: 120px; display: block; padding: 0; border: 0; border-radius: 12px; background: transparent; }
+.mem-abs { display: block; width: 100%; height: auto; }
+.mem-img-rows.recall .mem-img { border: 2px solid var(--line-strong); cursor: pointer; overflow: hidden; }
+.mem-img-rows.recall .mem-img:hover { border-color: var(--m-violet); }
+.mem-img-rows.recall .mem-img.picked { border-color: var(--m-violet); }
+.mem-img-rows.recall .mem-img.picked .mem-abs { opacity: 0.45; }
+.mem-img i { position: absolute; top: 4px; left: 4px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--m-violet); color: #fff; font-style: normal; font-weight: 760; font-size: 0.8rem; }
+.mem-img-rows.check .mem-img { border-radius: 12px; overflow: hidden; }
+.mem-img-rows.check .mem-img.ok { box-shadow: 0 0 0 3px var(--m-ok); }
+.mem-img-rows.check .mem-img.ko { box-shadow: 0 0 0 3px var(--m-ko); }
+.mem-img-rows.check .mem-img.empty { opacity: 0.45; }
+.mem-img-rows .mem-row-n { flex: none; }
+.mem-img-rows.recall .mem-row-n, .mem-img-rows.check .mem-row-n { color: var(--muted); }
+.mem-dates { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.mem-dates li { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 10px; align-items: center; padding: 8px 10px; border-radius: 8px; background: rgba(255, 255, 255, 0.06); }
+.mem-dates b { font-size: 1.35rem; color: var(--m-amber); font-stretch: 80%; font-variant-numeric: tabular-nums; }
+.mem-dates span { font-size: 0.95rem; }
+.mem-date-inputs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+.mem-date-inputs label { display: grid; grid-template-columns: minmax(0, 1fr) 84px; gap: 10px; align-items: center; }
+.mem-date-inputs span { font-size: 0.92rem; }
+.mem-date-inputs input { width: 100%; min-height: 40px; padding: 0 8px; border: 1px solid var(--line-strong); border-radius: 8px; font: inherit; font-size: 1.1rem; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+.mem-date-check { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px; }
+.mem-date-check li { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 2px 10px; padding: 6px 8px; border-radius: 8px; }
+.mem-date-check li.ok { background: var(--m-ok-soft); }
+.mem-date-check li.ko { background: var(--m-ko-soft); }
+.mem-date-check li.empty { background: var(--surface-soft); }
+.mem-date-check b { font-variant-numeric: tabular-nums; }
+.mem-date-check em { grid-column: 2; font-style: normal; font-size: 0.78rem; color: var(--muted); }
+
+/* ---------------------------------------------------------------- telefono (parti nuove) */
+@media (max-width: 900px) {
+  .mem-deck-new { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .mem-deck-new label:nth-child(2) { grid-column: 1 / -1; grid-row: 1; }
+}
+@media (max-width: 640px) {
+  .mem-tabs { flex-wrap: wrap; }
+  .mem-tabs button { flex: 1 1 calc(25% - 4px); padding: 0 4px; }
+  .mem-weeks, .mem-lesson-list, .mem-area-list, .mem-targets { grid-template-columns: minmax(0, 1fr); }
+  .mem-course-head { grid-template-columns: 84px minmax(0, 1fr); gap: 4px 14px; }
+  .mem-course-head .mem-big { width: 84px; height: 84px; border-radius: 14px; }
+  .mem-course-head .mem-big strong { font-size: 2.2rem; }
+  .mem-course-head .mem-big span { font-size: 0.7rem; text-align: center; }
+  .mem-course-title h2 { font-size: 1.15rem; margin-bottom: 8px; }
+  .mem-week-strip li { padding: 6px 0; text-align: center; }
+  .mem-week-strip em { display: none; }
+  .mem-rev-today { flex-direction: column; align-items: stretch; gap: 12px; }
+  .mem-rev-today .mem-big { width: 100%; height: auto; padding: 12px; grid-auto-flow: column; gap: 10px; justify-content: start; align-items: baseline; }
+  .mem-rev-rows li { grid-template-columns: minmax(0, 1fr) 36px auto; }
+  .mem-rev-rows em { grid-column: 1; grid-row: 2; margin-top: -6px; }
+  .mem-rev-rows li > button { grid-column: 3; grid-row: 1 / span 2; }
+  .mem-deck-new { grid-template-columns: minmax(0, 1fr); }
+  .mem-deck-new label:nth-child(2) { grid-row: auto; }
+  .mem-grades { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mem-flash-q { min-height: 120px; padding: 20px 14px; }
+  .mem-pao-row { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-areas: "c l o o o o" "p p p a a a"; row-gap: 4px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .mem-pao-row b { grid-area: c; }
+  .mem-pao-row em { grid-area: l; }
+  .mem-pao-row span { grid-area: o; text-align: right; }
+  .mem-pao-row input[data-f="p"] { grid-area: p; }
+  .mem-pao-row input[data-f="a"] { grid-area: a; }
+  .mem-options.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mem-options.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .mem-options.four .mem-option { padding: 0 6px; gap: 4px; }
+  .mem-options.four .mem-option kbd { display: none; }
+  .mem-tools li { grid-template-columns: minmax(0, 1fr); }
+  .mem-tools li > button { grid-column: 1; grid-row: auto; justify-self: start; margin-top: 6px; }
+  .mem-text { padding: 12px 14px; font-size: 1.06rem; }
+  .mem-img-row { gap: 5px; }
+  .mem-img { border-radius: 9px; }
+  .mem-cs-intro { padding: 16px; gap: 14px; }
+  .mem-cs-intro > div strong { font-size: 2.8rem; }
+  .mem-cs-intro > div span { font-size: 1.4rem; }
+  .mem-cardlist li { grid-template-columns: minmax(0, 1fr) auto; }
+  .mem-cardlist small { grid-column: 1; grid-row: 2; }
+  .mem-cardlist .ghost-action { grid-column: 2; grid-row: 1 / span 2; }
+}

@@ -6,8 +6,12 @@
  *    riferimento pubblicati per adulti (NORMS), con la fonte.
  *  - Discipline come nelle gare di memoria: numeri, parole, carte, nomi e volti, a livelli.
  *  - Tecniche: palazzo della memoria (i tuoi luoghi), sistema fonetico 00-99 con ripasso distanziato.
- *  - Programma del giorno, profilo per il quadro, storico.
- * Stato: state.memoryLab. Dati: window.MemoryData (memory/data.js).
+ *  - Discipline nuove: immagini astratte (Memory League) e date (gare IAM).
+ *  - Sistemi: carte (52 carte = 52 immagini del fonetico), persona-azione-oggetto (sistema Dominic).
+ *  - Mazzi tuoi con ripasso FSRS (memory/srs.js): domande, vocaboli, persone, brani; testi a memoria.
+ *  - Esercizi di memoria per gli scacchi; vita quotidiana (telefono, spesa).
+ *  - Percorso guidato di 42 giorni (memory/course.js), programma del giorno, profilo, storico.
+ * Stato: state.memoryLab. Dati: window.MemoryData (memory/data.js), MemoryContent (memory/content.js).
  */
 (function (root, factory) {
   const api = factory(root);
@@ -17,6 +21,9 @@
   "use strict";
 
   const DATA = root.MemoryData || (typeof require === "function" ? require("./data.js") : { words: [], major: [], names: { male: [], female: [], surnames: [] } });
+  const SRS = root.MemorySRS || (typeof require === "function" ? require("./srs.js") : null);
+  const CONTENT = root.MemoryContent || (typeof require === "function" ? require("./content.js") : { LESSONS: [], TEXTS: [], EVENT_SUBJECTS: [], EVENT_PREDICATES: [], GROCERIES: [], OPENINGS: [], DOMINIC: {} });
+  const COURSE = root.MemoryCourse || (typeof require === "function" ? require("./course.js") : { WEEKS: [], DAYS: [], LENGTH: 0, FOLLOW_UP_DAYS: 120 });
   const VERSION = 1;
   const DAY = 86400000;
 
@@ -330,20 +337,67 @@
         { n: 15, mem: 120 }, { n: 20, mem: 150 }, { n: 25, mem: 150 }, { n: 30, mem: 120 }, { n: 30, mem: 60 }
       ],
       recall: 240
+    },
+    // Memory League: l'ordine di 30 immagini in 1 minuto, un punto per immagine al posto giusto
+    images: {
+      key: "images", label: "Immagini", unit: "immagini", rowSize: 5,
+      levels: [
+        { n: 5, mem: 60 }, { n: 10, mem: 90 }, { n: 10, mem: 60 }, { n: 15, mem: 90 }, { n: 15, mem: 60 },
+        { n: 20, mem: 90 }, { n: 20, mem: 60 }, { n: 25, mem: 60 }, { n: 30, mem: 90 }, { n: 30, mem: 60 }
+      ],
+      recall: 240
+    },
+    // gare IAM: anni (1000-2099) di eventi inventati, poi gli eventi mescolati e si scrive l'anno
+    dates: {
+      key: "dates", label: "Date", unit: "date", rowSize: 5,
+      levels: [
+        { n: 5, mem: 60 }, { n: 8, mem: 90 }, { n: 10, mem: 120 }, { n: 12, mem: 120 }, { n: 15, mem: 150 },
+        { n: 20, mem: 180 }, { n: 25, mem: 240 }, { n: 30, mem: 300 }, { n: 40, mem: 300 }, { n: 50, mem: 300 }
+      ],
+      recall: 300
     }
   };
   const PASS_SHARE = 0.9;
 
-  function makeRound(key, level, seed = Date.now(), lab = null) {
+  // eventi inventati (soggetto + azione), tutti diversi
+  function pickEvents(n, rand) {
+    const subj = shuffle(CONTENT.EVENT_SUBJECTS, rand);
+    const pred = shuffle(CONTENT.EVENT_PREDICATES, rand);
+    const out = [];
+    for (let i = 0; out.length < n && i < subj.length * pred.length; i += 1) {
+      const e = `${subj[i % subj.length]} ${pred[(i * 7 + Math.floor(i / subj.length)) % pred.length]}`;
+      if (!out.includes(e)) out.push(e);
+    }
+    return out;
+  }
+  /*
+   * Un turno. custom = { n, mem, recall?, list?, life? } per i compiti del percorso e della vita
+   * quotidiana (niente livelli: non sbloccano e non fanno record di livello).
+   */
+  function makeRound(key, level, seed = Date.now(), lab = null, custom = null) {
     const d = DISCIPLINES[key];
     if (!d) return null;
-    const lv = d.levels[clamp(level, 1, d.levels.length) - 1];
+    const isCustom = Boolean(custom && num(custom.n));
+    const lv = isCustom ? { n: clamp(Math.round(custom.n), 1, key === "cards" ? 52 : 120), mem: clamp(Math.round(custom.mem || 60), 10, 900) } : d.levels[clamp(level, 1, d.levels.length) - 1];
     const rand = rng(seed);
     let items;
     if (key === "numbers") items = Array.from({ length: lv.n }, () => Math.floor(rand() * 10));
-    else if (key === "words") items = pickWords(lv.n, rand, (lab && lab.recentWords) || []);
+    else if (key === "words") items = isCustom && custom.list === "groceries" ? shuffle(CONTENT.GROCERIES, rand).slice(0, lv.n) : pickWords(lv.n, rand, (lab && lab.recentWords) || []);
     else if (key === "cards") items = shuffle(DECK, rand).slice(0, lv.n);
-    else {
+    else if (key === "images") {
+      const seen = new Set();
+      items = [];
+      while (items.length < lv.n) { const sd = 1 + Math.floor(rand() * 2147483000); if (!seen.has(sd)) { seen.add(sd); items.push(sd); } }
+    } else if (key === "dates") {
+      const years = new Set();
+      const events = pickEvents(lv.n, rand);
+      items = events.map((event) => {
+        let y;
+        do { y = 1000 + Math.floor(rand() * 1100); } while (years.has(y));
+        years.add(y);
+        return { event, year: y };
+      });
+    } else {
       const males = shuffle(DATA.names.male, rand);
       const females = shuffle(DATA.names.female, rand);
       const surn = shuffle(DATA.names.surnames, rand);
@@ -352,7 +406,8 @@
         return { seed: Math.floor(rand() * 1e9), female, first: (female ? females : males)[i % 40], last: surn[i % surn.length] };
       });
     }
-    return { key, level: clamp(level, 1, d.levels.length), n: lv.n, mem: lv.mem, recall: d.recall, seed, items };
+    const recall = isCustom && num(custom.recall) ? custom.recall : d.recall;
+    return { key, level: isCustom ? 0 : clamp(level, 1, d.levels.length), custom: isCustom, life: isCustom && custom.life ? String(custom.life) : null, n: lv.n, mem: lv.mem, recall, seed, items };
   }
 
   /*
@@ -361,7 +416,7 @@
    * a righe da 10. Riga perfetta = tutti i punti; un errore = meta' (arrotondata per eccesso); due o
    * piu' = zero. In una riga completa i buchi contano come errori; l'ultima riga scritta, se lasciata
    * a meta', vale fino all'ultima risposta.
-   * Carte e nomi: come in Memory League, un punto per ogni risposta giusta.
+   * Carte, nomi, immagini e date: un punto per ogni risposta giusta (come in Memory League).
    */
   function scoreRound(round, answers) {
     const d = DISCIPLINES[round.key];
@@ -373,6 +428,8 @@
       if (round.key === "numbers") return String(g).trim() === String(item);
       if (round.key === "words") return sameWord(g, item);
       if (round.key === "cards") return String(g) === item;
+      if (round.key === "images") return Number(g) === item;
+      if (round.key === "dates") return String(g).trim() === String(item.year);
       return sameWord(g, item.first);
     });
     const correct = marks.filter((m) => m === true).length;
@@ -401,14 +458,18 @@
     numbers: "Per farti un'idea: in Memory League (80 cifre, 1 minuto per memorizzare) il record in una gara dal vivo è 80 cifre in 16,85 secondi (Simon Reinhard, 2018); il record mondiale IAM dei numeri in 5 minuti è 630 cifre (Andrea Muzii, 2021).",
     words: "Per farti un'idea: in Memory League il record in una gara dal vivo è 50 parole in 51,31 secondi (Katie Kermode, 2016); il record mondiale IAM delle parole in 15 minuti è 318.",
     cards: "Per farti un'idea: in Memory League il record in una gara dal vivo è un mazzo da 52 in 16,86 secondi (Alex Mullen, 2016); il record mondiale IAM di carte veloci è 12,74 secondi (Shijir-Erdene Bat-Enkh, 2018).",
-    faces: "Per farti un'idea: in Memory League il record in una gara dal vivo è 30 nomi in 45,09 secondi (Jan-Hendrik Büscher, 2018); il record mondiale IAM dei nomi in 15 minuti è 224 (Katie Kermode, 2018)."
+    faces: "Per farti un'idea: in Memory League il record in una gara dal vivo è 30 nomi in 45,09 secondi (Jan-Hendrik Büscher, 2018); il record mondiale IAM dei nomi in 15 minuti è 224 (Katie Kermode, 2018).",
+    images: "Per farti un'idea: il record online di Memory League è di 30 immagini in 7,58 secondi (Enrico Marraffa, 2026).",
+    dates: "Per farti un'idea: il record mondiale delle date storiche in 5 minuti è di 148 date (Prateek Yadav)."
   };
   const BENCH_URL = "https://iam-stats.org/records_ml.php";
+  // le date non sono in Memory League: storia del record delle date in 5 minuti (IAM)
+  const BENCH_URLS = { dates: "https://iam-stats.org/discipline-record-history.php?id=DATES5" };
 
   function ensureDiscipline(x, key) {
     const d = DISCIPLINES[key];
     const o = isObj(x) ? x : {};
-    const history = Array.isArray(o.history) ? o.history.filter((h) => isObj(h) && num(h.t) && num(h.level) && num(h.score) && num(h.max)).slice(-200) : [];
+    const history = Array.isArray(o.history) ? o.history.filter((h) => isObj(h) && num(h.t) && num(h.level) && num(h.score) && num(h.max)).map((h) => ({ t: h.t, level: h.level, score: h.score, max: h.max, correct: num(h.correct) ? h.correct : h.score, pass: Boolean(h.pass), ...(num(h.mem) ? { mem: h.mem } : {}), ...(h.custom ? { custom: true, n: num(h.n) ? h.n : h.max, memMax: num(h.memMax) ? h.memMax : null } : {}) })).slice(-200) : [];
     const best = {};
     if (isObj(o.best)) Object.keys(o.best).forEach((k) => { if (num(o.best[k])) best[k] = o.best[k]; });
     const unlocked = clamp(Number.isInteger(o.unlocked) ? o.unlocked : 1, 1, d.levels.length);
@@ -420,6 +481,18 @@
     const dis = lab.disciplines[round.key];
     const entry = { t: now, level: round.level, score: result.score, max: result.max, correct: result.correct, pass: result.pass };
     if (num(memUsed)) entry.mem = Math.round(memUsed);
+    const meta = { n: round.n, mem: round.mem, score: result.score, max: result.max };
+    if (round.custom) {
+      entry.custom = true;
+      entry.n = round.n;
+      entry.memMax = round.mem;
+      dis.history.push(entry);
+      dis.history = dis.history.slice(-200);
+      if (round.key === "words") remember(lab, round.items);
+      if (round.life) logActivity(lab, `life:${round.life}`, now, meta);
+      logActivity(lab, `dis:${round.key}`, now, { ...meta, custom: 1 });
+      return { entry, unlocked: false, nextLevel: null, record: false };
+    }
     dis.history.push(entry);
     dis.history = dis.history.slice(-200);
     const k = String(round.level);
@@ -432,7 +505,7 @@
       unlocked = true;
     }
     if (round.key === "words") remember(lab, round.items);
-    logActivity(lab, `dis:${round.key}`, now);
+    logActivity(lab, `dis:${round.key}`, now, meta);
     return { entry, unlocked, nextLevel: unlocked ? round.level + 1 : null, record: !num(prevBest) || result.score > prevBest };
   }
   function setLevel(lab, key, level) {
@@ -462,12 +535,14 @@
     lab.palaces = lab.palaces.filter((p) => p.id !== id);
   }
   // Parole da sistemare nei luoghi del palazzo, una per luogo.
-  function makePalaceRound(lab, palaceId, n, seed = Date.now()) {
+  // per = parole per luogo (1 o 2): con 2, 30 parole stanno in 15 luoghi
+  function makePalaceRound(lab, palaceId, n, seed = Date.now(), per = 1) {
     const p = lab.palaces.find((x) => x.id === palaceId);
     if (!p || !p.loci.length) return null;
-    const size = clamp(n || p.loci.length, 1, p.loci.length);
+    const k = per === 2 ? 2 : 1;
+    const size = clamp(n || p.loci.length * k, 1, p.loci.length * k);
     const words = pickWords(size, rng(seed), lab.recentWords || []);
-    return { key: "palace", palaceId: p.id, loci: p.loci.slice(0, size), items: words, seed };
+    return { key: "palace", palaceId: p.id, per: k, loci: p.loci.slice(0, Math.ceil(size / k)), items: words, seed };
   }
   function scorePalace(round, answers) {
     const marks = round.items.map((w, i) => sameWord((answers || [])[i], w));
@@ -481,7 +556,7 @@
       if (!num(p.best) || result.correct > p.best) p.best = result.correct;
     }
     remember(lab, round.items);
-    logActivity(lab, "palace", now);
+    logActivity(lab, "palace", now, { n: round.items.length, per: round.per || 1, score: result.correct, max: result.max });
   }
 
   /* ------------------------------------------------------------ sistema fonetico */
@@ -565,16 +640,607 @@
     return out;
   }
 
+  /* ------------------------------------------------------------ sistema delle carte */
+  // Seme = prima cifra con i suoni del fonetico (Picche 9 P, Fiori 8 F, Cuori 7 C dura, Quadri 1 D di
+  // Denari); valore = seconda (asso 1, 10 = 0). Figure: Re 4 (R), Donna 2 (N di doNNa), Fante 6 (G
+  // dolce di giovane), seguite dal seme. 52 carte = 52 codici diversi del sistema fonetico.
+  const CARD_SUIT_DIGIT = { S: "9", C: "8", H: "7", D: "1" };
+  const CARD_FACE_DIGIT = { K: "4", Q: "2", J: "6" };
+  function cardCode(card) {
+    const c = String(card || "");
+    const r = c.slice(0, -1);
+    const s = c.slice(-1);
+    if (!CARD_SUIT_DIGIT[s]) return null;
+    if (CARD_FACE_DIGIT[r]) return CARD_FACE_DIGIT[r] + CARD_SUIT_DIGIT[s];
+    const v = r === "A" ? "1" : r === "10" ? "0" : r;
+    return /^[1-9]$|^0$/.test(v) ? CARD_SUIT_DIGIT[s] + v : null;
+  }
+  function cardImage(card) {
+    const code = cardCode(card);
+    const m = code ? MAJOR.find((x) => x.code === code) : null;
+    return m ? { code, word: m.word, hint: m.hint } : null;
+  }
+  const CARDS_NEW_PER_DAY = 13;
+  function retentionOf(lab, deck = null) {
+    const r = deck && num(deck.retention) ? deck.retention : lab.prefs.retention;
+    return clamp(num(r) ? r : 0.9, 0.85, 0.97);
+  }
+  function newToday(states, now) {
+    const k = dayKey(now);
+    return Object.values(states).filter((st) => st && num(st.first) && dayKey(st.first) === k).length;
+  }
+  function cardsQueue(lab, now = Date.now()) {
+    const st = lab.systems.cards;
+    const due = DECK.filter((c) => st[c] && st[c].due <= now).sort((a, b) => st[a].due - st[b].due);
+    const fresh = DECK.filter((c) => !st[c]);
+    const room = Math.max(0, CARDS_NEW_PER_DAY - newToday(st, now));
+    return { due, fresh: fresh.slice(0, room), freshLeft: fresh.length };
+  }
+  // domanda: carta -> immagine (scelta tra 4) oppure carta -> numero (da scrivere)
+  function cardQuestion(card, seed = Date.now()) {
+    const rand = rng(seed);
+    const img = cardImage(card);
+    if (!img) return null;
+    if (rand() < 0.5) {
+      const others = shuffle(MAJOR.filter((m) => m.code !== img.code), rand).slice(0, 3).map((m) => m.word);
+      return { card, kind: "pick", options: shuffle([img.word, ...others], rand), answer: img.word, code: img.code };
+    }
+    return { card, kind: "type", answer: img.code, code: img.code };
+  }
+  function cardAnswer(lab, card, ok, now = Date.now()) {
+    const res = SRS.review(lab.systems.cards[card] || null, ok ? 3 : 1, now, retentionOf(lab));
+    lab.systems.cards[card] = res.state;
+    logReview(lab, res, ok ? 3 : 1, now, "cards");
+    return res.state;
+  }
+  function cardsSure(lab) {
+    return DECK.filter((c) => lab.systems.cards[c] && lab.systems.cards[c].s >= 7).length;
+  }
+
+  /* ------------------------------------------------------------ persona-azione-oggetto */
+  function dominic(code) {
+    return String(code).split("").map((d) => CONTENT.DOMINIC[d] || "?").join("");
+  }
+  function paoSet(lab, code, person, action) {
+    if (!/^\d\d$/.test(code)) return null;
+    const p = String(person || "").trim().slice(0, 60);
+    const a = String(action || "").trim().slice(0, 60);
+    const prev = lab.systems.pao[code];
+    if (!p && !a) { delete lab.systems.pao[code]; return null; }
+    lab.systems.pao[code] = { p, a, st: prev ? prev.st : null };
+    return lab.systems.pao[code];
+  }
+  function paoFilled(lab) {
+    return Object.values(lab.systems.pao).filter((x) => x.p && x.a).length;
+  }
+  function paoQueue(lab, now = Date.now()) {
+    const items = Object.entries(lab.systems.pao).filter(([, x]) => x.p && x.a);
+    const due = items.filter(([, x]) => x.st && x.st.due <= now).sort((a, b) => a[1].st.due - b[1].st.due).map(([c]) => c);
+    const fresh = items.filter(([, x]) => !x.st).map(([c]) => c).sort();
+    const states = Object.fromEntries(items.map(([c, x]) => [c, x.st]));
+    const room = Math.max(0, 10 - newToday(states, now));
+    return { due, fresh: fresh.slice(0, room) };
+  }
+  function paoAnswer(lab, code, grade, now = Date.now()) {
+    const x = lab.systems.pao[code];
+    if (!x) return null;
+    const res = SRS.review(x.st, grade, now, retentionOf(lab));
+    x.st = res.state;
+    logReview(lab, res, grade, now, "pao");
+    return res.state;
+  }
+  // 6 cifre -> persona (prima coppia) + azione (seconda) + oggetto (terza, dal fonetico)
+  function paoStory(lab, digits) {
+    const s = String(digits).replace(/\D/g, "");
+    const out = [];
+    for (let i = 0; i < s.length; i += 6) {
+      const g = s.slice(i, i + 6);
+      const pairs = g.match(/\d{1,2}/g) || [];
+      const pp = pairs[0] && pairs[0].length === 2 ? lab.systems.pao[pairs[0]] : null;
+      const aa = pairs[1] && pairs[1].length === 2 ? lab.systems.pao[pairs[1]] : null;
+      const oo = pairs[2] && pairs[2].length === 2 ? MAJOR.find((m) => m.code === pairs[2]) : null;
+      out.push({ digits: g, person: pp ? pp.p : null, action: aa ? aa.a : null, object: oo ? oo.word : null });
+    }
+    return out;
+  }
+
+  /* ------------------------------------------------------------ mazzi tuoi (FSRS) */
+  const DECK_KINDS = {
+    qa: { label: "Studio", one: "domanda", front: "Domanda", back: "Risposta", extra: "Spiegazione o esempio (facoltativo)" },
+    vocab: { label: "Vocaboli", one: "parola", front: "Parola straniera", back: "Significato in italiano", extra: "Parola chiave e scena (facoltativo)" },
+    people: { label: "Persone", one: "persona", front: "Nome", back: "Dove e come l'hai conosciuta", extra: "Un dettaglio del viso e l'immagine del nome" },
+    piece: { label: "Brani", one: "sezione", front: "Sezione (es. A, battute 1-16)", back: "Punti di ripartenza e cosa ricordare", extra: "Brano" }
+  };
+  const MAX_CARDS = 3000;
+  function uid(prefix, now = Date.now()) {
+    return `${prefix}${now.toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`;
+  }
+  function addDeck(lab, { name, kind = "qa", lang = "", now = Date.now() } = {}) {
+    if (!DECK_KINDS[kind]) return null;
+    const deck = { id: uid("d", now), name: String(name || DECK_KINDS[kind].label).trim().slice(0, 60) || DECK_KINDS[kind].label, kind, lang: String(lang || "").trim().slice(0, 30), created: now, retention: null, cards: [] };
+    lab.decks.push(deck);
+    return deck;
+  }
+  function removeDeck(lab, id) {
+    lab.decks = lab.decks.filter((d) => d.id !== id);
+  }
+  function deckById(lab, id) {
+    return lab.decks.find((d) => d.id === id) || null;
+  }
+  function totalCards(lab) {
+    return lab.decks.reduce((s, d) => s + d.cards.length, 0);
+  }
+  function addCard(lab, deckId, { f, b, x = "", now = Date.now() } = {}) {
+    const deck = deckById(lab, deckId);
+    const front = String(f || "").trim().slice(0, 400);
+    const back = String(b || "").trim().slice(0, 800);
+    if (!deck || !front || !back || totalCards(lab) >= MAX_CARDS) return null;
+    const card = { id: uid("c", now), f: front, b: back, x: String(x || "").trim().slice(0, 400), created: now, st: { a: null, b: null } };
+    deck.cards.push(card);
+    return card;
+  }
+  function editCard(lab, deckId, cardId, { f, b, x }) {
+    const deck = deckById(lab, deckId);
+    const card = deck && deck.cards.find((c) => c.id === cardId);
+    if (!card) return null;
+    if (typeof f === "string" && f.trim()) card.f = f.trim().slice(0, 400);
+    if (typeof b === "string" && b.trim()) card.b = b.trim().slice(0, 800);
+    if (typeof x === "string") card.x = x.trim().slice(0, 400);
+    return card;
+  }
+  function removeCard(lab, deckId, cardId) {
+    const deck = deckById(lab, deckId);
+    if (deck) deck.cards = deck.cards.filter((c) => c.id !== cardId);
+  }
+  // Righe «domanda | risposta» (anche con ; o tabulazione). Restituisce quante schede ha aggiunto.
+  function importCards(lab, deckId, text, now = Date.now()) {
+    let added = 0;
+    String(text || "").split(/\r?\n/).forEach((line, i) => {
+      const parts = line.split(/\s*\|\s*|\t|\s*;\s*/);
+      if (parts.length < 2) return;
+      const [f, b, ...rest] = parts;
+      if (addCard(lab, deckId, { f, b, x: rest.join(" ").trim(), now: now + i })) added += 1;
+    });
+    return added;
+  }
+  function addStarter(lab, which, now = Date.now()) {
+    if (which === "openings") {
+      const deck = addDeck(lab, { name: "Aperture: le prime mosse", kind: "qa", now });
+      CONTENT.OPENINGS.forEach(([f, b, x], i) => addCard(lab, deck.id, { f, b, x, now: now + i }));
+      return deck;
+    }
+    return null;
+  }
+  // lati di una scheda: i vocaboli si ripassano nei due sensi
+  function sidesOf(deck) {
+    return deck.kind === "vocab" ? ["a", "b"] : ["a"];
+  }
+  function newPerDay(lab) {
+    return clamp(Number.isInteger(lab.prefs.newPerDay) ? lab.prefs.newPerDay : 15, 0, 100);
+  }
+  /*
+   * Coda del giorno: prima le schede in scadenza (le piu' vecchie prima), poi le nuove fino al
+   * limite del giorno. I due lati di un vocabolo non escono lo stesso giorno.
+   */
+  function deckQueue(lab, now = Date.now(), onlyDeck = null) {
+    const due = [];
+    const fresh = [];
+    const today = dayKey(now);
+    let introduced = 0;
+    lab.decks.forEach((deck) => deck.cards.forEach((card) => sidesOf(deck).forEach((side) => {
+      const st = card.st[side];
+      if (st && num(st.first) && dayKey(st.first) === today) introduced += 1;
+    })));
+    lab.decks.forEach((deck) => {
+      if (onlyDeck && deck.id !== onlyDeck) return;
+      deck.cards.forEach((card) => {
+        const sides = sidesOf(deck);
+        const seenToday = sides.some((sd) => card.st[sd] && num(card.st[sd].last) && dayKey(card.st[sd].last) === today);
+        sides.forEach((side) => {
+          const st = card.st[side];
+          if (st) {
+            if (st.due <= now) due.push({ deckId: deck.id, cardId: card.id, side, due: st.due, isNew: false });
+          } else if (!seenToday && !(side === "b" && !card.st.a)) {
+            fresh.push({ deckId: deck.id, cardId: card.id, side, due: card.created, isNew: true });
+          }
+        });
+      });
+    });
+    due.sort((a, b) => a.due - b.due);
+    fresh.sort((a, b) => a.due - b.due);
+    const room = Math.max(0, newPerDay(lab) - introduced);
+    return { due, fresh: fresh.slice(0, room), freshLeft: fresh.length };
+  }
+  function cardRef(lab, ref) {
+    const deck = deckById(lab, ref.deckId);
+    const card = deck && deck.cards.find((c) => c.id === ref.cardId);
+    return card ? { deck, card } : null;
+  }
+  function answerCard(lab, ref, grade, now = Date.now()) {
+    const x = cardRef(lab, ref);
+    if (!x) return null;
+    const res = SRS.review(x.card.st[ref.side] || null, grade, now, retentionOf(lab, x.deck));
+    x.card.st[ref.side] = res.state;
+    logReview(lab, res, grade, now, x.deck.kind);
+    return res.state;
+  }
+  function deckStats(deck, now = Date.now()) {
+    let due = 0;
+    let fresh = 0;
+    let mature = 0;
+    deck.cards.forEach((card) => sidesOf(deck).forEach((side) => {
+      const st = card.st[side];
+      if (!st) fresh += 1;
+      else { if (st.due <= now) due += 1; if (SRS.mature(st)) mature += 1; }
+    }));
+    return { cards: deck.cards.length, due, fresh, mature, sides: deck.cards.length * sidesOf(deck).length };
+  }
+
+  /* ------------------------------------------------------------ testi a memoria */
+  function addText(lab, { title, body, sample = null, now = Date.now() } = {}) {
+    const b = String(body || "").replace(/\r/g, "").trim().slice(0, 4000);
+    if (!b) return null;
+    const t = { id: uid("x", now), title: String(title || "Testo").trim().slice(0, 80) || "Testo", body: b, sample: sample || null, created: now, runs: [], st: null };
+    lab.texts.push(t);
+    return t;
+  }
+  function addSampleText(lab, id, now = Date.now()) {
+    const s = CONTENT.TEXTS.find((x) => x.id === id);
+    if (!s) return null;
+    const have = lab.texts.find((t) => t.sample === id);
+    return have || addText(lab, { title: s.title, body: s.body, sample: id, now });
+  }
+  function removeText(lab, id) {
+    lab.texts = lab.texts.filter((t) => t.id !== id);
+  }
+  // parole del testo con la punteggiatura attaccata, riga per riga
+  function textLines(body) {
+    return String(body || "").split("\n").map((line) => line.split(/\s+/).filter(Boolean));
+  }
+  function textWordsFlat(body) {
+    return textLines(body).flat();
+  }
+  // iniziali: «quest'ermo,» -> «q'e,»
+  function initials(word) {
+    return String(word).replace(/([A-Za-zÀ-ÖØ-öø-ÿ0-9])[A-Za-zÀ-ÖØ-öø-ÿ0-9]*/g, "$1");
+  }
+  // ordine fisso (dal seme) in cui le parole spariscono: la parte nascosta cresce senza cambiare
+  function maskOrder(n, seed = 1) {
+    return shuffle(Array.from({ length: n }, (_, i) => i), rng(seed));
+  }
+  function maskedSet(n, share, seed = 1) {
+    return new Set(maskOrder(n, seed).slice(0, Math.round(clamp(share, 0, 1) * n)));
+  }
+  // confronto parola per parola (sottosequenza comune piu' lunga)
+  function scoreText(body, typed) {
+    const target = textWordsFlat(body);
+    const given = String(typed || "").split(/\s+/).filter(Boolean);
+    const T = target.map(clean);
+    const G = given.map(clean);
+    const n = T.length;
+    const m = G.length;
+    const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+    const eq = (i, j) => T[i] === G[j] || (T[i].length >= 6 && lev(T[i], G[j]) <= 1);
+    for (let i = n - 1; i >= 0; i -= 1) for (let j = m - 1; j >= 0; j -= 1) dp[i][j] = eq(i, j) ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    const ok = new Array(n).fill(false);
+    let i = 0;
+    let j = 0;
+    while (i < n && j < m) {
+      if (eq(i, j)) { ok[i] = true; i += 1; j += 1; }
+      else if (dp[i + 1][j] >= dp[i][j + 1]) i += 1;
+      else j += 1;
+    }
+    const correct = ok.filter(Boolean).length;
+    const extra = Math.max(0, m - correct);
+    return { correct, total: n, extra, pct: n ? Math.round((correct / n) * 100) : 0, words: target.map((w, k) => ({ w, ok: ok[k] })) };
+  }
+  // mode: read | initials | mask25 | mask50 | mask75 | full. Il richiamo completo entra nel ripasso.
+  function recordTextRun(lab, id, mode, pct, now = Date.now()) {
+    const t = lab.texts.find((x) => x.id === id);
+    if (!t) return null;
+    t.runs.push({ t: now, mode, pct: clamp(Math.round(pct), 0, 100) });
+    t.runs = t.runs.slice(-60);
+    let grade = null;
+    if (mode === "full") {
+      grade = pct >= 100 ? 4 : pct >= 90 ? 3 : pct >= 75 ? 2 : 1;
+      const res = SRS.review(t.st, grade, now, retentionOf(lab));
+      t.st = res.state;
+      logReview(lab, res, grade, now, "text");
+    }
+    logActivity(lab, "text", now, { mode, pct: Math.round(pct) });
+    return { grade, st: t.st };
+  }
+  function textBest(t) {
+    const full = t.runs.filter((r) => r.mode === "full");
+    return full.length ? Math.max(...full.map((r) => r.pct)) : null;
+  }
+
+  /* ------------------------------------------------------------ scacchi */
+  const FILES = "abcdefgh";
+  function squareXY(sq) {
+    const f = FILES.indexOf(String(sq)[0]);
+    const r = Number(String(sq)[1]) - 1;
+    return f >= 0 && r >= 0 && r < 8 ? [f, r] : null;
+  }
+  function squareName(f, r) { return `${FILES[f]}${r + 1}`; }
+  // a1 e' scura, h1 chiara
+  function isLight(sq) {
+    const xy = squareXY(sq);
+    return xy ? (xy[0] + xy[1]) % 2 === 1 : false;
+  }
+  function knightDistance(a, b) {
+    const s = squareXY(a);
+    const t = squareXY(b);
+    if (!s || !t) return null;
+    const seen = new Set([s.join()]);
+    let frontier = [s];
+    for (let d = 0; d <= 6; d += 1) {
+      if (frontier.some((p) => p[0] === t[0] && p[1] === t[1])) return d;
+      const next = [];
+      frontier.forEach(([x, y]) => [[1, 2], [2, 1], [-1, 2], [-2, 1], [1, -2], [2, -1], [-1, -2], [-2, -1]].forEach(([dx, dy]) => {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || ny < 0 || nx > 7 || ny > 7 || seen.has(`${nx},${ny}`)) return;
+        seen.add(`${nx},${ny}`);
+        next.push([nx, ny]);
+      }));
+      frontier = next;
+    }
+    return null;
+  }
+  function randomSquare(rand) { return squareName(Math.floor(rand() * 8), Math.floor(rand() * 8)); }
+  function colorsRound(seed = Date.now(), n = 20) {
+    const rand = rng(seed);
+    const out = [];
+    while (out.length < n) { const sq = randomSquare(rand); if (out[out.length - 1] !== sq) out.push(sq); }
+    return out.map((sq) => ({ sq, light: isLight(sq) }));
+  }
+  function knightRound(seed = Date.now(), n = 10) {
+    const rand = rng(seed);
+    const out = [];
+    let guard = 0;
+    while (out.length < n && guard < 1000) {
+      guard += 1;
+      const a = randomSquare(rand);
+      const b = randomSquare(rand);
+      const d = knightDistance(a, b);
+      if (d >= 1 && d <= 4) out.push({ a, b, d });
+    }
+    return out;
+  }
+  // FEN -> { "e4": "P", ... } (maiuscole = Bianco)
+  function parseFen(fen) {
+    const rows = String(fen || "").split(" ")[0].split("/");
+    if (rows.length !== 8) return null;
+    const board = {};
+    rows.forEach((row, ri) => {
+      let f = 0;
+      row.split("").forEach((ch) => {
+        if (/\d/.test(ch)) f += Number(ch);
+        else { if (f < 8) board[squareName(f, 7 - ri)] = ch; f += 1; }
+      });
+    });
+    return board;
+  }
+  const PIECE_NAMES = { K: ["re", "m"], Q: ["donna", "f"], R: ["torre", "f"], B: ["alfiere", "m"], N: ["cavallo", "m"], P: ["pedone", "m"] };
+  function pieceLabel(ch) {
+    if (!ch) return "casa vuota";
+    const [name, g] = PIECE_NAMES[ch.toUpperCase()];
+    const white = ch === ch.toUpperCase();
+    return `${name} ${white ? (g === "f" ? "bianca" : "bianco") : (g === "f" ? "nera" : "nero")}`;
+  }
+  const ALL_PIECE_LABELS = "KQRBNPkqrbnp".split("").map(pieceLabel);
+  // Posizione lampo: domande su una posizione vista per pochi secondi.
+  function flashQuestions(fen, seed = Date.now()) {
+    const board = parseFen(fen);
+    if (!board) return [];
+    const rand = rng(seed);
+    const occupied = Object.keys(board);
+    const pieces = shuffle(occupied.filter((sq) => board[sq].toUpperCase() !== "P"), rand);
+    const qs = [];
+    const options = (right) => shuffle([right, ...shuffle(ALL_PIECE_LABELS.concat("casa vuota").filter((x) => x !== right), rand).slice(0, 3)], rand);
+    // 1-2: che cosa c'e' in questa casa?
+    pieces.slice(0, 2).forEach((sq) => {
+      const right = pieceLabel(board[sq]);
+      qs.push({ kind: "what", sq, prompt: `Che cosa c'era in ${sq}?`, options: options(right), answer: right });
+    });
+    // 3: una casa vuota vicino ai pezzi
+    const empties = [];
+    for (let f = 0; f < 8; f += 1) for (let r = 0; r < 8; r += 1) { const sq = squareName(f, r); if (!board[sq]) empties.push(sq); }
+    const near = shuffle(empties.filter((sq) => { const [x, y] = squareXY(sq); return occupied.some((o) => { const [a, b] = squareXY(o); return Math.abs(a - x) <= 1 && Math.abs(b - y) <= 1; }); }), rand);
+    if (near.length) qs.push({ kind: "what", sq: near[0], prompt: `Che cosa c'era in ${near[0]}?`, options: options("casa vuota"), answer: "casa vuota" });
+    // 4: dov'era il re nero?
+    const king = occupied.find((sq) => board[sq] === "k");
+    if (king) qs.push({ kind: "where", prompt: "In che casa era il re nero?", answer: king });
+    // 5: quanti pedoni aveva il Bianco?
+    qs.push({ kind: "count", prompt: "Quanti pedoni aveva il Bianco?", answer: String(occupied.filter((sq) => board[sq] === "P").length) });
+    return qs;
+  }
+  function recordChess(lab, drill, correct, total, ms, now = Date.now()) {
+    const c = lab.chessDrills[drill] || (lab.chessDrills[drill] = { runs: [], best: null });
+    c.runs.push({ t: now, correct, total, ms: Math.round(ms || 0) });
+    c.runs = c.runs.slice(-60);
+    const pct = total ? correct / total : 0;
+    if (!c.best || pct > c.best.pct || (pct === c.best.pct && ms < c.best.ms)) c.best = { pct, ms: Math.round(ms || 0), t: now };
+    logActivity(lab, `chess:${drill}`, now, { score: correct, max: total });
+    return c;
+  }
+
+  /* ------------------------------------------------------------ ripassi: registro e ritenzione */
+  function logReview(lab, res, grade, now, kind) {
+    lab.revlog.push({ t: now, g: grade, c: res.counted ? 1 : 0, r: num(res.r) ? Math.round(res.r * 1000) / 1000 : null, k: kind });
+    lab.revlog = lab.revlog.slice(-3000);
+  }
+  // Ritenzione vera degli ultimi 30 giorni: ripassi di schede gia' imparate (non nuove, non lo stesso giorno).
+  function trueRetention(lab, now = Date.now(), days = 30) {
+    const from = now - days * DAY;
+    const list = lab.revlog.filter((e) => e.t >= from && e.c && num(e.r));
+    if (!list.length) return { n: 0, share: null, predicted: null };
+    const ok = list.filter((e) => e.g > 1).length;
+    return { n: list.length, share: ok / list.length, predicted: list.reduce((s, e) => s + e.r, 0) / list.length };
+  }
+  // tutto quello che e' da ripassare oggi (mazzi, testi, carte, persone-azioni)
+  function reviewSummary(lab, now = Date.now()) {
+    const dq = deckQueue(lab, now);
+    const cq = cardsQueue(lab, now);
+    const pq = paoQueue(lab, now);
+    const texts = lab.texts.filter((t) => t.st && t.st.due <= now).length;
+    const started = Object.keys(lab.systems.cards).length > 0;
+    return {
+      decksDue: dq.due.length, decksNew: dq.fresh.length,
+      cardsDue: started ? cq.due.length : 0, paoDue: pq.due.length, texts,
+      total: dq.due.length + (started ? cq.due.length : 0) + pq.due.length + texts,
+      totalNew: dq.fresh.length
+    };
+  }
+
+  /* ------------------------------------------------------------ percorso guidato */
+  const TASK_MIN = { test: 3, words: 8, major: 4, build: 5, palace: 6, dis: 5, cardsys: 5, pao: 8, deck: 8, review: 5, text: 8, chess: 4, life: 4, real: 2 };
+  const CHESS_DRILLS = { colors: "Colori delle case", knight: "Salti del cavallo", flash: "Posizione lampo" };
+  const LIFE_DRILLS = { phone: { label: "Numero di telefono", key: "numbers", n: 10, mem: 60 }, shop: { label: "Lista della spesa", key: "words", n: 12, mem: 90, list: "groceries" } };
+  function courseStart(lab, now = Date.now()) {
+    lab.course = { start: now, day: 1, opened: { 1: now }, finished: {}, manual: {}, done: null };
+    logActivity(lab, "course:start", now);
+    return lab.course;
+  }
+  function courseActive(lab) {
+    return Boolean(lab.course && num(lab.course.start) && !num(lab.course.done));
+  }
+  function lessonById(id) {
+    return CONTENT.LESSONS.find((l) => l.id === id) || null;
+  }
+  function taskInfo(task, lab, now = Date.now()) {
+    const fm = (s) => (s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")} minuti` : `${s} secondi`);
+    switch (task.k) {
+      case "test": return { label: SPAN_TESTS[task.test].label, detail: "Test di span: rispondi con calma, una prova alla volta." };
+      case "words": return { label: "Lista di 15 parole", detail: "5 prove, la lista di disturbo, poi il richiamo dopo 20 minuti." };
+      case "major": {
+        const q = majorQueue(lab, now);
+        return { label: "Sistema fonetico", detail: `${q.due.length} da ripassare e ${q.fresh.length} immagini nuove (${majorLearned(lab)}/100 imparate).` };
+      }
+      case "build": return { label: task.count === 1 ? `Un palazzo con almeno ${task.min} luoghi` : `${task.count} palazzi da almeno ${task.min} luoghi`, detail: `Ne hai ${lab.palaces.filter((p) => p.loci.length >= task.min).length} così.` };
+      case "palace": return { label: `Parole nel palazzo: ${task.n}`, detail: task.per === 2 ? `${Math.ceil(task.n / 2)} luoghi, due parole per luogo.` : `${task.n} luoghi, una parola per luogo.` };
+      case "dis": { const d = DISCIPLINES[task.key]; return { label: `${d.label}: ${task.n} ${d.unit}`, detail: `${fm(task.mem)} per memorizzare.` }; }
+      case "cardsys": { const q = cardsQueue(lab, now); return { label: "Sistema delle carte", detail: `Carta → numero → immagine: ${q.due.length} da ripassare, ${q.fresh.length} nuove (${cardsSure(lab)}/52 sicure).` }; }
+      case "pao": return { label: `Persone e azioni: almeno ${task.n}`, detail: `Ne hai scritte ${paoFilled(lab)}; poi un giro di ripasso.` };
+      case "deck": return { label: `Mazzo ${DECK_KINDS[task.kind].label}: almeno ${task.min} ${task.min === 1 ? "scheda" : "schede"}`, detail: DECK_KINDS[task.kind].front + " → " + DECK_KINDS[task.kind].back.toLowerCase() + "." };
+      case "review": { const r = reviewSummary(lab, now); return { label: "Ripassi del giorno", detail: r.total ? `${r.total} da ripassare${r.totalNew ? ` e ${r.totalNew} nuove` : ""}.` : r.totalNew ? `Nessun ripasso in scadenza; ${r.totalNew} schede nuove se vuoi.` : "Niente in scadenza oggi." }; }
+      case "text": { const s = CONTENT.TEXTS.find((x) => x.id === task.text); return { label: s ? `Testo a memoria: ${s.title.split(" (")[0]}` : "Testo a memoria", detail: "Iniziali, cancellazione progressiva, richiamo completo." }; }
+      case "chess": return { label: CHESS_DRILLS[task.drill], detail: task.drill === "colors" ? "Chiara o scura? Venti case, più veloce che puoi." : task.drill === "knight" ? "In quante mosse il cavallo arriva da una casa all'altra." : "Guarda la posizione per pochi secondi, poi rispondi." };
+      case "life": return { label: LIFE_DRILLS[task.drill].label, detail: task.drill === "phone" ? "Dieci cifre in un minuto: coppie, immagini, una scena." : "Dodici cose da comprare in un palazzo corto." };
+      case "real": return { label: task.text, detail: "Fuori dall'app: segnalo quando l'hai fatto." };
+      default: return { label: task.k, detail: "" };
+    }
+  }
+  function taskDone(lab, task, dayN, now = Date.now()) {
+    const c = lab.course;
+    const since = num(c.opened[dayN]) ? c.opened[dayN] : c.start;
+    const logs = lab.log.filter((e) => e.t >= since);
+    const has = (kind, cond = () => true) => logs.some((e) => e.kind === kind && cond(e.m || {}));
+    switch (task.k) {
+      case "test": return has(`test:${task.test}`);
+      case "words": return has("test:words") || has("test:words-trials");
+      case "major": { const q = majorQueue(lab, now); return q.due.length + q.fresh.length === 0; }
+      case "build": return lab.palaces.filter((p) => p.loci.length >= task.min).length >= task.count;
+      case "palace": return has("palace", (m) => num(m.n) && m.n >= task.n);
+      case "dis": return has(`dis:${task.key}`, (m) => num(m.n) && m.n >= task.n && (!num(m.mem) || m.mem <= task.mem));
+      case "cardsys": return has("sys:cards");
+      case "pao": return paoFilled(lab) >= task.n && has("sys:pao");
+      case "deck": return lab.decks.some((d) => d.kind === task.kind && d.cards.length >= task.min);
+      case "review": return reviewSummary(lab, now).total === 0;
+      case "text": return has("text");
+      case "chess": return has(`chess:${task.drill}`);
+      case "life": return has(`life:${task.drill}`);
+      case "real": return Boolean(c.manual[dayN] && c.manual[dayN][task.id]);
+      default: return false;
+    }
+  }
+  /*
+   * Stato del percorso. Con sync = true chiude la giornata finita e apre la successiva quando e'
+   * cambiato il giorno di calendario (una giornata al giorno: il sonno in mezzo fa parte del metodo).
+   * Restituisce anche changed: true se ha modificato lo stato.
+   */
+  function courseStatus(lab, now = Date.now(), sync = true) {
+    const c = lab.course;
+    if (!c || !num(c.start)) return { started: false, active: false };
+    let changed = false;
+    const build = () => {
+      const def = COURSE.DAYS[c.day - 1];
+      const tasks = def.tasks.map((t) => ({ ...t, ...taskInfo(t, lab, now), minutes: TASK_MIN[t.k] || 4, done: taskDone(lab, t, c.day, now) }));
+      const required = tasks.filter((t) => !t.opt);
+      return { def, tasks, complete: required.every((t) => t.done) };
+    };
+    let cur = build();
+    if (sync && !num(c.done)) {
+      for (let guard = 0; guard < 3; guard += 1) {
+        if (cur.complete && !num(c.finished[c.day])) { c.finished[c.day] = now; changed = true; logActivity(lab, `course:day${c.day}`, now); }
+        if (num(c.finished[c.day]) && c.day >= COURSE.LENGTH) { c.done = c.finished[c.day]; changed = true; break; }
+        if (num(c.finished[c.day]) && dayKey(now) !== dayKey(c.finished[c.day])) {
+          c.day += 1;
+          // conta tutto quello che hai fatto oggi (la giornata prima e' finita un altro giorno)
+          c.opened[c.day] = startOfDay(now);
+          changed = true;
+          cur = build();
+          continue;
+        }
+        break;
+      }
+    }
+    const waiting = !num(c.done) && num(c.finished[c.day]);
+    const follow = c.start + COURSE.FOLLOW_UP_DAYS * DAY;
+    return {
+      started: true, active: !num(c.done), done: num(c.done), day: c.day, week: COURSE.WEEKS[Math.ceil(c.day / 7) - 1],
+      def: cur.def, tasks: cur.tasks, complete: cur.complete, waiting, changed,
+      lesson: cur.def.lesson ? lessonById(cur.def.lesson) : null,
+      followUpAt: follow, followUpDue: num(c.done) && now >= follow
+    };
+  }
+  function courseManual(lab, taskId, done = true, now = Date.now()) {
+    const c = lab.course;
+    if (!c) return;
+    const d = String(c.day);
+    if (!c.manual[d]) c.manual[d] = {};
+    if (done) c.manual[d][taskId] = now; else delete c.manual[d][taskId];
+  }
+  function courseReset(lab) {
+    lab.course = null;
+  }
+  // confronto tra il primo risultato dopo l'inizio del percorso e l'ultimo
+  function courseReport(lab) {
+    const c = lab.course;
+    if (!c) return [];
+    const first = (list) => list.filter((x) => x.t >= c.start - DAY)[0] || null;
+    const rows = [];
+    ["digitF", "digitB", "corsiF", "corsiB"].forEach((k) => {
+      const list = lab.tests[k] || [];
+      const a = first(list);
+      const b = list[list.length - 1];
+      if (a) rows.push({ key: k, label: SPAN_TESTS[k].short, from: a.value, to: b.value, unit: "span" });
+    });
+    const w = lab.tests.words || [];
+    const wa = first(w);
+    if (wa) rows.push({ key: "words", label: "15 parole (5 prove)", from: wa.value, to: w[w.length - 1].value, unit: "su 75" });
+    const palaceRuns = lab.log.filter((e) => e.kind === "palace" && e.t >= c.start && e.m && num(e.m.score));
+    if (palaceRuns.length) rows.push({ key: "palace", label: "Parole nel palazzo (record)", from: palaceRuns[0].m.score, to: Math.max(...palaceRuns.map((e) => e.m.score)), unit: "parole" });
+    ["numbers", "cards", "faces", "images", "dates"].forEach((k) => {
+      const runs = lab.log.filter((e) => e.kind === `dis:${k}` && e.t >= c.start && e.m && num(e.m.score));
+      if (runs.length) rows.push({ key: k, label: `${DISCIPLINES[k].label} (record)`, from: runs[0].m.score, to: Math.max(...runs.map((e) => e.m.score)), unit: DISCIPLINES[k].unit });
+    });
+    return rows;
+  }
+
   /* ------------------------------------------------------------ registro, programma, profilo */
   function remember(lab, words) {
     lab.recentWords = words.concat(lab.recentWords || []).filter((w, i, a) => a.indexOf(w) === i).slice(0, 120);
   }
-  function logActivity(lab, kind, now = Date.now()) {
+  function logActivity(lab, kind, now = Date.now(), meta = null) {
     const key = dayKey(now);
     if (!lab.days.includes(key)) lab.days.push(key);
     lab.days = lab.days.slice(-400);
-    lab.log.push({ t: now, kind });
-    lab.log = lab.log.slice(-500);
+    const e = { t: now, kind };
+    if (isObj(meta)) e.m = meta;
+    lab.log.push(e);
+    lab.log = lab.log.slice(-600);
   }
   function doneToday(lab, kindPrefix, now = Date.now()) {
     const key = dayKey(now);
@@ -589,39 +1255,67 @@
     return n;
   }
 
-  // Disciplina del giorno: lun numeri, mar parole, mer carte, gio nomi e volti, ven numeri,
-  // sab parole, dom carte.
-  const ROTATION = ["cards", "numbers", "words", "cards", "faces", "numbers", "words"];
+  // Disciplina del giorno (fuori dal percorso): dom carte, lun numeri, mar parole, mer immagini,
+  // gio nomi e volti, ven numeri, sab date.
+  const ROTATION = ["cards", "numbers", "words", "images", "faces", "numbers", "dates"];
   function lastTest(lab, key) {
     const list = lab.tests[key] || [];
     return list.length ? list[list.length - 1] : null;
   }
+  function reviewStep(lab, now) {
+    const r = reviewSummary(lab, now);
+    if (!r.total && !r.totalNew) return null;
+    return { id: "review", title: "Ripassi del giorno", detail: r.total ? `${r.total} da ripassare${r.totalNew ? ` e ${r.totalNew} nuove` : ""}: mazzi, testi e sistemi.` : `${r.totalNew} schede nuove nei tuoi mazzi.`, minutes: Math.max(3, Math.min(25, Math.round((r.total + r.totalNew) * 0.4))), done: r.total === 0, go: { tab: "review" } };
+  }
   function plan(lab, now = Date.now()) {
     const steps = [];
-    const tested = ["digitF", "digitB", "corsiF", "corsiB"].filter((k) => lastTest(lab, k));
-    if (tested.length < 4) {
-      steps.push({ id: "baseline", title: "Misura la tua memoria", detail: "Quattro prove di span (cifre e blocchi, avanti e indietro): circa 10 minuti. Servono come punto di partenza.", minutes: 10, done: tested.length === 4, go: { tab: "measure" } });
+    const cs = courseStatus(lab, now, true);
+    // percorso in corso: la giornata del percorso (i compiti facoltativi restano nel percorso)
+    if (cs.started && cs.active) {
+      if (cs.waiting) {
+        steps.push({ id: "course-wait", title: `Percorso: giorno ${cs.day} completato`, detail: cs.day < COURSE.LENGTH ? `Il giorno ${cs.day + 1} si apre domani: tra una giornata e l'altra serve il sonno.` : "Percorso finito.", minutes: 0, done: true, go: { tab: "course" } });
+        const rv = reviewStep(lab, now);
+        if (rv) steps.push(rv);
+        return steps;
+      }
+      cs.tasks.filter((t) => !t.opt).forEach((t) => steps.push({ id: `course-${t.id}`, title: t.label, detail: t.detail, minutes: t.minutes, done: t.done, go: { tab: "course", task: t.id }, course: true }));
+      if (!cs.tasks.some((t) => t.k === "review")) { const rv = reviewStep(lab, now); if (rv) steps.push(rv); }
+      return steps;
     }
+    const tested = ["digitF", "digitB", "corsiF", "corsiB"].filter((k) => lastTest(lab, k));
+    if (!cs.started) {
+      steps.push({ id: "course", title: "Inizia il percorso di 6 settimane", detail: "Mezz'ora al giorno, una tecnica alla volta, con i test all'inizio e alla fine.", minutes: 30, done: false, go: { tab: "course" } });
+      if (tested.length < 4) steps.push({ id: "baseline", title: "Misura la tua memoria", detail: "Quattro prove di span (cifre e blocchi, avanti e indietro): circa 10 minuti. Servono come punto di partenza.", minutes: 10, done: false, go: { tab: "measure" } });
+    }
+    if (cs.done && cs.followUpDue && !["digitF", "words"].some((k) => { const t = lastTest(lab, k); return t && t.t >= cs.followUpAt; })) {
+      steps.push({ id: "followup", title: "Controllo a quattro mesi", detail: "Rifai i test di span e la lista di parole: è il controllo che fanno anche gli studi.", minutes: 20, done: false, go: { tab: "measure" } });
+    }
+    const rv = reviewStep(lab, now);
+    if (rv) steps.push(rv);
     const q = majorQueue(lab, now);
     const learned = majorLearned(lab);
-    steps.push({
-      id: "major",
-      title: learned < 100 ? "Sistema fonetico" : "Sistema fonetico: ripasso",
-      detail: learned < 100 ? `${q.due.length} da ripassare e ${q.fresh.length} immagini nuove (${learned}/100 imparate).` : `${q.due.length} da ripassare: tutte le 100 immagini sono imparate.`,
-      minutes: 4,
-      done: q.due.length === 0 && q.fresh.length === 0,
-      go: { tab: "techniques", technique: "major", drill: true }
-    });
+    if (learned < 100 || q.due.length) {
+      steps.push({
+        id: "major",
+        title: learned < 100 ? "Sistema fonetico" : "Sistema fonetico: ripasso",
+        detail: learned < 100 ? `${q.due.length} da ripassare e ${q.fresh.length} immagini nuove (${learned}/100 imparate).` : `${q.due.length} da ripassare: tutte le 100 immagini sono imparate.`,
+        minutes: 4,
+        done: q.due.length === 0 && q.fresh.length === 0,
+        go: { tab: "techniques", technique: "major", drill: true }
+      });
+    }
     const dis = ROTATION[new Date(now).getDay()];
     const d = DISCIPLINES[dis];
     const dl = lab.disciplines[dis];
     steps.push({ id: "discipline", title: `Disciplina del giorno: ${d.label.toLowerCase()}`, detail: `Livello ${dl.level}: ${d.levels[dl.level - 1].n} ${d.unit} in ${d.levels[dl.level - 1].mem} secondi. Due turni.`, minutes: 6, done: lab.log.filter((e) => dayKey(e.t) === dayKey(now) && e.kind === `dis:${dis}`).length >= 2, go: { tab: "disciplines", discipline: dis } });
-    const palace = lab.palaces.find((p) => p.loci.length >= 5);
-    steps.push(palace
-      ? { id: "palace", title: `Palazzo: ${palace.name}`, detail: `Sistema ${Math.min(palace.loci.length, 20)} parole nei tuoi luoghi e ripercorrili.`, minutes: 4, done: doneToday(lab, "palace", now), go: { tab: "techniques", technique: "loci", palaceId: palace.id } }
-      : { id: "palace", title: "Costruisci il tuo palazzo della memoria", detail: "Scegli un percorso che conosci bene e scrivi almeno 10 luoghi in ordine.", minutes: 5, done: false, go: { tab: "techniques", technique: "loci" } });
+    if (!cs.started) {
+      const palace = lab.palaces.find((p) => p.loci.length >= 5);
+      steps.push(palace
+        ? { id: "palace", title: `Palazzo: ${palace.name}`, detail: `Sistema ${Math.min(palace.loci.length, 20)} parole nei tuoi luoghi e ripercorrili.`, minutes: 4, done: doneToday(lab, "palace", now), go: { tab: "techniques", technique: "loci", palaceId: palace.id } }
+        : { id: "palace", title: "Costruisci il tuo palazzo della memoria", detail: "Scegli un percorso che conosci bene e scrivi almeno 10 luoghi in ordine.", minutes: 5, done: false, go: { tab: "techniques", technique: "loci" } });
+    }
     const last = ["digitF", "digitB", "corsiF", "corsiB", "words"].map((k) => lastTest(lab, k)).filter(Boolean).map((x) => x.t);
-    if (tested.length === 4 && last.length && now - Math.max(...last) > 28 * DAY) {
+    if (!cs.started && tested.length === 4 && last.length && now - Math.max(...last) > 28 * DAY) {
       steps.push({ id: "retest", title: "Nuova misura", detail: "È passato un mese dall'ultima: rifai i test per vedere i progressi.", minutes: 12, done: false, go: { tab: "measure" } });
     }
     return steps;
@@ -641,9 +1335,17 @@
   function disciplineProgress(lab, key) {
     const d = DISCIPLINES[key];
     const dis = lab.disciplines[key];
-    const passed = dis.history.filter((h) => h.pass).map((h) => h.level);
+    const passed = dis.history.filter((h) => h.pass && !h.custom).map((h) => h.level);
     const top = passed.length ? Math.max(...passed) : 0;
-    return Math.round((top / d.levels.length) * 100);
+    // i turni del percorso contano per quello che chiedono (quanti elementi rispetto al livello massimo)
+    const custom = dis.history.filter((h) => h.custom && h.pass && num(h.n)).map((h) => h.n / d.levels[d.levels.length - 1].n);
+    const fromCustom = custom.length ? Math.max(...custom) * 0.8 : 0;
+    return Math.round(Math.max(top / d.levels.length, fromCustom) * 100);
+  }
+  function lerp(x, pts) {
+    if (x <= pts[0][0]) return pts[0][1];
+    for (let i = 1; i < pts.length; i += 1) if (x <= pts[i][0]) { const [a, b] = pts[i - 1]; const [c, e] = pts[i]; return b + ((x - a) / (c - a)) * (e - b); }
+    return pts[pts.length - 1][1];
   }
   function profile(lab, now = Date.now()) {
     const words = lastTest(lab, "words");
@@ -651,21 +1353,40 @@
     const days14 = lab.days.filter((d) => d >= dayKey(addDays(now, -13))).length;
     const learned = majorLearned(lab);
     const palaceUse = lab.palaces.reduce((s, p) => s + p.uses, 0);
+    const loci = lab.palaces.reduce((s, p) => s + p.loci.length, 0);
+    const technique = 35 + learned * 0.25 + cardsSure(lab) * 0.15 + paoFilled(lab) * 0.08 + Math.min(loci, 90) * 0.12 + Math.min(palaceUse, 25) * 0.4;
+    const keys = Object.keys(DISCIPLINES);
+    const speed = 35 + (keys.reduce((s, k) => s + disciplineProgress(lab, k), 0) / keys.length) * 0.65;
+    // ritenzione: quanto tieni nel tempo (ripassi gia' imparati, richiamo differito) e costanza
+    const tr = trueRetention(lab, now);
+    const consistency = (days14 / 14) * 100;
+    let retention;
+    if (tr.n >= 20) retention = lerp(tr.share, [[0.5, 25], [0.7, 45], [0.8, 60], [0.9, 82], [0.95, 92], [1, 97]]) * 0.7 + consistency * 0.3;
+    else {
+      const delayed = words && num(words.delayed) && !words.late ? compare("wordsDelayed", words.delayed, lab.profile) : null;
+      retention = delayed ? delayed.pct * 0.5 + consistency * 0.5 : 20 + consistency * 0.6;
+    }
+    // memoria visiva: i blocchi; le immagini astratte aiutano se le alleni
+    const visual = avg([pctOf(lab, "corsiF"), pctOf(lab, "corsiB")], null);
+    const imagesP = disciplineProgress(lab, "images");
+    const spatial = visual == null ? 35 + imagesP * 0.3 : visual * 0.85 + imagesP * 0.15;
     return [
       { key: "working", label: "Memoria di lavoro", value: Math.round(avg([pctOf(lab, "digitF"), pctOf(lab, "digitB")], 35)) },
-      { key: "spatial", label: "Memoria visiva", value: Math.round(avg([pctOf(lab, "corsiF"), pctOf(lab, "corsiB")], 35)) },
+      { key: "spatial", label: "Memoria visiva", value: Math.round(clamp(spatial, 0, 100)) },
       { key: "verbal", label: "Richiamo verbale", value: Math.round(wordsPct == null ? 35 : wordsPct) },
-      { key: "technique", label: "Tecnica", value: Math.round(clamp(35 + learned * 0.4 + Math.min(palaceUse, 25), 0, 100)) },
-      { key: "speed", label: "Discipline", value: Math.round(clamp(35 + (Object.keys(DISCIPLINES).reduce((s, k) => s + disciplineProgress(lab, k), 0) / 4) * 0.65, 0, 100)) },
-      { key: "consistency", label: "Costanza", value: Math.round(clamp((days14 / 14) * 100, 0, 100)) }
+      { key: "technique", label: "Tecnica", value: Math.round(clamp(technique, 0, 100)) },
+      { key: "speed", label: "Discipline", value: Math.round(clamp(speed, 0, 100)) },
+      { key: "retention", label: "Ritenzione", value: Math.round(clamp(retention, 0, 100)) }
     ];
   }
   function trend(lab, now = Date.now()) {
+    const cs = courseStatus(lab, now, false);
     const tested = ["digitF", "digitB", "corsiF", "corsiB"].map((k) => lastTest(lab, k)).filter(Boolean);
     const s = streak(lab, now);
     if (!tested.length && !lab.log.length) return "Base iniziale · fai la prima misura";
     const f = lastTest(lab, "digitF");
-    return `${f ? `Span cifre ${f.value}` : "Span da misurare"} · ${majorLearned(lab)}/100 immagini · ${s ? `${s} ${s === 1 ? "giorno" : "giorni"} di fila` : "riprendi oggi"}`;
+    const head = cs.started && cs.active ? `Percorso giorno ${cs.day}/${COURSE.LENGTH}` : f ? `Span cifre ${f.value}` : "Span da misurare";
+    return `${head} · ${majorLearned(lab)}/100 immagini · ${s ? `${s} ${s === 1 ? "giorno" : "giorni"} di fila` : "riprendi oggi"}`;
   }
 
   // Salva il risultato di un test di span o di parole.
@@ -681,6 +1402,7 @@
   function startDelayed(lab, test, now = Date.now()) {
     lab.pending.words = { at: now, listA: test.listA.slice(), trials: test.trials.slice(), b: test.b, a6: test.a6 };
     remember(lab, test.listA.concat(test.listB));
+    logActivity(lab, "test:words-trials", now);
   }
   function delayedStatus(lab, now = Date.now()) {
     const p = lab.pending.words;
@@ -708,6 +1430,25 @@
   }
 
   /* ------------------------------------------------------------ stato */
+  function cleanSt(x) { return SRS && x ? SRS.clean(x) : null; }
+  function ensureCourse(o) {
+    if (!isObj(o) || !num(o.start)) return null;
+    const day = clamp(Number.isInteger(o.day) ? o.day : 1, 1, Math.max(1, COURSE.LENGTH));
+    const nums = (m) => { const out = {}; if (isObj(m)) Object.keys(m).forEach((k) => { if (/^\d+$/.test(k) && num(m[k])) out[k] = m[k]; }); return out; };
+    const manual = {};
+    if (isObj(o.manual)) Object.keys(o.manual).forEach((k) => { if (/^\d+$/.test(k) && isObj(o.manual[k])) { manual[k] = {}; Object.keys(o.manual[k]).forEach((t) => { if (/^t\d+$/.test(t) && num(o.manual[k][t])) manual[k][t] = o.manual[k][t]; }); } });
+    const opened = nums(o.opened);
+    if (!num(opened[day])) opened[day] = o.start;
+    return { start: o.start, day, opened, finished: nums(o.finished), manual, done: num(o.done) ? o.done : null };
+  }
+  function ensureDeck(d) {
+    if (!isObj(d) || typeof d.id !== "string" || !DECK_KINDS[d.kind]) return null;
+    const cards = Array.isArray(d.cards) ? d.cards.filter((c) => isObj(c) && typeof c.id === "string" && typeof c.f === "string" && typeof c.b === "string").map((c) => ({
+      id: c.id, f: c.f.slice(0, 400), b: c.b.slice(0, 800), x: typeof c.x === "string" ? c.x.slice(0, 400) : "", created: num(c.created) ? c.created : 0,
+      st: { a: cleanSt(isObj(c.st) ? c.st.a : null), b: cleanSt(isObj(c.st) ? c.st.b : null) }
+    })) : [];
+    return { id: d.id, name: typeof d.name === "string" && d.name.trim() ? d.name.slice(0, 60) : DECK_KINDS[d.kind].label, kind: d.kind, lang: typeof d.lang === "string" ? d.lang.slice(0, 30) : "", created: num(d.created) ? d.created : 0, retention: num(d.retention) ? clamp(d.retention, 0.85, 0.97) : null, cards };
+  }
   function ensure(x) {
     const o = isObj(x) && x.version === VERSION ? x : {};
     const lab = {
@@ -720,7 +1461,20 @@
       major: { items: {} },
       recentWords: Array.isArray(o.recentWords) ? o.recentWords.filter((w) => typeof w === "string").slice(0, 120) : [],
       days: Array.isArray(o.days) ? o.days.filter((d) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)).slice(-400) : [],
-      log: Array.isArray(o.log) ? o.log.filter((e) => isObj(e) && num(e.t) && typeof e.kind === "string").slice(-500) : []
+      log: Array.isArray(o.log) ? o.log.filter((e) => isObj(e) && num(e.t) && typeof e.kind === "string").map((e) => (isObj(e.m) ? { t: e.t, kind: e.kind, m: e.m } : { t: e.t, kind: e.kind })).slice(-600) : [],
+      prefs: {
+        retention: isObj(o.prefs) && num(o.prefs.retention) ? clamp(o.prefs.retention, 0.85, 0.97) : 0.9,
+        newPerDay: isObj(o.prefs) && Number.isInteger(o.prefs.newPerDay) ? clamp(o.prefs.newPerDay, 0, 100) : 15
+      },
+      course: ensureCourse(o.course),
+      decks: Array.isArray(o.decks) ? o.decks.map(ensureDeck).filter(Boolean).slice(0, 40) : [],
+      texts: Array.isArray(o.texts) ? o.texts.filter((t) => isObj(t) && typeof t.id === "string" && typeof t.body === "string" && t.body.trim()).map((t) => ({
+        id: t.id, title: typeof t.title === "string" ? t.title.slice(0, 80) : "Testo", body: t.body.slice(0, 4000), sample: typeof t.sample === "string" ? t.sample : null,
+        created: num(t.created) ? t.created : 0, runs: Array.isArray(t.runs) ? t.runs.filter((r) => isObj(r) && num(r.t) && num(r.pct) && typeof r.mode === "string").slice(-60) : [], st: cleanSt(t.st)
+      })).slice(0, 30) : [],
+      systems: { cards: {}, pao: {} },
+      chessDrills: {},
+      revlog: Array.isArray(o.revlog) ? o.revlog.filter((e) => isObj(e) && num(e.t) && Number.isInteger(e.g)).slice(-3000) : []
     };
     ["digitF", "digitB", "corsiF", "corsiB", "words"].forEach((k) => {
       const list = isObj(o.tests) && Array.isArray(o.tests[k]) ? o.tests[k] : [];
@@ -735,6 +1489,17 @@
         }
       });
     }
+    if (isObj(o.systems)) {
+      if (isObj(o.systems.cards)) Object.keys(o.systems.cards).forEach((c) => { const st = cleanSt(o.systems.cards[c]); if (DECK.includes(c) && st) lab.systems.cards[c] = st; });
+      if (isObj(o.systems.pao)) Object.keys(o.systems.pao).forEach((code) => {
+        const v = o.systems.pao[code];
+        if (/^\d\d$/.test(code) && isObj(v) && (typeof v.p === "string" || typeof v.a === "string")) lab.systems.pao[code] = { p: String(v.p || "").slice(0, 60), a: String(v.a || "").slice(0, 60), st: cleanSt(v.st) };
+      });
+    }
+    if (isObj(o.chessDrills)) ["colors", "knight", "flash"].forEach((k) => {
+      const c = o.chessDrills[k];
+      if (isObj(c)) lab.chessDrills[k] = { runs: Array.isArray(c.runs) ? c.runs.filter((r) => isObj(r) && num(r.t) && num(r.correct) && num(r.total)).slice(-60) : [], best: isObj(c.best) && num(c.best.pct) ? { pct: c.best.pct, ms: num(c.best.ms) ? c.best.ms : 0, t: num(c.best.t) ? c.best.t : 0 } : null };
+    });
     return lab;
   }
 
@@ -746,12 +1511,19 @@
     VERSION, DAY, NORMS, SPAN_TESTS, WORD_TEST, DISCIPLINES, PASS_SHARE, DECK, SUITS, RANKS, MAJOR, MAJOR_INTERVALS, MAJOR_NEW_PER_DAY, ROTATION,
     get CORSI() { return CORSI; }, setCorsi,
     rng, shuffle, clean, sameWord, normCdf, dayKey, addDays, startOfDay,
-    compare, zLabel, normRef, BENCH, BENCH_URL,
+    compare, zLabel, normRef, BENCH, BENCH_URL, BENCH_URLS,
     makeSpanTest, spanNext, spanAnswer, spanSequence,
     makeWordTest, wordStage, wordAnswer, scoreFree, startDelayed, delayedStatus, finishDelayed, skipDelayed,
-    cardInfo, makeRound, scoreRound, recordRound, setLevel,
+    cardInfo, makeRound, scoreRound, recordRound, setLevel, pickEvents,
     savePalace, removePalace, makePalaceRound, scorePalace, recordPalace,
     phonetic, majorState, majorQueue, majorAnswer, majorLearned, majorQuestion, majorStory,
+    cardCode, cardImage, cardsQueue, cardQuestion, cardAnswer, cardsSure, CARDS_NEW_PER_DAY,
+    dominic, paoSet, paoFilled, paoQueue, paoAnswer, paoStory,
+    DECK_KINDS, addDeck, removeDeck, deckById, addCard, editCard, removeCard, importCards, addStarter, sidesOf, deckQueue, cardRef, answerCard, deckStats, totalCards, newPerDay, retentionOf,
+    addText, addSampleText, removeText, textLines, textWordsFlat, initials, maskOrder, maskedSet, scoreText, recordTextRun, textBest,
+    isLight, knightDistance, colorsRound, knightRound, parseFen, pieceLabel, flashQuestions, recordChess, squareName,
+    trueRetention, reviewSummary, logReview,
+    COURSE, CONTENT, courseStart, courseActive, courseStatus, courseManual, courseReset, courseReport, taskInfo, taskDone, lessonById, CHESS_DRILLS, LIFE_DRILLS,
     logActivity, doneToday, streak, plan, profile, trend, recordTest, lastTest,
     ensure
   };

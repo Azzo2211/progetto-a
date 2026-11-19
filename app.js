@@ -331,7 +331,7 @@ const moduleSkillDefinitions = {
     { key: "verbal", label: "Richiamo verbale", general: "memory" },
     { key: "technique", label: "Tecnica", general: "strategicMind" },
     { key: "speed", label: "Discipline", general: "clarity" },
-    { key: "consistency", label: "Costanza", general: "emotionalControl" }
+    { key: "retention", label: "Ritenzione", general: "memory" }
   ],
   influence: [
     { key: "recognition", label: "Riconoscimento", general: "clarity" },

@@ -1,17 +1,26 @@
 /*
- * Progetto A - Memoria: la pagina (Oggi, Misura, Tecniche, Discipline, Progressi).
- * Motore: window.MemoryEngine (memory/engine.js). Volti: window.MemoryFaces. Stato: state.memoryLab.
- * Usa le globali di app.js: state, saveState, renderDashboard.
+ * Progetto A - Memoria: la pagina (Oggi, Percorso, Ripasso, Tecniche, Discipline, Usala, Misura, Progressi).
+ * Motore: window.MemoryEngine (memory/engine.js). Volti: window.MemoryFaces. Immagini astratte:
+ * window.MemoryImages. Stato: state.memoryLab. Usa le globali di app.js: state, saveState, renderDashboard.
+ * Percorso, ripasso, applicazioni, sistemi delle carte e persone-azioni sono in memory/ui-plus.js,
+ * che si aggancia qui con window.MemoryUIKit (viste, schede e azioni in piu').
  */
 (function () {
   "use strict";
 
   const E = window.MemoryEngine;
   const F = window.MemoryFaces;
+  const IMG = window.MemoryImages;
   if (!E || !F) return;
+  // estensioni (memory/ui-plus.js)
+  const KIT = { views: {}, tabs: {}, actions: {}, keys: [], soft: [] };
 
   const ui = {
-    tab: "today",     // today | measure | techniques | disciplines | progress
+    tab: "today",     // today | course | review | techniques | disciplines | apps | measure | progress
+    returnTab: null,  // dove tornare dopo un compito aperto dal percorso
+    deckOpen: null,   // mazzo aperto nel Ripasso
+    textOpen: null,   // testo aperto
+    area: null,       // area aperta in Usala
     technique: null,  // id della tecnica aperta
     palaceEdit: null, // { id } palazzo in modifica (id null = nuovo)
     run: null,        // esercizio in corso
@@ -107,12 +116,22 @@
       id: "spacing",
       title: "Ripasso distanziato",
       line: "Ripassa quando stai per dimenticare, a distanze sempre più lunghe.",
-      why: "Ripassare distanziato funziona meglio che ripassare tutto insieme: nella meta-analisi di Cepeda e colleghi (2006, 839 confronti) il ricordo finale era in media del 47% contro il 37%. E richiamare a memoria fissa più che rileggere: nell'esperimento di Roediger e Karpicke (2006), dopo una settimana chi si era interrogato ricordava il 56% del testo, chi l'aveva riletto il 42%. Il sistema fonetico qui e le schede della Cultura usano già questo metodo.",
+      why: "Ripassare distanziato funziona meglio che ripassare tutto insieme: nella meta-analisi di Cepeda e colleghi (2006, 839 confronti) il ricordo finale era in media del 47% contro il 37%. E richiamare a memoria fissa più che rileggere: nell'esperimento di Roediger e Karpicke (2006), dopo una settimana chi si era interrogato ricordava il 56% del testo, chi l'aveva riletto il 42%. Qui lo usano il Ripasso (con FSRS, l'algoritmo di Anki), il sistema fonetico, le carte e le persone.",
       sources: [["Cepeda e colleghi 2006, Psychological Bulletin", "https://www.evullab.org/pdf/CepedaPashlerVulWixtedRohrer-PB-2006.pdf"], ["Roediger e Karpicke 2006, Psychological Science", "https://psychology.ecu.edu/wp-content/pv-uploads/sites/216/2019/03/Roediger-Karpicke-2006.pdf"]],
       steps: ["Dopo aver imparato qualcosa, prova a richiamarlo senza guardare.", "Ripassa dopo 1 giorno, poi 2, 4, 8, 16, 32: se sbagli, si riparte da vicino.", "Pochi minuti al giorno battono un'ora una volta a settimana."],
       practice: null
     }
   ];
+
+  // tecniche nuove costruite dalle lezioni (memory/content.js)
+  const C = window.MemoryContent || { LESSONS: [], SOURCES: {} };
+  function fromLesson(id, techId, title, practice) {
+    const l = C.LESSONS.find((x) => x.id === id);
+    if (!l) return null;
+    return { id: techId, title, line: l.lead, why: l.body.join(" "), sources: (l.sources || []).map((k) => C.SOURCES[k]).filter(Boolean), steps: l.steps, practice };
+  }
+  [fromLesson("carte", "cards", "Sistema delle carte", { kind: "cardsys" }), fromLesson("pao", "pao", "Persona, azione, oggetto", { kind: "pao" }), fromLesson("date", "dates", "Date", { kind: "dates", level: 1, note: "5 date in un minuto." }), fromLesson("astratte", "abstract", "Immagini astratte", { kind: "images", level: 1, note: "5 immagini in un minuto." })]
+    .filter(Boolean).forEach((t) => TECHNIQUES.splice(TECHNIQUES.length - 1, 0, t));
 
   const TEST_INFO = {
     digitF: "Ripeti le cifre nello stesso ordine. Misura quanto tieni a mente in un colpo solo.",
@@ -146,6 +165,8 @@
     const box = $("memChip");
     if (!box) return;
     const l = lab();
+    // il percorso chiude e apre le giornate da solo: salva subito (una giornata chiusa la sera non va persa)
+    if (E.courseStatus(l, Date.now(), true).changed && typeof saveState === "function") saveState();
     const steps = E.plan(l);
     const left = steps.filter((s) => !s.done).length;
     const st = E.streak(l);
@@ -167,6 +188,7 @@
             <span>${done}/${steps.length} fatti · circa ${steps.reduce((s, x) => s + x.minutes, 0)} minuti</span>
           </div>
           ${pending ? `<div class="mem-alert ${pending.ready ? "ready" : ""}"><strong>${pending.ready ? "Richiamo differito pronto" : "Richiamo differito in attesa"}</strong><span>${pending.ready ? (pending.late ? "Sono passati più di 45 minuti: puoi farlo lo stesso, ma non si confronta con i valori di riferimento." : "Scrivi le 15 parole della prima lista che ricordi ancora.") : `Torna tra ${Math.max(1, Math.ceil((pending.readyAt - Date.now()) / 60000))} minuti: intanto fai gli altri passi.`}</span>${pending.ready ? `<button type="button" class="primary-action" data-m="delayed">Fai il richiamo</button>` : ""}</div>` : ""}
+          ${KIT.todayExtra ? KIT.todayExtra(l) : ""}
           <ol class="mem-steps">
             ${steps.map((s) => `
               <li class="${s.done ? "done" : ""}">
@@ -181,7 +203,7 @@
           <h3>Profilo</h3>
           ${profileMini(l)}
           <h3 class="mem-side-how">Come funziona</h3>
-          <p>Ogni giorno: le immagini del sistema fonetico, una disciplina da gara e il palazzo della memoria. Una volta al mese rifai i test per vedere se stai migliorando davvero.</p>
+          <p>Con il percorso: sei settimane, una giornata al giorno, con una lezione breve e pochi compiti. Senza percorso: i ripassi, le immagini del sistema fonetico, una disciplina da gara e il palazzo. I test ogni mese, o a metà e alla fine del percorso.</p>
           <p>I test usano valori di riferimento pubblicati per adulti; le discipline usano le regole delle gare di memoria.</p>
           <p>Cosa aspettarti: le tecniche fanno crescere molto quello che alleni (parole, numeri, nomi). Allenare la memoria non rende più intelligenti in generale: le meta-analisi di Melby-Lervåg e colleghi (2013 e 2016) non trovano effetti oltre i compiti allenati.</p>
         </aside>
@@ -435,6 +457,7 @@
   /* ------------------------------------------------------------ TECNICHE */
   function techniquesView() {
     if (ui.palaceEdit) return palaceEditor();
+    if (ui.technique && ui.technique.startsWith("lesson:") && KIT.lessonView) return KIT.lessonView(ui.technique.slice(7));
     if (ui.technique) return techniqueDetail(TECHNIQUES.find((t) => t.id === ui.technique));
     const l = lab();
     return `
@@ -442,10 +465,11 @@
         <div class="mem-intro"><h2 data-focus tabindex="-1">Le tecniche dei campioni di memoria</h2><p>Non servono doti speciali: i campioni di memoria usano poche tecniche, allenate ogni giorno. Qui ognuna ha la spiegazione, i passi e un esercizio.</p></div>
         <ul class="mem-tech-list">
           ${TECHNIQUES.map((t) => {
-            const extra = t.id === "major" ? `${E.majorLearned(l)}/100 imparate` : t.id === "loci" ? (l.palaces.length ? plural(l.palaces.length, "palazzo", "palazzi") : "nessun palazzo") : "";
+            const extra = t.id === "major" ? `${E.majorLearned(l)}/100 imparate` : t.id === "loci" ? (l.palaces.length ? plural(l.palaces.length, "palazzo", "palazzi") : "nessun palazzo") : t.id === "cards" ? `${E.cardsSure(l)}/52 carte sicure` : t.id === "pao" ? `${E.paoFilled(l)}/100 persone` : "";
             return `<li><button type="button" data-m="tech" data-id="${t.id}"><strong>${esc(t.title)}</strong><span>${esc(t.line)}</span>${extra ? `<em>${esc(extra)}</em>` : ""}</button></li>`;
           }).join("")}
         </ul>
+        ${KIT.lessonLibrary ? KIT.lessonLibrary() : ""}
       </div>`;
   }
   function techniqueDetail(t) {
@@ -454,8 +478,9 @@
     let practice = "";
     if (t.id === "loci") practice = palacesBlock(l);
     else if (t.id === "major") practice = majorBlock(l);
+    else if (t.practice && KIT.blocks && KIT.blocks[t.practice.kind]) practice = KIT.blocks[t.practice.kind](l);
     else if (t.practice) practice = `<div class="mem-practice"><h3>Esercizio</h3><p>${esc(t.practice.note || "")}</p><button type="button" class="primary-action" data-m="practice" data-kind="${t.practice.kind}" data-level="${t.practice.level}">Fai l'esercizio</button></div>`;
-    else practice = `<div class="mem-practice"><h3>Dove lo usi qui</h3><p>Il sistema fonetico ripassa le immagini con questo metodo. Per lo studio vero, la sezione Cultura ripassa le schede alle scadenze giuste.</p><a class="ghost-link" href="#culture">Vai alla Cultura</a></div>`;
+    else practice = `<div class="mem-practice"><h3>Dove lo usi qui</h3><p>Nel Ripasso metti quello che vuoi ricordare per sempre (domande di studio, vocaboli, persone, brani, testi): ogni scheda torna quando stai per dimenticarla.</p><button type="button" class="primary-action" data-m="go-tab" data-tab="review">Vai al Ripasso</button></div>`;
     return `
       <div class="mem-tech-detail">
         <div class="mem-back"><button type="button" class="ghost-action small" data-m="tech-back">← Tutte le tecniche</button></div>
@@ -572,13 +597,15 @@
     numbers: "Cifre a caso, a righe di 10. Si scrivono nello stesso ordine.",
     words: "Parole concrete, a colonne di 10, da scrivere nello stesso ordine.",
     cards: "Carte da gioco mescolate, una alla volta. Si rimettono in ordine.",
-    faces: "Volti con il nome. Poi i volti in un altro ordine: scrivi il nome di ognuno."
+    faces: "Volti con il nome. Poi i volti in un altro ordine: scrivi il nome di ognuno.",
+    images: "Forme astratte a righe di 5. Poi ogni riga mescolata: rimettile in ordine.",
+    dates: "Eventi inventati con il loro anno. Poi gli eventi mescolati: scrivi l'anno di ognuno."
   };
   function disciplinesView() {
     const l = lab();
     return `
       <div class="mem-dis">
-        <div class="mem-intro"><h2 data-focus tabindex="-1">Discipline da gara</h2><p>Le prove delle gare di memoria, a livelli; l'ultimo è il formato di Memory League: 1 minuto per memorizzare 80 cifre, 50 parole, un mazzo da 52 carte o 30 nomi. Numeri e parole si contano come nelle gare IAM, a righe da 10: riga perfetta = tutti i punti, un errore = metà, due o più = zero. Carte e nomi: un punto per risposta giusta. Superi il livello con il 90%: decidi tu quando salire.</p></div>
+        <div class="mem-intro"><h2 data-focus tabindex="-1">Discipline da gara</h2><p>Le prove delle gare di memoria, a livelli; l'ultimo è il formato di Memory League: 1 minuto per memorizzare 80 cifre, 50 parole, un mazzo da 52 carte, 30 nomi o 30 immagini. Le date sono quelle delle gare IAM: anni di eventi inventati. Numeri e parole si contano come nelle gare IAM, a righe da 10: riga perfetta = tutti i punti, un errore = metà, due o più = zero. Carte, nomi, immagini e date: un punto per risposta giusta. Superi il livello con il 90%: decidi tu quando salire.</p></div>
         <ul class="mem-dis-list">
           ${Object.values(E.DISCIPLINES).map((d) => {
             const st = l.disciplines[d.key];
@@ -614,8 +641,11 @@
     return round.recall;
   }
   function roundTitle(round) {
-    if (round.key === "palace") return "Parole nel palazzo";
-    return `${E.DISCIPLINES[round.key].label} · livello ${round.level}`;
+    if (round.key === "palace") return round.per === 2 ? "Parole nel palazzo, due per luogo" : "Parole nel palazzo";
+    if (round.life === "phone") return "Numero di telefono";
+    if (round.life === "shop") return "Lista della spesa";
+    const d = E.DISCIPLINES[round.key];
+    return round.custom ? `${d.label} · ${round.n} ${d.unit}` : `${d.label} · livello ${round.level}`;
   }
   function roundView() {
     const r = ui.run;
@@ -623,10 +653,10 @@
     const head = `${backBar("← Esci")}<div class="mem-run-head"><span class="mem-kicker">${esc(roundTitle(round))}</span><span>${r.phase === "mem" ? "Memorizza" : r.phase === "recall" ? "Ricorda" : ""}</span></div>`;
     if (r.phase === "intro") {
       const n = round.items.length;
-      const what = round.key === "palace" ? `${n} parole, una per luogo del tuo palazzo` : `${n} ${E.DISCIPLINES[round.key].unit}`;
+      const what = round.key === "palace" ? (round.per === 2 ? `${n} parole, due per luogo del tuo palazzo (${round.loci.length} luoghi)` : `${n} parole, una per luogo del tuo palazzo`) : round.life === "phone" ? "un numero di telefono di 10 cifre" : round.life === "shop" ? `${n} cose da comprare` : `${n} ${E.DISCIPLINES[round.key].unit}`;
       return `${head}<article class="mem-card"><h2 data-focus tabindex="-1">${esc(roundTitle(round))}</h2>
         <p>Hai <b>${fmtSec(memSeconds(round))}</b> per memorizzare ${what}; se finisci prima premi «Ho finito». Poi <b>${fmtSec(recallSeconds(round))}</b> per rispondere.</p>
-        ${round.key === "numbers" ? "<p class=\"mem-small\">Suggerimento: a coppie con il sistema fonetico, o a gruppi di tre/quattro.</p>" : round.key === "words" ? "<p class=\"mem-small\">Suggerimento: una storia o il palazzo, una parola per luogo.</p>" : round.key === "cards" ? "<p class=\"mem-small\">Frecce o tasti ‹ › per scorrere le carte. Suggerimento: un'immagine per carta e il palazzo.</p>" : round.key === "faces" ? "<p class=\"mem-small\">Suggerimento: un tratto del viso + un'immagine del nome.</p>" : "<p class=\"mem-small\">Ogni parola compare insieme al suo luogo: mettila lì con un'immagine esagerata.</p>"}
+        ${round.life === "phone" ? "<p class=\"mem-small\">Suggerimento: cinque coppie, cinque immagini del sistema fonetico, una scena sola con la persona che chiami.</p>" : round.life === "shop" ? "<p class=\"mem-small\">Suggerimento: un palazzo corto (la strada dall'ingresso alla cucina), una cosa per luogo, esagerata.</p>" : round.key === "numbers" ? "<p class=\"mem-small\">Suggerimento: a coppie con il sistema fonetico, una o due coppie per luogo del palazzo.</p>" : round.key === "words" ? "<p class=\"mem-small\">Suggerimento: una storia o il palazzo, una parola per luogo.</p>" : round.key === "cards" ? "<p class=\"mem-small\">Frecce o tasti ‹ › per scorrere le carte. Suggerimento: carta → numero → immagine del fonetico, nel palazzo.</p>" : round.key === "faces" ? "<p class=\"mem-small\">Suggerimento: un tratto del viso + un'immagine del nome.</p>" : round.key === "images" ? "<p class=\"mem-small\">Suggerimento: a ogni forma la prima cosa che ti ricorda, poi una storia per ogni riga di cinque.</p>" : round.key === "dates" ? "<p class=\"mem-small\">Suggerimento: l'evento diventa una scena, con dentro l'immagine delle ultime due cifre dell'anno e un dettaglio per il secolo.</p>" : round.per === 2 ? "<p class=\"mem-small\">Due parole per luogo: la prima a sinistra, la seconda a destra, che fanno qualcosa insieme.</p>" : "<p class=\"mem-small\">Ogni parola compare insieme al suo luogo: mettila lì con un'immagine esagerata.</p>"}
         <div class="mem-actions"><button type="button" class="primary-action" data-m="round-go" data-autofocus>Comincia</button></div></article>`;
     }
     if (r.phase === "mem") return `${head}<article class="mem-card mem-run">${memStage(r)}<div class="mem-actions"><button type="button" class="primary-action" data-m="round-done">Ho finito</button></div></article>`;
@@ -645,7 +675,16 @@
       return `${timer}<div class="mem-stage mem-stage-grid"><ol class="mem-word-cols">${round.items.map((w) => `<li>${esc(w)}</li>`).join("")}</ol></div>`;
     }
     if (round.key === "palace") {
-      return `${timer}<div class="mem-stage mem-stage-grid"><ol class="mem-loci">${round.items.map((w, i) => `<li><span>${esc(round.loci[i])}</span><b>${esc(w)}</b></li>`).join("")}</ol></div>`;
+      const per = round.per || 1;
+      return `${timer}<div class="mem-stage mem-stage-grid"><ol class="mem-loci ${per === 2 ? "two" : ""}">${round.loci.map((locus, li) => `<li><span>${esc(locus)}</span><b>${round.items.slice(li * per, li * per + per).map(esc).join(" · ")}</b></li>`).join("")}</ol></div>`;
+    }
+    if (round.key === "images") {
+      const rows = [];
+      for (let i = 0; i < round.items.length; i += 5) rows.push(round.items.slice(i, i + 5));
+      return `${timer}<div class="mem-stage mem-stage-grid"><div class="mem-img-rows">${rows.map((row, ri) => `<div class="mem-img-row"><span class="mem-row-n">${ri + 1}</span>${row.map((sd, i) => `<span class="mem-img">${IMG ? IMG.svg(sd, { label: `riga ${ri + 1}, immagine ${i + 1}` }) : ""}</span>`).join("")}</div>`).join("")}</div></div>`;
+    }
+    if (round.key === "dates") {
+      return `${timer}<div class="mem-stage mem-stage-grid"><ol class="mem-dates">${round.items.map((x) => `<li><b>${x.year}</b><span>${esc(x.event)}</span></li>`).join("")}</ol></div>`;
     }
     if (round.key === "cards") {
       const c = E.cardInfo(round.items[r.cardIdx]);
@@ -668,7 +707,24 @@
       }).join("")}</div>`;
     }
     if (round.key === "words" || round.key === "palace") {
-      return `<p class="mem-hint">${round.key === "palace" ? "Ripercorri il palazzo: che parola c'era in ogni luogo?" : "Scrivi le parole nell'ordine. Lascia vuoto quello che non ricordi."}</p><ol class="mem-word-inputs">${round.items.map((_, i) => `<li><label><span>${round.key === "palace" ? esc(round.loci[i]) : i + 1}</span><input type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-i="${i}" value="${esc(ans[i] || "")}" ${i === 0 ? "data-autofocus" : ""}></label></li>`).join("")}</ol>`;
+      const per = round.per || 1;
+      const lbl = (i) => (round.key === "palace" ? `${esc(round.loci[Math.floor(i / per)])}${per === 2 ? ` · ${i % 2 ? "destra" : "sinistra"}` : ""}` : i + 1);
+      return `<p class="mem-hint">${round.key === "palace" ? "Ripercorri il palazzo: che parola c'era in ogni luogo?" : "Scrivi le parole nell'ordine. Lascia vuoto quello che non ricordi."}</p><ol class="mem-word-inputs">${round.items.map((_, i) => `<li><label><span>${lbl(i)}</span><input type="text" autocomplete="off" autocapitalize="none" spellcheck="false" data-i="${i}" value="${esc(ans[i] || "")}" ${i === 0 ? "data-autofocus" : ""}></label></li>`).join("")}</ol>`;
+    }
+    if (round.key === "images") {
+      // ogni riga mescolata: tocca le immagini nell'ordine in cui le hai viste
+      if (!r.imgRows) {
+        r.imgRows = [];
+        for (let i = 0; i < round.items.length; i += 5) r.imgRows.push(E.shuffle(round.items.slice(i, i + 5)));
+      }
+      return `<p class="mem-hint">Ogni riga è mescolata: tocca le immagini nell'ordine in cui le hai viste. Tocca di nuovo un'immagine scelta per toglierla.</p><div class="mem-img-rows recall">${r.imgRows.map((row, ri) => {
+        const picked = ans.slice(ri * 5, ri * 5 + 5);
+        return `<div class="mem-img-row"><span class="mem-row-n">${ri + 1}</span>${row.map((sd) => { const pos = picked.indexOf(sd); return `<button type="button" class="mem-img ${pos >= 0 ? "picked" : ""}" data-m="img-pick" data-row="${ri}" data-sd="${sd}" aria-label="Riga ${ri + 1}${pos >= 0 ? `, scelta per ${pos + 1}ª` : ""}">${IMG ? IMG.svg(sd, { label: "" }) : ""}${pos >= 0 ? `<i>${pos + 1}</i>` : ""}</button>`; }).join("")}</div>`;
+      }).join("")}</div>`;
+    }
+    if (round.key === "dates") {
+      const order = r.dateOrder || (r.dateOrder = E.shuffle(round.items.map((_, i) => i)));
+      return `<p class="mem-hint">Gli eventi sono mescolati: scrivi l'anno di ognuno. Lascia vuoto quello che non ricordi.</p><ol class="mem-date-inputs">${order.map((idx, k) => `<li><label><span>${esc(round.items[idx].event)}</span><input type="text" inputmode="numeric" maxlength="4" autocomplete="off" data-i="${idx}" value="${esc(ans[idx] || "")}" ${k === 0 ? "data-autofocus" : ""} aria-label="Anno: ${esc(round.items[idx].event)}"></label></li>`).join("")}</ol>`;
     }
     if (round.key === "cards") {
       const picked = ans.filter(Boolean);
@@ -696,7 +752,7 @@
         for (let i = 0; i < len; i += 1) out[ri * 10 + i] = val[i] && val[i] !== " " ? val[i] : null;
       });
       r.answers = out;
-    } else if (round.key !== "cards") {
+    } else if (round.key !== "cards" && round.key !== "images") {
       panel.querySelectorAll("input[data-i]").forEach((inp) => { r.answers[Number(inp.dataset.i)] = inp.value; });
     }
   }
@@ -760,7 +816,14 @@
       for (let i = 0; i < round.items.length; i += 10) rows.push(i);
       detail = `<div class="mem-num-check">${rows.map((start, ri) => `<div class="mem-num-row"><span class="mem-row-n">${ri + 1}</span>${round.items.slice(start, start + 10).map((d, i) => { const m = res.marks[start + i]; const g = r.answers[start + i]; return `<span class="${m === true ? "ok" : m === false ? "ko" : "empty"}" title="${m === false ? `hai scritto ${g}` : ""}">${d}</span>`; }).join("")}<em>${res.rows[ri] ? `${res.rows[ri].pts} pt` : ""}</em></div>`).join("")}</div>`;
     } else if (round.key === "words" || round.key === "palace") {
-      detail = `<ol class="mem-word-check">${round.items.map((w, i) => { const m = res.marks[i]; const g = r.answers[i]; return `<li class="${m === true ? "ok" : m === false ? "ko" : "empty"}">${round.key === "palace" ? `<em>${esc(round.loci[i])}</em>` : ""}<b>${esc(w)}</b>${m === false || (m === null && round.key === "palace" && g) ? `<span>hai scritto «${esc(g)}»</span>` : m == null || (round.key === "palace" && !m && !g) ? "<span>vuota</span>" : ""}</li>`; }).join("")}</ol>`;
+      const per = round.per || 1;
+      detail = `<ol class="mem-word-check">${round.items.map((w, i) => { const m = res.marks[i]; const g = r.answers[i]; return `<li class="${m === true ? "ok" : m === false ? "ko" : "empty"}">${round.key === "palace" ? `<em>${esc(round.loci[Math.floor(i / per)])}</em>` : ""}<b>${esc(w)}</b>${m === false || (m === null && round.key === "palace" && g) ? `<span>hai scritto «${esc(g)}»</span>` : m == null || (round.key === "palace" && !m && !g) ? "<span>vuota</span>" : ""}</li>`; }).join("")}</ol>`;
+    } else if (round.key === "images") {
+      const rows = [];
+      for (let i = 0; i < round.items.length; i += 5) rows.push(i);
+      detail = `<div class="mem-img-rows check">${rows.map((start, ri) => `<div class="mem-img-row"><span class="mem-row-n">${ri + 1}</span>${round.items.slice(start, start + 5).map((sd, i) => { const m = res.marks[start + i]; return `<span class="mem-img ${m === true ? "ok" : m === false ? "ko" : "empty"}">${IMG ? IMG.svg(sd, { label: m ? "giusta" : "sbagliata" }) : ""}</span>`; }).join("")}</div>`).join("")}</div><p class="mem-small">L'ordine giusto: verde = al posto giusto, rosso = sbagliata, grigio = vuota.</p>`;
+    } else if (round.key === "dates") {
+      detail = `<ol class="mem-date-check">${round.items.map((x, i) => { const m = res.marks[i]; const g = r.answers[i]; return `<li class="${m === true ? "ok" : m === false ? "ko" : "empty"}"><b>${x.year}</b><span>${esc(x.event)}</span>${m === false ? `<em>tu: ${esc(g)}</em>` : m == null ? "<em>vuota</em>" : ""}</li>`; }).join("")}</ol>`;
     } else if (round.key === "cards") {
       detail = `<div class="mem-card-check">${round.items.map((code, i) => { const m = res.marks[i]; const g = r.answers[i]; return `<div class="${m === true ? "ok" : m === false ? "ko" : "empty"}">${cardFace(E.cardInfo(code))}${m === false ? `<small>tu: ${esc(E.cardInfo(g) ? E.cardInfo(g).label : "?")}</small>` : ""}</div>`; }).join("")}</div>`;
     } else {
@@ -768,19 +831,25 @@
     }
     const d = round.key === "palace" ? null : E.DISCIPLINES[round.key];
     const unlocked = r.rec && r.rec.unlocked;
-    const actions = round.key === "palace"
+    const actions = r.source === "course"
+      ? `<button type="button" class="primary-action" data-m="exit" data-autofocus>Torna al percorso</button><button type="button" class="ghost-action" data-m="again">Rifallo</button>`
+      : round.custom
+      ? `<button type="button" class="primary-action" data-m="again" data-autofocus>Un altro turno</button><button type="button" class="ghost-action" data-m="exit">Torna</button>`
+      : round.key === "palace"
       ? `<button type="button" class="primary-action" data-m="palace-play" data-id="${round.palaceId}" data-autofocus>Un altro giro</button><button type="button" class="ghost-action" data-m="exit">Torna</button>`
       : `${unlocked ? `<button type="button" class="primary-action" data-m="level-up" data-key="${round.key}" data-level="${r.rec.nextLevel}" data-autofocus>Sali al livello ${r.rec.nextLevel}</button>` : ""}<button type="button" class="${unlocked ? "ghost-action" : "primary-action"}" data-m="play" data-key="${round.key}" ${unlocked ? "" : "data-autofocus"}>Un altro turno${unlocked ? " a questo livello" : ""}</button><button type="button" class="ghost-action" data-m="exit">Torna</button>`;
     return `<article class="mem-card mem-result"><div class="mem-big"><strong>${score}</strong><span>su ${res.max}</span></div><div>
-      <h2 data-focus tabindex="-1">${res.pass || (round.key === "palace" && res.correct === res.max) ? "Livello superato" : score >= res.max * 0.6 ? "Buon turno" : "Da rifare"}</h2>
-      <p>${res.correct} giuste su ${res.max}${r.memUsed ? ` · memorizzate in ${fmtSec(r.memUsed)}` : ""}.${r.rec && r.rec.record ? " Nuovo record a questo livello." : ""}${unlocked ? ` Hai sbloccato il livello ${r.rec.nextLevel}: ${d.levels[r.rec.nextLevel - 1].n} ${d.unit} in ${d.levels[r.rec.nextLevel - 1].mem} secondi.` : ""}</p>
+      <h2 data-focus tabindex="-1">${round.custom || round.key === "palace" ? (res.correct === res.max ? "Tutto giusto" : score >= res.max * 0.9 ? "Ottimo turno" : score >= res.max * 0.6 ? "Buon turno" : "Da rifare") : res.pass ? "Livello superato" : score >= res.max * 0.6 ? "Buon turno" : "Da rifare"}</h2>
+      <p>${res.correct} giuste su ${res.max}${r.memUsed ? ` · memorizzate in ${fmtSec(r.memUsed)}` : ""}.${r.rec && r.rec.record && score > 0 ? " Nuovo record a questo livello." : ""}${unlocked ? ` Hai sbloccato il livello ${r.rec.nextLevel}: ${d.levels[r.rec.nextLevel - 1].n} ${d.unit} in ${d.levels[r.rec.nextLevel - 1].mem} secondi.` : ""}</p>
       ${benchmark(round)}
       <div class="mem-actions">${actions}</div></div></article>
       <section class="mem-card mem-check"><h3>Le risposte</h3>${detail}</section>`;
   }
   function benchmark(round) {
+    if (round.life) return "";
     const b = E.BENCH && E.BENCH[round.key];
-    return b ? `<p class="mem-small">${esc(b)} <a href="${esc(E.BENCH_URL)}" target="_blank" rel="noopener noreferrer">Record IAM</a></p>` : "";
+    const url = (E.BENCH_URLS && E.BENCH_URLS[round.key]) || E.BENCH_URL;
+    return b ? `<p class="mem-small">${esc(b)} <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Record IAM</a></p>` : "";
   }
 
   /* ------------------------------------------------------------ PROGRESSI */
@@ -795,6 +864,7 @@
       <div class="mem-prog">
         <div class="mem-intro"><h2 data-focus tabindex="-1">Progressi</h2><p>I test nel tempo, i turni delle discipline e i giorni di allenamento. Rifare i test troppo spesso li rende più facili per abitudine: una volta al mese basta.</p></div>
         <section class="mem-card mem-prof-card"><h3>Profilo</h3>${profileMini(l)}</section>
+        ${KIT.progressExtra ? KIT.progressExtra(l) : ""}
         <section class="mem-card">
           <div class="mem-seg" role="group" aria-label="Test">${keys.map((k) => `<button type="button" data-m="prog" data-key="${k}" aria-pressed="${k === sel}">${labels[k]}</button>`).join("")}</div>
           ${list.length ? chart(list, sel, l) : `<p class="mem-empty">Ancora nessun risultato: fai il test in Misura.</p>`}
@@ -856,8 +926,10 @@
       else if (ui.run.type === "words") html = wordsView();
       else if (ui.run.type === "delayed") html = delayedView();
       else if (ui.run.type === "major") html = majorView();
+      else if (KIT.views[ui.run.type]) html = KIT.views[ui.run.type]();
       else html = roundView();
-    } else if (ui.tab === "measure") html = measureView();
+    } else if (KIT.tabs[ui.tab]) html = KIT.tabs[ui.tab]();
+    else if (ui.tab === "measure") html = measureView();
     else if (ui.tab === "techniques") html = techniquesView();
     else if (ui.tab === "disciplines") html = disciplinesView();
     else if (ui.tab === "progress") html = progressView();
@@ -879,11 +951,16 @@
     ui.tab = tab;
     ui.technique = null;
     ui.palaceEdit = null;
+    ui.returnTab = null;
+    ui.deckOpen = null;
+    ui.textOpen = null;
+    ui.area = null;
     render(true);
   }
 
   function go(target) {
     stop();
+    if (target.tab === "course" && target.task && KIT.actions["course-task"]) { ui.tab = "course"; KIT.actions["course-task"]({ dataset: { task: target.task } }); return; }
     ui.tab = target.tab || "today";
     ui.technique = target.technique || null;
     ui.palaceEdit = null;
@@ -912,15 +989,16 @@
 
   // un doppio clic non deve premere anche il pulsante che compare al suo posto
   // (non vale per tastierino, blocchi e carte, dove si tocca in fretta di proposito)
-  const SOFT = new Set(["key", "corsi", "span-undo", "card-prev", "card-next", "card-pick", "card-undo", "lv", "prog"]);
+  const SOFT = new Set(["key", "corsi", "span-undo", "card-prev", "card-next", "card-pick", "card-undo", "lv", "prog", "img-pick"]);
 
   function onClick(event) {
     const el = event.target.closest("[data-m]");
     if (!el || !$("memory").contains(el) || el.disabled) return;
     const act = el.dataset.m;
     if (!act) return;
-    if (!SOFT.has(act) && (event.detail > 1 || Date.now() - renderedAt < 300)) return;
+    if (!SOFT.has(act) && !KIT.soft.includes(act) && (event.detail > 1 || Date.now() - renderedAt < 300)) return;
     const l = lab();
+    if (KIT.actions[act]) { KIT.actions[act](el, event); return; }
     switch (act) {
       case "exit": stop(); render(true); break;
       case "go": try { go(JSON.parse(el.dataset.go)); } catch (e) { setTab("today"); } break;
@@ -961,16 +1039,38 @@
         break;
       }
       case "tech": ui.technique = el.dataset.id; render(true); break;
-      case "tech-back": ui.technique = null; render(true); break;
+      case "tech-back": ui.technique = null; if (ui.returnTab) { ui.tab = ui.returnTab; ui.returnTab = null; } render(true); break;
       case "practice": {
         const kind = el.dataset.kind;
-        if (kind === "palace") break;
+        if (kind === "palace" || !E.DISCIPLINES[kind]) break;
         startRound(E.makeRound(kind, Number(el.dataset.level) || 1, Date.now(), l), "technique");
+        break;
+      }
+      case "again": {
+        const old = ui.run && ui.run.round;
+        if (!old) break;
+        if (old.key === "palace") { const nr = E.makePalaceRound(l, old.palaceId, old.items.length, Date.now(), old.per || 1); if (nr) startRound(nr, ui.run.source); break; }
+        startRound(E.makeRound(old.key, old.level || 1, Date.now(), l, old.custom ? { n: old.n, mem: old.mem, recall: old.recall, list: old.life === "shop" ? "groceries" : null, life: old.life } : null), ui.run.source);
+        break;
+      }
+      case "img-pick": {
+        const r = ui.run;
+        if (!r || r.phase !== "recall") break;
+        const ri = Number(el.dataset.row);
+        const sd = Number(el.dataset.sd);
+        const start = ri * 5;
+        const len = Math.min(5, r.round.items.length - start);
+        const row = Array.from({ length: len }, (_, i) => r.answers[start + i] ?? null);
+        const at = row.indexOf(sd);
+        if (at >= 0) row[at] = null;
+        else { const free = row.indexOf(null); if (free >= 0) row[free] = sd; }
+        row.forEach((v, i) => { r.answers[start + i] = v; });
+        render(false, true);
         break;
       }
       case "palace-new": ui.palaceEdit = { id: null }; render(true); break;
       case "palace-edit": ui.palaceEdit = { id: el.dataset.id }; render(true); break;
-      case "palace-cancel": ui.palaceEdit = null; render(true); break;
+      case "palace-cancel": ui.palaceEdit = null; if (ui.returnTab) { ui.tab = ui.returnTab; ui.technique = null; ui.returnTab = null; } render(true); break;
       case "palace-save": {
         const name = $("memPalaceName").value;
         const loci = $("memPalaceLoci").value;
@@ -979,6 +1079,7 @@
         E.savePalace(l, { id: ui.palaceEdit.id, name, loci: lines });
         save();
         ui.palaceEdit = null;
+        if (ui.returnTab) { ui.tab = ui.returnTab; ui.technique = null; ui.returnTab = null; }
         render(true);
         break;
       }
@@ -1007,6 +1108,7 @@
   function onKey(event) {
     const page = $("memory");
     if (!page || !page.classList.contains("active-page")) return;
+    for (const hook of KIT.keys) if (hook(event) === true) return;
     const r = ui.run;
     if (!r || event.ctrlKey || event.metaKey || event.altKey) return;
     const typing = event.target && /^(INPUT|TEXTAREA)$/.test(event.target.tagName);
@@ -1035,6 +1137,7 @@
 
   function onInput(event) {
     const t = event.target;
+    if (KIT.input && KIT.input(event) === true) return;
     // righe dei numeri: a riga piena passa alla successiva
     if (t.matches && t.matches("#memPanel input[data-row]")) {
       t.value = t.value.replace(/[^\d ]/g, "");
@@ -1074,6 +1177,13 @@
     setTab,
     debug: ui
   };
+  // aggancio per memory/ui-plus.js
+  Object.assign(KIT, {
+    ui, E, F, IMG, $, esc, plural, num, dateShort, dateLong, fmtSec, lab, save, announce, after, stopTimers, stop, render, backBar,
+    startRound, startSpan, startWords, startMajor, startDelayedRecall, setTab, go, playDiscipline, playPalace, pctBar, normLine, stageTimer, profileMini, cardFace, TECHNIQUES,
+    get renderedAt() { return renderedAt; }
+  });
+  window.MemoryUIKit = KIT;
   window.memoryProfileSkills = () => E.profile(lab());
   window.memoryTrend = () => E.trend(lab());
 

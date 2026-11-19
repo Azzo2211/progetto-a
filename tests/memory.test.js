@@ -257,13 +257,13 @@ test("Sistema fonetico: 10 immagini nuove al giorno, ripasso distanziato, sbagli
   assert.ok(E.majorLearned(lab) >= 1);
 });
 
-test("Programma del giorno: misura iniziale, poi immagini, disciplina, palazzo; nuova misura dopo un mese", () => {
+test("Programma del giorno senza percorso: proposta del percorso, misura iniziale, poi immagini, disciplina, palazzo; nuova misura dopo un mese", () => {
   const lab = E.ensure(null);
   let steps = E.plan(lab, T0);
-  assert.strictEqual(steps[0].id, "baseline");
+  assert.deepStrictEqual(steps.slice(0, 2).map((s) => s.id), ["course", "baseline"]);
   ["digitF", "digitB", "corsiF", "corsiB"].forEach((k) => E.recordTest(lab, k, 6, {}, T0));
   steps = E.plan(lab, T0);
-  assert.deepStrictEqual(steps.map((s) => s.id), ["major", "discipline", "palace"]);
+  assert.deepStrictEqual(steps.map((s) => s.id), ["course", "major", "discipline", "palace"]);
   assert.ok(steps.find((s) => s.id === "discipline").title.includes(E.DISCIPLINES[E.ROTATION[new Date(T0).getDay()]].label.toLowerCase()));
   assert.ok(E.plan(lab, T0 + 30 * DAY).some((s) => s.id === "retest"));
   assert.ok(E.streak(lab, T0) >= 1);
