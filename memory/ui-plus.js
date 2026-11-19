@@ -58,6 +58,8 @@
           <li>Se salti un giorno non perdi niente: riprendi da dove eri.</li>
           <li>I compiti si spuntano da soli quando li fai qui; quelli fuori dall'app li segni tu.</li>
           <li>Test il primo giorno, il 21° e alla fine, e un controllo dopo quattro mesi.</li>
+          <li>È anche un gioco: ogni giorno è un piano della Torre della Memoria, con tre stelle da prendere, e ogni sette piani un guardiano da battere con una prova vera. Punti e stelle arrivano solo ricordando.</li>
+          <li>Mezz'ora è il minimo. Se hai più tempo, in Oggi scegli 45, 60, 90 o 120 minuti: dopo i compiti del piano arrivano sfide, guardiani, il tuo punto debole e i ripassi.</li>
         </ul>
         <div class="mem-actions"><button type="button" class="primary-action" data-m="course-start" data-autofocus>Inizia il percorso</button></div>
         ${sourcesLine(["dresler", "wagner"])}
@@ -86,7 +88,10 @@
       return `<div class="mem-course">
         <article class="mem-card mem-course-hero"><span class="mem-kicker">Percorso completato</span><h2 data-focus tabindex="-1">Hai finito le sei settimane</h2>
           <p class="mem-lead">Controllo a quattro mesi: dal ${dateShort(cs.followUpAt)}. ${cs.followUpDue ? "È il momento: rifai i test in Misura." : "Fino ad allora: ripassi ogni giorno e tre allenamenti a settimana."}</p>
-          ${cs.followUpDue ? `<div class="mem-actions"><button type="button" class="primary-action" data-m="go-tab" data-tab="measure">Vai ai test</button></div>` : ""}</article>
+          ${cs.followUpDue ? `<div class="mem-actions"><button type="button" class="primary-action" data-m="go-tab" data-tab="measure">Vai ai test</button></div>` : ""}
+          ${K.towerMap ? K.towerMap(l, cs) : ""}</article>
+        ${K.floorDetail ? K.floorDetail(l, cs) : ""}
+        ${K.extraList ? K.extraList(l, "course") : ""}
         ${reportTable(l)}
         ${ls ? `<article class="mem-card mem-lesson"><span class="mem-kicker">Lezione</span><h3>${esc(ls.title)}</h3>${lessonBody(ls)}</article>` : ""}
         ${restartBox()}
@@ -104,9 +109,10 @@
           <h2 data-focus tabindex="-1"><span class="mem-sr">Giorno ${cs.day}: </span>${esc(def.title)}</h2>
           <div class="mem-course-progress"><div class="mem-bar" role="img" aria-label="${doneDays} giornate fatte su ${CO.LENGTH}"><i style="width:${Math.round((doneDays / CO.LENGTH) * 100)}%"></i></div><span>${doneDays}/${CO.LENGTH} giornate fatte. ${cs.waiting ? "Oggi: fatto." : left.length ? `Oggi: ${plural(left.length, "compito", "compiti")}, circa ${minutes} minuti.` : "Oggi: tutto fatto."}</span></div>
         </div>
-        <ol class="mem-week-strip" aria-label="Le sei settimane">${CO.WEEKS.map((w) => `<li class="${w.n < cs.week.n ? "past" : w.n === cs.week.n ? "now" : ""}" ${w.n === cs.week.n ? 'aria-current="step"' : ""}><span>${w.n}</span><em>${esc(w.title)}</em></li>`).join("")}</ol>
+        ${K.towerMap ? K.towerMap(l, cs) : `<ol class="mem-week-strip" aria-label="Le sei settimane">${CO.WEEKS.map((w) => `<li class="${w.n < cs.week.n ? "past" : w.n === cs.week.n ? "now" : ""}" ${w.n === cs.week.n ? 'aria-current="step"' : ""}><span>${w.n}</span><em>${esc(w.title)}</em></li>`).join("")}</ol>`}
       </section>
-      ${cs.waiting ? `<div class="mem-alert ready"><strong>Giornata completata</strong><span>${cs.day < CO.LENGTH ? `Il giorno ${cs.day + 1} si apre domani. Stasera dormi: è lì che i ricordi di oggi si fissano.` : ""}</span><button type="button" class="ghost-action small" data-m="go-tab" data-tab="review">Vai al ripasso</button></div>` : ""}
+      ${K.floorDetail ? K.floorDetail(l, cs) : ""}
+      ${cs.waiting ? `<div class="mem-alert ready"><strong>Piano completato</strong><span>${cs.day < CO.LENGTH ? `Il piano ${cs.day + 1} si apre domani. Stasera dormi: è lì che i ricordi di oggi si fissano. Se hai ancora tempo, l'allenamento extra qui sotto ti fa salire di più.` : ""}</span></div>${K.extraList ? K.extraList(l, "course") : ""}` : ""}
       <section class="mem-card">
         <h3>I compiti di oggi</h3>
         ${def.tip ? `<p class="mem-tip">${esc(def.tip)}</p>` : ""}
@@ -118,6 +124,7 @@
             ${taskButton(t)}
           </li>`).join("")}</ol>
       </section>
+      ${K.floorCard ? K.floorCard(l, cs) : ""}
       ${cs.lesson ? `<details class="mem-card mem-lesson" ${cs.tasks.some((t) => t.done) ? "" : "open"}><summary><span class="mem-kicker">Lezione del giorno</span><strong>${esc(cs.lesson.title)}</strong></summary>${lessonBody(cs.lesson)}</details>` : ""}
       ${cs.day >= 21 ? reportTable(l) : ""}
       ${restartBox()}
@@ -382,6 +389,7 @@
     const ref = r.items[r.idx];
     E.answerCard(l, ref, g);
     r.counts[g] += 1;
+    r.combo = g >= 2 ? (r.combo || 0) + 1 : 0;
     if (g === 1) {
       const k = `${ref.cardId}:${ref.side}`;
       r.again[k] = (r.again[k] || 0) + 1;
@@ -477,6 +485,7 @@
     const ok = String(value).trim().toLowerCase() === String(r.q.answer).toLowerCase();
     r.answered = { value, ok };
     E.cardAnswer(lab(), r.q.card, ok);
+    r.combo = ok ? (r.combo || 0) + 1 : 0;
     if (ok) r.ok += 1; else { r.ko += 1; if (r.queue.filter((c) => c === r.q.card).length < 3) r.queue.push(r.q.card); }
     save();
     render(true);
@@ -554,6 +563,7 @@
     const code = r.queue[r.idx];
     E.paoAnswer(l, code, g);
     r.counts[g] += 1;
+    r.combo = g >= 2 ? (r.combo || 0) + 1 : 0;
     if (g === 1 && r.queue.filter((c) => c === code).length < 3) r.queue.push(code);
     r.idx += 1;
     r.shown = false;
@@ -642,7 +652,8 @@
     if (!t) { ui.textOpen = null; return textsList(); }
     const st = ui.textStage && ui.textStage.id === id ? ui.textStage : (ui.textStage = { id, mode: suggestMode(t), revealed: new Set(), result: null });
     const lines = E.textLines(t.body);
-    const back = ui.returnTab === "course" ? "← Torna al percorso" : "← I tuoi testi";
+    const back = ui.returnTab === "course" ? "← Torna al percorso" : ui.returnTab === "today" ? "← Torna a Oggi" : "← I tuoi testi";
+    const ch = st.challenge || null;
     let body = "";
     let flat = 0;
     if (st.mode === "read") {
@@ -656,11 +667,11 @@
       body = `<div class="mem-text masked">${lines.map((ws) => `<p>${ws.map((w) => { const k = flat; flat += 1; if (!hidden.has(k)) return esc(w); const open = st.revealed.has(k); return `<button type="button" class="mem-blank ${open ? "open" : ""}" data-m="text-word" data-i="${k}" aria-label="${open ? esc(w) : "parola nascosta"}">${open ? esc(w) : "&nbsp;".repeat(Math.max(3, Math.min(12, w.length)))}</button>`; }).join(" ")}</p>`).join("")}</div><p class="mem-small">Recita il testo a voce riempiendo i buchi; tocca un buco solo se non ti viene. Nascoste ${hidden.size} parole su ${total}.</p><div class="mem-actions"><button type="button" class="primary-action" data-m="text-done">Finito</button></div>`;
     } else if (st.result) {
       const r = st.result;
-      body = `<div class="mem-big"><strong>${r.pct}%</strong><span>${r.correct} parole su ${r.total}</span></div><div class="mem-text check">${(() => { let k = 0; return lines.map((ws) => `<p>${ws.map(() => { const x = r.words[k]; k += 1; return `<span class="${x.ok ? "ok" : "ko"}">${esc(x.w)}</span>`; }).join(" ")}</p>`).join(""); })()}</div>
+      body = `<div class="mem-big"><strong>${r.pct}%</strong><span>${r.correct} parole su ${r.total}</span></div>${ch ? `<p class="mem-feedback-line ${r.pct >= ch.target ? "ok" : "ko"}">${r.pct >= ch.target ? `Sfida superata: terza stella al piano ${ch.day}.` : `Sfida: serve il ${ch.target}%, hai fatto il ${r.pct}%. Ripassa con le parole nascoste e riprova.`}</p>` : ""}<div class="mem-text check">${(() => { let k = 0; return lines.map((ws) => `<p>${ws.map(() => { const x = r.words[k]; k += 1; return `<span class="${x.ok ? "ok" : "ko"}">${esc(x.w)}</span>`; }).join(" ")}</p>`).join(""); })()}</div>
         <p>${r.grade ? `Voto per il ripasso: ${GRADE_LABEL[r.grade].toLowerCase()}. ` : ""}${t.st ? `Da recitare di nuovo ${dueLabel(t.st.due)}.` : ""}</p>
         <div class="mem-actions"><button type="button" class="primary-action" data-m="text-again">Riprova</button><button type="button" class="ghost-action" data-m="text-mode" data-mode="mask50">Torna alla metà nascosta</button></div>`;
     } else {
-      body = `<p class="mem-hint">Scrivi il testo a memoria, come lo ricordi. Punteggiatura e maiuscole non contano.</p><textarea id="memTextRecall" rows="8" autocomplete="off" autocapitalize="sentences" spellcheck="false" data-autofocus></textarea><div class="mem-actions"><button type="button" class="primary-action" data-m="text-check">Controlla</button></div>`;
+      body = `${ch ? `<p class="mem-tip">Sfida del piano ${ch.day}: il testo intero con almeno il ${ch.target}% delle parole.</p>` : ""}<p class="mem-hint">Scrivi il testo a memoria, come lo ricordi. Punteggiatura e maiuscole non contano.</p><textarea id="memTextRecall" rows="8" autocomplete="off" autocapitalize="sentences" spellcheck="false" data-autofocus></textarea><div class="mem-actions"><button type="button" class="primary-action" data-m="text-check">Controlla</button></div>`;
     }
     const runs = t.runs.slice(-5).reverse();
     return `<div class="mem-apps">
@@ -710,7 +721,7 @@
     const box = K.$("memTextRecall");
     if (!t || !box) return;
     const res = E.scoreText(t.body, box.value);
-    const rec = E.recordTextRun(l, t.id, "full", res.pct);
+    const rec = E.recordTextRun(l, t.id, "full", res.pct, Date.now(), st.challenge ? { ch: st.challenge.day, tg: st.challenge.target } : null);
     save();
     st.result = { ...res, grade: rec ? rec.grade : null };
     render(true);
@@ -730,7 +741,24 @@
   K.actions["text-word"] = (el) => { const st = ui.textStage; st.revealed.add(Number(el.dataset.i)); render(false, true); };
   K.actions["text-done"] = textDone;
   K.actions["text-check"] = textCheck;
-  K.actions["text-again"] = () => { ui.textStage = { id: ui.textOpen, mode: "full", revealed: new Set(), result: null }; render(true); };
+  K.actions["text-again"] = () => { const prev = ui.textStage; ui.textStage = { id: ui.textOpen, mode: "full", revealed: new Set(), result: null, challenge: prev && prev.challenge ? prev.challenge : null }; render(true); };
+  // sfida della Torre su un testo: richiamo completo con la percentuale che serve
+  K.startTextChallenge = (sampleId, challenge, source) => {
+    const l = lab();
+    const t = E.addSampleText(l, sampleId) || l.texts[0];
+    if (!t) return;
+    save();
+    K.stopTimers();
+    ui.run = null;
+    ui.tab = "apps";
+    ui.area = null;
+    ui.textOpen = t.id;
+    ui.returnTab = source === "course" || source === "today" ? source : null;
+    ui.textStage = { id: t.id, mode: "full", revealed: new Set(), result: null, challenge };
+    render(true);
+  };
+  K.lessonBody = lessonBody;
+  K.dueLabel = dueLabel;
   K.actions["text-del"] = (el) => {
     if (el.dataset.confirm !== "1") { el.dataset.confirm = "1"; el.textContent = "Conferma: elimina il testo"; return; }
     const l = lab();
@@ -775,30 +803,41 @@
     if (!FENS.length) FENS = ["r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4"];
     return FENS;
   }
-  function startChess(drill, source = "apps") {
+  // challenge = sfida della Torre { day, target, maxMs?, secs? }
+  function startChess(drill, source = "apps", challenge = null) {
     K.stopTimers();
     const seed = Date.now();
-    if (drill === "colors") ui.run = { type: "chess", drill, items: E.colorsRound(seed, 20), idx: 0, ok: 0, start: Date.now(), last: null, source, phase: "play" };
-    else if (drill === "knight") ui.run = { type: "chess", drill, items: E.knightRound(seed, 10), idx: 0, ok: 0, start: Date.now(), last: null, source, phase: "play" };
+    if (drill === "colors") ui.run = { type: "chess", drill, items: E.colorsRound(seed, 20), idx: 0, ok: 0, start: Date.now(), last: null, source, phase: "play", challenge };
+    else if (drill === "knight") ui.run = { type: "chess", drill, items: E.knightRound(seed, 10), idx: 0, ok: 0, start: Date.now(), last: null, source, phase: "play", challenge };
     else {
       const fens = realFens();
       const fen = fens[Math.floor(Math.random() * fens.length)];
-      ui.run = { type: "chess", drill: "flash", fen, qs: E.flashQuestions(fen, seed), answers: [], idx: 0, ok: 0, secs: ui.flashSecs || 10, source, phase: "intro", start: Date.now() };
+      ui.run = { type: "chess", drill: "flash", fen, qs: E.flashQuestions(fen, seed), answers: [], idx: 0, ok: 0, secs: challenge && challenge.secs ? challenge.secs : ui.flashSecs || 10, source, phase: "intro", start: Date.now(), challenge };
     }
     render(true);
   }
+  const chessExtra = (r) => (r.challenge ? { ch: r.challenge.day, tg: r.challenge.target, ...(r.challenge.maxMs ? { maxMs: r.challenge.maxMs } : {}) } : null);
+  function chessChallengeLine(r, total, ms) {
+    const c = r.challenge;
+    if (!c) return "";
+    const fast = !c.maxMs || ms <= c.maxMs;
+    const won = r.ok >= c.target && fast;
+    return `<p class="mem-feedback-line ${won ? "ok" : "ko"}">${won ? `Sfida superata: terza stella al piano ${c.day}.` : r.ok < c.target ? `Sfida: servono ${c.target} su ${total}, ne hai fatte ${r.ok}.` : `Sfida: tutto giusto ma in ${fmtSec(ms / 1000)}; il limite è ${fmtSec(c.maxMs / 1000)}.`}</p>`;
+  }
+  K.startChess = startChess;
   function chessView() {
     const r = ui.run;
     const title = E.CHESS_DRILLS[r.drill];
-    const head = `${backBar("← Esci")}<div class="mem-run-head"><span class="mem-kicker">${esc(title)}</span><span>${r.phase === "play" ? `${Math.min(r.idx + 1, r.items.length)}/${r.items.length}` : ""}</span></div>`;
+    const head = `${backBar("← Esci")}<div class="mem-run-head"><span class="mem-kicker">${esc(title)}</span><span>${r.phase === "play" ? `${Math.min(r.idx + 1, r.items.length)}/${r.items.length}${r.challenge && r.challenge.maxMs ? ` · ${fmtSec((Date.now() - r.start) / 1000)} di ${fmtSec(r.challenge.maxMs / 1000)}` : ""}` : ""}</span></div>`;
     if (r.phase === "done") {
       const total = r.drill === "flash" ? r.qs.length : r.items.length;
       const c = lab().chessDrills[r.drill];
       return `${head}<article class="mem-card mem-result"><div class="mem-big"><strong>${r.ok}</strong><span>su ${total}</span></div><div>
         <h2 data-focus tabindex="-1">${r.ok === total ? "Tutto giusto" : r.ok >= total * 0.8 ? "Bene" : "Da rifare"}</h2>
         <p>${r.drill === "flash" ? `Hai guardato la posizione per ${r.secs} secondi.` : `In ${fmtSec((r.end - r.start) / 1000)}.`}${c && c.best ? ` Record: ${Math.round(c.best.pct * 100)}%${r.drill !== "flash" && c.best.ms ? ` in ${fmtSec(c.best.ms / 1000)}` : ""}.` : ""}</p>
+        ${chessChallengeLine(r, total, r.drill === "flash" ? 0 : r.end - r.start)}
         ${r.drill === "flash" ? `${boardSvg(r.fen, { label: "La posizione" })}<ol class="mem-flash-check">${r.qs.map((q, i) => `<li class="${r.answers[i] && r.answers[i].ok ? "ok" : "ko"}">${esc(q.prompt)} <b>${esc(q.answer)}</b>${r.answers[i] && !r.answers[i].ok ? ` <em>tu: ${esc(r.answers[i].value || "—")}</em>` : ""}</li>`).join("")}</ol>` : ""}
-        <div class="mem-actions"><button type="button" class="primary-action" data-m="chess-go" data-drill="${r.drill}" data-autofocus>Un altro giro</button><button type="button" class="ghost-action" data-m="exit">${r.source === "course" ? "Torna al percorso" : "Torna"}</button></div></div></article>`;
+        <div class="mem-actions">${r.challenge ? `<button type="button" class="primary-action" data-m="ch-go" data-day="${r.challenge.day}" data-autofocus>Riprova la sfida</button>` : `<button type="button" class="primary-action" data-m="chess-go" data-drill="${r.drill}" data-autofocus>Un altro giro</button>`}<button type="button" class="ghost-action" data-m="exit">${r.source === "course" ? "Torna al percorso" : "Torna"}</button></div></div></article>`;
     }
     if (r.drill === "colors") {
       const it = r.items[r.idx];
@@ -817,7 +856,7 @@
     // posizione lampo
     if (r.phase === "intro") {
       return `${head}<article class="mem-card"><h2 data-focus tabindex="-1">Posizione lampo</h2><p>Vedrai una posizione da una lezione di scacchi per pochi secondi; poi ${r.qs.length} domande: cosa c'era in una casa, dov'era il re, quanti pedoni. I giocatori forti la ricordano per schemi (arrocco, catene di pedoni, pezzi che si difendono), non pezzo per pezzo.</p>
-        <div class="mem-seg" role="group" aria-label="Secondi">${[20, 10, 5].map((n) => `<button type="button" data-m="flash-secs" data-v="${n}" aria-pressed="${r.secs === n}">${n} secondi</button>`).join("")}</div>
+        ${r.challenge ? `<p class="mem-tip">Sfida del piano ${r.challenge.day}: ${r.challenge.target} risposte giuste guardando ${r.secs} secondi.</p>` : `<div class="mem-seg" role="group" aria-label="Secondi">${[20, 10, 5].map((n) => `<button type="button" data-m="flash-secs" data-v="${n}" aria-pressed="${r.secs === n}">${n} secondi</button>`).join("")}</div>`}
         <div class="mem-actions"><button type="button" class="primary-action" data-m="flash-go" data-autofocus>Comincia</button></div></article>`;
     }
     if (r.phase === "show") return `${head}<article class="mem-card mem-run"><div class="mem-run-timer">${K.stageTimer(Math.round((r.deadline - Date.now()) / 1000), r.secs)}</div>${boardSvg(r.fen, { label: "Posizione da ricordare" })}</article>`;
@@ -838,7 +877,7 @@
     if (r.idx >= r.items.length) {
       r.end = Date.now();
       r.phase = "done";
-      E.recordChess(lab(), r.drill, r.ok, r.items.length, r.end - r.start);
+      E.recordChess(lab(), r.drill, r.ok, r.items.length, r.end - r.start, Date.now(), chessExtra(r));
       save();
       render(true);
       return;
@@ -881,7 +920,7 @@
   K.actions["flash-next"] = () => {
     const r = ui.run;
     r.idx += 1;
-    if (r.idx >= r.qs.length) { r.phase = "done"; E.recordChess(lab(), "flash", r.ok, r.qs.length, r.secs * 1000); save(); }
+    if (r.idx >= r.qs.length) { r.phase = "done"; E.recordChess(lab(), "flash", r.ok, r.qs.length, r.secs * 1000, Date.now(), chessExtra(r)); save(); }
     render(true);
   };
   K.soft.push("chess-color", "chess-knight", "flash-secs");

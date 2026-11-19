@@ -482,6 +482,8 @@
     const entry = { t: now, level: round.level, score: result.score, max: result.max, correct: result.correct, pass: result.pass };
     if (num(memUsed)) entry.mem = Math.round(memUsed);
     const meta = { n: round.n, mem: round.mem, score: result.score, max: result.max };
+    // sfida della Torre: il piano e il punteggio che serve
+    if (isObj(round.challenge) && num(round.challenge.day) && num(round.challenge.target)) { meta.ch = round.challenge.day; meta.tg = round.challenge.target; }
     if (round.custom) {
       entry.custom = true;
       entry.n = round.n;
@@ -505,8 +507,9 @@
       unlocked = true;
     }
     if (round.key === "words") remember(lab, round.items);
-    logActivity(lab, `dis:${round.key}`, now, meta);
-    return { entry, unlocked, nextLevel: unlocked ? round.level + 1 : null, record: !num(prevBest) || result.score > prevBest };
+    const record = !num(prevBest) || result.score > prevBest;
+    logActivity(lab, `dis:${round.key}`, now, record && result.score > 0 ? { ...meta, rec: 1 } : meta);
+    return { entry, unlocked, nextLevel: unlocked ? round.level + 1 : null, record };
   }
   function setLevel(lab, key, level) {
     const dis = lab.disciplines[key];
@@ -556,7 +559,9 @@
       if (!num(p.best) || result.correct > p.best) p.best = result.correct;
     }
     remember(lab, round.items);
-    logActivity(lab, "palace", now, { n: round.items.length, per: round.per || 1, score: result.correct, max: result.max });
+    const meta = { n: round.items.length, per: round.per || 1, score: result.correct, max: result.max };
+    if (isObj(round.challenge) && num(round.challenge.day) && num(round.challenge.target)) { meta.ch = round.challenge.day; meta.tg = round.challenge.target; }
+    logActivity(lab, "palace", now, meta);
   }
 
   /* ------------------------------------------------------------ sistema fonetico */
@@ -611,7 +616,7 @@
     st.last = now;
     if (ok) st.ok += 1; else st.ko += 1;
     lab.major.items[code] = st;
-    logActivity(lab, "major", now);
+    logActivity(lab, "major", now, { ok: ok ? 1 : 0 });
     return st;
   }
   function majorLearned(lab) {
@@ -935,7 +940,7 @@
     return { correct, total: n, extra, pct: n ? Math.round((correct / n) * 100) : 0, words: target.map((w, k) => ({ w, ok: ok[k] })) };
   }
   // mode: read | initials | mask25 | mask50 | mask75 | full. Il richiamo completo entra nel ripasso.
-  function recordTextRun(lab, id, mode, pct, now = Date.now()) {
+  function recordTextRun(lab, id, mode, pct, now = Date.now(), extra = null) {
     const t = lab.texts.find((x) => x.id === id);
     if (!t) return null;
     t.runs.push({ t: now, mode, pct: clamp(Math.round(pct), 0, 100) });
@@ -947,7 +952,7 @@
       t.st = res.state;
       logReview(lab, res, grade, now, "text");
     }
-    logActivity(lab, "text", now, { mode, pct: Math.round(pct) });
+    logActivity(lab, "text", now, { mode, pct: Math.round(pct), ...(isObj(extra) ? extra : {}) });
     return { grade, st: t.st };
   }
   function textBest(t) {
@@ -1056,20 +1061,23 @@
     qs.push({ kind: "count", prompt: "Quanti pedoni aveva il Bianco?", answer: String(occupied.filter((sq) => board[sq] === "P").length) });
     return qs;
   }
-  function recordChess(lab, drill, correct, total, ms, now = Date.now()) {
+  // extra: dati in piu' per il registro (per esempio la sfida della Torre: { ch, tg, maxMs })
+  function recordChess(lab, drill, correct, total, ms, now = Date.now(), extra = null) {
     const c = lab.chessDrills[drill] || (lab.chessDrills[drill] = { runs: [], best: null });
     c.runs.push({ t: now, correct, total, ms: Math.round(ms || 0) });
     c.runs = c.runs.slice(-60);
     const pct = total ? correct / total : 0;
     if (!c.best || pct > c.best.pct || (pct === c.best.pct && ms < c.best.ms)) c.best = { pct, ms: Math.round(ms || 0), t: now };
-    logActivity(lab, `chess:${drill}`, now, { score: correct, max: total });
+    logActivity(lab, `chess:${drill}`, now, { score: correct, max: total, ms: Math.round(ms || 0), ...(isObj(extra) ? extra : {}) });
     return c;
   }
 
   /* ------------------------------------------------------------ ripassi: registro e ritenzione */
   function logReview(lab, res, grade, now, kind) {
-    lab.revlog.push({ t: now, g: grade, c: res.counted ? 1 : 0, r: num(res.r) ? Math.round(res.r * 1000) / 1000 : null, k: kind });
+    const e = { t: now, g: grade, c: res.counted ? 1 : 0, r: num(res.r) ? Math.round(res.r * 1000) / 1000 : null, k: kind };
+    lab.revlog.push(e);
     lab.revlog = lab.revlog.slice(-3000);
+    runHooks(HOOKS.review, lab, e);
   }
   // Ritenzione vera degli ultimi 30 giorni: ripassi di schede gia' imparate (non nuove, non lo stesso giorno).
   function trueRetention(lab, now = Date.now(), days = 30) {
@@ -1233,6 +1241,14 @@
   function remember(lab, words) {
     lab.recentWords = words.concat(lab.recentWords || []).filter((w, i, a) => a.indexOf(w) === i).slice(0, 120);
   }
+  // agganci per memory/game.js (punti, stelle, missioni): chiamati dopo ogni registrazione.
+  // Un errore del gioco non deve mai fermare la memoria.
+  const HOOKS = { ensure: [], log: [], review: [] };
+  function runHooks(list, ...args) {
+    list.forEach((fn) => {
+      try { fn(...args); } catch (error) { if (typeof console !== "undefined") console.warn("Memoria, gioco:", error); }
+    });
+  }
   function logActivity(lab, kind, now = Date.now(), meta = null) {
     const key = dayKey(now);
     if (!lab.days.includes(key)) lab.days.push(key);
@@ -1241,13 +1257,15 @@
     if (isObj(meta)) e.m = meta;
     lab.log.push(e);
     lab.log = lab.log.slice(-600);
+    runHooks(HOOKS.log, lab, e);
   }
   function doneToday(lab, kindPrefix, now = Date.now()) {
     const key = dayKey(now);
     return lab.log.some((e) => dayKey(e.t) === key && e.kind.startsWith(kindPrefix));
   }
   function streak(lab, now = Date.now()) {
-    const set = new Set(lab.days);
+    // i giorni salvati da uno scudo (memory/game.js) contano come fatti
+    const set = new Set(lab.days.concat(lab.game && Array.isArray(lab.game.covered) ? lab.game.covered : []));
     let n = 0;
     let t = startOfDay(now);
     if (!set.has(dayKey(t))) t = addDays(t, -1); // oggi non ancora fatto: conta da ieri
@@ -1500,6 +1518,7 @@
       const c = o.chessDrills[k];
       if (isObj(c)) lab.chessDrills[k] = { runs: Array.isArray(c.runs) ? c.runs.filter((r) => isObj(r) && num(r.t) && num(r.correct) && num(r.total)).slice(-60) : [], best: isObj(c.best) && num(c.best.pct) ? { pct: c.best.pct, ms: num(c.best.ms) ? c.best.ms : 0, t: num(c.best.t) ? c.best.t : 0 } : null };
     });
+    runHooks(HOOKS.ensure, lab, o);
     return lab;
   }
 
@@ -1524,7 +1543,7 @@
     isLight, knightDistance, colorsRound, knightRound, parseFen, pieceLabel, flashQuestions, recordChess, squareName,
     trueRetention, reviewSummary, logReview,
     COURSE, CONTENT, courseStart, courseActive, courseStatus, courseManual, courseReset, courseReport, taskInfo, taskDone, lessonById, CHESS_DRILLS, LIFE_DRILLS,
-    logActivity, doneToday, streak, plan, profile, trend, recordTest, lastTest,
+    hooks: HOOKS, logActivity, doneToday, streak, plan, profile, trend, recordTest, lastTest,
     ensure
   };
 });

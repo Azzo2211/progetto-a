@@ -165,8 +165,11 @@
     const box = $("memChip");
     if (!box) return;
     const l = lab();
-    // il percorso chiude e apre le giornate da solo: salva subito (una giornata chiusa la sera non va persa)
-    if (E.courseStatus(l, Date.now(), true).changed && typeof saveState === "function") saveState();
+    // il percorso chiude e apre le giornate da solo, il gioco assegna stelle e missioni:
+    // salva subito (una giornata chiusa la sera non va persa)
+    let changed = E.courseStatus(l, Date.now(), true).changed;
+    if (KIT.sync && KIT.sync(l)) changed = true;
+    if (changed && typeof saveState === "function") saveState();
     const steps = E.plan(l);
     const left = steps.filter((s) => !s.done).length;
     const st = E.streak(l);
@@ -182,6 +185,7 @@
     const done = steps.filter((s) => s.done).length;
     return `
       <div class="mem-today">
+        ${KIT.todayTop ? KIT.todayTop(l) : ""}
         <section class="mem-plan">
           <div class="mem-plan-head">
             <h2 data-focus tabindex="-1">Programma di oggi</h2>
@@ -198,6 +202,7 @@
                 <button type="button" class="${s.done ? "ghost-action" : "primary-action"} small" data-m="go" data-go='${esc(JSON.stringify(s.go))}'>${s.done ? "Rifai" : "Inizia"}<span class="mem-sr">: ${esc(s.title)}</span></button>
               </li>`).join("")}
           </ol>
+          ${KIT.todayAfter ? KIT.todayAfter(l) : ""}
         </section>
         <aside class="mem-side">
           <h3>Profilo</h3>
@@ -641,6 +646,7 @@
     return round.recall;
   }
   function roundTitle(round) {
+    if (round.challenge && KIT.challengeTitle) { const t = KIT.challengeTitle(round); if (t) return t; }
     if (round.key === "palace") return round.per === 2 ? "Parole nel palazzo, due per luogo" : "Parole nel palazzo";
     if (round.life === "phone") return "Numero di telefono";
     if (round.life === "shop") return "Lista della spesa";
@@ -655,6 +661,7 @@
       const n = round.items.length;
       const what = round.key === "palace" ? (round.per === 2 ? `${n} parole, due per luogo del tuo palazzo (${round.loci.length} luoghi)` : `${n} parole, una per luogo del tuo palazzo`) : round.life === "phone" ? "un numero di telefono di 10 cifre" : round.life === "shop" ? `${n} cose da comprare` : `${n} ${E.DISCIPLINES[round.key].unit}`;
       return `${head}<article class="mem-card"><h2 data-focus tabindex="-1">${esc(roundTitle(round))}</h2>
+        ${KIT.roundIntro ? KIT.roundIntro(round) : ""}
         <p>Hai <b>${fmtSec(memSeconds(round))}</b> per memorizzare ${what}; se finisci prima premi «Ho finito». Poi <b>${fmtSec(recallSeconds(round))}</b> per rispondere.</p>
         ${round.life === "phone" ? "<p class=\"mem-small\">Suggerimento: cinque coppie, cinque immagini del sistema fonetico, una scena sola con la persona che chiami.</p>" : round.life === "shop" ? "<p class=\"mem-small\">Suggerimento: un palazzo corto (la strada dall'ingresso alla cucina), una cosa per luogo, esagerata.</p>" : round.key === "numbers" ? "<p class=\"mem-small\">Suggerimento: a coppie con il sistema fonetico, una o due coppie per luogo del palazzo.</p>" : round.key === "words" ? "<p class=\"mem-small\">Suggerimento: una storia o il palazzo, una parola per luogo.</p>" : round.key === "cards" ? "<p class=\"mem-small\">Frecce o tasti ‹ › per scorrere le carte. Suggerimento: carta → numero → immagine del fonetico, nel palazzo.</p>" : round.key === "faces" ? "<p class=\"mem-small\">Suggerimento: un tratto del viso + un'immagine del nome.</p>" : round.key === "images" ? "<p class=\"mem-small\">Suggerimento: a ogni forma la prima cosa che ti ricorda, poi una storia per ogni riga di cinque.</p>" : round.key === "dates" ? "<p class=\"mem-small\">Suggerimento: l'evento diventa una scena, con dentro l'immagine delle ultime due cifre dell'anno e un dettaglio per il secolo.</p>" : round.per === 2 ? "<p class=\"mem-small\">Due parole per luogo: la prima a sinistra, la seconda a destra, che fanno qualcosa insieme.</p>" : "<p class=\"mem-small\">Ogni parola compare insieme al suo luogo: mettila lì con un'immagine esagerata.</p>"}
         <div class="mem-actions"><button type="button" class="primary-action" data-m="round-go" data-autofocus>Comincia</button></div></article>`;
@@ -841,6 +848,7 @@
     return `<article class="mem-card mem-result"><div class="mem-big"><strong>${score}</strong><span>su ${res.max}</span></div><div>
       <h2 data-focus tabindex="-1">${round.custom || round.key === "palace" ? (res.correct === res.max ? "Tutto giusto" : score >= res.max * 0.9 ? "Ottimo turno" : score >= res.max * 0.6 ? "Buon turno" : "Da rifare") : res.pass ? "Livello superato" : score >= res.max * 0.6 ? "Buon turno" : "Da rifare"}</h2>
       <p>${res.correct} giuste su ${res.max}${r.memUsed ? ` · memorizzate in ${fmtSec(r.memUsed)}` : ""}.${r.rec && r.rec.record && score > 0 ? " Nuovo record a questo livello." : ""}${unlocked ? ` Hai sbloccato il livello ${r.rec.nextLevel}: ${d.levels[r.rec.nextLevel - 1].n} ${d.unit} in ${d.levels[r.rec.nextLevel - 1].mem} secondi.` : ""}</p>
+      ${KIT.resultExtra ? KIT.resultExtra(round, res, score) : ""}
       ${benchmark(round)}
       <div class="mem-actions">${actions}</div></div></article>
       <section class="mem-card mem-check"><h3>Le risposte</h3>${detail}</section>`;
@@ -928,6 +936,7 @@
       else if (ui.run.type === "major") html = majorView();
       else if (KIT.views[ui.run.type]) html = KIT.views[ui.run.type]();
       else html = roundView();
+      if (KIT.runTop) html = KIT.runTop() + html;
     } else if (KIT.tabs[ui.tab]) html = KIT.tabs[ui.tab]();
     else if (ui.tab === "measure") html = measureView();
     else if (ui.tab === "techniques") html = techniquesView();
@@ -944,6 +953,7 @@
       const top = panel.getBoundingClientRect().top;
       if (top < 0) window.scrollTo({ top: Math.max(0, window.scrollY + top - 12), behavior: "auto" });
     }
+    if (KIT.afterRender) KIT.afterRender();
   }
 
   function setTab(tab) {
@@ -1049,8 +1059,11 @@
       case "again": {
         const old = ui.run && ui.run.round;
         if (!old) break;
-        if (old.key === "palace") { const nr = E.makePalaceRound(l, old.palaceId, old.items.length, Date.now(), old.per || 1); if (nr) startRound(nr, ui.run.source); break; }
-        startRound(E.makeRound(old.key, old.level || 1, Date.now(), l, old.custom ? { n: old.n, mem: old.mem, recall: old.recall, list: old.life === "shop" ? "groceries" : null, life: old.life } : null), ui.run.source);
+        // un nuovo turno della stessa sfida della Torre resta una sfida
+        if (old.key === "palace") { const nr = E.makePalaceRound(l, old.palaceId, old.items.length, Date.now(), old.per || 1); if (nr) { if (old.challenge) nr.challenge = old.challenge; startRound(nr, ui.run.source); } break; }
+        const nr = E.makeRound(old.key, old.level || 1, Date.now(), l, old.custom ? { n: old.n, mem: old.mem, recall: old.recall, list: old.life === "shop" ? "groceries" : null, life: old.life } : null);
+        if (old.challenge) nr.challenge = old.challenge;
+        startRound(nr, ui.run.source);
         break;
       }
       case "img-pick": {

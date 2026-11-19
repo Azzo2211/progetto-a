@@ -585,7 +585,8 @@ details.mem-lesson > summary strong { font-size: 1.08rem; }
 .mem-blank.open { background: rgba(91, 63, 209, 0.06); border-bottom-color: transparent; }
 .mem-text.check span.ok { color: var(--ink); }
 .mem-text.check span.ko { color: var(--m-ko); background: var(--m-ko-soft); border-radius: 3px; padding: 0 2px; }
-.mem-textcard .mem-big { margin: 4px 0 12px; }
+.mem-textcard .mem-big { width: auto; min-width: 116px; height: auto; margin: 4px 0 12px; padding: 12px 18px; justify-items: start; }
+.mem-textcard .mem-big strong { font-size: 2.3rem; }
 
 /* ---------------------------------------------------------------- scacchi */
 .mem-chess-q { text-align: center; }
@@ -686,4 +687,175 @@ details.mem-lesson > summary strong { font-size: 1.08rem; }
   .mem-cardlist li { grid-template-columns: minmax(0, 1fr) auto; }
   .mem-cardlist small { grid-column: 1; grid-row: 2; }
   .mem-cardlist .ghost-action { grid-column: 2; grid-row: 1 / span 2; }
+}
+
+/* ================================================================ gioco: la Torre della Memoria (memory/ui-game.js) */
+
+/* ---------------------------------------------------------------- quadro di oggi */
+.mem-hud, .mem-missions { grid-column: 1 / -1; }
+.mem-hud {
+  display: grid; grid-template-columns: minmax(0, 2.2fr) repeat(4, minmax(0, 1fr)); gap: 1px;
+  border-radius: var(--radius-lg); overflow: hidden; color: var(--m-stage-ink);
+  background: rgba(255, 255, 255, 0.08); box-shadow: var(--shadow);
+}
+.mem-hud > div { display: grid; align-content: start; gap: 4px; min-width: 0; padding: 16px 18px; background: var(--m-stage); }
+.mem-hud > .mem-hud-main { background: radial-gradient(circle at 0% 0%, var(--m-stage-2), var(--m-stage) 80%); }
+.mem-hud .mem-kicker { color: #b9b0e4; }
+.mem-hud strong { font-size: 1.9rem; line-height: 1.05; font-weight: 760; font-stretch: 80%; color: var(--m-amber); font-variant-numeric: tabular-nums; }
+.mem-hud strong.word { font-size: 1.15rem; line-height: 1.2; font-stretch: 100%; color: #fff; }
+.mem-hud strong small { font-size: 0.9rem; font-weight: 600; color: #b9b0e4; font-stretch: 100%; }
+.mem-hud span:not(.mem-kicker) { font-size: 0.8rem; color: #c9c2e8; }
+.mem-hud-main strong { font-size: 3rem; }
+.mem-hud-main > span:not(.mem-kicker) { font-size: 0.86rem; max-width: 46ch; }
+.mem-meter { position: relative; height: 10px; margin-top: 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.12); }
+.mem-meter i { display: block; height: 100%; border-radius: 6px; background: var(--m-amber); }
+.mem-meter b { position: absolute; top: -4px; width: 2px; height: 18px; margin-left: -1px; border-radius: 1px; background: #fff; }
+.mem-xpbar { display: block; height: 6px; margin: 4px 0 2px; border-radius: 4px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+.mem-xpbar i { display: block; height: 100%; border-radius: 4px; background: var(--m-amber); }
+.mem-xpbar.time i { background: #8f86e8; }
+
+.mem-missions { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 14px 18px; box-shadow: var(--shadow); }
+.mem-missions-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; margin-bottom: 8px; }
+.mem-missions-head h3 { margin: 0; font-size: 1.02rem; }
+.mem-missions-head span { color: var(--muted); font-size: 0.84rem; }
+.mem-missions ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.mem-missions li { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-soft); }
+.mem-missions li div { display: grid; gap: 2px; min-width: 0; }
+.mem-missions li strong { font-size: 0.9rem; line-height: 1.3; }
+.mem-missions li div span { color: var(--muted); font-size: 0.8rem; }
+.mem-missions li > b { color: var(--m-violet); font-size: 0.84rem; font-variant-numeric: tabular-nums; }
+.mem-mcheck { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line-strong); color: #fff; font-weight: 760; font-size: 0.8rem; }
+.mem-missions li.done { background: var(--m-ok-soft); border-color: rgba(44, 122, 63, 0.3); }
+.mem-missions li.done .mem-mcheck { background: var(--m-ok); border-color: var(--m-ok); }
+.mem-missions li.done strong { color: var(--muted); }
+
+/* ---------------------------------------------------------------- allenamento extra */
+.mem-extra { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.mem-extra.mem-card { margin-top: 0; padding-top: 22px; border-top: 1px solid var(--line); }
+.mem-extra-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 14px; }
+.mem-extra-head h3 { margin: 0; font-size: 1.02rem; }
+.mem-extra-head .mem-field { margin: 0; font-size: 0.86rem; }
+.mem-extra > .mem-small { margin: 6px 0 4px; max-width: 70ch; }
+.mem-extra-list li.boss .mem-step-mark { border-color: var(--m-amber); background: var(--m-stage); color: var(--m-amber); }
+.mem-extra-list li.boss .mem-step-mark svg { width: 16px; height: 16px; fill: currentColor; }
+.mem-extra-more summary { cursor: pointer; width: fit-content; margin-top: 6px; color: var(--muted); font-size: 0.86rem; }
+
+/* ---------------------------------------------------------------- la Torre */
+.mem-tower { grid-column: 1 / -1; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.mem-tower-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 14px; margin-bottom: 10px; }
+.mem-tower-stats { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; color: var(--muted); font-size: 0.84rem; }
+.mem-tower-stats svg { width: 14px; height: 14px; fill: var(--m-amber); vertical-align: -2px; }
+.mem-tower-stats b { color: var(--ink); }
+.mem-zones { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mem-zone { display: grid; grid-template-columns: 170px auto; gap: 12px; align-items: center; justify-content: start; }
+.mem-zone-name { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mem-zone-name b { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 7px; background: var(--surface-soft); border: 1px solid var(--line); color: var(--muted); font-size: 0.78rem; }
+.mem-zone-name span { font-size: 0.84rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mem-zone.now .mem-zone-name b { background: var(--m-stage); border-color: var(--m-stage); color: var(--m-amber); }
+.mem-zone.now .mem-zone-name span { color: var(--ink); font-weight: 700; }
+.mem-zone.past .mem-zone-name b { background: var(--m-violet-soft); border-color: #c9bff2; color: var(--m-violet); }
+.mem-floors { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, 58px); gap: 6px; }
+.mem-floor {
+  display: grid; justify-items: center; align-content: center; gap: 3px; width: 100%; height: 52px; padding: 0;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface-soft); color: var(--muted);
+  font: inherit; font-weight: 760; font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.mem-floor > b { display: grid; place-items: center; height: 18px; font-size: 0.95rem; }
+.mem-floor > b svg { width: 18px; height: 18px; fill: currentColor; }
+.mem-floor.past { background: var(--m-stage); border-color: var(--m-stage); color: #fff; }
+.mem-floor.now { background: var(--surface); border: 2px solid var(--m-amber); color: var(--ink); box-shadow: 0 0 0 3px rgba(244, 183, 64, 0.22); }
+.mem-floor.locked { opacity: 0.62; }
+.mem-floor.boss.past, .mem-floor.boss.now { color: #ec8e7f; }
+.mem-floor.boss.won { color: var(--m-amber); }
+.mem-floor.sel { outline: 2px solid var(--m-violet); outline-offset: 2px; }
+.mem-floor:hover { border-color: var(--m-violet); }
+.mem-stars { display: flex; gap: 1px; height: 10px; }
+.mem-stars i { display: block; width: 10px; height: 10px; }
+.mem-stars svg { display: block; width: 10px; height: 10px; fill: rgba(127, 127, 150, 0.35); }
+.mem-floor.past .mem-stars svg { fill: rgba(255, 255, 255, 0.2); }
+.mem-stars i.on svg, .mem-floor.past .mem-stars i.on svg { fill: var(--m-amber); }
+
+/* stelle di un piano */
+.mem-starlist { list-style: none; margin: 6px 0 4px; padding: 0; display: grid; gap: 8px; }
+.mem-starlist li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-soft); }
+.mem-starlist li > i { display: grid; place-items: center; }
+.mem-starlist li > i svg { width: 24px; height: 24px; fill: none; stroke: var(--line-strong); stroke-width: 1.4; }
+.mem-starlist li.on > i svg { fill: var(--m-amber); stroke: #d99a1d; }
+.mem-starlist li div { display: grid; gap: 2px; min-width: 0; }
+.mem-starlist li div span { color: var(--muted); font-size: 0.86rem; }
+.mem-floor-detail .mem-lesson { margin-top: 12px; }
+.mem-floor-detail h3, .mem-floor-card h3 { margin-top: 2px; }
+
+/* guardiano */
+.mem-boss { margin: 12px 0 4px; padding: 16px 18px; border-radius: 14px; color: var(--m-stage-ink); background: radial-gradient(circle at 100% 0%, #3a1f3a, var(--m-stage) 70%); }
+.mem-boss-head { display: grid; gap: 2px; }
+.mem-boss .mem-kicker { color: #ec8e7f; }
+.mem-boss-head strong { font-size: 1.25rem; color: #fff; }
+.mem-hp { height: 10px; margin: 10px 0 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.mem-hp i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, #b84a3a, #e46a52); transition: width 0.5s ease; }
+.mem-boss p { margin: 0 0 6px; max-width: 62ch; }
+.mem-boss .mem-small { color: #c9c2e8; }
+.mem-boss .mem-actions { margin-top: 10px; }
+.mem-boss .ghost-action { background: transparent; color: #fff; border-color: rgba(255, 255, 255, 0.35); }
+.mem-boss.won { background: radial-gradient(circle at 100% 0%, #3d3313, var(--m-stage) 70%); }
+.mem-boss.won .mem-kicker { color: var(--m-amber); }
+.mem-boss.mini { margin: 4px 0 12px; }
+
+/* ---------------------------------------------------------------- durante gli esercizi */
+.mem-runtop { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 0 0 10px; padding: 8px 12px; border-radius: 10px; background: var(--m-stage); color: #c9c2e8; font-size: 0.8rem; }
+.mem-runtop-lv { color: #fff; font-weight: 700; }
+.mem-runtop .mem-xpbar { flex: 1 1 80px; max-width: 220px; margin: 0; }
+.mem-runtop b { color: rgba(244, 183, 64, 0.45); font-variant-numeric: tabular-nums; }
+.mem-runtop b.on { color: var(--m-amber); }
+.mem-runtop em { font-style: normal; font-weight: 700; color: #9fe0b0; }
+.mem-runtop-ch { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; color: #fff; font-weight: 700; }
+.mem-runtop-ch svg { width: 14px; height: 14px; fill: var(--m-amber); }
+.mem-runtop-ch.boss { color: #ec8e7f; }
+
+/* ---------------------------------------------------------------- avvisi */
+.mem-toasts { position: fixed; left: 50%; top: max(12px, env(safe-area-inset-top)); z-index: 60; display: grid; gap: 8px; width: min(420px, calc(100vw - 32px)); transform: translateX(-50%); pointer-events: none; }
+.mem-toast {
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 14px;
+  background: var(--m-stage); color: #fff; box-shadow: 0 14px 34px rgba(13, 10, 30, 0.35);
+  opacity: 0; transform: translateY(-12px); transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.mem-toast.in { opacity: 1; transform: none; }
+.mem-toast > svg { flex: none; width: 26px; height: 26px; fill: var(--m-amber); }
+.mem-toast div { display: grid; gap: 2px; }
+.mem-toast strong { font-size: 0.98rem; }
+.mem-toast span { color: #c9c2e8; font-size: 0.84rem; }
+.mem-toast.level, .mem-toast.boss { border: 1px solid rgba(244, 183, 64, 0.55); }
+.mem-toast.level strong, .mem-toast.boss strong { color: var(--m-amber); font-size: 1.08rem; }
+.mem-toast.shield strong { color: #9fe0b0; }
+
+/* ---------------------------------------------------------------- progressi del gioco */
+.mem-xpdays { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 4px; align-items: end; height: 92px; margin: 10px 0 4px; max-width: 560px; }
+.mem-xpdays div { display: grid; grid-template-rows: 1fr auto; gap: 3px; height: 100%; }
+.mem-xpdays i { align-self: end; display: block; min-height: 2px; border-radius: 4px 4px 0 0; background: var(--m-violet); }
+.mem-xpdays span { font-size: 0.68rem; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 900px) {
+  .mem-hud { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mem-hud > .mem-hud-main { grid-column: 1 / -1; }
+  .mem-missions ul { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .mem-hud > div { padding: 12px 14px; }
+  .mem-hud-main strong { font-size: 2.5rem; }
+  .mem-hud strong { font-size: 1.6rem; }
+  .mem-missions { padding: 12px 14px; }
+  .mem-zone { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .mem-floors { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .mem-floor { height: 46px; border-radius: 8px; }
+  .mem-floor > b { font-size: 0.86rem; }
+  .mem-stars i, .mem-stars svg { width: 9px; height: 9px; }
+  .mem-stars { height: 9px; }
+  .mem-starlist li { grid-template-columns: 24px minmax(0, 1fr); }
+  .mem-starlist li > button { grid-column: 2; justify-self: start; }
+  .mem-boss { padding: 14px; }
+  .mem-runtop-ch { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mem-toast { transition: opacity 0.2s linear; transform: none; }
+  .mem-hp i { transition: none; }
 }
