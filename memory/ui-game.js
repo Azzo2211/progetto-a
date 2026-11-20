@@ -74,7 +74,7 @@
       </li>`;
     return `<div class="mem-extra ${where === "course" ? "mem-card" : ""}">
       <div class="mem-extra-head"><h3>Allenamento extra</h3><label class="mem-field mem-inline">Il tuo tempo al giorno <select id="memMinutes">${G.MINUTES.map((m) => `<option value="${m}" ${m === st.budget ? "selected" : ""}>${m} minuti</option>`).join("")}</select></label></div>
-      <p class="mem-small">${left ? `Oggi ${st.minutes} di ${st.budget} minuti. Dopo i compiti del piano, ecco cosa ti fa migliorare di più adesso.` : `Hai fatto i tuoi ${st.budget} minuti. Se vuoi continuare, ecco da dove.`}${cs.started && cs.active ? " Il piano nuovo arriva domani: tra una tecnica e l'altra serve il sonno, intanto qui alleni quelle che hai." : ""}</p>
+      <p class="mem-small">${left ? `Oggi ${st.minutes} di ${st.budget} minuti. Dopo i compiti del piano, ecco cosa ti fa migliorare di più adesso.` : `Hai fatto i tuoi ${st.budget} minuti. Se vuoi continuare, ecco da dove.`}${cs.started && cs.active ? ` Il piano nuovo arriva ${cs.waiting && K.opensLine ? K.opensLine(cs) : "domani"}: tra una tecnica e l'altra serve il sonno, intanto qui alleni quelle che hai.` : ""}</p>
       <ol class="mem-steps mem-extra-list">${shown.map(row).join("")}</ol>
       ${more.length ? `<details class="mem-extra-more"><summary>Altro (${more.length})</summary><ol class="mem-steps mem-extra-list">${more.map(row).join("")}</ol></details>` : ""}
     </div>`;

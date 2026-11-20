@@ -15,6 +15,28 @@
   if (!K || !S || !C || !CO) return;
   const { E, esc, plural, num, dateShort, fmtSec, lab, save, announce, render, backBar, ui } = K;
 
+  // «a mezzanotte, tra 2 h 41 min»: il numero scorre da solo (vedi il timer in fondo)
+  function opensLine(cs) {
+    if (!cs.opensAt) return "domani";
+    return `a mezzanotte, tra <span data-mem-opens="${cs.opensAt}">${E.opensIn(cs.opensAt - Date.now())}</span>`;
+  }
+  K.opensLine = opensLine;
+  setInterval(() => {
+    const els = document.querySelectorAll("#memory [data-mem-opens]");
+    if (!els.length) return;
+    let open = false;
+    els.forEach((el) => {
+      const left = Number(el.dataset.memOpens) - Date.now();
+      if (left <= 0) open = true;
+      else el.textContent = E.opensIn(left);
+    });
+    // mezzanotte passata: ridisegna, così il piano nuovo si apre da solo
+    if (open) {
+      if (E.courseStatus(lab(), Date.now(), true).changed) save();
+      render(false, true);
+    }
+  }, 1000);
+
   const KIND_ORDER = ["qa", "vocab", "people", "piece"];
   // quando torna una scheda (o un testo): «tra 10 min», «domani», «tra 3 giorni»...
   function dueLabel(due) {
@@ -112,7 +134,7 @@
         ${K.towerMap ? K.towerMap(l, cs) : `<ol class="mem-week-strip" aria-label="Le sei settimane">${CO.WEEKS.map((w) => `<li class="${w.n < cs.week.n ? "past" : w.n === cs.week.n ? "now" : ""}" ${w.n === cs.week.n ? 'aria-current="step"' : ""}><span>${w.n}</span><em>${esc(w.title)}</em></li>`).join("")}</ol>`}
       </section>
       ${K.floorDetail ? K.floorDetail(l, cs) : ""}
-      ${cs.waiting ? `<div class="mem-alert ready"><strong>Piano completato</strong><span>${cs.day < CO.LENGTH ? `Il piano ${cs.day + 1} si apre domani. Stasera dormi: è lì che i ricordi di oggi si fissano. Se hai ancora tempo, l'allenamento extra qui sotto ti fa salire di più.` : ""}</span></div>${K.extraList ? K.extraList(l, "course") : ""}` : ""}
+      ${cs.waiting ? `<div class="mem-alert ready"><strong>Piano completato</strong><span>${cs.day < CO.LENGTH ? `Il piano ${cs.day + 1} si apre ${opensLine(cs)}. Stasera dormi: è lì che i ricordi di oggi si fissano. Se hai ancora tempo, l'allenamento extra qui sotto ti fa salire di più.` : ""}</span></div>${K.extraList ? K.extraList(l, "course") : ""}` : ""}
       <section class="mem-card">
         <h3>I compiti di oggi</h3>
         ${def.tip ? `<p class="mem-tip">${esc(def.tip)}</p>` : ""}
@@ -137,7 +159,7 @@
   K.todayExtra = (l) => {
     const cs = E.courseStatus(l, Date.now(), false);
     if (!cs.started || !cs.active) return "";
-    return `<button type="button" class="mem-course-banner" data-m="go-tab" data-tab="course"><span class="mem-kicker">Percorso · settimana ${cs.week.n}</span><strong>Giorno ${cs.day} di ${CO.LENGTH}: ${esc(cs.def.title)}</strong><span>${cs.waiting ? "Fatto: il prossimo si apre domani" : cs.lesson ? `Lezione: ${esc(cs.lesson.title)}` : "Apri la giornata"}</span></button>`;
+    return `<button type="button" class="mem-course-banner" data-m="go-tab" data-tab="course"><span class="mem-kicker">Percorso · settimana ${cs.week.n}</span><strong>Giorno ${cs.day} di ${CO.LENGTH}: ${esc(cs.def.title)}</strong><span>${cs.waiting ? `Fatto: il prossimo si apre ${opensLine(cs)}` : cs.lesson ? `Lezione: ${esc(cs.lesson.title)}` : "Apri la giornata"}</span></button>`;
   };
 
   function courseTask(id) {
