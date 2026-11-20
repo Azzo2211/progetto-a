@@ -282,6 +282,11 @@ test("Percorso: una giornata al giorno, compiti riconosciuti da soli, giorno dop
   cs = E.courseStatus(lab, T0 + 11 * 60000, true);
   assert.ok(cs.complete && cs.waiting && cs.day === 1 && cs.changed, "finita: aspetta domani");
   assert.ok(lab.course.finished[1]);
+  // il timer: il prossimo piano si apre alla mezzanotte dopo il giorno in cui hai finito
+  assert.strictEqual(cs.opensAt, E.addDays(lab.course.finished[1], 1));
+  assert.strictEqual(E.opensIn(2 * 3600000 + 41 * 60000), "2 h 41 min");
+  assert.strictEqual(E.opensIn(12 * 60000), "12 min");
+  assert.strictEqual(E.opensIn(40000), "40 s");
   assert.strictEqual(E.courseStatus(lab, T0 + 12 * 60000, true).day, 1, "stesso giorno: resta il giorno 1");
   // piano del giorno: giornata fatta
   assert.strictEqual(E.plan(lab, T0 + 13 * 60000)[0].id, "course-wait");

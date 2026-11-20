@@ -59,6 +59,14 @@
     d.setHours(0, 0, 0, 0);
     return d.getTime();
   }
+  // tempo che manca, per il timer del prossimo piano: «2 h 41 min», «12 min», «40 s»
+  function opensIn(ms) {
+    const s = Math.max(0, Math.ceil(ms / 1000));
+    if (s < 60) return `${s} s`;
+    const m = Math.ceil(s / 60);
+    if (m < 60) return `${m} min`;
+    return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")} min`;
+  }
   function addDays(t, n) {
     const d = new Date(startOfDay(t));
     d.setDate(d.getDate() + n);
@@ -1195,10 +1203,12 @@
       }
     }
     const waiting = !num(c.done) && num(c.finished[c.day]);
+    // il prossimo piano si apre alla mezzanotte dopo il giorno in cui hai finito questo
+    const opensAt = waiting && c.day < COURSE.LENGTH ? addDays(c.finished[c.day], 1) : null;
     const follow = c.start + COURSE.FOLLOW_UP_DAYS * DAY;
     return {
       started: true, active: !num(c.done), done: num(c.done), day: c.day, week: COURSE.WEEKS[Math.ceil(c.day / 7) - 1],
-      def: cur.def, tasks: cur.tasks, complete: cur.complete, waiting, changed,
+      def: cur.def, tasks: cur.tasks, complete: cur.complete, waiting, opensAt, changed,
       lesson: cur.def.lesson ? lessonById(cur.def.lesson) : null,
       followUpAt: follow, followUpDue: num(c.done) && now >= follow
     };
@@ -1291,7 +1301,7 @@
     // percorso in corso: la giornata del percorso (i compiti facoltativi restano nel percorso)
     if (cs.started && cs.active) {
       if (cs.waiting) {
-        steps.push({ id: "course-wait", title: `Percorso: giorno ${cs.day} completato`, detail: cs.day < COURSE.LENGTH ? `Il giorno ${cs.day + 1} si apre domani: tra una giornata e l'altra serve il sonno.` : "Percorso finito.", minutes: 0, done: true, go: { tab: "course" } });
+        steps.push({ id: "course-wait", title: `Percorso: giorno ${cs.day} completato`, detail: cs.day < COURSE.LENGTH ? `Il giorno ${cs.day + 1} si apre a mezzanotte${cs.opensAt ? ` (tra ${opensIn(cs.opensAt - now)})` : ""}: tra una giornata e l'altra serve il sonno.` : "Percorso finito.", minutes: 0, done: true, go: { tab: "course" } });
         const rv = reviewStep(lab, now);
         if (rv) steps.push(rv);
         return steps;
@@ -1529,7 +1539,7 @@
   return {
     VERSION, DAY, NORMS, SPAN_TESTS, WORD_TEST, DISCIPLINES, PASS_SHARE, DECK, SUITS, RANKS, MAJOR, MAJOR_INTERVALS, MAJOR_NEW_PER_DAY, ROTATION,
     get CORSI() { return CORSI; }, setCorsi,
-    rng, shuffle, clean, sameWord, normCdf, dayKey, addDays, startOfDay,
+    rng, shuffle, clean, sameWord, normCdf, dayKey, addDays, startOfDay, opensIn,
     compare, zLabel, normRef, BENCH, BENCH_URL, BENCH_URLS,
     makeSpanTest, spanNext, spanAnswer, spanSequence,
     makeWordTest, wordStage, wordAnswer, scoreFree, startDelayed, delayedStatus, finishDelayed, skipDelayed,
