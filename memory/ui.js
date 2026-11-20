@@ -557,8 +557,8 @@
     if (r.idx >= r.queue.length) { r.q = null; render(true); return; }
     const code = r.queue[r.idx];
     // le immagini nuove si presentano prima (scheda), poi si chiedono
-    if (r.fresh.has(code) && !r.introduced) { r.introduced = code; r.q = { kind: "intro", code }; render(true); return; }
-    r.introduced = null;
+    // (ogni immagine nuova si presenta, anche quando ne arrivano due di fila)
+    if (r.fresh.has(code) && r.introduced !== code) { r.introduced = code; r.q = { kind: "intro", code }; render(true); return; }
     r.q = E.majorQuestion(code, Date.now() + r.idx);
     r.answered = null;
     render(true);
